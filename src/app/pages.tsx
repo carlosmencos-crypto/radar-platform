@@ -1,11 +1,25 @@
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { StatusBadge } from "../components/StatusBadge";
+import { departments, findDepartment } from "../data/departments";
 import { findMunicipality, municipalities } from "../data/municipalities";
 
 const formatNumber = (value?: number) =>
   value ? new Intl.NumberFormat("es-GT").format(value) : "Pendiente";
 
+const normalize = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 export function NationalPage() {
+  const [query, setQuery] = useState("");
+  const results = useMemo(() => {
+    const term = normalize(query.trim());
+    if (!term) return departments;
+    return departments.filter((department) =>
+      normalize(`${department.name} ${department.code}`).includes(term),
+    );
+  }, [query]);
+
   return (
     <div className="page">
       <section className="hero">
@@ -19,13 +33,40 @@ export function NationalPage() {
           </div>
         </div>
         <div className="pulse-card">
-          <span>Avance nacional</span>
+          <span>Arquitectura territorial</span>
           <strong>340</strong>
-          <p>rutas municipales previstas</p>
+          <p>municipios en una sola plataforma</p>
           <div className="progress"><i style={{ width: "4.4%" }} /></div>
-          <small>15 municipios en procesamiento · 1 validado</small>
+          <small>22 departamentos · 15 municipios en procesamiento · 1 validado</small>
         </div>
       </section>
+
+      <section className="section">
+        <div className="section__heading directory-heading">
+          <div><span className="eyebrow">Directorio nacional</span><h2>22 departamentos</h2></div>
+          <label className="territory-search">
+            <span>Buscar territorio</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Departamento o código"
+              type="search"
+            />
+          </label>
+        </div>
+        <div className="department-grid">
+          {results.map((department) => (
+            <Link className="department-card" to={`/departamento/${department.code}`} key={department.code}>
+              <small>{department.code}</small>
+              <h3>{department.name}</h3>
+              <p>{department.municipalityCount} municipios</p>
+              <span>Abrir departamento →</span>
+            </Link>
+          ))}
+        </div>
+        {!results.length && <p className="empty-state">No encontramos un departamento con ese nombre o código.</p>}
+      </section>
+
       <section className="section">
         <div className="section__heading">
           <div><span className="eyebrow">Prioridad actual</span><h2>Escuintla</h2></div>
@@ -47,20 +88,31 @@ export function NationalPage() {
 
 export function DepartmentPage() {
   const { departmentCode } = useParams();
+  const department = findDepartment(departmentCode);
+  if (!department) return <NotFoundPage />;
   const items = municipalities.filter((m) => m.departmentCode === departmentCode);
   return (
     <div className="page page--compact">
-      <span className="eyebrow">Departamento {departmentCode}</span>
-      <h1>Escuintla</h1>
-      <p className="lede">Navegación departamental y estado de disponibilidad municipal.</p>
-      <div className="territory-grid">
-        {items.map((m) => (
-          <Link className="territory-card" to={`/municipio/${m.code}`} key={m.code}>
-            <div><small>{m.code}</small><StatusBadge status={m.coverage} /></div>
-            <h3>{m.name}</h3><p>Abrir expediente municipal</p>
-          </Link>
-        ))}
-      </div>
+      <span className="eyebrow">Departamento {department.code}</span>
+      <h1>{department.name}</h1>
+      <p className="lede">{department.municipalityCount} municipios · navegación departamental y disponibilidad de datos.</p>
+      {items.length ? (
+        <div className="territory-grid">
+          {items.map((m) => (
+            <Link className="territory-card" to={`/municipio/${m.code}`} key={m.code}>
+              <div><small>{m.code}</small><StatusBadge status={m.coverage} /></div>
+              <h3>{m.name}</h3><p>Abrir expediente municipal</p>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <section className="empty-panel">
+          <span className="eyebrow">Cobertura en preparación</span>
+          <h2>La ruta departamental ya está activa</h2>
+          <p>Los municipios se incorporarán desde el catálogo territorial canónico sin crear páginas independientes.</p>
+          <Link to="/">Volver al directorio nacional →</Link>
+        </section>
+      )}
     </div>
   );
 }
