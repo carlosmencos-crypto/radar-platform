@@ -137,6 +137,7 @@ export function MunicipalityPage() {
   const { municipalityCode } = useParams();
   const municipality = findMunicipality(municipalityCode);
   if (!municipality) return <NotFoundPage />;
+  const profile = findMunicipalProfile(municipalityCode);
   return (
     <div className="page page--compact">
       <div className="title-row">
