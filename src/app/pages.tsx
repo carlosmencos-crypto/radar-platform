@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { MunicipalProfile } from "../components/MunicipalProfile";
 import { StatusBadge } from "../components/StatusBadge";
+import { TerritorialMap0509 } from "../components/TerritorialMap0509";
 import { departments, findDepartment } from "../data/departments";
 import { findMunicipalProfile } from "../data/municipalProfiles";
 import { findMunicipality, municipalities } from "../data/municipalities";
@@ -149,6 +150,7 @@ export function MunicipalityPage() {
         <article><span>Padrón 2026</span><strong>{formatNumber(municipality.electors)}</strong><small>electores</small></article>
         <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Pendiente"}</strong><small>fecha de corte</small></article>
       </div>
+      {municipality.code === "0509" && <TerritorialMap0509 />}
       {profile ? (
         <MunicipalProfile profile={profile} />
       ) : (
