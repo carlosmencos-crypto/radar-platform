@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { MunicipalProfile } from "../components/MunicipalProfile";
 import { StatusBadge } from "../components/StatusBadge";
 import { departments, findDepartment } from "../data/departments";
+import { findMunicipalProfile } from "../data/municipalProfiles";
 import { findMunicipality, municipalities } from "../data/municipalities";
 
 const formatNumber = (value?: number) =>
@@ -135,6 +137,7 @@ export function MunicipalityPage() {
   const { municipalityCode } = useParams();
   const municipality = findMunicipality(municipalityCode);
   if (!municipality) return <NotFoundPage />;
+  const profile = findMunicipalProfile(municipalityCode);
   return (
     <div className="page page--compact">
       <div className="title-row">
@@ -146,11 +149,15 @@ export function MunicipalityPage() {
         <article><span>Padrón 2026</span><strong>{formatNumber(municipality.electors)}</strong><small>electores</small></article>
         <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Pendiente"}</strong><small>fecha de corte</small></article>
       </div>
-      <section className={municipality.coverage === "pending" ? "empty-panel" : "placeholder"}>
-        <span className="eyebrow">Expediente Municipal 360</span>
-        <h2>{municipality.coverage === "pending" ? "Expediente creado; datos en preparación" : "Base lista para integrar módulos y datos validados"}</h2>
-        <p>Demografía, elecciones, territorio, educación, salud, finanzas, obras y fuentes se conectan sin mezclar períodos ni universos.</p>
-      </section>
+      {profile ? (
+        <MunicipalProfile profile={profile} />
+      ) : (
+        <section className="empty-panel">
+          <span className="eyebrow">Expediente Municipal 360</span>
+          <h2>Expediente creado; datos en preparación</h2>
+          <p>La ruta municipal está activa. Demografía, elecciones, territorio, educación, salud, finanzas, obras y fuentes se publicarán únicamente después de su validación.</p>
+        </section>
+      )}
     </div>
   );
 }
