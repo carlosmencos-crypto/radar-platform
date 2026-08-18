@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { MunicipalProfile } from "../components/MunicipalProfile";\nimport { StatusBadge } from "../components/StatusBadge";
-import { departments, findDepartment } from "../data/departments";\nimport { findMunicipalProfile } from "../data/municipalProfiles";
+import { MunicipalProfile } from "../components/MunicipalProfile";
+import { StatusBadge } from "../components/StatusBadge";
+import { departments, findDepartment } from "../data/departments";
+import { findMunicipalProfile } from "../data/municipalProfiles";
 import { findMunicipality, municipalities } from "../data/municipalities";
 
 const formatNumber = (value?: number) =>
