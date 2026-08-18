@@ -10,15 +10,24 @@ const formatNumber = (value?: number) =>
 const normalize = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
+const priorityCodes = new Set(["0509", "0501", "0502", "0513"]);
+
 export function NationalPage() {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => {
-    const term = normalize(query.trim());
+  const term = normalize(query.trim());
+  const departmentResults = useMemo(() => {
     if (!term) return departments;
     return departments.filter((department) =>
       normalize(`${department.name} ${department.code}`).includes(term),
     );
-  }, [query]);
+  }, [term]);
+  const municipalityResults = useMemo(() => {
+    if (!term) return [];
+    return municipalities.filter((municipality) =>
+      normalize(`${municipality.name} ${municipality.department} ${municipality.code}`).includes(term),
+    ).slice(0, 18);
+  }, [term]);
+  const priorityMunicipalities = municipalities.filter((municipality) => priorityCodes.has(municipality.code));
 
   return (
     <div className="page">
@@ -35,7 +44,7 @@ export function NationalPage() {
         <div className="pulse-card">
           <span>Arquitectura territorial</span>
           <strong>340</strong>
-          <p>municipios en una sola plataforma</p>
+          <p>municipios navegables en una sola plataforma</p>
           <div className="progress"><i style={{ width: "4.4%" }} /></div>
           <small>22 departamentos · 15 municipios en procesamiento · 1 validado</small>
         </div>
@@ -43,41 +52,55 @@ export function NationalPage() {
 
       <section className="section">
         <div className="section__heading directory-heading">
-          <div><span className="eyebrow">Directorio nacional</span><h2>22 departamentos</h2></div>
+          <div><span className="eyebrow">Directorio nacional</span><h2>Encuentra cualquier territorio</h2></div>
           <label className="territory-search">
             <span>Buscar territorio</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Departamento o código"
-              type="search"
-            />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Municipio, departamento o código" type="search" />
           </label>
         </div>
-        <div className="department-grid">
-          {results.map((department) => (
-            <Link className="department-card" to={`/departamento/${department.code}`} key={department.code}>
-              <small>{department.code}</small>
-              <h3>{department.name}</h3>
-              <p>{department.municipalityCount} municipios</p>
-              <span>Abrir departamento →</span>
-            </Link>
-          ))}
-        </div>
-        {!results.length && <p className="empty-state">No encontramos un departamento con ese nombre o código.</p>}
+
+        {term && municipalityResults.length > 0 && (
+          <>
+            <h3 className="result-heading">Municipios</h3>
+            <div className="territory-grid search-results">
+              {municipalityResults.map((municipality) => (
+                <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+                  <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
+                  <h3>{municipality.name}</h3><p>{municipality.department}</p>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+
+        {departmentResults.length > 0 && (
+          <>
+            {term && <h3 className="result-heading">Departamentos</h3>}
+            <div className="department-grid">
+              {departmentResults.map((department) => (
+                <Link className="department-card" to={`/departamento/${department.code}`} key={department.code}>
+                  <small>{department.code}</small><h3>{department.name}</h3>
+                  <p>{department.municipalityCount} municipios</p><span>Abrir departamento →</span>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+        {term && !departmentResults.length && !municipalityResults.length && (
+          <p className="empty-state">No encontramos un territorio con ese nombre o código.</p>
+        )}
       </section>
 
       <section className="section">
         <div className="section__heading">
           <div><span className="eyebrow">Prioridad actual</span><h2>Escuintla</h2></div>
-          <Link to="/departamento/05">Ver departamento →</Link>
+          <Link to="/departamento/05">Ver los 14 municipios →</Link>
         </div>
         <div className="territory-grid">
-          {municipalities.map((municipality) => (
+          {priorityMunicipalities.map((municipality) => (
             <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
               <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
-              <h3>{municipality.name}</h3>
-              <p>{municipality.department}</p>
+              <h3>{municipality.name}</h3><p>{municipality.department}</p>
             </Link>
           ))}
         </div>
@@ -95,24 +118,15 @@ export function DepartmentPage() {
     <div className="page page--compact">
       <span className="eyebrow">Departamento {department.code}</span>
       <h1>{department.name}</h1>
-      <p className="lede">{department.municipalityCount} municipios · navegación departamental y disponibilidad de datos.</p>
-      {items.length ? (
-        <div className="territory-grid">
-          {items.map((m) => (
-            <Link className="territory-card" to={`/municipio/${m.code}`} key={m.code}>
-              <div><small>{m.code}</small><StatusBadge status={m.coverage} /></div>
-              <h3>{m.name}</h3><p>Abrir expediente municipal</p>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <section className="empty-panel">
-          <span className="eyebrow">Cobertura en preparación</span>
-          <h2>La ruta departamental ya está activa</h2>
-          <p>Los municipios se incorporarán desde el catálogo territorial canónico sin crear páginas independientes.</p>
-          <Link to="/">Volver al directorio nacional →</Link>
-        </section>
-      )}
+      <p className="lede">{items.length} municipios · todas las rutas están activas y muestran su disponibilidad real.</p>
+      <div className="territory-grid">
+        {items.map((municipality) => (
+          <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+            <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
+            <h3>{municipality.name}</h3><p>Abrir expediente municipal</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -124,10 +138,7 @@ export function MunicipalityPage() {
   return (
     <div className="page page--compact">
       <div className="title-row">
-        <div>
-          <span className="eyebrow">{municipality.department} · {municipality.code}</span>
-          <h1>{municipality.name}</h1>
-        </div>
+        <div><span className="eyebrow">{municipality.department} · {municipality.code}</span><h1>{municipality.name}</h1></div>
         <StatusBadge status={municipality.coverage} />
       </div>
       <div className="metric-grid">
@@ -135,32 +146,52 @@ export function MunicipalityPage() {
         <article><span>Padrón 2026</span><strong>{formatNumber(municipality.electors)}</strong><small>electores</small></article>
         <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Pendiente"}</strong><small>fecha de corte</small></article>
       </div>
-      <section className="placeholder">
+      <section className={municipality.coverage === "pending" ? "empty-panel" : "placeholder"}>
         <span className="eyebrow">Expediente Municipal 360</span>
-        <h2>Base lista para integrar módulos y datos validados</h2>
-        <p>Demografía, elecciones, territorio, educación, salud, finanzas, obras y fuentes se conectarán mediante adaptadores reutilizables.</p>
+        <h2>{municipality.coverage === "pending" ? "Expediente creado; datos en preparación" : "Base lista para integrar módulos y datos validados"}</h2>
+        <p>Demografía, elecciones, territorio, educación, salud, finanzas, obras y fuentes se conectan sin mezclar períodos ni universos.</p>
       </section>
     </div>
   );
 }
 
 export function ComparePage() {
+  const [firstCode, setFirstCode] = useState("0509");
+  const [secondCode, setSecondCode] = useState("0501");
+  const selected = [findMunicipality(firstCode), findMunicipality(secondCode)].filter(Boolean);
+
   return (
     <div className="page page--compact">
       <span className="eyebrow">Comparación territorial</span>
       <h1>Comparar municipios</h1>
-      <p className="lede">La estructura está preparada para seleccionar municipios e indicadores comparables sin mezclar períodos ni universos.</p>
-      <section className="placeholder"><h2>Selector comparativo</h2><p>Siguiente fase: filtros, tabla, visualizaciones y exportación.</p></section>
+      <p className="lede">Selecciona dos municipios. Los indicadores solo aparecen cuando comparten definición y período.</p>
+      <div className="compare-selectors">
+        <label><span>Municipio A</span><select value={firstCode} onChange={(event) => setFirstCode(event.target.value)}>{municipalities.map((m) => <option key={m.code} value={m.code}>{m.code} · {m.name}, {m.department}</option>)}</select></label>
+        <label><span>Municipio B</span><select value={secondCode} onChange={(event) => setSecondCode(event.target.value)}>{municipalities.map((m) => <option key={m.code} value={m.code}>{m.code} · {m.name}, {m.department}</option>)}</select></label>
+      </div>
+      <div className="comparison-grid">
+        {selected.map((municipality) => municipality && (
+          <article key={municipality.code}>
+            <div><small>{municipality.code} · {municipality.department}</small><StatusBadge status={municipality.coverage} /></div>
+            <h2>{municipality.name}</h2>
+            <dl><div><dt>Proyección 2026</dt><dd>{formatNumber(municipality.population)}</dd></div><div><dt>Padrón 2026</dt><dd>{formatNumber(municipality.electors)}</dd></div></dl>
+            <Link to={`/municipio/${municipality.code}`}>Abrir expediente →</Link>
+          </article>
+        ))}
+      </div>
+      {selected.some((municipality) => municipality?.coverage === "pending") && <p className="comparison-note">Los valores pendientes permanecen vacíos; RADAR no imputa información no validada.</p>}
     </div>
   );
 }
 
 export function AdminPage() {
+  const complete = municipalities.filter((m) => m.coverage === "complete").length;
+  const partial = municipalities.filter((m) => m.coverage === "partial").length;
   return (
     <div className="page page--compact">
-      <span className="eyebrow">Acceso interno</span>
-      <h1>Consola nacional RADAR</h1>
+      <span className="eyebrow">Acceso interno</span><h1>Consola nacional RADAR</h1>
       <p className="lede">Control de cobertura, validación, trazabilidad y publicación, separado del producto privado de campaña.</p>
+      <div className="metric-grid"><article><span>Validados</span><strong>{complete}</strong><small>municipios</small></article><article><span>Parciales</span><strong>{partial}</strong><small>municipios</small></article><article><span>Pendientes</span><strong>{340 - complete - partial}</strong><small>municipios</small></article></div>
       <section className="placeholder"><h2>Área protegida</h2><p>La autenticación y los permisos se incorporarán antes de conectar información privada.</p></section>
     </div>
   );
