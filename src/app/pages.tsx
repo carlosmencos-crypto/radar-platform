@@ -7,8 +7,10 @@ import { departments, findDepartment } from "../data/departments";
 import { findMunicipalProfile } from "../data/municipalProfiles";
 import { findMunicipality, municipalities } from "../data/municipalities";
 
-const formatNumber = (value?: number) =>
-  value ? new Intl.NumberFormat("es-GT").format(value) : "Pendiente";
+const formatNumber = (value?: number | null) =>
+  value === null || value === undefined
+    ? "Pendiente"
+    : new Intl.NumberFormat("es-GT").format(value);
 
 const normalize = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -48,8 +50,8 @@ export function NationalPage() {
           <span>Arquitectura territorial</span>
           <strong>340</strong>
           <p>municipios navegables en una sola plataforma</p>
-          <div className="progress"><i style={{ width: "4.4%" }} /></div>
-          <small>22 departamentos · 15 municipios en procesamiento · 1 validado</small>
+          <div className="progress"><i style={{ width: "100%" }} /></div>
+          <small>22 departamentos · 340 rutas activas · contrato nacional 340×17</small>
         </div>
       </section>
 
@@ -148,7 +150,8 @@ export function MunicipalityPage() {
       <div className="metric-grid">
         <article><span>Proyección 2026</span><strong>{formatNumber(municipality.population)}</strong><small>habitantes</small></article>
         <article><span>Padrón 2026</span><strong>{formatNumber(municipality.electors)}</strong><small>electores</small></article>
-        <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Pendiente"}</strong><small>fecha de corte</small></article>
+        <article><span>Módulos visibles</span><strong>{municipality.visibleModules ?? "Pendiente"}/{municipality.totalModules ?? 17}</strong><small>{municipality.emptyStateModules ?? 0} con estado vacío explícito</small></article>
+        <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Contrato nacional"}</strong><small>fecha de corte</small></article>
       </div>
       {municipality.code === "0509" && <TerritorialMap0509 />}
       {profile ? (
