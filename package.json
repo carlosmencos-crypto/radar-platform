@@ -12,6 +12,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
+    "validate:data-contract": "node scripts/validate-padron-contract.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
