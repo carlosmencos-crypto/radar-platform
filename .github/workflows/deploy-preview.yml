@@ -31,6 +31,18 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build -- --base=/radar-platform/
+      - name: Prepare isolated SPA preview
+        run: |
+          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
+          cp dist/index.html dist/404.html
+          for code in 0509 1901; do
+            mkdir -p "dist/municipio/$code"
+            cp dist/index.html "dist/municipio/$code/index.html"
+            for section in inteligencia estrategia directorio agenda mapa dia-d recursos pulso ia-radar configuracion; do
+              mkdir -p "dist/municipio/$code/$section"
+              cp dist/index.html "dist/municipio/$code/$section/index.html"
+            done
+          done
       - name: Verify V70 runtime typography and golden modules
         run: |
           npm install --no-save --ignore-scripts puppeteer-core@24.16.0
@@ -38,9 +50,10 @@ jobs:
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
-            curl -fsS http://127.0.0.1:4173/radar-platform/ >/dev/null && break
+            curl -fsS http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/ >/dev/null && break
             sleep 1
           done
+          curl -fsS http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/ >/dev/null
           chrome_path="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
           CHROME_PATH="$chrome_path" node --input-type=module <<'NODE'
           import puppeteer from "puppeteer-core";
@@ -101,18 +114,6 @@ jobs:
           console.log(`MAP_V70_OK ${JSON.stringify(map)}`);
           await browser.close();
           NODE
-      - name: Prepare isolated SPA preview
-        run: |
-          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
-          cp dist/index.html dist/404.html
-          for code in 0509 1901; do
-            mkdir -p "dist/municipio/$code"
-            cp dist/index.html "dist/municipio/$code/index.html"
-            for section in inteligencia estrategia directorio agenda mapa dia-d recursos pulso ia-radar configuracion; do
-              mkdir -p "dist/municipio/$code/$section"
-              cp dist/index.html "dist/municipio/$code/$section/index.html"
-            done
-          done
       - uses: actions/configure-pages@v5
         with:
           enablement: true
