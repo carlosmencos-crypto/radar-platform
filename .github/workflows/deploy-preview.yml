@@ -31,6 +31,76 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build -- --base=/radar-platform/
+      - name: Verify V70 runtime typography and golden modules
+        run: |
+          npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+          npm exec vite -- preview --host 127.0.0.1 --port 4173 > /tmp/radar-v70-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            curl -fsS http://127.0.0.1:4173/radar-platform/ >/dev/null && break
+            sleep 1
+          done
+          chrome_path="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          CHROME_PATH="$chrome_path" node --input-type=module <<'NODE'
+          import puppeteer from "puppeteer-core";
+
+          const browser = await puppeteer.launch({
+            executablePath: process.env.CHROME_PATH,
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          });
+          const page = await browser.newPage();
+          const fontResponses = [];
+          page.on("response", (response) => {
+            if (/inter-.*\.woff2(?:\?|$)/.test(response.url())) {
+              fontResponses.push({ url: response.url(), status: response.status() });
+            }
+          });
+          await page.goto("http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/", { waitUntil: "networkidle0" });
+          const intelligence = await page.evaluate(async () => {
+            await document.fonts.ready;
+            return {
+              family: getComputedStyle(document.body).fontFamily,
+              inter400: document.fonts.check("400 16px Inter"),
+              inter700: document.fonts.check("700 16px Inter"),
+              kpis: document.querySelectorAll(".kpis article").length,
+              electorate: Boolean(document.querySelector(".electorate-profile")),
+              sex: Boolean(document.querySelector(".sex-profile")),
+              literacy: Boolean(document.querySelector(".literacy-profile")),
+              age: Boolean(document.querySelector(".age-profile")),
+              territory: Boolean(document.querySelector(".universe-card")),
+              secondaryCoverage: Boolean(document.querySelector("details.canonical-coverage-secondary:not([open])")),
+            };
+          });
+          if (!intelligence.family.startsWith("Inter") || !intelligence.inter400 || !intelligence.inter700) {
+            throw new Error(`Inter V70 no cargó: ${JSON.stringify(intelligence)}`);
+          }
+          if (fontResponses.length === 0 || fontResponses.some((response) => response.status !== 200)) {
+            throw new Error(`Font responses inválidas: ${JSON.stringify(fontResponses)}`);
+          }
+          if (intelligence.kpis !== 4 || !intelligence.electorate || !intelligence.sex || !intelligence.literacy || !intelligence.age || !intelligence.territory || !intelligence.secondaryCoverage) {
+            throw new Error(`Inteligencia V70 incompleta: ${JSON.stringify(intelligence)}`);
+          }
+
+          await page.goto("http://127.0.0.1:4173/radar-platform/municipio/0509/mapa/", { waitUntil: "networkidle0" });
+          const map = await page.evaluate(() => ({
+            hero: Boolean(document.querySelector(".map-product-head")),
+            toolbar: Boolean(document.querySelector(".operational-map-toolbar")),
+            stage: Boolean(document.querySelector(".smart-map-shell.map-v3 .map-stage")),
+            territorialPanel: Boolean(document.querySelector(".map-electoral-priorities")),
+            filters: Boolean(document.querySelector(".map-more-filters")),
+            newActivity: Boolean(document.querySelector(".map-new-activity")),
+            satellite: Boolean(document.querySelector(".map-satellite-toggle")),
+          }));
+          if (Object.values(map).some((value) => !value)) {
+            throw new Error(`Mapa V70 incompleto: ${JSON.stringify(map)}`);
+          }
+          console.log(`FONT_RUNTIME_OK family=${intelligence.family} inter400=${intelligence.inter400} inter700=${intelligence.inter700} responses=${JSON.stringify(fontResponses)}`);
+          console.log(`INTELLIGENCE_V70_OK ${JSON.stringify(intelligence)}`);
+          console.log(`MAP_V70_OK ${JSON.stringify(map)}`);
+          await browser.close();
+          NODE
       - name: Prepare isolated SPA preview
         run: |
           sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
