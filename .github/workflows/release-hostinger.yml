@@ -1,0 +1,105 @@
+name: Prepare Hostinger release V70-340
+
+on:
+  push:
+    branches:
+      - release/v70-340-control
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-v70-340-hostinger
+  cancel-in-progress: false
+
+env:
+  APPROVED_SHA: 2a6a09894e4640f9d7bf6b20d32ccb4877033546
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout approved V70-340 source
+        uses: actions/checkout@v4
+        with:
+          ref: 2a6a09894e4640f9d7bf6b20d32ccb4877033546
+          fetch-depth: 1
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify approved source
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+
+      - name: Install reproducibly
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Smoke 340 before build
+        run: npm run smoke:340
+
+      - name: Build production for domain root
+        run: npm run build -- --base=/
+
+      - name: Tests
+        run: npm test
+
+      - name: Audit bundle
+        run: npm run audit:bundle
+
+      - name: Verify static release contract
+        shell: bash
+        run: |
+          test -f dist/index.html
+          test -f dist/.htaccess
+          test -f dist/_redirects
+          test -z "$(find dist -type f -name '*.map' -print -quit)"
+          grep -F 'RewriteRule . /index.html [L]' dist/.htaccess
+          grep -F '/* /index.html 200' dist/_redirects
+          grep -Eq '(src|href)="/assets/' dist/index.html
+          if grep -Fq '/radar-platform/' dist/index.html; then exit 1; fi
+          if grep -RIl 'sourceMappingURL=' dist | grep -q .; then exit 1; fi
+          if find dist -mindepth 1 -maxdepth 1 \( -name src -o -name scripts -o -name node_modules -o -name package.json -o -name package-lock.json -o -name .github \) | grep -q .; then exit 1; fi
+          echo "STATIC_RELEASE_OK $(find dist -type f | wc -l) files · base=/ · SPA fallback present"
+
+      - name: Checkout deploy-hostinger artifact branch
+        uses: actions/checkout@v4
+        with:
+          ref: deploy-hostinger
+          path: deploy
+          fetch-depth: 1
+
+      - name: Replace deploy-hostinger root with dist only
+        shell: bash
+        run: |
+          find deploy -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
+          cp -a dist/. deploy/
+          cd deploy
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Artifact is unchanged.'
+          else
+            git commit -m "Deploy RADAR V70-340 $APPROVED_SHA"
+          fi
+          git push origin HEAD:deploy-hostinger
+          DEPLOY_SHA="$(git rev-parse HEAD)"
+          echo "DEPLOY_HOSTINGER_COMMIT=$DEPLOY_SHA" >> "$GITHUB_ENV"
+          echo "DEPLOY_HOSTINGER_COMMIT=$DEPLOY_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Final release summary
+        shell: bash
+        run: |
+          echo "APPROVED_SOURCE=$APPROVED_SHA"
+          echo "DEPLOY_HOSTINGER_COMMIT=$DEPLOY_HOSTINGER_COMMIT"
+          echo 'HOSTINGER_NOT_DEPLOYED=true'
