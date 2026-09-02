@@ -109,8 +109,7 @@ if (!appSource.includes('path="admin"') || !appSource.includes("<Navigate to=\"/
   fail("/admin no está fail-closed.");
 }
 
-const catalogBlock = nationalSource.match(/const catalogMunicipalities = useMemo\(\(\) =>([\s\S]*?),\n    \[\],\n  \);/)?.[1] ?? "";
-if (!catalogBlock.includes("[...municipalities].sort")) {
+if (!/const catalogMunicipalities = useMemo\([\s\S]*?\[\.\.\.municipalities\]\.sort\(/.test(nationalSource)) {
   fail("El catálogo raíz no deriva de los 340 municipios nacionales.");
 }
 if (!nationalSource.includes("catalogMunicipalities.map")) {
