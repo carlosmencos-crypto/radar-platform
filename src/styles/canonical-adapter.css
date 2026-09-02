@@ -199,3 +199,22 @@ html[data-theme="dark"] .canonical-vault-notice {
   .canonical-coverage-secondary { margin: 0 14px 28px; }
   .canonical-coverage-secondary .canonical-module-grid { padding: 12px !important; }
 }
+
+/* Root catalog namespace: V70 uses .territory-grid/.territory-card for the map overlay.
+   Keep the public national catalog isolated from those canonical map selectors. */
+.national-result-heading { margin: 36px 0 16px; font-size: 1rem; color: #656a6d; }
+.national-territory-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 36px; }
+.national-territory-grid.search-results { margin-top: 0; margin-bottom: 28px; }
+.national-territory-card { display: block; position: static; width: auto; max-height: none; overflow: visible; background: rgba(255,255,255,.65); color: #2f343a; border: 1px solid rgba(47,52,58,.12); border-radius: 18px; padding: 20px; box-shadow: none; backdrop-filter: none; transition: transform .2s ease, box-shadow .2s ease; }
+.national-territory-card:hover { transform: translateY(-3px); box-shadow: 0 24px 70px rgba(47,52,58,.10); }
+.national-territory-card > div { display: flex; justify-content: space-between; align-items: center; }
+.national-territory-card h3 { margin: 36px 0 7px; font-size: 1.12rem; }
+.national-territory-card p, .national-territory-card small { margin: 0; color: #777d7c; }
+html[data-theme="dark"] .national-territory-card { background: var(--radar-fondo-oscuro); color: var(--radar-marfil); border-color: var(--radar-grafito); }
+html[data-theme="dark"] .national-territory-card p, html[data-theme="dark"] .national-territory-card small { color: var(--radar-salvia); }
+@media (max-width: 900px) {
+  .national-territory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .national-territory-grid { grid-template-columns: 1fr; }
+}
