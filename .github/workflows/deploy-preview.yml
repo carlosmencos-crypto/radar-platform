@@ -1,8 +1,9 @@
-name: Deploy preview
+name: Temporary V70 visual preview
 
 on:
   push:
-    branches: [main]
+    branches:
+      - preview/v70-340
   workflow_dispatch:
 
 permissions:
@@ -11,22 +12,29 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-v70-340-preview
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact integration commit
+        uses: actions/checkout@v4
+        with:
+          ref: 7bb7df17dacfcbb0205cc7bd7e11db5c3f75287a
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run build -- --base=/radar-platform/
-      - run: cp dist/index.html dist/404.html
+      - name: Adapt absolute public assets for project preview
+        run: |
+          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
+          cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -39,6 +47,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy isolated visual preview
         id: deployment
         uses: actions/deploy-pages@v4
