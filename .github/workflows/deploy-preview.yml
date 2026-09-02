@@ -46,14 +46,19 @@ jobs:
       - name: Verify V70 runtime typography and golden modules
         run: |
           npm install --no-save --ignore-scripts puppeteer-core@24.16.0
-          npm exec vite -- preview --host 127.0.0.1 --port 4173 > /tmp/radar-v70-preview.log 2>&1 &
+          npm exec vite -- build --outDir=dist-qa --base=/
+          for section in inteligencia mapa; do
+            mkdir -p "dist-qa/municipio/0509/$section"
+            cp dist-qa/index.html "dist-qa/municipio/0509/$section/index.html"
+          done
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory dist-qa > /tmp/radar-v70-preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
-            curl -fsS http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/ >/dev/null && break
+            curl -fsS http://127.0.0.1:4173/municipio/0509/inteligencia/ >/dev/null && break
             sleep 1
           done
-          curl -fsS http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/ >/dev/null
+          curl -fsS http://127.0.0.1:4173/municipio/0509/inteligencia/ >/dev/null
           chrome_path="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
           CHROME_PATH="$chrome_path" node --input-type=module <<'NODE'
           import puppeteer from "puppeteer-core";
@@ -70,7 +75,7 @@ jobs:
               fontResponses.push({ url: response.url(), status: response.status() });
             }
           });
-          await page.goto("http://127.0.0.1:4173/radar-platform/municipio/0509/inteligencia/", { waitUntil: "networkidle0" });
+          await page.goto("http://127.0.0.1:4173/municipio/0509/inteligencia/", { waitUntil: "networkidle0" });
           const intelligence = await page.evaluate(async () => {
             await document.fonts.ready;
             return {
@@ -96,7 +101,8 @@ jobs:
             throw new Error(`Inteligencia V70 incompleta: ${JSON.stringify(intelligence)}`);
           }
 
-          await page.goto("http://127.0.0.1:4173/radar-platform/municipio/0509/mapa/", { waitUntil: "networkidle0" });
+          await page.goto("http://127.0.0.1:4173/municipio/0509/mapa/", { waitUntil: "domcontentloaded" });
+          await page.waitForSelector(".smart-map-shell.map-v3 .map-stage");
           const map = await page.evaluate(() => ({
             hero: Boolean(document.querySelector(".map-product-head")),
             toolbar: Boolean(document.querySelector(".operational-map-toolbar")),
