@@ -74,10 +74,10 @@ export function NationalPage() {
 
         {term && municipalityResults.length > 0 && (
           <>
-            <h3 className="result-heading">Municipios</h3>
-            <div className="territory-grid search-results">
+            <h3 className="national-result-heading">Municipios</h3>
+            <div className="national-territory-grid search-results">
               {municipalityResults.map((municipality) => (
-                <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+                <Link className="national-territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
                   <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
                   <h3>{municipality.name}</h3><p>{municipality.department}</p>
                 </Link>
@@ -88,7 +88,7 @@ export function NationalPage() {
 
         {departmentResults.length > 0 && (
           <>
-            {term && <h3 className="result-heading">Departamentos</h3>}
+            {term && <h3 className="national-result-heading">Departamentos</h3>}
             <div className="department-grid">
               {departmentResults.map((department) => (
                 <Link className="department-card" to={`/departamento/${department.code}`} key={department.code}>
@@ -109,9 +109,9 @@ export function NationalPage() {
           <div><span className="eyebrow">Catálogo nacional</span><h2>Municipios de Guatemala</h2></div>
           <span>{catalogMunicipalities.length} municipios</span>
         </div>
-        <div className="territory-grid">
+        <div className="national-territory-grid">
           {catalogMunicipalities.map((municipality) => (
-            <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+            <Link className="national-territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
               <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
               <h3>{municipality.name}</h3><p>{municipality.department}</p>
             </Link>

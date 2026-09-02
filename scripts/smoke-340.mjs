@@ -116,6 +116,9 @@ if (!catalogBlock.includes("[...municipalities].sort")) {
 if (!nationalSource.includes("catalogMunicipalities.map")) {
   fail("El catálogo raíz no renderiza el listado municipal completo.");
 }
+if (!nationalSource.includes("national-territory-grid") || !nationalSource.includes("national-territory-card")) {
+  fail("El catálogo raíz no está aislado de los selectores CSS del Mapa V70.");
+}
 if (!nationalSource.includes("<h2>Municipios de Guatemala</h2>")) {
   fail("Falta el encabezado del catálogo nacional.");
 }
