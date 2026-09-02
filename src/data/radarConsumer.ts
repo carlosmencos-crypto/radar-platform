@@ -1,4 +1,5 @@
 import { findMunicipality } from "./municipalities";
+import { findMunicipalProfile } from "./municipalProfiles";
 import type { AvailabilityState, ConsumerModule, RadarMunicipalConsumer } from "../types/radar";
 
 const publicModules = [
@@ -14,7 +15,12 @@ const campaignModules = [
 ] as const;
 
 function publicState(code: string, id: string): AvailabilityState {
-  if (code === "0509") return id === "finanzas_publicas" || id === "obras" ? "parcial" : "disponible";
+  const profile = findMunicipalProfile(code);
+  const profileId = id === "finanzas_publicas" ? "finanzas" : id;
+  const module = profile?.modules.find((item) => item.id === profileId);
+  if (module) {
+    return module.status === "validated" ? "disponible" : module.status === "partial" ? "parcial" : "pendiente";
+  }
   if (id === "fuentes") return "disponible";
   if (id === "territorio" || id === "electoral") return "parcial";
   return "pendiente";
@@ -35,4 +41,3 @@ export function resolveRadarConsumer(municipalityCode?: string): RadarMunicipalC
     modules,
   };
 }
-

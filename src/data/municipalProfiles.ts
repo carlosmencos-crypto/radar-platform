@@ -17,6 +17,11 @@ export interface MunicipalProfile {
   municipalityCode: string;
   controlStatus: string;
   lastUpdated: string;
+  map?: {
+    embedUrl: string;
+    populatedPlacesWithCoordinates: number;
+    votingCenters: number;
+  };
   modules: ProfileModule[];
 }
 
@@ -25,6 +30,11 @@ export const municipalProfiles: Record<string, MunicipalProfile> = {
     municipalityCode: "0509",
     controlStatus: "CONTROL_VALIDADO",
     lastUpdated: "2026-08-17",
+    map: {
+      embedUrl: "https://www.openstreetmap.org/export/embed.html?bbox=-90.98%2C13.82%2C-90.68%2C14.04&layer=mapnik&marker=13.9256%2C-90.8244",
+      populatedPlacesWithCoordinates: 81,
+      votingCenters: 13,
+    },
     modules: [
       {
         id: "demografia",

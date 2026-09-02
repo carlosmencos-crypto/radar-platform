@@ -11,7 +11,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "lint": "oxlint src scripts",
     "smoke:340": "node scripts/smoke-340.mjs",
+    "audit:bundle": "node scripts/audit-bundle.mjs",
+    "test": "npm run smoke:340 && npm run audit:bundle",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview"
   },
@@ -21,9 +24,12 @@
     "react-router-dom": "7.18.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "@vitejs/plugin-react": "6.1.0",
+    "oxlint": "^1.14.0",
+    "tailwindcss": "^4.2.1",
     "typescript": "7.0.2",
     "vite": "8.2.2"
   }

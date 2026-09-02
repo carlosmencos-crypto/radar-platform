@@ -1,0 +1,156 @@
+.canonical-state {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: 6px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.canonical-state--disponible { color: var(--radar-municipal); background: color-mix(in srgb, var(--radar-municipal) 9%, var(--radar-blanco)); }
+.canonical-state--parcial { color: var(--radar-gobierno); background: color-mix(in srgb, var(--radar-gobierno) 8%, var(--radar-blanco)); }
+.canonical-state--pendiente { color: var(--radar-grafito); background: var(--radar-marfil); }
+.canonical-state--no_publicado { color: var(--radar-salvia); background: color-mix(in srgb, var(--radar-grafito) 4%, var(--radar-blanco)); }
+
+.canonical-coverage-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 30px 4vw 16px;
+}
+
+.canonical-coverage-heading small {
+  color: var(--radar-petroleo);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+
+.canonical-coverage-heading h2 { margin: 6px 0 0; }
+.canonical-coverage-heading p { margin: 0; color: var(--radar-muted); }
+.canonical-module-grid { padding-top: 0 !important; }
+.canonical-module-grid article { display: flex; flex-direction: column; }
+.canonical-module-grid article > .canonical-state { margin-bottom: 14px; }
+
+.canonical-metric {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--radar-line);
+}
+
+.canonical-metric b { color: var(--radar-text); font-size: 18px; }
+.canonical-metric span { color: var(--radar-muted); font-size: 9px; line-height: 1.45; }
+.canonical-source { margin-top: auto; padding-top: 16px; color: var(--radar-petroleo) !important; line-height: 1.45; }
+
+.canonical-vault-notice {
+  margin: 0 22px 22px;
+  padding: 22px;
+  border: 1px dashed var(--radar-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--radar-marfil) 74%, var(--radar-blanco));
+}
+
+.canonical-vault-notice > span,
+.canonical-protected-page > small,
+.canonical-map-pending > span {
+  color: var(--radar-petroleo);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+
+.canonical-vault-notice h3 { margin: 7px 0; }
+.canonical-vault-notice p { max-width: 740px; margin: 0; color: var(--radar-muted); }
+
+.canonical-protected-page {
+  max-width: 920px;
+  margin: 38px 4vw;
+  padding: 34px;
+  border: 1px solid var(--radar-line);
+  border-radius: 16px;
+  background: var(--radar-surface);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--radar-grafito) 6%, transparent);
+}
+
+.canonical-lockmark {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 22px;
+  border-radius: 15px;
+  background: var(--radar-grafito);
+  color: var(--radar-marfil);
+  font-size: 24px;
+}
+
+.canonical-protected-page h2 { margin: 8px 0; }
+.canonical-protected-page > p { max-width: 690px; color: var(--radar-muted); line-height: 1.65; }
+
+.canonical-protected-page dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 26px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--radar-line);
+  border-radius: 12px;
+  background: var(--radar-line);
+}
+
+.canonical-protected-page dl > div { padding: 14px 16px; background: var(--radar-surface); }
+.canonical-protected-page dt { color: var(--radar-muted); font-size: 8px; text-transform: uppercase; letter-spacing: .09em; }
+.canonical-protected-page dd { margin: 6px 0 0; color: var(--radar-text); font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
+
+.canonical-map-toolbar button {
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--radar-line);
+  border-radius: 10px;
+  background: var(--radar-surface);
+  color: var(--radar-text);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.canonical-map-toolbar button:disabled { opacity: .55; cursor: not-allowed; }
+.canonical-public-map iframe { border: 0; }
+
+.canonical-map-pending {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px;
+  text-align: center;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--radar-marfil) 92%, var(--radar-salvia)), var(--radar-marfil));
+}
+
+.canonical-map-pending h2 { margin: 0; }
+.canonical-map-pending p { max-width: 520px; margin: 0; color: var(--radar-muted); line-height: 1.6; }
+.canonical-report-modal { background: var(--radar-surface); color: var(--radar-text); }
+.canonical-report-modal > p { padding: 22px; color: var(--radar-muted); line-height: 1.6; }
+
+html[data-theme="dark"] .canonical-state--disponible,
+html[data-theme="dark"] .canonical-state--parcial,
+html[data-theme="dark"] .canonical-state--pendiente,
+html[data-theme="dark"] .canonical-state--no_publicado,
+html[data-theme="dark"] .canonical-vault-notice {
+  background: var(--radar-fondo-oscuro);
+}
+
+@media (max-width: 760px) {
+  .canonical-coverage-heading { display: block; margin: 24px 16px 14px; }
+  .canonical-coverage-heading p { margin-top: 8px; }
+  .canonical-protected-page { margin: 22px 14px; padding: 24px 20px; }
+  .canonical-protected-page dl { grid-template-columns: 1fr; }
+  .canonical-map-toolbar { grid-template-columns: 1fr 1fr !important; }
+  .canonical-map-toolbar .map-toolbar-search { grid-column: 1 / -1; }
+}
