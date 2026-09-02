@@ -31,10 +31,18 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build -- --base=/radar-platform/
-      - name: Adapt absolute public assets for project preview
+      - name: Prepare isolated SPA preview
         run: |
           sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
           cp dist/index.html dist/404.html
+          for code in 0509 1901; do
+            mkdir -p "dist/municipio/$code"
+            cp dist/index.html "dist/municipio/$code/index.html"
+            for section in inteligencia estrategia directorio agenda mapa dia-d recursos pulso ia-radar configuracion; do
+              mkdir -p "dist/municipio/$code/$section"
+              cp dist/index.html "dist/municipio/$code/$section/index.html"
+            done
+          done
       - uses: actions/configure-pages@v5
         with:
           enablement: true
