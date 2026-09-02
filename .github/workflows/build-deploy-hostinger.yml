@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/favicon-radar
+  pull_request:
+    branches:
+      - integration/v70-340
 
 permissions:
   contents: write
