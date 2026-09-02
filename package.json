@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "smoke:340": "node scripts/smoke-340.mjs",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview"
   },
