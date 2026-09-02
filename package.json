@@ -13,6 +13,7 @@
     "build": "tsc -b && vite build",
     "smoke:340": "node scripts/smoke-340.mjs",
     "typecheck": "tsc -b --pretty false",
+    "validate:data-contract": "node scripts/validate-padron-contract.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
