@@ -8,6 +8,7 @@ const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
+const nationalSource = read("src/app/pages.tsx");
 const fontSource = read("src/styles/v70/fonts.css");
 
 const municipalityRows = [...municipalitiesSource.matchAll(
@@ -108,6 +109,20 @@ if (!appSource.includes('path="admin"') || !appSource.includes("<Navigate to=\"/
   fail("/admin no está fail-closed.");
 }
 
+const catalogBlock = nationalSource.match(/const catalogMunicipalities = useMemo\(\(\) =>([\s\S]*?),\n    \[\],\n  \);/)?.[1] ?? "";
+if (!catalogBlock.includes("[...municipalities].sort")) {
+  fail("El catálogo raíz no deriva de los 340 municipios nacionales.");
+}
+if (!nationalSource.includes("catalogMunicipalities.map")) {
+  fail("El catálogo raíz no renderiza el listado municipal completo.");
+}
+if (!nationalSource.includes("<h2>Municipios de Guatemala</h2>")) {
+  fail("Falta el encabezado del catálogo nacional.");
+}
+if (nationalSource.includes("priorityCodes") || nationalSource.includes("priorityMunicipalities")) {
+  fail("El catálogo raíz conserva el listado prioritario parcial como fuente principal.");
+}
+
 const htaccess = read("public/.htaccess");
 const redirects = read("public/_redirects");
 if (!htaccess.includes("RewriteRule . /index.html [L]") || !redirects.includes("/* /index.html 200")) {
@@ -130,5 +145,5 @@ if (fs.existsSync(dist)) {
 }
 
 console.log(
-  `SMOKE_OK ${unique.size}/340 municipios · 17 módulos · ${expectedSections.length} secciones · ${unique.size * expectedSections.length} rutas contextuales · 0509 y 1901 correctas`,
+  `SMOKE_OK ${unique.size}/340 municipios · catálogo ${unique.size}/340 · 17 módulos · ${expectedSections.length} secciones · ${unique.size * expectedSections.length} rutas contextuales · 0509 y 1901 correctas`,
 );
