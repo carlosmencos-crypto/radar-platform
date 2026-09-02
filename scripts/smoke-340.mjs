@@ -8,6 +8,7 @@ const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
+const fontSource = read("src/styles/v70/fonts.css");
 
 const municipalityRows = [...municipalitiesSource.matchAll(
   /\{ code: "(\d{4})", departmentCode: "(\d{2})", name: "([^"]+)",(?: displayName: "[^"]+",)? department: "([^"]+)"/g,
@@ -67,6 +68,25 @@ for (const section of expectedSections) {
 }
 for (const requiredClass of ["portal-shell", "portal-sidebar", "portal-topbar", "command-hero", "home-welcome"]) {
   if (!dashboardSource.includes(requiredClass)) fail(`Shell V70 incompleto: falta ${requiredClass}.`);
+}
+for (const requiredGoldenUi of [
+  "electorate-profile",
+  "register-total",
+  "sex-profile",
+  "literacy-profile",
+  "age-profile",
+  "universe-card",
+  "operational-map-toolbar",
+  "map-electoral-priorities",
+  "map-satellite-toggle",
+]) {
+  if (!dashboardSource.includes(requiredGoldenUi)) fail(`Golden UI V70 incompleta: falta ${requiredGoldenUi}.`);
+}
+if (!dashboardSource.includes("canonical-coverage-secondary") || !dashboardSource.includes("<details")) {
+  fail("La cobertura 340×17 no quedó como información secundaria de Inteligencia Municipal.");
+}
+for (const fontFile of ["inter-1ab1ad55.woff2", "inter-749a3084.woff2"]) {
+  if (!fontSource.includes(fontFile)) fail(`Fuente canónica V70 no conectada: ${fontFile}.`);
 }
 for (const asset of [
   "/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",

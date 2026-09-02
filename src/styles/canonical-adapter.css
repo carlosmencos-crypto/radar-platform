@@ -49,6 +49,44 @@
 .canonical-metric span { color: var(--radar-muted); font-size: 9px; line-height: 1.45; }
 .canonical-source { margin-top: auto; padding-top: 16px; color: var(--radar-petroleo) !important; line-height: 1.45; }
 
+.canonical-coverage-secondary {
+  margin: 0 4vw 42px;
+  border: 1px solid var(--radar-line);
+  border-radius: 13px;
+  background: var(--radar-surface);
+  overflow: hidden;
+}
+
+.canonical-coverage-secondary > summary {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.canonical-coverage-secondary > summary::-webkit-details-marker { display: none; }
+.canonical-coverage-secondary > summary span:first-child { display: grid; gap: 4px; }
+.canonical-coverage-secondary > summary small { color: var(--radar-petroleo); font-size: 8px; font-weight: 850; letter-spacing: .12em; }
+.canonical-coverage-secondary > summary b { font-size: 14px; }
+.canonical-coverage-secondary[open] > summary { border-bottom: 1px solid var(--radar-line); }
+.canonical-coverage-secondary .canonical-module-grid { padding: 18px !important; }
+
+.canonical-intelligence-pending {
+  margin: 34px 4vw;
+  padding: 32px;
+  border: 1px solid var(--radar-line);
+  border-radius: 14px;
+  background: var(--radar-surface);
+}
+
+.canonical-intelligence-pending h2 { margin: 14px 0 7px; }
+.canonical-intelligence-pending p { max-width: 720px; margin: 0; color: var(--radar-muted); line-height: 1.6; }
+.electorate-profile .trace-note .canonical-state { margin-right: 8px; vertical-align: middle; }
+
 .canonical-vault-notice {
   margin: 0 22px 22px;
   padding: 22px;
@@ -122,6 +160,11 @@
 
 .canonical-map-toolbar button:disabled { opacity: .55; cursor: not-allowed; }
 .canonical-public-map iframe { border: 0; }
+.map-v3 iframe.smart-map-canvas { display: block; border: 0; }
+.map-new-activity:disabled { opacity: .58; cursor: not-allowed; }
+.map-electoral-priorities header > div > span { color: var(--radar-salvia); font-size: 7px; }
+.canonical-layer-empty { margin: 12px 2px 0; color: var(--radar-salvia); font-size: 8px; }
+.canonical-filter-note { margin: 0; color: var(--radar-muted); font-size: 8px; line-height: 1.5; }
 
 .canonical-map-pending {
   display: grid;
@@ -153,4 +196,6 @@ html[data-theme="dark"] .canonical-vault-notice {
   .canonical-protected-page dl { grid-template-columns: 1fr; }
   .canonical-map-toolbar { grid-template-columns: 1fr 1fr !important; }
   .canonical-map-toolbar .map-toolbar-search { grid-column: 1 / -1; }
+  .canonical-coverage-secondary { margin: 0 14px 28px; }
+  .canonical-coverage-secondary .canonical-module-grid { padding: 12px !important; }
 }

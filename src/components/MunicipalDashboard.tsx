@@ -175,12 +175,14 @@ function PublicHome() {
 }
 
 function Intelligence() {
-  const { consumer, municipality_name } = useMunicipalityContext();
+  const { consumer, municipality_name, department_name } = useMunicipalityContext();
   const profile = findMunicipalProfile(consumer.municipality.code);
+  const intelligence = profile?.intelligence;
   const publicModules = consumer.modules.filter((module) => module.vault === "data");
-  return <>
-    <SectionBanner eyebrow="DATA VAULT" title="Inteligencia Municipal" description={`${municipality_name} · información pública, cobertura y trazabilidad`} status={profile?.controlStatus === "CONTROL_VALIDADO" ? "disponible" : consumer.municipality.coverage === "pending" ? "pendiente" : "parcial"} />
-    <section className="canonical-coverage-heading"><div><small>CONTRATO NACIONAL 340×17</small><h2>Cobertura pública por módulo</h2></div><p>Los vacíos permanecen explícitos.</p></section>
+  const overallState: AvailabilityState = profile?.controlStatus === "CONTROL_VALIDADO" ? "disponible" : consumer.municipality.coverage === "pending" ? "pendiente" : "parcial";
+
+  const coverage = <details className="canonical-coverage-secondary">
+    <summary><span><small>CONTRATO NACIONAL 340×17</small><b>Cobertura pública y trazabilidad</b></span><Status state={overallState} /></summary>
     <section className="module-card-grid canonical-module-grid">
       {publicModules.map((module) => {
         const detail = profile?.modules.find((item) => item.id === module.id || (module.id === "finanzas_publicas" && item.id === "finanzas"));
@@ -193,6 +195,33 @@ function Intelligence() {
         </article>;
       })}
     </section>
+  </details>;
+
+  return <>
+    <SectionBanner eyebrow={`EXPEDIENTE MUNICIPAL 360 · ${department_name.toUpperCase()} — ${municipality_name.toUpperCase()}`} title="Inteligencia Municipal" description="Fotografía estratégica del municipio para definir mensajes y prioridades" status={overallState} />
+    {intelligence ? <>
+      <section className="kpis" aria-label="Indicadores principales">
+        <article><small>Población proyectada 2026</small><b>{intelligence.populationProjection}</b><em>INE · proyección oficial</em></article>
+        <article><small>Padrón electoral activo 2026</small><b>{intelligence.voterRegister}</b><em>{intelligence.voterWomen} mujeres · {intelligence.voterMen} hombres</em></article>
+        <article><small>Centros electorales geolocalizados</small><b>{intelligence.votingCenters} <i>centros</i></b><em>{intelligence.votingBoards} JRV · auditoría completada</em></article>
+        <article><small>Organización comunitaria TSE</small><b>{intelligence.communityRecords} <i>registros</i></b><em>{intelligence.territorialGroups} agrupaciones territoriales del municipio</em></article>
+      </section>
+
+      <section className="section electorate-profile">
+        <div className="section-head"><div><p className="eyebrow">PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026</p><h2>Quiénes pueden votar hoy</h2></div><p>Sexo, edad y alfabetismo provienen del padrón activo del TSE. La distribución urbana/rural pertenece al Censo 2018 y se muestra aparte para no mezclar universos.</p></div>
+        <div className="electorate-hero">
+          <article className="register-total"><span>PADRÓN ACTIVO</span><b>{intelligence.voterRegister}</b><p>Corte oficial: {intelligence.registerCut}</p><div><strong>{intelligence.registerGrowth}</strong><small>personas frente al padrón electoral 2023<br />comparación indicativa: {intelligence.registerGrowthRate}</small></div></article>
+          <article className="sex-profile"><div className="profile-title"><span>COMPOSICIÓN POR SEXO</span><b>Brecha: 2,172</b></div><div className="split-meter"><i style={{ width: "52.66%" }} /><em style={{ width: "47.34%" }} /></div><div className="split-labels"><span><i />Mujeres <b>{intelligence.voterWomen}</b><small>52.7%</small></span><span><i />Hombres <b>{intelligence.voterMen}</b><small>47.3%</small></span></div></article>
+          <article className="literacy-profile"><div><span>ALFABETISMO REGISTRADO</span><b>{intelligence.literacyRate}</b><small>{intelligence.literatePeople} personas</small></div><div className="literacy-detail"><span>Mujeres <b>{intelligence.womenLiteracy}</b></span><span>Hombres <b>{intelligence.menLiteracy}</b></span><span>Sin alfabetismo registrado <b>{intelligence.literacyUnregistered}</b></span></div></article>
+        </div>
+        <div className="age-and-territory">
+          <article className="age-profile"><div className="profile-title"><span>ESTRUCTURA POR EDAD</span><b>54.2% tiene entre 18 y 40 años</b></div><div className="age-bars">{intelligence.ages.map((item) => <div key={item.label}><span>{item.label}</span><i><em style={{ width: `${item.share / 16.1 * 100}%` }} /></i><b>{item.value}</b><small>{item.share.toFixed(1)}%</small></div>)}</div></article>
+          <article className="universe-card"><div className="profile-title"><span>POBLACIÓN Y TERRITORIO</span><b>Universos separados</b></div><div className="universe-block current"><span>TSE · PADRÓN 2026</span><b>{intelligence.voterRegister}</b><small>Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.</small></div><div className="universe-block census"><span>INE · CENSO 2018</span><b>{intelligence.censusPopulation}</b><div className="rural-bar"><i style={{ width: `${intelligence.censusUrbanShare}%` }} /><em style={{ width: `${intelligence.censusRuralShare}%` }} /></div><p><strong>{intelligence.censusUrban} urbanos · {intelligence.censusUrbanShare.toFixed(1)}%</strong><strong>{intelligence.censusRural} rurales · {intelligence.censusRuralShare.toFixed(1)}%</strong></p></div><div className="universe-block projection"><span>INE · PROYECCIÓN 2026</span><b>{intelligence.populationProjection}</b><small>{intelligence.projectionMen} hombres · {intelligence.projectionWomen} mujeres. Proyección poblacional, no padrón.</small></div></article>
+        </div>
+        <p className="trace-note"><Status state="disponible" /> Fuentes: TSE · Ciudadanos empadronados activos 2026; INE · Censo 2018 y proyecciones municipales. Los porcentajes se calculan sobre cada universo oficial, sin imputar urbano/rural al padrón actual.</p>
+      </section>
+    </> : <section className="canonical-intelligence-pending"><Status state={overallState} /><h2>Información municipal en validación</h2><p>La composición V70 permanece activa. Los indicadores se publicarán dentro de sus bloques canónicos cuando cada fuente supere control de cobertura y trazabilidad.</p></section>}
+    {coverage}
   </>;
 }
 
@@ -200,18 +229,27 @@ function MapModule() {
   const { consumer, municipality_name } = useMunicipalityContext();
   const map = findMunicipalProfile(consumer.municipality.code)?.map;
   const territoryState = consumer.modules.find((module) => module.id === "territorio")?.state ?? "pendiente";
+  const [satellite, setSatellite] = useState(false);
+  const [query, setQuery] = useState("");
+  const publicLayers = (map?.publicLayers ?? []).filter((layer) => layer.label.toLocaleLowerCase("es").includes(query.trim().toLocaleLowerCase("es")));
   return <>
     <section className="map-product-head">
-      <div><small>MAPA INTELIGENTE</small><h1>{municipality_name}</h1><p>Territorio, información pública y operación autorizada en una sola vista</p></div>
-      <div className="map-head-stats"><span><b>{map?.populatedPlacesWithCoordinates ?? "—"}</b> puntos validados</span><span><b>{map?.votingCenters ?? "—"}</b> centros</span><Status state={map ? "disponible" : territoryState} /></div>
+      <div><small>TERRITORIO Y OPERACIÓN · {municipality_name.toUpperCase()}</small><h1>Mapa Inteligente</h1><p>Actividades, electores y comunidades prioritarias en una sola vista</p></div>
+      <div className="map-head-stats"><span><b>—</b> actividades</span><span><b>—</b> zonas sin cobertura</span><Status state={map ? "disponible" : territoryState} /></div>
     </section>
-    <section className="operational-map-toolbar canonical-map-toolbar">
-      <label className="map-toolbar-search"><span className="map-search"><input type="search" placeholder={`Buscar en ${municipality_name}`} aria-label="Buscar territorio" /></span></label>
-      <button type="button">Capas</button><button type="button">Más filtros</button><button type="button" disabled>+ Nueva actividad</button>
+    <section className="operational-map-toolbar">
+      <label className="map-toolbar-search"><span className="map-search"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Buscar comunidad, estadio, municipalidad, finca…" aria-label="Buscar territorio" /></span></label>
+      <label className="toolbar-select"><span>Actividades programadas</span><select aria-label="Período de actividades" defaultValue="mes"><option value="hoy">Hoy</option><option value="semana">7 días</option><option value="mes">30 días</option><option value="todos">Todas</option></select></label>
+      <details className="map-more-filters"><summary>Filtros <span>⌄</span></summary><div className="map-more-panel"><div className="toolbar-layer-block"><small>CAPAS VISIBLES</small><div className="smart-layers toolbar-layers">{(map?.publicLayers ?? []).map((layer) => <button type="button" className="on" key={layer.label}><i style={{ background: "var(--radar-petroleo)" }} /><span>{layer.label}</span><em>{layer.value}</em></button>)}</div></div><p className="canonical-filter-note">Las capas privadas de actividad y campaña requieren una sesión autorizada.</p></div></details>
+      <button type="button" className="map-new-activity" disabled title="Requiere autorización de Campaign Vault">+ Nueva actividad</button>
+      <button type="button" className="map-satellite-toggle" onClick={() => setSatellite((value) => !value)}>{satellite ? "Vista mapa" : "Vista satelital"}</button>
     </section>
-    <section className="smart-map-shell map-v3 canonical-public-map">
+    <section className="smart-map-shell map-v3">
       <div className="map-stage">
-        {map ? <iframe className="smart-map-canvas" title={`Mapa público de ${municipality_name}, ${consumer.municipality.department}`} loading="lazy" src={map.embedUrl} /> : <div className="smart-map-canvas canonical-map-pending"><span>{labels[territoryState].toUpperCase()}</span><h2>Cartografía municipal en validación</h2><p>RADAR no publicará puntos ni agregados hasta comprobar su correspondencia con {consumer.municipality.name}.</p></div>}
+        {map ? <>
+          <iframe className="smart-map-canvas" title={`Mapa público de ${municipality_name}, ${consumer.municipality.department}`} loading="lazy" src={satellite && map.satelliteEmbedUrl ? map.satelliteEmbedUrl : map.embedUrl} />
+          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault</b><span>{map.populatedPlacesWithCoordinates} puntos</span></div></header>{publicLayers.map((layer) => <button type="button" key={layer.label}><span><b>{layer.label.toUpperCase()}</b><small>{layer.detail}</small></span><em>{layer.value}</em></button>)}{!publicLayers.length ? <p className="canonical-layer-empty">Sin coincidencias públicas.</p> : null}</aside>
+        </> : <div className="smart-map-canvas canonical-map-pending"><span>{labels[territoryState].toUpperCase()}</span><h2>Cartografía municipal en validación</h2><p>RADAR no publicará puntos ni agregados hasta comprobar su correspondencia con {consumer.municipality.name}.</p></div>}
         <div className="map-boundary-note">Municipio {consumer.municipality.code} · contexto limitado</div>
         <div className="map-privacy"><b>VISTA PÚBLICA</b><span>Las capas de campaña requieren sesión autorizada.</span></div>
       </div>

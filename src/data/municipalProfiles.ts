@@ -19,8 +19,36 @@ export interface MunicipalProfile {
   lastUpdated: string;
   map?: {
     embedUrl: string;
+    satelliteEmbedUrl?: string;
     populatedPlacesWithCoordinates: number;
     votingCenters: number;
+    publicLayers?: Array<{ label: string; value: string; detail: string }>;
+  };
+  intelligence?: {
+    populationProjection: string;
+    voterRegister: string;
+    voterWomen: string;
+    voterMen: string;
+    votingCenters: string;
+    votingBoards: string;
+    communityRecords: string;
+    territorialGroups: string;
+    registerCut: string;
+    registerGrowth: string;
+    registerGrowthRate: string;
+    literacyRate: string;
+    literatePeople: string;
+    womenLiteracy: string;
+    menLiteracy: string;
+    literacyUnregistered: string;
+    ages: Array<{ label: string; value: string; share: number }>;
+    censusPopulation: string;
+    censusUrban: string;
+    censusUrbanShare: number;
+    censusRural: string;
+    censusRuralShare: number;
+    projectionMen: string;
+    projectionWomen: string;
   };
   modules: ProfileModule[];
 }
@@ -32,8 +60,54 @@ export const municipalProfiles: Record<string, MunicipalProfile> = {
     lastUpdated: "2026-08-17",
     map: {
       embedUrl: "https://www.openstreetmap.org/export/embed.html?bbox=-90.98%2C13.82%2C-90.68%2C14.04&layer=mapnik&marker=13.9256%2C-90.8244",
+      satelliteEmbedUrl: "https://www.google.com/maps?q=13.9256,-90.8244&z=12&t=k&output=embed",
       populatedPlacesWithCoordinates: 81,
       votingCenters: 13,
+      publicLayers: [
+        { label: "Lugares poblados", value: "81", detail: "coordenadas validadas" },
+        { label: "Centros de votación", value: "13", detail: "103 JRV auditadas" },
+        { label: "Educación", value: "76", detail: "registros públicos" },
+        { label: "Salud", value: "5", detail: "establecimientos públicos" },
+        { label: "Obras", value: "Parcial", detail: "universos separados" },
+      ],
+    },
+    intelligence: {
+      populationProjection: "72,156",
+      voterRegister: "40,890",
+      voterWomen: "21,531",
+      voterMen: "19,359",
+      votingCenters: "13",
+      votingBoards: "103",
+      communityRecords: "205",
+      territorialGroups: "9",
+      registerCut: "12 julio 2026",
+      registerGrowth: "+1,956",
+      registerGrowthRate: "+5.0%",
+      literacyRate: "89.9%",
+      literatePeople: "36,775",
+      womenLiteracy: "88.2%",
+      menLiteracy: "91.9%",
+      literacyUnregistered: "4,115",
+      ages: [
+        { label: "18–25", value: "6,585", share: 16.1 },
+        { label: "26–30", value: "5,524", share: 13.51 },
+        { label: "31–35", value: "5,369", share: 13.13 },
+        { label: "36–40", value: "4,701", share: 11.5 },
+        { label: "41–45", value: "3,928", share: 9.61 },
+        { label: "46–50", value: "3,529", share: 8.63 },
+        { label: "51–55", value: "2,967", share: 7.26 },
+        { label: "56–60", value: "2,392", share: 5.85 },
+        { label: "61–65", value: "2,049", share: 5.01 },
+        { label: "66–70", value: "1,485", share: 3.63 },
+        { label: "70+", value: "2,361", share: 5.77 },
+      ],
+      censusPopulation: "62,801",
+      censusUrban: "23,887",
+      censusUrbanShare: 38.04,
+      censusRural: "38,914",
+      censusRuralShare: 61.96,
+      projectionMen: "36,896",
+      projectionWomen: "35,260",
     },
     modules: [
       {
