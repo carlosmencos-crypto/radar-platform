@@ -11,7 +11,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "lint": "oxlint src scripts tests",
     "smoke:340": "node scripts/smoke-340.mjs",
+    "audit:bundle": "node scripts/audit-bundle.mjs",
+    "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview"
   },
@@ -24,6 +27,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "@vitejs/plugin-react": "6.1.0",
+    "oxlint": "1.14.0",
     "typescript": "7.0.2",
     "vite": "8.2.2"
   }
