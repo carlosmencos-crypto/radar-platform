@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -17,6 +17,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  tag-stable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create immutable stable tag
+        uses: actions/checkout@v4
+        with:
+          ref: 3121a6b8305413f25133cca2b22d3147642abb8d
+          fetch-depth: 0
+      - name: Verify main and create tag
+        env:
+          TARGET_SHA: 3121a6b8305413f25133cca2b22d3147642abb8d
+          TAG_NAME: radar-v70-340-contract-stable
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$TARGET_SHA"
+          test -z "$(git ls-remote origin "refs/tags/$TAG_NAME" | cut -f1)"
+          git tag "$TAG_NAME" "$TARGET_SHA"
+          git push origin "refs/tags/$TAG_NAME"
+
   build:
     runs-on: ubuntu-latest
     steps:
