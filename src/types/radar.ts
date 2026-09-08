@@ -39,6 +39,7 @@ export type CanonicalCoverageStatus =
 
 export type CanonicalRenderState = "AVAILABLE" | "PARTIAL" | "PENDING" | "NOT_PUBLISHED" | "EMPTY_EXPLICIT";
 export type CanonicalSpecialState = "NOT_PUBLISHED" | "NO_EXPLICIT_ASSOCIATION" | "NO_RECORD_IN_SOURCE" | null;
+export type MunicipalProfileModuleId = "demografia" | "electoral" | "territorio" | "educacion" | "salud" | "finanzas" | "obras" | "fuentes";
 
 export interface CanonicalContractProducts {
   registry: "GT_RADAR_REGISTRO_CONSUMO_FRONTEND_17_v2";
@@ -120,6 +121,7 @@ export interface ConsumerModule {
   id: CanonicalLayerId;
   layer_id: CanonicalLayerId;
   layer_order: number;
+  ui_profile_id: MunicipalProfileModuleId;
   label: string;
   state: AvailabilityState;
   special_state: CanonicalSpecialState;
