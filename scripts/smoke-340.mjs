@@ -211,6 +211,7 @@ for (const contextField of ["municipality_code", "municipality_name", "departmen
 }
 assert(!dashboardSource.includes('=== "0509"') && !consumerSource.includes('=== "0509"'), "El shell o consumer contienen lógica fijada a 0509.");
 assert(consumerSource.includes("UI_PROFILE_BY_LAYER") && dashboardSource.includes("module.ui_profile_id"), "Falta el adaptador no visual V70/contrato.");
+assert(dashboardSource.includes("{available}/{consumer.modules.length}") && !dashboardSource.includes("{available}/8"), "La cobertura V70 no refleja los 17 layers canónicos.");
 
 assert(/const catalogMunicipalities = useMemo\([\s\S]*?\[\.\.\.municipalities\]\.sort\(/.test(nationalSource), "El catálogo raíz no deriva de los 340 municipios.");
 assert(nationalSource.includes("catalogMunicipalities.map"), "El catálogo raíz no renderiza 340 municipios.");
@@ -225,7 +226,7 @@ assert(snip.period === "2026" && snip.guardrail.includes("no equivalen a contrat
 assert(!/\b\d{13}\b/.test(read("src/data/radarContract.generated.json")), "Posible DPI detectado en contrato público.");
 
 const preservedUiHashes = {
-  "src/components/MunicipalDashboard.tsx": "73ac2ce3b24399d5ea4b50375345ff59273d933136385b91ce5e6944200efe24",
+  "src/components/MunicipalDashboard.tsx": "18cbbc452f2b4fae9bd6ce0b4d22815d939f8b8b5da5d3f2c7bef2531280369f",
   "src/styles/global.css": "1cf04126b387386fd370155b671d81d97271771044a1b1833a2a122d24fbed07",
   "src/app/App.tsx": "588dff4f7545b89e9383f598fb34a24025e9897486b7314d805ba4479ff48e37",
   "index.html": "3c983bfcbf465c8726eda038ee2cb8dd7658a636604f4abf902bdfb1e02a8a31",

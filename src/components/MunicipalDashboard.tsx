@@ -145,7 +145,7 @@ function PublicHome() {
 
     <section className="home-reminder-bar" aria-label="Resumen del municipio">
       <div><small>{today}</small></div>
-      <div className="territory-coverage"><small>COBERTURA PÚBLICA</small><b>{available}/8</b><i>RADAR</i></div>
+      <div className="territory-coverage"><small>COBERTURA PÚBLICA</small><b>{available}/{consumer.modules.length}</b><i>RADAR</i></div>
       <Link to={routeFor(consumer.municipality.code, "inteligencia")}>Revisar información →</Link>
     </section>
 
