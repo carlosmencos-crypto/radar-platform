@@ -5,6 +5,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { TerritorialMap0509 } from "../components/TerritorialMap0509";
 import { departments, findDepartment } from "../data/departments";
 import { findMunicipalProfile } from "../data/municipalProfiles";
+import { findMunicipalityEmptyStates } from "../data/emptyStates";
 import { findMunicipality, municipalities } from "../data/municipalities";
 
 const formatNumber = (value?: number | null) =>
@@ -141,6 +142,7 @@ export function MunicipalityPage() {
   const municipality = findMunicipality(municipalityCode);
   if (!municipality) return <NotFoundPage />;
   const profile = findMunicipalProfile(municipalityCode);
+  const documentedEmptyStates = findMunicipalityEmptyStates(municipalityCode);
   return (
     <div className="page page--compact">
       <div className="title-row">
@@ -154,6 +156,26 @@ export function MunicipalityPage() {
         <article><span>Actualización</span><strong>{municipality.lastUpdated ?? "Contrato nacional"}</strong><small>fecha de corte</small></article>
       </div>
       {municipality.code === "0509" && <TerritorialMap0509 />}
+      {documentedEmptyStates.length > 0 && (
+        <section className="semantic-empty-panel" aria-labelledby={`empty-states-${municipality.code}`}>
+          <span className="eyebrow">Disponibilidad documentada</span>
+          <h2 id={`empty-states-${municipality.code}`}>Qué significa cada módulo sin registros</h2>
+          <p>RADAR conserva la razón exacta reportada por la fuente. Estos estados no se convierten en cero ni se presentan como fallos de navegación.</p>
+          <div className="semantic-empty-list">
+            {documentedEmptyStates.map((emptyState) => (
+              <article className="semantic-empty-item" key={emptyState.layerId}>
+                <div className="semantic-empty-item__heading">
+                  <strong>{emptyState.layerLabel}</strong>
+                  <span>{emptyState.badge}</span>
+                </div>
+                <h3>{emptyState.title}</h3>
+                <p>{emptyState.description}</p>
+                <small>{emptyState.guardrail}</small>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       {profile ? (
         <MunicipalProfile profile={profile} />
       ) : (
