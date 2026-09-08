@@ -22,7 +22,7 @@ jobs:
       - name: Checkout exact integration commit
         uses: actions/checkout@v4
         with:
-          ref: 074603043663a96b9530325555b341a7360c0a3d
+          ref: aa5f3845bbce8483f2f84c070e43265b8b364e32
       - uses: actions/setup-node@v4
         with:
           node-version: 22
