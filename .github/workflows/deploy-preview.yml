@@ -1,8 +1,9 @@
-name: Deploy preview
+name: Temporary RADAR catalog V70 preview
 
 on:
   push:
-    branches: [main]
+    branches:
+      - preview/catalog-v70
   workflow_dispatch:
 
 permissions:
@@ -11,34 +12,205 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-catalog-v70-preview
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact catalog commit
+        uses: actions/checkout@v4
+        with:
+          ref: 00a2d617a96009076ad9524ba42a81d0a42dd202
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
+      - run: npm run smoke:340
       - run: npm run build -- --base=/radar-platform/
-      - run: cp dist/index.html dist/404.html
+      - run: npm run audit:bundle
+      - name: Prepare isolated SPA preview
+        run: |
+          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
+          cp dist/index.html dist/404.html
+          mkdir -p dist/municipios
+          cp dist/index.html dist/municipios/index.html
+          for code in $(seq -w 1 22); do
+            mkdir -p "dist/departamento/$code"
+            cp dist/index.html "dist/departamento/$code/index.html"
+          done
+          for code in 0509 1901; do
+            mkdir -p "dist/municipio/$code"
+            cp dist/index.html "dist/municipio/$code/index.html"
+          done
+      - name: Runtime catalog QA and screenshots
+        run: |
+          npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+          npm exec vite -- build --outDir=dist-qa --base=/
+          cp dist-qa/index.html dist-qa/404.html
+          mkdir -p dist-qa/municipios
+          cp dist-qa/index.html dist-qa/municipios/index.html
+          for code in $(seq -w 1 22); do
+            mkdir -p "dist-qa/departamento/$code"
+            cp dist-qa/index.html "dist-qa/departamento/$code/index.html"
+          done
+          for code in 0509 1901; do
+            mkdir -p "dist-qa/municipio/$code"
+            cp dist-qa/index.html "dist-qa/municipio/$code/index.html"
+          done
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory dist-qa > /tmp/radar-catalog-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            curl -fsS http://127.0.0.1:4173/municipios/ >/dev/null && break
+            sleep 1
+          done
+          chrome_path="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          CHROME_PATH="$chrome_path" node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import puppeteer from "puppeteer-core";
+
+          const browser = await puppeteer.launch({
+            executablePath: process.env.CHROME_PATH,
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          });
+          const page = await browser.newPage();
+          const base = "http://127.0.0.1:4173";
+          const departmentCounts = {
+            "01":17,"02":8,"03":16,"04":16,"05":14,"06":14,"07":19,"08":8,"09":24,"10":21,"11":9,
+            "12":30,"13":33,"14":21,"15":8,"16":17,"17":14,"18":5,"19":11,"20":11,"21":7,"22":17,
+          };
+
+          const overlapStats = async () => page.evaluate(() => {
+            const cards = [...document.querySelectorAll(".catalog-municipality-card")];
+            const rects = cards.map((card) => {
+              const rect = card.getBoundingClientRect();
+              return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+            });
+            let overlaps = 0;
+            for (let i = 0; i < rects.length; i += 1) {
+              for (let j = i + 1; j < rects.length; j += 1) {
+                const width = Math.min(rects[i].right, rects[j].right) - Math.max(rects[i].left, rects[j].left);
+                const height = Math.min(rects[i].bottom, rects[j].bottom) - Math.max(rects[i].top, rects[j].top);
+                if (width > 1 && height > 1) overlaps += 1;
+              }
+            }
+            return {
+              cards: cards.length,
+              overlaps,
+              cardPosition: cards[0] ? getComputedStyle(cards[0]).position : null,
+              gridDisplay: getComputedStyle(document.querySelector(".catalog-municipality-grid")).display,
+              columns: getComputedStyle(document.querySelector(".catalog-municipality-grid")).gridTemplateColumns.split(" ").length,
+              horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+            };
+          });
+
+          await page.setViewport({ width: 1440, height: 1100, deviceScaleFactor: 1 });
+          await page.goto(base + "/municipios/", { waitUntil: "networkidle0" });
+          const national = await page.evaluate(async () => {
+            await document.fonts.ready;
+            const cards = [...document.querySelectorAll(".catalog-municipality-card")];
+            const codes = cards.map((card) => card.dataset.municipalityCode);
+            return {
+              cards: cards.length,
+              unique: new Set(codes).size,
+              departments: document.querySelectorAll(".catalog-department-index a").length,
+              first: codes[0],
+              last: codes.at(-1),
+              font: getComputedStyle(document.body).fontFamily,
+            };
+          });
+          if (national.cards !== 340 || national.unique !== 340 || national.departments !== 22 || national.first !== "0101" || national.last !== "2217" || !national.font.startsWith("Inter")) {
+            throw new Error("Catálogo nacional inválido: " + JSON.stringify(national));
+          }
+
+          let visibleTotal = 0;
+          for (const [code, expected] of Object.entries(departmentCounts)) {
+            await page.goto(base + "/departamento/" + code + "/", { waitUntil: "domcontentloaded" });
+            const observed = await page.evaluate((departmentCode) => {
+              const cards = [...document.querySelectorAll(".catalog-municipality-card")];
+              return {
+                count: cards.length,
+                unique: new Set(cards.map((card) => card.dataset.municipalityCode)).size,
+                correctDepartment: cards.every((card) => card.dataset.departmentCode === departmentCode),
+              };
+            }, code);
+            if (observed.count !== expected || observed.unique !== expected || !observed.correctDepartment) {
+              throw new Error("Departamento inválido " + code + ": " + JSON.stringify(observed));
+            }
+            visibleTotal += observed.count;
+          }
+          if (visibleTotal !== 340) throw new Error("Total departamental inválido: " + visibleTotal);
+
+          await page.goto(base + "/departamento/05/", { waitUntil: "networkidle0" });
+          const expectedEscuintla = Array.from({ length: 14 }, (_, index) => "05" + String(index + 1).padStart(2, "0"));
+          const escuintla = await page.evaluate(() => [...document.querySelectorAll(".catalog-municipality-card")].map((card) => card.dataset.municipalityCode));
+          if (JSON.stringify(escuintla) !== JSON.stringify(expectedEscuintla)) throw new Error("Orden Escuintla inválido: " + JSON.stringify(escuintla));
+
+          const desktop = await overlapStats();
+          if (desktop.cards !== 14 || desktop.overlaps !== 0 || desktop.cardPosition === "absolute" || desktop.gridDisplay !== "grid" || desktop.columns !== 4 || desktop.horizontalOverflow) {
+            throw new Error("Layout desktop inválido: " + JSON.stringify(desktop));
+          }
+          fs.mkdirSync("qa-screenshots", { recursive: true });
+          await page.screenshot({ path: "qa-screenshots/departamento-05-desktop.png", fullPage: false });
+
+          await page.setViewport({ width: 768, height: 1024, deviceScaleFactor: 1 });
+          await page.reload({ waitUntil: "networkidle0" });
+          const tablet = await overlapStats();
+          if (tablet.overlaps !== 0 || tablet.columns !== 2 || tablet.horizontalOverflow) throw new Error("Layout tablet inválido: " + JSON.stringify(tablet));
+
+          await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+          await page.reload({ waitUntil: "networkidle0" });
+          const mobile = await overlapStats();
+          if (mobile.overlaps !== 0 || mobile.columns !== 1 || mobile.horizontalOverflow) throw new Error("Layout móvil inválido: " + JSON.stringify(mobile));
+          await page.screenshot({ path: "qa-screenshots/departamento-05-mobile.png", fullPage: false });
+
+          for (const [municipalityCode, expectedLabel] of [["0509", "San José / Puerto San José"], ["1901", "Zacapa"]]) {
+            await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 });
+            await page.goto(base + "/municipio/" + municipalityCode + "/", { waitUntil: "networkidle0" });
+            const municipal = await page.evaluate(() => ({
+              shell: Boolean(document.querySelector(".portal-shell")),
+              nav: document.querySelectorAll(".portal-sidebar nav a").length,
+              h1: document.querySelector("h1")?.textContent?.trim(),
+              catalogLeak: Boolean(document.querySelector(".catalog-page")),
+            }));
+            if (!municipal.shell || municipal.nav !== 11 || municipal.h1 !== expectedLabel || municipal.catalogLeak) {
+              throw new Error("V70 municipal inválida " + municipalityCode + ": " + JSON.stringify(municipal));
+            }
+          }
+
+          console.log("CATALOG_RUNTIME_OK 22/22 departamentos · 340/340 municipios · Escuintla 14/14 · desktop/tablet/mobile 0 solapamientos");
+          console.log("CATALOG_DESKTOP_OK " + JSON.stringify(desktop));
+          console.log("CATALOG_TABLET_OK " + JSON.stringify(tablet));
+          console.log("CATALOG_MOBILE_OK " + JSON.stringify(mobile));
+          console.log("V70_RUNTIME_OK 0509/1901 · 11/11 secciones");
+          await browser.close();
+          NODE
+      - name: Upload QA screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-v70-screenshots
+          path: qa-screenshots
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     environment:
-      name: github-pages
+      name: catalog-v70-preview
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy isolated catalog preview
         id: deployment
         uses: actions/deploy-pages@v4
