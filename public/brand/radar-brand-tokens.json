@@ -1,0 +1,71 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "brand": {
+    "color": {
+      "primary": {
+        "$value": "#08576E",
+        "$type": "color"
+      },
+      "primaryDiagonal": {
+        "$value": "#0B6478",
+        "$type": "color"
+      },
+      "electoral": {
+        "$value": "#552676",
+        "$type": "color"
+      },
+      "government": {
+        "$value": "#974D39",
+        "$type": "color"
+      },
+      "municipal": {
+        "$value": "#4C7261",
+        "$type": "color"
+      },
+      "graphite": {
+        "$value": "#2F343A",
+        "$type": "color"
+      },
+      "sage": {
+        "$value": "#A7ACA5",
+        "$type": "color"
+      },
+      "ivory": {
+        "$value": "#F7F5EF",
+        "$type": "color"
+      },
+      "darkBackground": {
+        "$value": "#2D333A",
+        "$type": "color"
+      },
+      "white": {
+        "$value": "#FFFFFF",
+        "$type": "color"
+      }
+    },
+    "font": {
+      "uiFamily": {
+        "$value": "Inter, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "$type": "fontFamily"
+      },
+      "weights": {
+        "regular": {
+          "$value": 400,
+          "$type": "fontWeight"
+        },
+        "medium": {
+          "$value": 500,
+          "$type": "fontWeight"
+        },
+        "semibold": {
+          "$value": 600,
+          "$type": "fontWeight"
+        },
+        "bold": {
+          "$value": 700,
+          "$type": "fontWeight"
+        }
+      }
+    }
+  }
+}

@@ -7,7 +7,12 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const contract = JSON.parse(read("src/data/radarContract.generated.json"));
 const municipalitiesSource = read("src/data/municipalities.ts");
 const consumerSource = read("src/data/radarConsumer.ts");
+const dashboardSource = read("src/components/MunicipalDashboard.tsx");
+const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
+const nationalSource = read("src/app/pages.tsx");
+const fontSource = read("src/styles/v70/fonts.css");
+const indexSource = read("index.html");
 
 const EXPECTED_LAYER_IDS = [
   "ROUTES_340",
@@ -62,7 +67,7 @@ function sha256(file) {
 }
 
 const municipalityRows = [...municipalitiesSource.matchAll(
-  /\{ code: "(\d{4})", departmentCode: "(\d{2})", name: "([^"]+)", department: "([^"]+)"/g,
+  /\{ code: "(\d{4})", departmentCode: "(\d{2})", name: "([^"]+)",(?: displayName: "[^"]+",)? department: "([^"]+)"/g,
 )].map((match) => ({ code: match[1], departmentCode: match[2], name: match[3], department: match[4] }));
 const municipalityCodes = new Set(municipalityRows.map((row) => row.code));
 const departmentCodes = new Set(municipalityRows.map((row) => row.departmentCode));
@@ -170,6 +175,50 @@ assert(consumerSource.includes("RUNTIME_GATE_340[municipalityCode]") && consumer
 assert(consumerSource.includes("CANONICAL_LAYER_DEFINITIONS.map") && !consumerSource.includes("publicModules") && !consumerSource.includes("campaignModules"), "El consumer conserva aliases genéricos.");
 assert(appSource.includes('path="admin"') && appSource.includes('<Navigate to="/acceso-restringido" replace'), "/admin no está fail-closed.");
 
+const expectedSections = ["inicio", "inteligencia", "estrategia", "directorio", "agenda", "mapa", "dia-d", "recursos", "pulso", "ia-radar", "configuracion"];
+for (const section of expectedSections) {
+  assert(dashboardSource.includes(`"${section}"`), `Sidebar V70 incompleto: falta ${section}.`);
+}
+for (const requiredClass of ["portal-shell", "portal-sidebar", "portal-topbar", "command-hero", "home-welcome"]) {
+  assert(dashboardSource.includes(requiredClass), `Shell V70 incompleto: falta ${requiredClass}.`);
+}
+for (const requiredGoldenUi of [
+  "electorate-profile",
+  "register-total",
+  "sex-profile",
+  "literacy-profile",
+  "age-profile",
+  "universe-card",
+  "operational-map-toolbar",
+  "map-electoral-priorities",
+  "map-satellite-toggle",
+]) {
+  assert(dashboardSource.includes(requiredGoldenUi), `Golden UI V70 incompleta: falta ${requiredGoldenUi}.`);
+}
+assert(dashboardSource.includes("canonical-coverage-secondary") && dashboardSource.includes("<details"), "El contrato no quedó como información secundaria dentro de V70.");
+for (const fontFile of ["inter-1ab1ad55.woff2", "inter-749a3084.woff2"]) {
+  assert(fontSource.includes(fontFile), `Fuente Inter V70 no conectada: ${fontFile}.`);
+}
+for (const asset of [
+  "/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",
+  "/brand/radar-electoral-isotipo.svg",
+  "/brand/radar-isotipo.svg",
+]) {
+  assert(dashboardSource.includes(asset), `Asset oficial V70 no conectado: ${asset}.`);
+}
+for (const contextField of ["municipality_code", "municipality_name", "department_code", "department_name", "campaign_id", "user_role", "permissions"]) {
+  assert(contextSource.includes(contextField), `MunicipalityContext incompleto: falta ${contextField}.`);
+}
+assert(!dashboardSource.includes('=== "0509"') && !consumerSource.includes('=== "0509"'), "El shell o consumer contienen lógica fijada a 0509.");
+assert(consumerSource.includes("UI_PROFILE_BY_LAYER") && dashboardSource.includes("module.ui_profile_id"), "Falta el adaptador no visual V70/contrato.");
+assert(dashboardSource.includes("{available}/{consumer.modules.length}") && !dashboardSource.includes("{available}/8"), "La cobertura V70 no refleja los 17 layers canónicos.");
+
+assert(/const catalogMunicipalities = useMemo\([\s\S]*?\[\.\.\.municipalities\]\.sort\(/.test(nationalSource), "El catálogo raíz no deriva de los 340 municipios.");
+assert(nationalSource.includes("catalogMunicipalities.map"), "El catálogo raíz no renderiza 340 municipios.");
+assert(nationalSource.includes("national-territory-grid") && nationalSource.includes("national-territory-card"), "El catálogo no está aislado del CSS del Mapa V70.");
+assert(!nationalSource.includes("priorityCodes") && !nationalSource.includes("priorityMunicipalities"), "El catálogo conserva un subconjunto prioritario.");
+assert(indexSource.includes('/brand/radar-isotipo.svg'), "Favicon oficial RADAR ausente.");
+
 const tseGeo = contract.layers.find((layer) => layer.layer_id === "TSE_CENTROS_GEO");
 const snip = contract.layers.find((layer) => layer.layer_id === "SNIP_2026");
 assert(tseGeo.guardrail.includes("geolocalización") && tseGeo.guardrail.includes("JRV y electores") && tseGeo.guardrail.includes("separadas"), "TSE geográfico mezcló JRV/electores.");
@@ -177,15 +226,22 @@ assert(snip.period === "2026" && snip.guardrail.includes("no equivalen a contrat
 assert(!/\b\d{13}\b/.test(read("src/data/radarContract.generated.json")), "Posible DPI detectado en contrato público.");
 
 const preservedUiHashes = {
-  "src/components/MunicipalDashboard.tsx": "a1fc738dd54f1b8d52aa47083753a4de7382332fa518e4008369cc128943051c",
+  "src/components/MunicipalDashboard.tsx": "18cbbc452f2b4fae9bd6ce0b4d22815d939f8b8b5da5d3f2c7bef2531280369f",
   "src/styles/global.css": "1cf04126b387386fd370155b671d81d97271771044a1b1833a2a122d24fbed07",
   "src/app/App.tsx": "588dff4f7545b89e9383f598fb34a24025e9897486b7314d805ba4479ff48e37",
-  "index.html": "877a0f9bb07ece7fae2cb61ecc12379b6db98bda491dce26b065def2c1f2faa3",
+  "index.html": "3c983bfcbf465c8726eda038ee2cb8dd7658a636604f4abf902bdfb1e02a8a31",
+  "src/app/pages.tsx": "8999d347b858650ce677b6fbe2b821d684e3bd6ea8e27fbbd7eecb39c7ee5e75",
+  "src/styles/canonical-adapter.css": "59c43858e33ce994ef502702e5139ef855eb22692af5595f1510a74b3f36cbcf",
+  "src/styles/v70/fonts.css": "cff4e41e8c82d1b7e8b44cc3ceeee2a435819d6d897b6c55dc7f8b62a6969e05",
+  "public/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg": "b73bd230561f9351e02ac84fc08320ab544c6f9d3c131f2823c4a0f97b0c1cec",
+  "public/brand/radar-electoral-isotipo.svg": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a",
+  "public/brand/radar-isotipo.svg": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a",
+  "public/brand/radar-theme.css": "d7ca21806ae121e10edfcd302f8336cf8f7db24fe900b92f2dce66f6ed8f6271",
 };
 for (const [file, expectedHash] of Object.entries(preservedUiHashes)) {
   assert(sha256(file) === expectedHash, `V70 fue modificada: ${file}`);
 }
 
 console.log(
-  `SMOKE_CANONICAL_OK ${pairKeys.size}/5780 pares · ${municipalityCodes.size}/340 municipios · ${departmentCodes.size}/22 departamentos · ${observedLayerIds.length}/17 layer_id · 0 duplicados · 0 cruces · 20 NOT_PUBLISHED · 178 NO_EXPLICIT_ASSOCIATION · 1 NO_RECORD_IN_SOURCE · 0509/1901 correctas · /admin fail-closed · V70 intacta`,
+  `SMOKE_RECONCILED_OK ${pairKeys.size}/5780 pares · ${municipalityCodes.size}/340 municipios · catálogo ${municipalityCodes.size}/340 · ${departmentCodes.size}/22 departamentos · ${observedLayerIds.length}/17 layer_id · 0 duplicados · 0 cruces · 20 NOT_PUBLISHED · 178 NO_EXPLICIT_ASSOCIATION · 1 NO_RECORD_IN_SOURCE · 0509/1901 correctas · /admin fail-closed · V70 intacta`,
 );

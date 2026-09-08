@@ -29,6 +29,7 @@ const forbidden = [
   /\b(?:sk|pk)_(?:live|test)_[A-Za-z0-9_-]{16,}/,
   /\bAKIA[0-9A-Z]{16}\b/,
   /(?:AWS_SECRET_ACCESS_KEY|DATABASE_URL|PRIVATE_KEY)\s*[:=]\s*["'][^"']+/i,
+  /radar-identidad-electoral\.carlos-mencos\.chatgpt\.site/i,
   /campaign-candidate-demo\.(?:jpg|png)/i,
   /campaign-party-logo-demo\.(?:jpg|png)/i,
   /Carlos Enrique Mencos Morales/i,

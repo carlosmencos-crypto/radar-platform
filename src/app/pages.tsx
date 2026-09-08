@@ -15,8 +15,6 @@ const formatNumber = (value?: number | null) =>
 const normalize = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-const priorityCodes = new Set(["0509", "0501", "0502", "0513"]);
-
 export function NationalPage() {
   const [query, setQuery] = useState("");
   const term = normalize(query.trim());
@@ -32,7 +30,17 @@ export function NationalPage() {
       normalize(`${municipality.name} ${municipality.department} ${municipality.code}`).includes(term),
     ).slice(0, 18);
   }, [term]);
-  const priorityMunicipalities = municipalities.filter((municipality) => priorityCodes.has(municipality.code));
+  const catalogMunicipalities = useMemo(
+    () =>
+      [...municipalities].sort((a, b) => {
+        const departmentOrder = a.departmentCode.localeCompare(b.departmentCode);
+        if (departmentOrder !== 0) return departmentOrder;
+        const municipalityOrder = normalize(a.name).localeCompare(normalize(b.name), "es-GT");
+        if (municipalityOrder !== 0) return municipalityOrder;
+        return a.code.localeCompare(b.code);
+      }),
+    [],
+  );
 
   return (
     <div className="page">
@@ -66,10 +74,10 @@ export function NationalPage() {
 
         {term && municipalityResults.length > 0 && (
           <>
-            <h3 className="result-heading">Municipios</h3>
-            <div className="territory-grid search-results">
+            <h3 className="national-result-heading">Municipios</h3>
+            <div className="national-territory-grid search-results">
               {municipalityResults.map((municipality) => (
-                <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+                <Link className="national-territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
                   <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
                   <h3>{municipality.name}</h3><p>{municipality.department}</p>
                 </Link>
@@ -80,7 +88,7 @@ export function NationalPage() {
 
         {departmentResults.length > 0 && (
           <>
-            {term && <h3 className="result-heading">Departamentos</h3>}
+            {term && <h3 className="national-result-heading">Departamentos</h3>}
             <div className="department-grid">
               {departmentResults.map((department) => (
                 <Link className="department-card" to={`/departamento/${department.code}`} key={department.code}>
@@ -98,12 +106,12 @@ export function NationalPage() {
 
       <section className="section">
         <div className="section__heading">
-          <div><span className="eyebrow">Prioridad actual</span><h2>Escuintla</h2></div>
-          <Link to="/departamento/05">Ver los 14 municipios →</Link>
+          <div><span className="eyebrow">Catálogo nacional</span><h2>Municipios de Guatemala</h2></div>
+          <span>{catalogMunicipalities.length} municipios</span>
         </div>
-        <div className="territory-grid">
-          {priorityMunicipalities.map((municipality) => (
-            <Link className="territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
+        <div className="national-territory-grid">
+          {catalogMunicipalities.map((municipality) => (
+            <Link className="national-territory-card" to={`/municipio/${municipality.code}`} key={municipality.code}>
               <div><small>{municipality.code}</small><StatusBadge status={municipality.coverage} /></div>
               <h3>{municipality.name}</h3><p>{municipality.department}</p>
             </Link>

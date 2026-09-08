@@ -16,8 +16,29 @@ import type {
   CanonicalRenderRule,
   CanonicalSpecialState,
   ConsumerModule,
+  MunicipalProfileModuleId,
   RadarMunicipalConsumer,
 } from "../types/radar";
+
+const UI_PROFILE_BY_LAYER: Record<CanonicalLayerId, MunicipalProfileModuleId> = {
+  ROUTES_340: "fuentes",
+  NUCLEO_ELECTORAL: "electoral",
+  RGM_SERVICIOS: "territorio",
+  INAB_FORESTAL: "territorio",
+  CONRED_INFORM: "territorio",
+  CONAP_SIGAP: "territorio",
+  INE_CENSO_B2_B6: "demografia",
+  SESAN_TALLA: "salud",
+  PDM_PDMOT: "territorio",
+  MSPAS_SALUD: "salud",
+  MINEDUC_ESCUELAS: "educacion",
+  MINFIN_HIST: "finanzas",
+  MINFIN_YTD: "finanzas",
+  SNIP_2026: "obras",
+  GUATECOMPRAS: "obras",
+  ACTIVOS_RESUMEN: "finanzas",
+  TSE_CENTROS_GEO: "electoral",
+};
 
 function coverageStatus(action: CanonicalFrontendAction, layerId: CanonicalLayerId): CanonicalCoverageStatus {
   if (action === "SHOW") return "ANY_NON_EMPTY";
@@ -81,6 +102,7 @@ export function resolveCanonicalRouteModules(municipalityCode: string): Consumer
       id: definition.layer_id,
       layer_id: definition.layer_id,
       layer_order: definition.layer_order,
+      ui_profile_id: UI_PROFILE_BY_LAYER[definition.layer_id],
       label: definition.label,
       state: uiAvailability(renderRule),
       special_state: specialState(renderRule),
