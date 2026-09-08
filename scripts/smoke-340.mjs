@@ -10,7 +10,9 @@ const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
+const layoutSource = read("src/app/Layout.tsx");
 const nationalSource = read("src/app/pages.tsx");
+const catalogCssSource = read("src/styles/canonical-adapter.css");
 const fontSource = read("src/styles/v70/fonts.css");
 const indexSource = read("index.html");
 
@@ -174,6 +176,7 @@ assert(contract.nav["1901"].municipality_name === "Zacapa" && contract.nav["1901
 assert(consumerSource.includes("RUNTIME_GATE_340[municipalityCode]") && consumerSource.includes("gate.status !== \"PASS\""), "El consumer no aplica RUNTIME_GATE_340.");
 assert(consumerSource.includes("CANONICAL_LAYER_DEFINITIONS.map") && !consumerSource.includes("publicModules") && !consumerSource.includes("campaignModules"), "El consumer conserva aliases genéricos.");
 assert(appSource.includes('path="admin"') && appSource.includes('<Navigate to="/acceso-restringido" replace'), "/admin no está fail-closed.");
+assert(appSource.includes('path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />}'), "La ruta municipal V70 fue modificada.");
 
 const expectedSections = ["inicio", "inteligencia", "estrategia", "directorio", "agenda", "mapa", "dia-d", "recursos", "pulso", "ia-radar", "configuracion"];
 for (const section of expectedSections) {
@@ -217,6 +220,14 @@ assert(/const catalogMunicipalities = useMemo\([\s\S]*?\[\.\.\.municipalities\]\
 assert(nationalSource.includes("catalogMunicipalities.map"), "El catálogo raíz no renderiza 340 municipios.");
 assert(nationalSource.includes("national-territory-grid") && nationalSource.includes("national-territory-card"), "El catálogo no está aislado del CSS del Mapa V70.");
 assert(!nationalSource.includes("priorityCodes") && !nationalSource.includes("priorityMunicipalities"), "El catálogo conserva un subconjunto prioritario.");
+assert(appSource.includes('path="municipios" element={<MunicipalitiesPage />}'), "Falta la ruta pública /municipios.");
+assert(nationalSource.includes("export function MunicipalitiesPage()") && nationalSource.includes("catalog-department-index"), "El catálogo nacional no permite explorar los 22 departamentos.");
+assert(nationalSource.includes("data-municipality-code") && nationalSource.includes("data-department-code"), "Las tarjetas no conservan identidad territorial verificable.");
+assert(nationalSource.includes("catalog-municipality-grid") && nationalSource.includes("catalog-municipality-card"), "La grilla municipal no está aislada del Mapa V70.");
+assert(!/export function DepartmentPage\(\)[\s\S]*?export function MunicipalityPage\(\)/.exec(nationalSource)?.[0].includes('className="territory-card"'), "Departamento reutiliza la ficha absoluta del Mapa V70.");
+assert(catalogCssSource.includes(".catalog-municipality-card") && catalogCssSource.includes("position: static"), "Las tarjetas del catálogo no neutralizan posicionamiento flotante.");
+assert(catalogCssSource.includes("repeat(4, minmax(0, 1fr))") && catalogCssSource.includes("repeat(2, minmax(0, 1fr))") && catalogCssSource.includes("grid-template-columns: 1fr"), "La grilla del catálogo no cubre desktop, tablet y móvil.");
+assert(layoutSource.includes('/municipios') && layoutSource.includes('/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg'), "La navegación pública no usa el catálogo o logo oficial.");
 assert(indexSource.includes('/brand/radar-isotipo.svg'), "Favicon oficial RADAR ausente.");
 
 const tseGeo = contract.layers.find((layer) => layer.layer_id === "TSE_CENTROS_GEO");
@@ -227,12 +238,13 @@ assert(!/\b\d{13}\b/.test(read("src/data/radarContract.generated.json")), "Posib
 
 const preservedUiHashes = {
   "src/components/MunicipalDashboard.tsx": "18cbbc452f2b4fae9bd6ce0b4d22815d939f8b8b5da5d3f2c7bef2531280369f",
+  "src/context/MunicipalityContext.tsx": "6e34556c4fbe1ce3a2f74a0c9ff30afaea8319a06cb5c18495dafbdb26857d1d",
   "src/styles/global.css": "1cf04126b387386fd370155b671d81d97271771044a1b1833a2a122d24fbed07",
-  "src/app/App.tsx": "588dff4f7545b89e9383f598fb34a24025e9897486b7314d805ba4479ff48e37",
   "index.html": "3c983bfcbf465c8726eda038ee2cb8dd7658a636604f4abf902bdfb1e02a8a31",
-  "src/app/pages.tsx": "8999d347b858650ce677b6fbe2b821d684e3bd6ea8e27fbbd7eecb39c7ee5e75",
-  "src/styles/canonical-adapter.css": "59c43858e33ce994ef502702e5139ef855eb22692af5595f1510a74b3f36cbcf",
   "src/styles/v70/fonts.css": "cff4e41e8c82d1b7e8b44cc3ceeee2a435819d6d897b6c55dc7f8b62a6969e05",
+  "src/styles/v70/globals.css": "72cb2595f0bd5c386c7530a30435f253244e83dfc157ef10ddd47af665bb9a57",
+  "src/styles/v70/portal.css": "b7b6e1d529f36a8f57fb201d599a31f59a788d76dee68ab0f4ac9f8c5bcaf7ec",
+  "src/styles/v70/radar-brand-v3.css": "2ec7c0b52fe34c51c511b74ebb0e454242e7a17247e4a248f4e23ece8f026554",
   "public/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg": "b73bd230561f9351e02ac84fc08320ab544c6f9d3c131f2823c4a0f97b0c1cec",
   "public/brand/radar-electoral-isotipo.svg": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a",
   "public/brand/radar-isotipo.svg": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a",
