@@ -1,8 +1,9 @@
-name: Deploy preview
+name: Temporary V70 visual preview
 
 on:
   push:
-    branches: [main]
+    branches:
+      - preview/v70-340
   workflow_dispatch:
 
 permissions:
@@ -11,34 +12,131 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-v70-340-preview
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact integration commit
+        uses: actions/checkout@v4
+        with:
+          ref: 074603043663a96b9530325555b341a7360c0a3d
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
+      - run: npm run smoke:340
       - run: npm run build -- --base=/radar-platform/
-      - run: cp dist/index.html dist/404.html
+      - run: npm run audit:bundle
+      - name: Prepare isolated SPA preview
+        run: |
+          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
+          cp dist/index.html dist/404.html
+          for code in 0509 1901; do
+            mkdir -p "dist/municipio/$code"
+            cp dist/index.html "dist/municipio/$code/index.html"
+            for section in inteligencia estrategia directorio agenda mapa dia-d recursos pulso ia-radar configuracion; do
+              mkdir -p "dist/municipio/$code/$section"
+              cp dist/index.html "dist/municipio/$code/$section/index.html"
+            done
+          done
+      - name: Verify V70 runtime typography and golden modules
+        run: |
+          npm install --no-save --ignore-scripts puppeteer-core@24.16.0
+          npm exec vite -- build --outDir=dist-qa --base=/
+          for section in inteligencia mapa; do
+            mkdir -p "dist-qa/municipio/0509/$section"
+            cp dist-qa/index.html "dist-qa/municipio/0509/$section/index.html"
+          done
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory dist-qa > /tmp/radar-v70-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            curl -fsS http://127.0.0.1:4173/municipio/0509/inteligencia/ >/dev/null && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4173/municipio/0509/inteligencia/ >/dev/null
+          chrome_path="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          CHROME_PATH="$chrome_path" node --input-type=module <<'NODE'
+          import puppeteer from "puppeteer-core";
+
+          const browser = await puppeteer.launch({
+            executablePath: process.env.CHROME_PATH,
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          });
+          const page = await browser.newPage();
+          const fontResponses = [];
+          page.on("response", (response) => {
+            if (/inter-.*\.woff2(?:\?|$)/.test(response.url())) {
+              fontResponses.push({ url: response.url(), status: response.status() });
+            }
+          });
+          await page.goto("http://127.0.0.1:4173/municipio/0509/inteligencia/", { waitUntil: "networkidle0" });
+          const intelligence = await page.evaluate(async () => {
+            await document.fonts.ready;
+            return {
+              family: getComputedStyle(document.body).fontFamily,
+              inter400: document.fonts.check("400 16px Inter"),
+              inter700: document.fonts.check("700 16px Inter"),
+              kpis: document.querySelectorAll(".kpis article").length,
+              electorate: Boolean(document.querySelector(".electorate-profile")),
+              sex: Boolean(document.querySelector(".sex-profile")),
+              literacy: Boolean(document.querySelector(".literacy-profile")),
+              age: Boolean(document.querySelector(".age-profile")),
+              territory: Boolean(document.querySelector(".universe-card")),
+              secondaryCoverage: Boolean(document.querySelector("details.canonical-coverage-secondary:not([open])")),
+            };
+          });
+          if (!intelligence.family.startsWith("Inter") || !intelligence.inter400 || !intelligence.inter700) {
+            throw new Error(`Inter V70 no cargó: ${JSON.stringify(intelligence)}`);
+          }
+          if (fontResponses.length === 0 || fontResponses.some((response) => response.status !== 200)) {
+            throw new Error(`Font responses inválidas: ${JSON.stringify(fontResponses)}`);
+          }
+          if (intelligence.kpis !== 4 || !intelligence.electorate || !intelligence.sex || !intelligence.literacy || !intelligence.age || !intelligence.territory || !intelligence.secondaryCoverage) {
+            throw new Error(`Inteligencia V70 incompleta: ${JSON.stringify(intelligence)}`);
+          }
+
+          await page.goto("http://127.0.0.1:4173/municipio/0509/mapa/", { waitUntil: "domcontentloaded" });
+          await page.waitForSelector(".smart-map-shell.map-v3 .map-stage");
+          const map = await page.evaluate(() => ({
+            hero: Boolean(document.querySelector(".map-product-head")),
+            toolbar: Boolean(document.querySelector(".operational-map-toolbar")),
+            stage: Boolean(document.querySelector(".smart-map-shell.map-v3 .map-stage")),
+            territorialPanel: Boolean(document.querySelector(".map-electoral-priorities")),
+            filters: Boolean(document.querySelector(".map-more-filters")),
+            newActivity: Boolean(document.querySelector(".map-new-activity")),
+            satellite: Boolean(document.querySelector(".map-satellite-toggle")),
+          }));
+          if (Object.values(map).some((value) => !value)) {
+            throw new Error(`Mapa V70 incompleto: ${JSON.stringify(map)}`);
+          }
+          console.log(`FONT_RUNTIME_OK family=${intelligence.family} inter400=${intelligence.inter400} inter700=${intelligence.inter700} responses=${JSON.stringify(fontResponses)}`);
+          console.log(`INTELLIGENCE_V70_OK ${JSON.stringify(intelligence)}`);
+          console.log(`MAP_V70_OK ${JSON.stringify(map)}`);
+          await browser.close();
+          NODE
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     environment:
-      name: github-pages
+      name: v70-preview
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy isolated visual preview
         id: deployment
         uses: actions/deploy-pages@v4
