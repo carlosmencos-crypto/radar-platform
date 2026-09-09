@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
+import { assertGeoBundleMatchesRuntime, RADAR_PUBLIC_MAP_FEATURE_TYPES } from "../data/radarGeoRuntime";
 import {
   clearInstalledRadarGeoBundle,
   clearInstalledRadarRuntime,
@@ -18,7 +19,6 @@ type GateState =
   | { status: "forbidden" };
 
 const AuthorizedRuntimeContext = createContext<AuthorizedRadarConsumer | null>(null);
-const MAP_PUBLIC_FEATURE_TYPES = ["populated_place", "tse_voting_center", "school", "health_facility"];
 
 function isAuthenticationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
@@ -56,14 +56,17 @@ export function MunicipalityAccessGate() {
       .then(async (accessToken) => {
         const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
         const geoBundle: MunicipalityGeoBundle | null = section === "mapa"
-          ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, MAP_PUBLIC_FEATURE_TYPES)
+          ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
           : null;
         return { consumer, geoBundle };
       })
       .then(({ consumer, geoBundle }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
-        if (geoBundle) installRadarGeoBundle(geoBundle);
+        if (geoBundle) {
+          assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
+          installRadarGeoBundle(geoBundle);
+        }
         setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
