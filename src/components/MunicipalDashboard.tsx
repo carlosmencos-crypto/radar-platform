@@ -200,6 +200,7 @@ function PublicHome() {
 
 function Intelligence() {
   const { consumer, municipality_name, department_name } = useMunicipalityContext();
+  const isDemo = consumer.is_demo;
   const profile = buildRuntimeProfile(consumer);
   const intelligence = profile?.intelligence;
   const publicModules = consumer.modules.filter((module) => module.vault === "data");
@@ -216,7 +217,7 @@ function Intelligence() {
           <h2>{module.label}</h2>
           <p>{module.state === "no_publicado" ? "No publicado para esta sesión." : "Dato entregado por Supabase bajo RLS."}</p>
           {metrics.map((metric) => <div className="canonical-metric" key={metric.label}><b>{metric.value}</b><span>{metric.label}</span></div>)}
-          <small className="canonical-source">{module.source ?? "Fuente no publicada"}</small>
+          <small className="canonical-source">{isDemo ? `DEMO · SINTÉTICO · ${module.source ?? "fuente demostrativa"}` : module.source ?? "Fuente no publicada"}</small>
         </article>;
       })}
     </section>
@@ -226,24 +227,24 @@ function Intelligence() {
     <SectionBanner eyebrow={`EXPEDIENTE MUNICIPAL 360 · ${department_name.toUpperCase()} — ${municipality_name.toUpperCase()}`} title="Inteligencia Municipal" description="Fotografía estratégica del municipio para definir mensajes y prioridades" status={overallState} />
     {intelligence ? <>
       <section className="kpis" aria-label="Indicadores principales">
-        <article><small>Población proyectada 2026</small><b>{intelligence.populationProjection}</b><em>INE · proyección oficial</em></article>
+        <article><small>Población proyectada 2026</small><b>{intelligence.populationProjection}</b><em>{isDemo ? "DEMO · SINTÉTICO" : "INE · proyección oficial"}</em></article>
         <article><small>Padrón electoral activo 2026</small><b>{intelligence.voterRegister}</b><em>{intelligence.voterWomen} mujeres · {intelligence.voterMen} hombres</em></article>
-        <article><small>Centros electorales geolocalizados</small><b>{intelligence.votingCenters} <i>centros</i></b><em>{intelligence.votingBoards} JRV · auditoría completada</em></article>
-        <article><small>Organización comunitaria TSE</small><b>{intelligence.communityRecords} <i>registros</i></b><em>{intelligence.territorialGroups} agrupaciones territoriales del municipio</em></article>
+        <article><small>Centros electorales geolocalizados</small><b>{intelligence.votingCenters} <i>centros</i></b><em>{isDemo ? "SIMULACIÓN · " : ""}{intelligence.votingBoards} JRV · auditoría completada</em></article>
+        <article><small>Organización comunitaria {isDemo ? "demo" : "TSE"}</small><b>{intelligence.communityRecords} <i>registros</i></b><em>{isDemo ? "SINTÉTICO · " : ""}{intelligence.territorialGroups} agrupaciones territoriales del municipio</em></article>
       </section>
 
       <section className="section electorate-profile">
-        <div className="section-head"><div><p className="eyebrow">PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026</p><h2>Quiénes pueden votar hoy</h2></div><p>Sexo, edad y alfabetismo provienen del padrón activo del TSE. La distribución urbana/rural pertenece al Censo 2018 y se muestra aparte para no mezclar universos.</p></div>
+        <div className="section-head"><div><p className="eyebrow">PERFIL DEL ELECTORADO · {isDemo ? "SIMULACIÓN 2026" : "PADRÓN ACTIVO 2026"}</p><h2>Quiénes pueden votar hoy</h2></div><p>{isDemo ? "Todos los valores de Valle Nexo son sintéticos y existen únicamente para demostración." : "Sexo, edad y alfabetismo provienen del padrón activo del TSE. La distribución urbana/rural pertenece al Censo 2018 y se muestra aparte para no mezclar universos."}</p></div>
         <div className="electorate-hero">
-          <article className="register-total"><span>PADRÓN ACTIVO</span><b>{intelligence.voterRegister}</b><p>Corte oficial: {intelligence.registerCut}</p><div><strong>{intelligence.registerGrowth}</strong><small>personas frente al padrón electoral 2023<br />comparación indicativa: {intelligence.registerGrowthRate}</small></div></article>
-          <article className="sex-profile"><div className="profile-title"><span>COMPOSICIÓN POR SEXO</span><b>Data Vault</b></div><div className="split-meter"><i style={{ width: intelligence.voterWomenShare === null ? undefined : `${intelligence.voterWomenShare}%` }} /><em style={{ width: intelligence.voterMenShare === null ? undefined : `${intelligence.voterMenShare}%` }} /></div><div className="split-labels"><span><i />Mujeres <b>{intelligence.voterWomen}</b><small>{intelligence.voterWomenShareLabel}</small></span><span><i />Hombres <b>{intelligence.voterMen}</b><small>{intelligence.voterMenShareLabel}</small></span></div></article>
+          <article className="register-total"><span>PADRÓN ACTIVO</span><b>{intelligence.voterRegister}</b><p>{isDemo ? "Corte sintético" : "Corte oficial"}: {intelligence.registerCut}</p><div><strong>{intelligence.registerGrowth}</strong><small>personas frente al padrón electoral 2023<br />comparación indicativa: {intelligence.registerGrowthRate}</small></div></article>
+          <article className="sex-profile"><div className="profile-title"><span>COMPOSICIÓN POR SEXO</span><b>{isDemo ? "DEMO · SINTÉTICO" : "Data Vault"}</b></div><div className="split-meter"><i style={{ width: intelligence.voterWomenShare === null ? undefined : `${intelligence.voterWomenShare}%` }} /><em style={{ width: intelligence.voterMenShare === null ? undefined : `${intelligence.voterMenShare}%` }} /></div><div className="split-labels"><span><i />Mujeres <b>{intelligence.voterWomen}</b><small>{intelligence.voterWomenShareLabel}</small></span><span><i />Hombres <b>{intelligence.voterMen}</b><small>{intelligence.voterMenShareLabel}</small></span></div></article>
           <article className="literacy-profile"><div><span>ALFABETISMO REGISTRADO</span><b>{intelligence.literacyRate}</b><small>{intelligence.literatePeople} personas</small></div><div className="literacy-detail"><span>Mujeres <b>{intelligence.womenLiteracy}</b></span><span>Hombres <b>{intelligence.menLiteracy}</b></span><span>Sin alfabetismo registrado <b>{intelligence.literacyUnregistered}</b></span></div></article>
         </div>
         <div className="age-and-territory">
           <article className="age-profile"><div className="profile-title"><span>ESTRUCTURA POR EDAD</span><b>Universo publicado</b></div><div className="age-bars">{intelligence.ages.map((item) => <div key={item.label}><span>{item.label}</span><i><em style={{ width: `${item.share}%` }} /></i><b>{item.value}</b><small>{item.share.toFixed(1)}%</small></div>)}</div></article>
-          <article className="universe-card"><div className="profile-title"><span>POBLACIÓN Y TERRITORIO</span><b>Universos separados</b></div><div className="universe-block current"><span>TSE · PADRÓN 2026</span><b>{intelligence.voterRegister}</b><small>Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.</small></div><div className="universe-block census"><span>INE · CENSO 2018</span><b>{intelligence.censusPopulation}</b><div className="rural-bar"><i style={{ width: intelligence.censusUrbanShare === null ? undefined : `${intelligence.censusUrbanShare}%` }} /><em style={{ width: intelligence.censusRuralShare === null ? undefined : `${intelligence.censusRuralShare}%` }} /></div><p><strong>{intelligence.censusUrban} urbanos · {intelligence.censusUrbanShare === null ? "No publicado" : `${intelligence.censusUrbanShare.toFixed(1)}%`}</strong><strong>{intelligence.censusRural} rurales · {intelligence.censusRuralShare === null ? "No publicado" : `${intelligence.censusRuralShare.toFixed(1)}%`}</strong></p></div><div className="universe-block projection"><span>INE · PROYECCIÓN 2026</span><b>{intelligence.populationProjection}</b><small>{intelligence.projectionMen} hombres · {intelligence.projectionWomen} mujeres. Proyección poblacional, no padrón.</small></div></article>
+          <article className="universe-card"><div className="profile-title"><span>POBLACIÓN Y TERRITORIO</span><b>Universos separados</b></div><div className="universe-block current"><span>{isDemo ? "DEMO · PADRÓN SINTÉTICO" : "TSE · PADRÓN 2026"}</span><b>{intelligence.voterRegister}</b><small>Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.</small></div><div className="universe-block census"><span>{isDemo ? "DEMO · CENSO SINTÉTICO" : "INE · CENSO 2018"}</span><b>{intelligence.censusPopulation}</b><div className="rural-bar"><i style={{ width: intelligence.censusUrbanShare === null ? undefined : `${intelligence.censusUrbanShare}%` }} /><em style={{ width: intelligence.censusRuralShare === null ? undefined : `${intelligence.censusRuralShare}%` }} /></div><p><strong>{intelligence.censusUrban} urbanos · {intelligence.censusUrbanShare === null ? "No publicado" : `${intelligence.censusUrbanShare.toFixed(1)}%`}</strong><strong>{intelligence.censusRural} rurales · {intelligence.censusRuralShare === null ? "No publicado" : `${intelligence.censusRuralShare.toFixed(1)}%`}</strong></p></div><div className="universe-block projection"><span>{isDemo ? "DEMO · PROYECCIÓN SINTÉTICA" : "INE · PROYECCIÓN 2026"}</span><b>{intelligence.populationProjection}</b><small>{intelligence.projectionMen} hombres · {intelligence.projectionWomen} mujeres. Proyección poblacional, no padrón.</small></div></article>
         </div>
-        <p className="trace-note"><Status state="disponible" /> Fuentes: TSE · Ciudadanos empadronados activos 2026; INE · Censo 2018 y proyecciones municipales. Los porcentajes se calculan sobre cada universo oficial, sin imputar urbano/rural al padrón actual.</p>
+        <p className="trace-note"><Status state="disponible" /> {isDemo ? "DEMO · SIMULACIÓN: los 17 módulos y todos sus indicadores son sintéticos; no representan un municipio real." : "Fuentes: TSE · Ciudadanos empadronados activos 2026; INE · Censo 2018 y proyecciones municipales. Los porcentajes se calculan sobre cada universo oficial, sin imputar urbano/rural al padrón actual."}</p>
       </section>
     </> : <section className="canonical-intelligence-pending"><Status state={overallState} /><h2>Información municipal en validación</h2><p>La composición V70 permanece activa. Los indicadores se publicarán dentro de sus bloques canónicos cuando cada fuente supere control de cobertura y trazabilidad.</p></section>}
     {coverage}
@@ -276,7 +277,7 @@ function MapModule() {
       <div className="map-stage">
         {consumer.is_demo && demoFeatures.length ? <>
           <DemoMap features={demoFeatures} activities={consumer.demo?.activities ?? []} />
-          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault sintético</b><span>{demoFeatures.length} features</span></div></header>{[
+          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>DEMO · SINTÉTICO</b><span>{demoFeatures.length} features</span></div></header>{[
             ["Microrregiones", featureCounts.get("microrregion") ?? 0], ["Comunidades", featureCounts.get("community") ?? 0],
             ["Centros de votación", featureCounts.get("voting_center") ?? 0], ["Escuelas", featureCounts.get("school") ?? 0],
             ["Salud", featureCounts.get("health") ?? 0], ["Proyectos", featureCounts.get("project") ?? 0],
