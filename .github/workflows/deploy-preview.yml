@@ -1,5 +1,5 @@
 name: Temporary RADAR catalog V70 preview
-# Source: 7ed1136f59a219aa9894080689e455a364d99b1e
+# Source: 1fd1977f1c8185641a3d275e6d913eecdc7e5c3c
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       - name: Checkout exact catalog commit
         uses: actions/checkout@v4
         with:
-          ref: 7ed1136f59a219aa9894080689e455a364d99b1e
+          ref: 1fd1977f1c8185641a3d275e6d913eecdc7e5c3c
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -127,12 +127,13 @@ jobs:
               navLabels: [...document.querySelectorAll(".public-shell > .topbar .nav a")].map((link) => link.textContent?.trim()),
               logoWidth: Math.round(document.querySelector(".public-shell > .topbar .brand img")?.getBoundingClientRect().width ?? 0),
               heroHalo: getComputedStyle(document.querySelector(".catalog-hero"), "::after").content,
+              heroBackgroundImage: getComputedStyle(document.querySelector(".catalog-hero")).backgroundImage,
               first: codes[0],
               last: codes.at(-1),
               font: getComputedStyle(document.body).fontFamily,
             };
           });
-          if (national.cards !== 340 || national.unique !== 340 || national.departments !== 23 || national.firstDepartment !== "all" || national.activeDepartment !== "all" || JSON.stringify(national.navLabels) !== JSON.stringify(["Municipios", "Comparar"]) || national.logoWidth < 200 || (national.heroHalo !== "none" && national.heroHalo !== "normal") || national.first !== "0101" || national.last !== "2217" || !national.font.startsWith("Inter")) {
+          if (national.cards !== 340 || national.unique !== 340 || national.departments !== 23 || national.firstDepartment !== "all" || national.activeDepartment !== "all" || JSON.stringify(national.navLabels) !== JSON.stringify(["Municipios", "Comparar"]) || national.logoWidth < 200 || (national.heroHalo !== "none" && national.heroHalo !== "normal") || national.heroBackgroundImage !== "none" || national.first !== "0101" || national.last !== "2217" || !national.font.startsWith("Inter")) {
             throw new Error("Catálogo nacional inválido: " + JSON.stringify(national));
           }
 
