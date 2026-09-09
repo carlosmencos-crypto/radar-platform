@@ -66,10 +66,36 @@ export interface MunicipalityGeoBundle {
   features: GeoFeatureRecord[];
 }
 
+export interface VoterRollAggregate {
+  source_year: number;
+  elector_count: number;
+  community_count: number | null;
+  average_age_base: number | null;
+  age_missing_count: number | null;
+  age_18_29: number | null;
+  age_30_44: number | null;
+  age_45_59: number | null;
+  age_60_plus: number | null;
+  reconciliation_delta: number | null;
+  source_product_id: string | null;
+  universe: "PADRON_DETALLADO_2023" | "NUCLEO_ELECTORAL_2026" | "OTRO_UNIVERSO_DECLARADO";
+}
+
+export interface AuthorizedVoterRollSummary {
+  municipality_code: string;
+  aggregates: VoterRollAggregate[];
+  coverage: {
+    detailed_2023: boolean;
+    active_2026: boolean;
+    community_detail_2023: boolean;
+  };
+}
+
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
   geo: MunicipalityGeoSummary;
+  voter_roll: AuthorizedVoterRollSummary;
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -159,7 +185,7 @@ export async function loadAuthorizedGeoBundle(
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
-  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v3", {
+  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v4", {
     p_municipality_code: municipalityCode,
   }, accessToken);
 
@@ -167,8 +193,10 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
     !bundle ||
     bundle.context?.municipality_code !== municipalityCode ||
     bundle.geo?.municipality?.municipality_code !== municipalityCode ||
+    bundle.voter_roll?.municipality_code !== municipalityCode ||
     !Array.isArray(bundle.context.permissions) ||
-    !Array.isArray(bundle.layers)
+    !Array.isArray(bundle.layers) ||
+    !Array.isArray(bundle.voter_roll.aggregates)
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }
