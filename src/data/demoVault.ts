@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { DemoActivity, DemoContact, RadarDemoBundle } from "../types/radar";
+import type { DemoActivity, DemoContact, DemoFiscal, DemoIncident, DemoResource, RadarDemoBundle } from "../types/radar";
 
 function requireClient() {
   if (!supabase) throw new Error("Supabase no está configurado.");
@@ -62,4 +62,40 @@ export async function deleteDemoActivity(campaignId: string, id: string) {
     target_id: id,
   });
   if (error) throw error;
+}
+
+export type FiscalDraft = Pick<DemoFiscal, "full_name" | "phone" | "voting_center_code" | "jrv_code" | "status">;
+
+export async function saveDemoFiscal(campaignId: string, id: string, fiscal: FiscalDraft) {
+  const { data, error } = await requireClient().rpc("radar_demo_save_fiscal", {
+    target_campaign: campaignId,
+    target_id: id,
+    fiscal,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export type IncidentDraft = Pick<DemoIncident, "incident_type" | "severity" | "description" | "voting_center_code" | "jrv_code" | "status">;
+
+export async function saveDemoIncident(campaignId: string, id: string | null, incident: IncidentDraft) {
+  const { data, error } = await requireClient().rpc("radar_demo_save_incident", {
+    target_campaign: campaignId,
+    target_id: id,
+    incident,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export type ResourceDraft = Pick<DemoResource, "resource_type" | "name" | "quantity" | "unit" | "status" | "location" | "notes">;
+
+export async function saveDemoResource(campaignId: string, id: string, resource: ResourceDraft) {
+  const { data, error } = await requireClient().rpc("radar_demo_save_resource", {
+    target_campaign: campaignId,
+    target_id: id,
+    resource,
+  });
+  if (error) throw error;
+  return data as string;
 }

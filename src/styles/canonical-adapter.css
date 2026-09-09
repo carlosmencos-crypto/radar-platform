@@ -490,6 +490,157 @@ html[data-theme="dark"] .demo-map-point text { fill: var(--radar-marfil); stroke
   .demo-map-legend { min-width: 180px; max-width: calc(100% - 28px); }
 }
 
+/* Shared Campaign Vault modules. Valle Nexo and authorized real campaigns render
+   these same V70 workspaces; only the RLS-selected data source changes. */
+.campaign-workspace { display: grid; gap: 18px; }
+.campaign-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.campaign-tabs button,
+.campaign-workspace button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--white);
+  color: var(--radar-municipal);
+  font: inherit;
+  font-size: var(--radar-text-support, 11px);
+  font-weight: 850;
+  cursor: pointer;
+}
+.campaign-tabs button.active,
+.campaign-tabs button.primary,
+.campaign-workspace button.primary { border-color: var(--radar-petroleo); background: var(--radar-petroleo); color: var(--radar-blanco); }
+.campaign-source-note { color: var(--radar-municipal); font-size: var(--radar-text-meta, 9px); }
+.strategy-goals-radar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.strategy-goals-radar article,
+.strategy-radar-reading { border: 1px solid var(--line); border-radius: 13px; padding: 17px; background: var(--white); }
+.strategy-goals-radar header,
+.strategy-goals-radar footer { display: flex; justify-content: space-between; gap: 10px; }
+.strategy-goals-radar header span,
+.strategy-radar-reading small { color: var(--radar-petroleo); font-size: var(--radar-text-meta, 9px); font-weight: 900; }
+.strategy-goals-radar header em { color: var(--radar-electoral); font-size: var(--radar-text-meta, 9px); font-style: normal; }
+.strategy-goals-radar h3 { margin: 12px 0 7px; font-size: 15px; }
+.strategy-goals-radar p,
+.strategy-radar-reading p { color: var(--radar-municipal); font-size: var(--radar-text-support, 11px); line-height: 1.55; }
+.strategy-radar-reading { border-left: 5px solid var(--radar-petroleo); }
+
+.crm-head,
+.agenda-viewbar,
+.day-d-center-list > header,
+.day-d-fiscal-table > header,
+.day-d-incident-list > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.crm-head h2,
+.agenda-viewbar h2 { margin: 4px 0 0; }
+.crm-card-grid > .crm-contact-card { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: start; gap: 12px; min-height: 190px; padding: 16px; }
+.crm-card-grid > .crm-contact-card > .crm-avatar { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 50%; background: var(--radar-grafito); color: white; font-size: 12px; font-weight: 900; }
+.crm-card-grid > .crm-contact-card .crm-person-name { display: block; min-height: 0; margin: 0 !important; }
+.crm-card-grid > .crm-contact-card .crm-person-name small,
+.crm-card-grid > .crm-contact-card .crm-person-name h3,
+.crm-card-grid > .crm-contact-card .crm-person-name p,
+.crm-card-grid > .crm-contact-card .crm-person-name span { display: block; overflow: visible; white-space: normal; }
+.crm-card-grid > .crm-contact-card .crm-person-name small { color: var(--radar-petroleo); font-size: var(--radar-text-meta, 9px); }
+.crm-card-grid > .crm-contact-card .crm-person-name h3 { margin: 5px 0; }
+.crm-card-grid > .crm-contact-card .crm-person-name p,
+.crm-card-grid > .crm-contact-card .crm-person-name span { margin: 4px 0; color: var(--radar-municipal); font-size: var(--radar-text-support, 11px); }
+.crm-card-grid > .crm-contact-card > .crm-status { align-self: start; }
+.crm-card-grid > .crm-contact-card > .crm-card-actions { grid-column: 2 / -1; align-self: end; display: flex !important; justify-content: flex-end; width: 100%; }
+.crm-table-v2 { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--line); }
+.crm-table-v2 > .crm-contact-card { display: grid; grid-template-columns: 42px minmax(180px, 1.4fr) 100px auto; align-items: center; gap: 12px; min-height: 0; border: 0; border-radius: 0; padding: 12px; box-shadow: none; }
+
+.agenda-calendar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.agenda-calendar article { display: grid; gap: 8px; min-height: 190px; border: 1px solid var(--line); border-top: 4px solid var(--radar-petroleo); border-radius: 12px; padding: 15px; background: var(--white); }
+.agenda-calendar time { color: var(--radar-petroleo); font-size: var(--radar-text-meta, 9px); font-weight: 900; }
+.agenda-calendar h3 { margin: 6px 0; }
+.agenda-calendar p { color: var(--radar-municipal); font-size: var(--radar-text-support, 11px); }
+.agenda-actions { display: flex; gap: 7px; }
+
+.day-d-opening-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .7fr); gap: 12px; }
+.day-d-opening-grid > section { border: 1px solid var(--line); border-radius: 13px; padding: 17px; background: var(--white); }
+.day-d-operations-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+.day-d-operations-strip span { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 9px; padding: 11px; background: var(--radar-marfil); }
+.day-d-operations-strip b { font-size: 18px; }
+.day-d-operations-strip small { color: var(--radar-municipal); font-size: var(--radar-text-meta, 9px); }
+.campaign-bar-chart { display: grid; gap: 8px; margin-top: 14px; }
+.campaign-bar-chart > span { display: grid; grid-template-columns: minmax(90px, .7fr) minmax(100px, 1fr) 55px; align-items: center; gap: 8px; }
+.campaign-bar-chart small,
+.campaign-bar-chart b { font-size: var(--radar-text-meta, 9px); }
+.campaign-bar-chart > span > i { height: 8px; overflow: hidden; border-radius: 999px; background: var(--radar-marfil); }
+.campaign-bar-chart > span > i > em { display: block; height: 100%; border-radius: inherit; background: var(--radar-petroleo); }
+.day-d-fiscal-table article { grid-template-columns: 38px minmax(180px, 1fr) 90px 70px 95px auto; }
+.day-d-access-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.day-d-assignment-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 18px; }
+.day-d-assignment-form label { display: grid; gap: 5px; }
+.day-d-assignment-form input,
+.day-d-assignment-form select { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: var(--white); color: var(--ink); }
+.day-d-logistics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+.day-d-logistics-grid article { display: grid; gap: 5px; border: 1px solid var(--line); border-top: 3px solid var(--radar-calido); border-radius: 10px; padding: 14px; background: var(--white); }
+.day-d-logistics-grid article b { font-size: 23px; }
+.day-d-center-modal-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px; }
+.day-d-center-modal-summary span { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: 9px; padding: 11px; }
+.rtd-flow { display: grid; gap: 14px; }
+.operational-map-canvas .demo-map-grid { fill: url(#operational-grid); }
+
+.preloaded-resource-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.preloaded-resource-grid article { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--white); }
+.preloaded-resource-grid article > span { color: var(--radar-petroleo); font-size: var(--radar-text-meta, 9px); font-weight: 900; }
+.preloaded-resource-grid article h3 { margin: 0; }
+.preloaded-resource-grid article > b { font-size: 23px; }
+.preloaded-resource-grid article p { color: var(--radar-municipal); font-size: var(--radar-text-support, 11px); line-height: 1.5; }
+.pulse-workspace { display: grid; gap: 16px; padding: 24px clamp(18px, 3vw, 42px) 54px; }
+.pulse-workspace > .pulse-disclaimer { display: flex; }
+.pulse-workspace > .pulse-overview { grid-template-columns: repeat(2, 1fr); }
+.pulse-workspace > .pulse-trend-chart { display: grid; grid-template-columns: repeat(12, minmax(54px, 1fr)); align-items: end; gap: 8px; min-height: 290px; overflow-x: auto; }
+.pulse-workspace > .pulse-trend-chart article { display: grid; justify-items: center; gap: 5px; }
+.pulse-workspace > .pulse-trend-chart article > div { display: flex; align-items: end; width: 100%; height: 210px; border-radius: 8px; background: var(--radar-marfil); overflow: hidden; }
+.pulse-workspace > .pulse-trend-chart article > div i { display: block; width: 100%; background: var(--radar-petroleo); }
+.pulse-workspace > .pulse-trend-chart article span,
+.pulse-workspace > .pulse-trend-chart article small { font-size: var(--radar-text-meta, 9px); text-align: center; }
+.pulse-workspace > .pulse-history { display: grid; overflow: hidden; }
+.pulse-workspace > .pulse-history article { grid-template-columns: 110px minmax(0, 1fr) 80px 130px; min-width: 0; }
+.radar-ai-workbench { display: grid; gap: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--white); }
+.radar-ai-prompt { display: grid; gap: 7px; }
+.radar-ai-prompt textarea { min-height: 120px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--white); color: var(--ink); font: inherit; }
+.radar-ai-result { border-left: 5px solid var(--radar-petroleo); padding: 14px; background: var(--radar-marfil); }
+.config-overview { grid-template-columns: repeat(4, 1fr); }
+.config-essential-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.config-essential-grid article,
+.config-reset-console { border: 1px solid var(--line); border-radius: 12px; padding: 18px; background: var(--white); }
+.config-reset-console { border-left: 5px solid var(--radar-electoral); }
+
+html[data-theme="dark"] :is(.campaign-tabs button,.strategy-goals-radar article,.strategy-radar-reading,.agenda-calendar article,.day-d-opening-grid>section,.day-d-operations-strip span,.day-d-assignment-form input,.day-d-assignment-form select,.day-d-logistics-grid article,.preloaded-resource-grid article,.radar-ai-workbench,.radar-ai-prompt textarea,.radar-ai-result,.config-essential-grid article,.config-reset-console) { background: var(--radar-fondo-oscuro); border-color: var(--radar-municipal); color: var(--radar-marfil); }
+
+@media (max-width: 1050px) {
+  .strategy-goals-radar,
+  .preloaded-resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .day-d-opening-grid { grid-template-columns: 1fr; }
+  .day-d-fiscal-table article { min-width: 860px; }
+  .day-d-fiscal-table { overflow-x: auto; }
+}
+
+@media (max-width: 760px) {
+  .campaign-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .campaign-tabs button { flex: 0 0 auto; }
+  .strategy-goals-radar,
+  .preloaded-resource-grid,
+  .agenda-calendar,
+  .day-d-logistics-grid,
+  .config-overview,
+  .config-essential-grid { grid-template-columns: 1fr; }
+  .crm-head,
+  .agenda-viewbar,
+  .day-d-center-list > header,
+  .day-d-fiscal-table > header,
+  .day-d-incident-list > header { align-items: flex-start; flex-direction: column; }
+  .crm-card-grid > .crm-contact-card { grid-template-columns: 44px minmax(0, 1fr); }
+  .crm-card-grid > .crm-contact-card > .crm-status { grid-column: 2; }
+  .crm-card-grid > .crm-contact-card > .crm-card-actions { grid-column: 1 / -1; }
+  .day-d-operations-strip,
+  .day-d-center-modal-summary { grid-template-columns: repeat(2, 1fr); }
+  .day-d-assignment-form { grid-template-columns: 1fr; }
+  .pulse-workspace > .pulse-history { overflow-x: auto; }
+  .pulse-workspace > .pulse-history article { min-width: 650px; }
+}
+
 /* Root catalog namespace: V70 uses .territory-grid/.territory-card for the map overlay.
    Keep the public national catalog isolated from those canonical map selectors. */
 .national-result-heading { margin: 36px 0 16px; font-size: 1rem; color: #656a6d; }

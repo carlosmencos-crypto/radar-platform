@@ -1,8 +1,17 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { DemoMap } from "./DemoMap";
-import { DemoAgenda, DemoConfiguration, DemoDayD, DemoDirectory, DemoPulse, DemoResources, DemoStrategy } from "./DemoModules";
+import { OperationalMap } from "./OperationalMap";
+import {
+  CampaignAgenda,
+  CampaignConfiguration,
+  CampaignDayD,
+  CampaignDirectory,
+  CampaignPulse,
+  CampaignResources,
+  CampaignStrategy,
+  RadarAIModule,
+} from "./CampaignModules";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { loadRadarConsumer } from "../data/radarConsumer";
 import { buildRuntimeProfile } from "../data/runtimeProfile";
@@ -276,7 +285,7 @@ function MapModule() {
     <section className="smart-map-shell map-v3">
       <div className="map-stage">
         {consumer.is_demo && demoFeatures.length ? <>
-          <DemoMap features={demoFeatures} activities={consumer.demo?.activities ?? []} />
+          <OperationalMap features={demoFeatures} activities={consumer.demo?.activities ?? []} />
           <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>DEMO · SINTÉTICO</b><span>{demoFeatures.length} features</span></div></header>{[
             ["Microrregiones", featureCounts.get("microrregion") ?? 0], ["Comunidades", featureCounts.get("community") ?? 0],
             ["Centros de votación", featureCounts.get("voting_center") ?? 0], ["Escuelas", featureCounts.get("school") ?? 0],
@@ -404,13 +413,14 @@ function MunicipalDashboardShell() {
       {active === "inicio" ? <PublicHome />
         : active === "inteligencia" ? <Intelligence />
         : active === "mapa" ? <MapModule />
-        : consumer.is_demo && active === "estrategia" ? <DemoStrategy />
-        : consumer.is_demo && active === "directorio" ? <DemoDirectory />
-        : consumer.is_demo && active === "agenda" ? <DemoAgenda />
-        : consumer.is_demo && active === "dia-d" ? <DemoDayD />
-        : consumer.is_demo && active === "recursos" ? <DemoResources />
-        : consumer.is_demo && active === "pulso" ? <DemoPulse />
-        : consumer.is_demo && active === "configuracion" ? <DemoConfiguration />
+        : active === "estrategia" ? <CampaignStrategy />
+        : active === "directorio" ? <CampaignDirectory />
+        : active === "agenda" ? <CampaignAgenda />
+        : active === "dia-d" ? <CampaignDayD />
+        : active === "recursos" ? <CampaignResources />
+        : active === "pulso" ? <CampaignPulse />
+        : active === "ia-radar" ? <RadarAIModule />
+        : active === "configuracion" ? <CampaignConfiguration />
         : <ProtectedModule title={title} eyebrow={eyebrow} />}
     </main>
     {reportOpen ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-labelledby="public-report-title"><div className="simple-campaign-modal canonical-report-modal"><header><div><small>REPORTE RADAR</small><h2 id="public-report-title">Reporte de {municipality_name}</h2></div><button type="button" onClick={() => setReportOpen(false)} aria-label="Cerrar">×</button></header><p>La exportación pública incluirá únicamente información autorizada del Data Vault. Los reportes operativos requieren una sesión de campaña válida.</p><footer><button type="button" onClick={() => setReportOpen(false)}>Cerrar</button><button type="button" onClick={() => window.print()}>Imprimir vista pública</button></footer></div></div> : null}
