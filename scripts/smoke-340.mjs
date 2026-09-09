@@ -234,6 +234,7 @@ assert(catalogCssSource.includes("repeat(4, minmax(0, 1fr))") && catalogCssSourc
 assert(layoutSource.includes('/municipios') && layoutSource.includes('/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg'), "La navegación pública no usa el catálogo o logo oficial.");
 assert(!layoutSource.includes('label: "Nacional"') && !layoutSource.includes('label: "Departamentos"'), "La navegación pública conserva accesos redundantes.");
 assert(catalogCssSource.includes("content: none") && !catalogCssSource.includes("radial-gradient(circle at 88% 14%"), "El hero del catálogo conserva el halo morado.");
+assert(catalogCssSource.includes("background: var(--radar-grafito);") && !catalogCssSource.includes("linear-gradient(118deg, var(--radar-grafito)"), "El hero del catálogo no usa fondo grafito sólido.");
 assert(indexSource.includes('/brand/radar-isotipo.svg'), "Favicon oficial RADAR ausente.");
 
 const tseGeo = contract.layers.find((layer) => layer.layer_id === "TSE_CENTROS_GEO");

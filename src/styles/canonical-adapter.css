@@ -285,7 +285,7 @@ html[data-theme="dark"] .national-territory-card p, html[data-theme="dark"] .nat
   padding: clamp(38px, 5vw, 62px);
   border: 1px solid color-mix(in srgb, var(--radar-blanco) 9%, transparent);
   border-radius: 28px;
-  background: linear-gradient(118deg, var(--radar-grafito), var(--radar-fondo-oscuro) 68%, var(--radar-municipal));
+  background: var(--radar-grafito);
   color: var(--radar-marfil);
   box-shadow: 0 28px 80px color-mix(in srgb, var(--radar-grafito) 14%, transparent);
 }
