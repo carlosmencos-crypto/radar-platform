@@ -1,7 +1,14 @@
+import { lazy, Suspense } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { LoginPage } from "../auth/LoginPage";
+import { RequireAuth } from "../auth/RequireAuth";
 import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
-import { MunicipalDashboard } from "../components/MunicipalDashboard";
+
+const MunicipalDashboard = lazy(async () => {
+  const module = await import("../components/MunicipalDashboard");
+  return { default: module.MunicipalDashboard };
+});
 
 function AccessDeniedPage() {
   return (
@@ -19,17 +26,21 @@ function AccessDeniedPage() {
 
 export function App() {
   return (
-    <Routes>
-      <Route path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />} />
+    <Suspense fallback={<div className="auth-loading" role="status">Cargando RADAR…</div>}><Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route element={<RequireAuth />}>
+        <Route path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard routeKind="municipality" />} />
+        <Route path="demo/valle-nexo/:section?" element={<MunicipalDashboard routeKind="demo" />} />
+      </Route>
       <Route element={<Layout />}>
         <Route index element={<MunicipalitiesPage />} />
         <Route path="municipios" element={<MunicipalitiesPage />} />
         <Route path="departamento/:departmentCode" element={<DepartmentPage />} />
-        <Route path="comparar" element={<ComparePage />} />
+        <Route element={<RequireAuth />}><Route path="comparar" element={<ComparePage />} /></Route>
         <Route path="admin" element={<Navigate to="/acceso-restringido" replace />} />
         <Route path="acceso-restringido" element={<AccessDeniedPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </Routes>
+    </Routes></Suspense>
   );
 }

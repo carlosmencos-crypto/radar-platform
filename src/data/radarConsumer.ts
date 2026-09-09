@@ -1,159 +1,120 @@
-import { findMunicipality } from "./municipalities";
-import {
-  CANONICAL_CONTRACT_PRODUCTS,
-  CANONICAL_LAYER_DEFINITIONS,
-  EMPTY_COVERAGE_BY_LAYER,
-  NAV_CONTRACT_340,
-  RENDER_STATE_RULES,
-  ROUTE_MODULE_STATES_5780,
-  RUNTIME_GATE_340,
-} from "./radarContract.generated";
+import { supabase } from "../lib/supabase";
 import type {
+  AuthorizedRadarContext,
   AvailabilityState,
-  CanonicalCoverageStatus,
-  CanonicalFrontendAction,
   CanonicalLayerId,
-  CanonicalRenderRule,
   CanonicalSpecialState,
   ConsumerModule,
   MunicipalProfileModuleId,
+  RadarLayerRecord,
   RadarMunicipalConsumer,
 } from "../types/radar";
+import type { Municipality } from "../types/territory";
 
-const UI_PROFILE_BY_LAYER: Record<CanonicalLayerId, MunicipalProfileModuleId> = {
-  ROUTES_340: "fuentes",
-  NUCLEO_ELECTORAL: "electoral",
-  RGM_SERVICIOS: "territorio",
-  INAB_FORESTAL: "territorio",
-  CONRED_INFORM: "territorio",
-  CONAP_SIGAP: "territorio",
-  INE_CENSO_B2_B6: "demografia",
-  SESAN_TALLA: "salud",
-  PDM_PDMOT: "territorio",
-  MSPAS_SALUD: "salud",
-  MINEDUC_ESCUELAS: "educacion",
-  MINFIN_HIST: "finanzas",
-  MINFIN_YTD: "finanzas",
-  SNIP_2026: "obras",
-  GUATECOMPRAS: "obras",
-  ACTIVOS_RESUMEN: "finanzas",
-  TSE_CENTROS_GEO: "electoral",
-};
+const LAYERS: ReadonlyArray<{
+  layer_id: CanonicalLayerId;
+  label: string;
+  ui_profile_id: MunicipalProfileModuleId;
+}> = [
+  { layer_id: "ROUTES_340", label: "Ruta municipal", ui_profile_id: "fuentes" },
+  { layer_id: "NUCLEO_ELECTORAL", label: "Núcleo electoral", ui_profile_id: "electoral" },
+  { layer_id: "RGM_SERVICIOS", label: "Servicios municipales", ui_profile_id: "territorio" },
+  { layer_id: "INAB_FORESTAL", label: "Cobertura forestal", ui_profile_id: "territorio" },
+  { layer_id: "CONRED_INFORM", label: "Riesgo territorial", ui_profile_id: "territorio" },
+  { layer_id: "CONAP_SIGAP", label: "Áreas protegidas", ui_profile_id: "territorio" },
+  { layer_id: "INE_CENSO_B2_B6", label: "Censo y demografía", ui_profile_id: "demografia" },
+  { layer_id: "SESAN_TALLA", label: "Nutrición", ui_profile_id: "salud" },
+  { layer_id: "PDM_PDMOT", label: "Planificación municipal", ui_profile_id: "territorio" },
+  { layer_id: "MSPAS_SALUD", label: "Salud pública", ui_profile_id: "salud" },
+  { layer_id: "MINEDUC_ESCUELAS", label: "Educación", ui_profile_id: "educacion" },
+  { layer_id: "MINFIN_HIST", label: "Finanzas históricas", ui_profile_id: "finanzas" },
+  { layer_id: "MINFIN_YTD", label: "Finanzas del período", ui_profile_id: "finanzas" },
+  { layer_id: "SNIP_2026", label: "Inversión pública 2026", ui_profile_id: "obras" },
+  { layer_id: "GUATECOMPRAS", label: "Contratación pública", ui_profile_id: "obras" },
+  { layer_id: "ACTIVOS_RESUMEN", label: "Activos municipales", ui_profile_id: "finanzas" },
+  { layer_id: "TSE_CENTROS_GEO", label: "Centros electorales", ui_profile_id: "electoral" },
+];
 
-function coverageStatus(action: CanonicalFrontendAction, layerId: CanonicalLayerId): CanonicalCoverageStatus {
-  if (action === "SHOW") return "ANY_NON_EMPTY";
-  if (action === "SHOW_PARTIAL_SCOPE") return "READY_PARTIAL_SCOPE";
-  if (action === "HIDE_POST_LAUNCH") return "POST_LAUNCH";
-
-  const emptyCoverage = EMPTY_COVERAGE_BY_LAYER[layerId];
-  if (!emptyCoverage) throw new Error(`Contrato canónico incompleto para ${layerId}`);
-  return emptyCoverage;
+function availability(record?: RadarLayerRecord): AvailabilityState {
+  if (!record) return "no_publicado";
+  const status = record.source_status?.toUpperCase() ?? "AVAILABLE";
+  if (status.includes("NOT_PUBLISHED")) return "no_publicado";
+  if (status.includes("PARTIAL") || status.includes("NO_EXPLICIT") || status.includes("NO_RECORD")) return "parcial";
+  if (status.includes("PENDING")) return "pendiente";
+  return "disponible";
 }
 
-function resolveRenderRule(action: CanonicalFrontendAction, layerId: CanonicalLayerId): CanonicalRenderRule {
-  const canonicalCoverage = coverageStatus(action, layerId);
-  const rule = RENDER_STATE_RULES.find((candidate) => candidate.coverage_status === canonicalCoverage);
-  if (!rule || rule.status !== "PASS") throw new Error(`RENDER_STATE_RULES no resolvió ${layerId}`);
-  return rule;
-}
-
-function uiAvailability(rule: CanonicalRenderRule): AvailabilityState {
-  if (rule.render_state === "AVAILABLE") return "disponible";
-  if (rule.render_state === "PARTIAL" || rule.render_state === "EMPTY_EXPLICIT") return "parcial";
-  if (rule.render_state === "PENDING") return "pendiente";
-  return "no_publicado";
-}
-
-function specialState(rule: CanonicalRenderRule): CanonicalSpecialState {
-  if (rule.render_state === "NOT_PUBLISHED") return "NOT_PUBLISHED";
-  if (rule.empty_reason === "NO_EXPLICIT_ASSOCIATION") return "NO_EXPLICIT_ASSOCIATION";
-  if (rule.empty_reason === "NO_RECORD_IN_SOURCE") return "NO_RECORD_IN_SOURCE";
+function specialState(record?: RadarLayerRecord): CanonicalSpecialState {
+  const status = record?.source_status?.toUpperCase() ?? "";
+  if (status.includes("NOT_PUBLISHED")) return "NOT_PUBLISHED";
+  if (status.includes("NO_EXPLICIT_ASSOCIATION")) return "NO_EXPLICIT_ASSOCIATION";
+  if (status.includes("NO_RECORD_IN_SOURCE")) return "NO_RECORD_IN_SOURCE";
   return null;
 }
 
-export function resolveCanonicalRouteModules(municipalityCode: string): ConsumerModule[] | undefined {
-  const actions = ROUTE_MODULE_STATES_5780[municipalityCode];
-  const gate = RUNTIME_GATE_340[municipalityCode];
-  const navigation = NAV_CONTRACT_340[municipalityCode];
+function assertContext(value: unknown): AuthorizedRadarContext {
+  const row = value as Partial<AuthorizedRadarContext> | null;
+  if (!row || !row.country_code || !row.municipality_id || !row.municipality_name || !row.campaign_id || !row.user_role) {
+    throw new Error("No existe un contexto municipal autorizado para esta sesión.");
+  }
+  if (!Array.isArray(row.permissions)) throw new Error("El servidor no devolvió permisos válidos.");
+  return row as AuthorizedRadarContext;
+}
 
-  if (!actions || !gate || !navigation || gate.status !== "PASS") return undefined;
-  if (
-    actions.length !== gate.expected_module_rows ||
-    actions.length !== gate.observed_module_rows ||
-    navigation.route_path !== gate.route_path ||
-    navigation.department_code !== gate.department_code ||
-    gate.route_path_mismatches !== 0 ||
-    gate.department_mismatches !== 0
-  ) return undefined;
+export async function loadRadarConsumer(routeKind: "municipality" | "demo", routeKey: string): Promise<RadarMunicipalConsumer> {
+  if (!supabase) throw new Error("Supabase no está configurado.");
 
-  const visibleModules = actions.filter((action) => action !== "HIDE_POST_LAUNCH").length;
-  const emptyStateModules = actions.filter((action) => action === "SHOW_WITH_EMPTY_STATE").length;
-  if (
-    visibleModules !== gate.expected_visible_modules ||
-    visibleModules !== gate.observed_visible_modules ||
-    emptyStateModules !== gate.expected_empty_state_modules ||
-    emptyStateModules !== gate.observed_empty_state_modules
-  ) return undefined;
+  const { data: contextRows, error: contextError } = await supabase.rpc("radar_authorized_context", {
+    route_kind: routeKind,
+    route_key: routeKey,
+  });
+  if (contextError) throw contextError;
+  const context = assertContext(Array.isArray(contextRows) ? contextRows[0] : contextRows);
 
-  return CANONICAL_LAYER_DEFINITIONS.map((definition, index) => {
-    const frontendAction = actions[index];
-    const renderRule = resolveRenderRule(frontendAction, definition.layer_id);
+  const { data: layerRows, error: layersError } = await supabase.rpc("radar_authorized_layers", {
+    route_kind: routeKind,
+    route_key: routeKey,
+  });
+  if (layersError) throw layersError;
+  const layers = (Array.isArray(layerRows) ? layerRows : []) as RadarLayerRecord[];
+  const byLayer = new Map(layers.map((layer) => [layer.layer_id, layer]));
+
+  const municipality: Municipality = {
+    code: context.municipality_code,
+    departmentCode: context.department_code,
+    name: context.municipality_name,
+    department: context.department_name,
+  };
+  const modules: ConsumerModule[] = LAYERS.map((definition, index) => {
+    const record = byLayer.get(definition.layer_id);
     return {
       id: definition.layer_id,
       layer_id: definition.layer_id,
-      layer_order: definition.layer_order,
-      ui_profile_id: UI_PROFILE_BY_LAYER[definition.layer_id],
+      layer_order: index + 1,
+      ui_profile_id: definition.ui_profile_id,
       label: definition.label,
-      state: uiAvailability(renderRule),
-      special_state: specialState(renderRule),
+      state: availability(record),
+      special_state: specialState(record),
       vault: "data",
-      source: `${definition.domain} · ${definition.period}`,
-      frontend_action: frontendAction,
-      coverage_status: renderRule.coverage_status,
-      render_rule: renderRule,
-      natural_key: definition.natural_key,
-      primary: { format: definition.primary_asset_format, url: definition.primary_asset_url },
-      fallback: { format: "GOOGLE_SHEET", url: definition.fallback_sheet_url },
-      preferred_mode: definition.preferred_mode,
-      period: definition.period,
-      product_status: definition.status,
-      null_semantics: definition.null_semantics,
-      guardrail: definition.guardrail,
-      traceability: {
-        registry: CANONICAL_CONTRACT_PRODUCTS.registry,
-        release_index: CANONICAL_CONTRACT_PRODUCTS.releaseIndex,
-        route_modules: CANONICAL_CONTRACT_PRODUCTS.routeModules,
-        natural_key_value: `municipality_code=${municipalityCode}`,
-      },
+      source: record?.source_label ?? record?.synthetic_notice ?? undefined,
     };
   });
-}
-
-export function resolveRadarConsumer(municipalityCode?: string): RadarMunicipalConsumer | undefined {
-  const municipality = findMunicipality(municipalityCode);
-  if (!municipality) return undefined;
-
-  const navigation = NAV_CONTRACT_340[municipality.code];
-  const runtimeGate = RUNTIME_GATE_340[municipality.code];
-  const modules = resolveCanonicalRouteModules(municipality.code);
-  if (
-    !navigation ||
-    !runtimeGate ||
-    !modules ||
-    navigation.department_code !== municipality.departmentCode ||
-    navigation.route_path !== `/municipio/${municipality.code}`
-  ) return undefined;
 
   return {
     context: {
-      municipality_code: municipality.code,
-      campaign_id: "public-demo",
-      user_role: "public_viewer",
-      permissions: ["data_vault:read_public"],
+      country_code: context.country_code,
+      municipality_code: context.municipality_code,
+      campaign_id: context.campaign_id,
+      user_role: context.user_role,
+      permissions: context.permissions,
     },
     municipality,
-    navigation,
-    runtime_gate: runtimeGate,
     modules,
+    layers,
+    is_demo: context.is_demo,
   };
+}
+
+export function getLayer(consumer: RadarMunicipalConsumer, layerId: CanonicalLayerId) {
+  return consumer.layers.find((layer) => layer.layer_id === layerId);
 }

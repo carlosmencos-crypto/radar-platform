@@ -8,6 +8,9 @@ const contract = JSON.parse(read("src/data/radarContract.generated.json"));
 const municipalitiesSource = read("src/data/municipalities.ts");
 const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
+const authSource = read("src/auth/AuthContext.tsx");
+const guardSource = read("src/auth/RequireAuth.tsx");
+const migrationSource = read("supabase/migrations/202609090001_private_radar_auth.sql");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
 const layoutSource = read("src/app/Layout.tsx");
@@ -173,10 +176,14 @@ assert(specialCounts.NO_RECORD_IN_SOURCE === 1, `NO_RECORD_IN_SOURCE: ${specialC
 
 assert(contract.nav["0509"].municipality_name === "San José" && contract.nav["0509"].department_name === "Escuintla", "Golden route 0509 incorrecta.");
 assert(contract.nav["1901"].municipality_name === "Zacapa" && contract.nav["1901"].department_name === "Zacapa", "Ruta externa 1901 incorrecta.");
-assert(consumerSource.includes("RUNTIME_GATE_340[municipalityCode]") && consumerSource.includes("gate.status !== \"PASS\""), "El consumer no aplica RUNTIME_GATE_340.");
-assert(consumerSource.includes("CANONICAL_LAYER_DEFINITIONS.map") && !consumerSource.includes("publicModules") && !consumerSource.includes("campaignModules"), "El consumer conserva aliases genéricos.");
+assert(consumerSource.includes('supabase.rpc("radar_authorized_context"') && consumerSource.includes('supabase.rpc("radar_authorized_layers"'), "El runtime municipal no consume Supabase bajo sesión.");
+for (const layerId of EXPECTED_LAYER_IDS) assert(consumerSource.includes(`"${layerId}"`), `El shell runtime no reconoce ${layerId}.`);
 assert(appSource.includes('path="admin"') && appSource.includes('<Navigate to="/acceso-restringido" replace'), "/admin no está fail-closed.");
-assert(appSource.includes('path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />}'), "La ruta municipal V70 fue modificada.");
+assert(appSource.includes('path="municipio/:municipalityCode/:section?"') && appSource.includes('<Route element={<RequireAuth />}'), "La ruta municipal no está protegida.");
+assert(appSource.includes('path="demo/valle-nexo/:section?"'), "Falta la ruta demo protegida.");
+assert(appSource.includes('path="login" element={<LoginPage />}'), "Falta /login.");
+assert(guardSource.includes('/login?returnTo=') && guardSource.includes('encodeURIComponent(returnTo)'), "El guard no preserva returnTo.");
+assert(authSource.includes("signInWithPassword") && authSource.includes("onAuthStateChange"), "Supabase Auth no está conectado.");
 
 const expectedSections = ["inicio", "inteligencia", "estrategia", "directorio", "agenda", "mapa", "dia-d", "recursos", "pulso", "ia-radar", "configuracion"];
 for (const section of expectedSections) {
@@ -209,17 +216,13 @@ for (const asset of [
 ]) {
   assert(dashboardSource.includes(asset), `Asset oficial V70 no conectado: ${asset}.`);
 }
-for (const contextField of ["municipality_code", "municipality_name", "department_code", "department_name", "campaign_id", "user_role", "permissions"]) {
+for (const contextField of ["country_code", "municipality_code", "municipality_name", "department_code", "department_name", "campaign_id", "user_role", "permissions"]) {
   assert(contextSource.includes(contextField), `MunicipalityContext incompleto: falta ${contextField}.`);
 }
 assert(!dashboardSource.includes('=== "0509"') && !consumerSource.includes('=== "0509"'), "El shell o consumer contienen lógica fijada a 0509.");
-assert(consumerSource.includes("UI_PROFILE_BY_LAYER") && dashboardSource.includes("module.ui_profile_id"), "Falta el adaptador no visual V70/contrato.");
 assert(dashboardSource.includes("{available}/{consumer.modules.length}") && !dashboardSource.includes("{available}/8"), "La cobertura V70 no refleja los 17 layers canónicos.");
 
-assert(/const catalogMunicipalities = useMemo\([\s\S]*?\[\.\.\.municipalities\]\.sort\(/.test(nationalSource), "El catálogo raíz no deriva de los 340 municipios.");
-assert(nationalSource.includes("catalogMunicipalities.map"), "El catálogo raíz no renderiza 340 municipios.");
-assert(nationalSource.includes("national-territory-grid") && nationalSource.includes("national-territory-card"), "El catálogo no está aislado del CSS del Mapa V70.");
-assert(!nationalSource.includes("priorityCodes") && !nationalSource.includes("priorityMunicipalities"), "El catálogo conserva un subconjunto prioritario.");
+assert(nationalSource.includes("sortMunicipalities(municipalities)") && nationalSource.includes("items.map"), "El catálogo raíz no deriva/renderiza los 340 municipios.");
 assert(appSource.includes('path="municipios" element={<MunicipalitiesPage />}'), "Falta la ruta pública /municipios.");
 assert(appSource.includes('<Route index element={<MunicipalitiesPage />} />'), "La portada nacional no reutiliza el explorador municipal.");
 assert(nationalSource.includes("export function MunicipalitiesPage()") && nationalSource.includes("catalog-department-index"), "El catálogo nacional no permite explorar los 22 departamentos.");
@@ -228,7 +231,7 @@ assert(nationalSource.includes("aria-pressed={departmentCode === department.code
 assert(nationalSource.includes('return <MunicipalitiesPage />'), "La ruta departamental no reutiliza el explorador nacional.");
 assert(nationalSource.includes("data-municipality-code") && nationalSource.includes("data-department-code"), "Las tarjetas no conservan identidad territorial verificable.");
 assert(nationalSource.includes("catalog-municipality-grid") && nationalSource.includes("catalog-municipality-card"), "La grilla municipal no está aislada del Mapa V70.");
-assert(!/export function DepartmentPage\(\)[\s\S]*?export function MunicipalityPage\(\)/.exec(nationalSource)?.[0].includes('className="territory-card"'), "Departamento reutiliza la ficha absoluta del Mapa V70.");
+assert(!nationalSource.includes("Cobertura pública") && !nationalSource.includes("Padrón") && !nationalSource.includes("Proyección"), "El catálogo público expone inteligencia.");
 assert(catalogCssSource.includes(".catalog-municipality-card") && catalogCssSource.includes("position: static"), "Las tarjetas del catálogo no neutralizan posicionamiento flotante.");
 assert(catalogCssSource.includes("repeat(4, minmax(0, 1fr))") && catalogCssSource.includes("repeat(2, minmax(0, 1fr))") && catalogCssSource.includes("grid-template-columns: 1fr"), "La grilla del catálogo no cubre desktop, tablet y móvil.");
 assert(layoutSource.includes('/municipios') && layoutSource.includes('/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg'), "La navegación pública no usa el catálogo o logo oficial.");
@@ -243,9 +246,18 @@ assert(tseGeo.guardrail.includes("geolocalización") && tseGeo.guardrail.include
 assert(snip.period === "2026" && snip.guardrail.includes("no equivalen a contratos"), "SNIP 2026 mezcló universos.");
 assert(!/\b\d{13}\b/.test(read("src/data/radarContract.generated.json")), "Posible DPI detectado en contrato público.");
 
+for (const forbiddenRole of ["public_viewer", "municipal_admin", "campaign_operator", "national_admin"]) {
+  assert(!contextSource.includes(forbiddenRole), `Rol obsoleto en contexto: ${forbiddenRole}`);
+}
+for (const role of ["platform_admin","organization_admin","campaign_admin","campaign_editor","campaign_viewer","demo_admin","demo_viewer"]) {
+  assert(migrationSource.includes(`'${role}'`), `Rol no preservado en autorización: ${role}`);
+}
+assert(migrationSource.includes("revoke all on all tables in schema data_vault from anon"), "Data Vault no quedó cerrado para anon.");
+assert(migrationSource.includes("security invoker") && migrationSource.includes("radar_authorized_layers"), "El loader de capas no aplica RLS como invoker.");
+assert(migrationSource.includes("c.is_demo = true") && migrationSource.includes("demo_vault:reset"), "La autorización demo no verifica is_demo.");
+assert(!/delete from\s+(?:data_vault|campaign_vault)/i.test(migrationSource), "El reset/migration podría borrar un vault no demo.");
+
 const preservedUiHashes = {
-  "src/components/MunicipalDashboard.tsx": "18cbbc452f2b4fae9bd6ce0b4d22815d939f8b8b5da5d3f2c7bef2531280369f",
-  "src/context/MunicipalityContext.tsx": "6e34556c4fbe1ce3a2f74a0c9ff30afaea8319a06cb5c18495dafbdb26857d1d",
   "src/styles/global.css": "1cf04126b387386fd370155b671d81d97271771044a1b1833a2a122d24fbed07",
   "index.html": "3c983bfcbf465c8726eda038ee2cb8dd7658a636604f4abf902bdfb1e02a8a31",
   "src/styles/v70/fonts.css": "cff4e41e8c82d1b7e8b44cc3ceeee2a435819d6d897b6c55dc7f8b62a6969e05",

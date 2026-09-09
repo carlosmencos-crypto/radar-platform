@@ -1,7 +1,14 @@
 import type { Municipality } from "./territory";
 
 export type AvailabilityState = "disponible" | "parcial" | "pendiente" | "no_publicado";
-export type UserRole = "public_viewer" | "municipal_admin" | "campaign_operator" | "national_admin";
+export type UserRole =
+  | "platform_admin"
+  | "organization_admin"
+  | "campaign_admin"
+  | "campaign_editor"
+  | "campaign_viewer"
+  | "demo_admin"
+  | "demo_viewer";
 
 export type CanonicalLayerId =
   | "ROUTES_340"
@@ -111,10 +118,29 @@ export interface CanonicalRuntimeGate {
 }
 
 export interface RadarContextKey {
+  country_code: string;
   municipality_code: string;
   campaign_id: string;
   user_role: UserRole;
   permissions: string[];
+}
+
+export interface AuthorizedRadarContext extends RadarContextKey {
+  municipality_id: string;
+  municipality_name: string;
+  department_code: string;
+  department_name: string;
+  campaign_name: string;
+  is_demo: boolean;
+}
+
+export interface RadarLayerRecord {
+  layer_id: CanonicalLayerId;
+  period: string | null;
+  payload: Record<string, unknown>;
+  source_status: string | null;
+  source_label: string | null;
+  synthetic_notice: string | null;
 }
 
 export interface ConsumerModule {
@@ -127,29 +153,12 @@ export interface ConsumerModule {
   special_state: CanonicalSpecialState;
   vault: "data";
   source?: string;
-  frontend_action: CanonicalFrontendAction;
-  coverage_status: CanonicalCoverageStatus;
-  render_rule: CanonicalRenderRule;
-  natural_key: string;
-  primary: { format: string; url: string };
-  fallback: { format: "GOOGLE_SHEET"; url: string };
-  preferred_mode: string;
-  period: string;
-  product_status: string;
-  null_semantics: string;
-  guardrail: string;
-  traceability: {
-    registry: CanonicalContractProducts["registry"];
-    release_index: CanonicalContractProducts["releaseIndex"];
-    route_modules: CanonicalContractProducts["routeModules"];
-    natural_key_value: string;
-  };
 }
 
 export interface RadarMunicipalConsumer {
   context: RadarContextKey;
   municipality: Municipality;
-  navigation: CanonicalNavContract;
-  runtime_gate: CanonicalRuntimeGate;
   modules: ConsumerModule[];
+  layers: RadarLayerRecord[];
+  is_demo: boolean;
 }

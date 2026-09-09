@@ -25,10 +25,12 @@ Base técnica de la plataforma nacional de inteligencia electoral para Guatemala
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:5173`.
+La aplicación estará disponible en `http://localhost:5173`. Configure `VITE_SUPABASE_URL` y
+`VITE_SUPABASE_PUBLISHABLE_KEY`; una service-role key nunca debe entrar al frontend.
 
 ## Validación y producción
 

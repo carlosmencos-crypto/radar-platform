@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { RadarMunicipalConsumer, UserRole } from "../types/radar";
 
 export interface MunicipalityRuntimeContext {
+  country_code: string;
   municipality_code: string;
   municipality_name: string;
   department_code: string;
@@ -16,6 +17,7 @@ const MunicipalityContext = createContext<MunicipalityRuntimeContext | null>(nul
 
 export function MunicipalityProvider({ consumer, children }: { consumer: RadarMunicipalConsumer; children: ReactNode }) {
   const value: MunicipalityRuntimeContext = {
+    country_code: consumer.context.country_code,
     municipality_code: consumer.municipality.code,
     municipality_name: consumer.municipality.displayName ?? consumer.municipality.name,
     department_code: consumer.municipality.departmentCode,

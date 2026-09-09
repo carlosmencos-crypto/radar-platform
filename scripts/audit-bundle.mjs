@@ -37,6 +37,16 @@ const forbidden = [
   /María José Garrido/i,
   /["'](?:dpi|cui|phone|telefono|teléfono|contact_phone|full_name)["']\s*:/i,
   /\b\d{4}\s?\d{5}\s?\d{4}\b/,
+  /service[_-]?role/i,
+  /SUPABASE_SERVICE_ROLE_KEY/i,
+  /GT_RADAR_REGISTRO_CONSUMO_FRONTEND_17_v2/,
+  /ROUTE_MODULES_5780/,
+  /RADAR Demo · Valle Nexo/,
+  /72,156/,
+  /40,890/,
+  /12 julio 2026/,
+  /\+1,956/,
+  /docs\.google\.com\/spreadsheets/i,
 ];
 
 for (const pattern of forbidden) {
@@ -46,5 +56,5 @@ for (const pattern of forbidden) {
 if (/sourceMappingURL=/i.test(text)) throw new Error("Referencia a sourcemap detectada en el bundle.");
 
 console.log(
-  `BUNDLE_SECURITY_OK ${files.length} archivos · 0 sourcemaps · 0 secretos · 0 Campaign Vault privado · 0 PII sensible detectada`,
+  `BUNDLE_SECURITY_OK ${files.length} archivos · 0 sourcemaps · 0 secretos · 0 Data Vault payload · 0 Campaign Vault privado · 0 PII sensible detectada`,
 );

@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
-import { findMunicipalProfile } from "../data/municipalProfiles";
-import { resolveRadarConsumer } from "../data/radarConsumer";
-import type { AvailabilityState } from "../types/radar";
+import { loadRadarConsumer } from "../data/radarConsumer";
+import { buildRuntimeProfile } from "../data/runtimeProfile";
+import { supabase } from "../lib/supabase";
+import type { AvailabilityState, RadarMunicipalConsumer } from "../types/radar";
 
 const sections = [
   ["⌂", "Inicio", "inicio", "CENTRO DE MANDO"],
@@ -25,12 +27,6 @@ const labels: Record<AvailabilityState, string> = {
   pendiente: "Pendiente",
   no_publicado: "No publicado",
 };
-
-const profileLabels = {
-  validated: "Disponible",
-  partial: "Parcial",
-  pending: "Pendiente",
-} as const;
 
 type RadarTheme = "light" | "dark";
 type RadarTextSize = "normal" | "large";
@@ -93,8 +89,9 @@ function PortalControls({ theme, textSize, onExport, onTextSize, onTheme }: Port
   </div>;
 }
 
-function routeFor(code: string, section: string) {
-  return section === "inicio" ? `/municipio/${code}` : `/municipio/${code}/${section}`;
+function routeFor(consumer: RadarMunicipalConsumer, section: string) {
+  const base = consumer.is_demo ? "/demo/valle-nexo" : `/municipio/${consumer.municipality.code}`;
+  return section === "inicio" ? base : `${base}/${section}`;
 }
 
 function Status({ state }: { state: AvailabilityState }) {
@@ -114,7 +111,6 @@ function SectionBanner({ eyebrow, title, description, status }: { eyebrow: strin
 
 function PublicHome() {
   const { consumer, municipality_name: municipality } = useMunicipalityContext();
-  const profile = findMunicipalProfile(consumer.municipality.code);
   const available = consumer.modules.filter((module) => module.vault === "data" && module.state === "disponible").length;
   const today = new Intl.DateTimeFormat("es-GT", {
     timeZone: "America/Guatemala",
@@ -145,8 +141,8 @@ function PublicHome() {
 
     <section className="home-reminder-bar" aria-label="Resumen del municipio">
       <div><small>{today}</small></div>
-      <div className="territory-coverage"><small>COBERTURA PÚBLICA</small><b>{available}/{consumer.modules.length}</b><i>RADAR</i></div>
-      <Link to={routeFor(consumer.municipality.code, "inteligencia")}>Revisar información →</Link>
+      <div className="territory-coverage"><small>CAPAS AUTORIZADAS</small><b>{available}/{consumer.modules.length}</b><i>RLS</i></div>
+      <Link to={routeFor(consumer, "inteligencia")}>Revisar información →</Link>
     </section>
 
     <section className="command-kpis" aria-label="Indicadores operativos protegidos">
@@ -162,36 +158,29 @@ function PublicHome() {
 
     <section className="home-municipality-context" aria-labelledby="municipal-context-title">
       <header><small>CONTEXTO MUNICIPAL</small><h2 id="municipal-context-title">{municipality}</h2></header>
-      {profile ? <>
-        <p><b>Expediente público validado.</b> Los indicadores mantienen su fuente, período y estado de cobertura; los faltantes nunca se convierten en cero.</p>
-        <div>{profile.modules.slice(0, 4).map((module) => <article key={module.id}><small>{module.title.toUpperCase()}</small><b>{module.metrics[0]?.value ?? profileLabels[module.status]}</b><span>{module.metrics[0]?.label ?? module.summary}</span></article>)}</div>
-      </> : <>
-        <p><b>{consumer.municipality.name}, {consumer.municipality.department}.</b> La ruta municipal está activa con cobertura nacional; cada dato aparecerá únicamente al completar su validación.</p>
-        <div>{consumer.modules.filter((module) => module.vault === "data").slice(0, 4).map((module) => <article key={module.id}><small>{module.label.toUpperCase()}</small><b>{labels[module.state]}</b><span>{module.state === "pendiente" ? "Información en validación." : "Cobertura según contrato 340×17."}</span></article>)}</div>
-      </>}
-      <Link to={routeFor(consumer.municipality.code, "inteligencia")}>Abrir Inteligencia Municipal →</Link>
+      <p><b>{consumer.municipality.name}, {consumer.municipality.department}.</b> Los datos se cargaron desde Supabase para esta sesión; los faltantes no se convierten en cero.</p>
+      <div>{consumer.modules.filter((module) => module.vault === "data").slice(0, 4).map((module) => <article key={module.id}><small>{module.label.toUpperCase()}</small><b>{labels[module.state]}</b><span>{module.source ?? "Sin publicación autorizada."}</span></article>)}</div>
+      <Link to={routeFor(consumer, "inteligencia")}>Abrir Inteligencia Municipal →</Link>
     </section>
   </>;
 }
 
 function Intelligence() {
   const { consumer, municipality_name, department_name } = useMunicipalityContext();
-  const profile = findMunicipalProfile(consumer.municipality.code);
+  const profile = buildRuntimeProfile(consumer);
   const intelligence = profile?.intelligence;
   const publicModules = consumer.modules.filter((module) => module.vault === "data");
-  const overallState: AvailabilityState = profile?.controlStatus === "CONTROL_VALIDADO" ? "disponible" : consumer.municipality.coverage === "pending" ? "pendiente" : "parcial";
+  const overallState: AvailabilityState = intelligence ? "disponible" : consumer.layers.length ? "parcial" : "no_publicado";
 
   const coverage = <details className="canonical-coverage-secondary">
     <summary><span><small>CONTRATO NACIONAL 340×17</small><b>Cobertura pública y trazabilidad</b></span><Status state={overallState} /></summary>
     <section className="module-card-grid canonical-module-grid">
       {publicModules.map((module) => {
-        const detail = profile?.modules.find((item) => item.id === module.ui_profile_id);
         return <article key={module.id}>
           <Status state={module.state} />
           <h2>{module.label}</h2>
-          <p>{detail?.summary ?? (module.state === "pendiente" ? "Información en validación; RADAR no imputa valores." : "Cobertura disponible según el contrato nacional vigente.")}</p>
-          {detail?.metrics.slice(0, 2).map((metric) => <div className="canonical-metric" key={metric.label}><b>{metric.value}</b><span>{metric.label} · {metric.detail}</span></div>)}
-          <small className="canonical-source">{detail?.source ?? module.source ?? "Fuente pendiente"}</small>
+          <p>{module.state === "no_publicado" ? "No publicado para esta sesión." : "Dato entregado por Supabase bajo RLS."}</p>
+          <small className="canonical-source">{module.source ?? "Fuente no publicada"}</small>
         </article>;
       })}
     </section>
@@ -211,12 +200,12 @@ function Intelligence() {
         <div className="section-head"><div><p className="eyebrow">PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026</p><h2>Quiénes pueden votar hoy</h2></div><p>Sexo, edad y alfabetismo provienen del padrón activo del TSE. La distribución urbana/rural pertenece al Censo 2018 y se muestra aparte para no mezclar universos.</p></div>
         <div className="electorate-hero">
           <article className="register-total"><span>PADRÓN ACTIVO</span><b>{intelligence.voterRegister}</b><p>Corte oficial: {intelligence.registerCut}</p><div><strong>{intelligence.registerGrowth}</strong><small>personas frente al padrón electoral 2023<br />comparación indicativa: {intelligence.registerGrowthRate}</small></div></article>
-          <article className="sex-profile"><div className="profile-title"><span>COMPOSICIÓN POR SEXO</span><b>Brecha: 2,172</b></div><div className="split-meter"><i style={{ width: "52.66%" }} /><em style={{ width: "47.34%" }} /></div><div className="split-labels"><span><i />Mujeres <b>{intelligence.voterWomen}</b><small>52.7%</small></span><span><i />Hombres <b>{intelligence.voterMen}</b><small>47.3%</small></span></div></article>
+          <article className="sex-profile"><div className="profile-title"><span>COMPOSICIÓN POR SEXO</span><b>Data Vault</b></div><div className="split-meter"><i style={{ width: intelligence.voterWomenShare === null ? undefined : `${intelligence.voterWomenShare}%` }} /><em style={{ width: intelligence.voterMenShare === null ? undefined : `${intelligence.voterMenShare}%` }} /></div><div className="split-labels"><span><i />Mujeres <b>{intelligence.voterWomen}</b><small>{intelligence.voterWomenShareLabel}</small></span><span><i />Hombres <b>{intelligence.voterMen}</b><small>{intelligence.voterMenShareLabel}</small></span></div></article>
           <article className="literacy-profile"><div><span>ALFABETISMO REGISTRADO</span><b>{intelligence.literacyRate}</b><small>{intelligence.literatePeople} personas</small></div><div className="literacy-detail"><span>Mujeres <b>{intelligence.womenLiteracy}</b></span><span>Hombres <b>{intelligence.menLiteracy}</b></span><span>Sin alfabetismo registrado <b>{intelligence.literacyUnregistered}</b></span></div></article>
         </div>
         <div className="age-and-territory">
-          <article className="age-profile"><div className="profile-title"><span>ESTRUCTURA POR EDAD</span><b>54.2% tiene entre 18 y 40 años</b></div><div className="age-bars">{intelligence.ages.map((item) => <div key={item.label}><span>{item.label}</span><i><em style={{ width: `${item.share / 16.1 * 100}%` }} /></i><b>{item.value}</b><small>{item.share.toFixed(1)}%</small></div>)}</div></article>
-          <article className="universe-card"><div className="profile-title"><span>POBLACIÓN Y TERRITORIO</span><b>Universos separados</b></div><div className="universe-block current"><span>TSE · PADRÓN 2026</span><b>{intelligence.voterRegister}</b><small>Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.</small></div><div className="universe-block census"><span>INE · CENSO 2018</span><b>{intelligence.censusPopulation}</b><div className="rural-bar"><i style={{ width: `${intelligence.censusUrbanShare}%` }} /><em style={{ width: `${intelligence.censusRuralShare}%` }} /></div><p><strong>{intelligence.censusUrban} urbanos · {intelligence.censusUrbanShare.toFixed(1)}%</strong><strong>{intelligence.censusRural} rurales · {intelligence.censusRuralShare.toFixed(1)}%</strong></p></div><div className="universe-block projection"><span>INE · PROYECCIÓN 2026</span><b>{intelligence.populationProjection}</b><small>{intelligence.projectionMen} hombres · {intelligence.projectionWomen} mujeres. Proyección poblacional, no padrón.</small></div></article>
+          <article className="age-profile"><div className="profile-title"><span>ESTRUCTURA POR EDAD</span><b>Universo publicado</b></div><div className="age-bars">{intelligence.ages.map((item) => <div key={item.label}><span>{item.label}</span><i><em style={{ width: `${item.share}%` }} /></i><b>{item.value}</b><small>{item.share.toFixed(1)}%</small></div>)}</div></article>
+          <article className="universe-card"><div className="profile-title"><span>POBLACIÓN Y TERRITORIO</span><b>Universos separados</b></div><div className="universe-block current"><span>TSE · PADRÓN 2026</span><b>{intelligence.voterRegister}</b><small>Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.</small></div><div className="universe-block census"><span>INE · CENSO 2018</span><b>{intelligence.censusPopulation}</b><div className="rural-bar"><i style={{ width: intelligence.censusUrbanShare === null ? undefined : `${intelligence.censusUrbanShare}%` }} /><em style={{ width: intelligence.censusRuralShare === null ? undefined : `${intelligence.censusRuralShare}%` }} /></div><p><strong>{intelligence.censusUrban} urbanos · {intelligence.censusUrbanShare === null ? "No publicado" : `${intelligence.censusUrbanShare.toFixed(1)}%`}</strong><strong>{intelligence.censusRural} rurales · {intelligence.censusRuralShare === null ? "No publicado" : `${intelligence.censusRuralShare.toFixed(1)}%`}</strong></p></div><div className="universe-block projection"><span>INE · PROYECCIÓN 2026</span><b>{intelligence.populationProjection}</b><small>{intelligence.projectionMen} hombres · {intelligence.projectionWomen} mujeres. Proyección poblacional, no padrón.</small></div></article>
         </div>
         <p className="trace-note"><Status state="disponible" /> Fuentes: TSE · Ciudadanos empadronados activos 2026; INE · Censo 2018 y proyecciones municipales. Los porcentajes se calculan sobre cada universo oficial, sin imputar urbano/rural al padrón actual.</p>
       </section>
@@ -227,7 +216,7 @@ function Intelligence() {
 
 function MapModule() {
   const { consumer, municipality_name } = useMunicipalityContext();
-  const map = findMunicipalProfile(consumer.municipality.code)?.map;
+  const map = buildRuntimeProfile(consumer).map;
   const territoryState = consumer.modules.find((module) => module.layer_id === "TSE_CENTROS_GEO")?.state ?? "pendiente";
   const [satellite, setSatellite] = useState(false);
   const [query, setQuery] = useState("");
@@ -247,18 +236,28 @@ function MapModule() {
     <section className="smart-map-shell map-v3">
       <div className="map-stage">
         {map ? <>
-          <iframe className="smart-map-canvas" title={`Mapa público de ${municipality_name}, ${consumer.municipality.department}`} loading="lazy" src={satellite && map.satelliteEmbedUrl ? map.satelliteEmbedUrl : map.embedUrl} />
-          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault</b><span>{map.populatedPlacesWithCoordinates} puntos</span></div></header>{publicLayers.map((layer) => <button type="button" key={layer.label}><span><b>{layer.label.toUpperCase()}</b><small>{layer.detail}</small></span><em>{layer.value}</em></button>)}{!publicLayers.length ? <p className="canonical-layer-empty">Sin coincidencias públicas.</p> : null}</aside>
+          {map.embedUrl ? <iframe className="smart-map-canvas" title={`Mapa autorizado de ${municipality_name}, ${consumer.municipality.department}`} loading="lazy" src={satellite && map.satelliteEmbedUrl ? map.satelliteEmbedUrl : map.embedUrl} /> : <div className="smart-map-canvas canonical-map-pending"><span>SESIÓN AUTORIZADA</span><h2>Capas territoriales cargadas</h2><p>La fuente no publicó un mapa embebible para este municipio.</p></div>}
+          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault</b><span>{map.populatedPlacesWithCoordinates ?? "—"} puntos</span></div></header>{publicLayers.map((layer) => <button type="button" key={layer.label}><span><b>{layer.label.toUpperCase()}</b><small>{layer.detail}</small></span><em>{layer.value}</em></button>)}{!publicLayers.length ? <p className="canonical-layer-empty">Sin coincidencias autorizadas.</p> : null}</aside>
         </> : <div className="smart-map-canvas canonical-map-pending"><span>{labels[territoryState].toUpperCase()}</span><h2>Cartografía municipal en validación</h2><p>RADAR no publicará puntos ni agregados hasta comprobar su correspondencia con {consumer.municipality.name}.</p></div>}
         <div className="map-boundary-note">Municipio {consumer.municipality.code} · contexto limitado</div>
-        <div className="map-privacy"><b>VISTA PÚBLICA</b><span>Las capas de campaña requieren sesión autorizada.</span></div>
+        <div className="map-privacy"><b>SESIÓN AUTORIZADA</b><span>RLS limita las capas a este contexto.</span></div>
       </div>
     </section>
   </>;
 }
 
 function ProtectedModule({ title, eyebrow }: { title: string; eyebrow: string }) {
-  const { consumer, municipality_name } = useMunicipalityContext();
+  const { consumer, municipality_name, campaign_id, permissions } = useMunicipalityContext();
+  const [resetState, setResetState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const canResetDemo = consumer.is_demo && permissions.includes("demo_vault:reset");
+
+  async function resetDemo() {
+    if (!canResetDemo || !supabase) return;
+    setResetState("running");
+    const { error } = await supabase.rpc("reset_demo_campaign", { target_campaign: campaign_id });
+    setResetState(error ? "error" : "done");
+  }
+
   return <>
     <SectionBanner eyebrow={eyebrow} title={title} description={`${municipality_name} · módulo operativo de campaña`} status="no_publicado" />
     <section className="canonical-protected-page">
@@ -272,14 +271,40 @@ function ProtectedModule({ title, eyebrow }: { title: string; eyebrow: string })
         <div><dt>Rol</dt><dd>{consumer.context.user_role}</dd></div>
         <div><dt>Permisos</dt><dd>{consumer.context.permissions.join(", ")}</dd></div>
       </dl>
+      {title === "Configuración" && canResetDemo ? <div className="demo-reset-control">
+        <b>Demo Vault</b>
+        <p>Restablece únicamente la campaña sintética. Data Vault y campañas reales quedan fuera de esta operación.</p>
+        <button type="button" disabled={resetState === "running"} onClick={() => void resetDemo()}>{resetState === "running" ? "Restableciendo…" : "Restablecer demo"}</button>
+        {resetState === "done" ? <small>Demo restablecida.</small> : resetState === "error" ? <small role="alert">No fue posible restablecer la demo.</small> : null}
+      </div> : null}
     </section>
   </>;
 }
 
-export function MunicipalDashboard() {
+export function MunicipalDashboard({ routeKind }: { routeKind: "municipality" | "demo" }) {
   const { municipalityCode } = useParams();
-  const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer) return <Navigate to="/" replace />;
+  const routeKey = routeKind === "demo" ? "VALLE_NEXO" : municipalityCode;
+  const [consumer, setConsumer] = useState<RadarMunicipalConsumer | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setConsumer(null);
+    setError("");
+    if (!routeKey) {
+      setError("Municipio inválido.");
+      return;
+    }
+    void loadRadarConsumer(routeKind, routeKey).then((value) => {
+      if (active) setConsumer(value);
+    }).catch((cause) => {
+      if (active) setError(cause instanceof Error ? cause.message : "No fue posible cargar el contexto autorizado.");
+    });
+    return () => { active = false; };
+  }, [routeKey, routeKind]);
+
+  if (error) return <div className="auth-loading auth-loading--error" role="alert"><b>Acceso no disponible</b><span>{error}</span><Link to="/municipios">Volver al catálogo</Link></div>;
+  if (!consumer) return <div className="auth-loading" role="status">Cargando contexto autorizado…</div>;
 
   return <MunicipalityProvider consumer={consumer}><MunicipalDashboardShell /></MunicipalityProvider>;
 }
@@ -292,6 +317,7 @@ function MunicipalDashboardShell() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const { theme, textSize, toggleTheme, increaseTextSize } = useRadarPreferences();
+  const { signOut } = useAuth();
   const active = section ?? "inicio";
 
   useEffect(() => {
@@ -305,7 +331,7 @@ function MunicipalDashboardShell() {
   }, []);
 
   const selected = sections.find(([, , slug]) => slug === active);
-  if (!selected) return <Navigate to={`/municipio/${consumer.municipality.code}`} replace />;
+  if (!selected) return <Navigate to={routeFor(consumer, "inicio")} replace />;
 
   function toggleSidebar() {
     setCollapsed((value) => {
@@ -323,10 +349,10 @@ function MunicipalDashboardShell() {
     <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src="/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg" alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src="/brand/radar-electoral-isotipo.svg" alt="RADAR" /></div></div>
       <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
-      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(consumer.municipality.code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b></Link>)}</nav>
+      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(consumer, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b></Link>)}</nav>
       <div className="sidebar-account">
-        <button type="button" onClick={() => setProfileOpen((value) => !value)}><i>GT</i><span><b>Vista pública</b><small>{consumer.municipality.code} · Sin datos privados</small></span><em>⌄</em></button>
-        {profileOpen ? <div className="account-menu"><b>{name}</b><span>Contexto público nacional</span><Link to="/">Cambiar municipio</Link></div> : null}
+        <button type="button" onClick={() => setProfileOpen((value) => !value)}><i>GT</i><span><b>{user_role}</b><small>{consumer.municipality.code} · Sesión autorizada</small></span><em>⌄</em></button>
+        {profileOpen ? <div className="account-menu"><b>{name}</b><span>{campaign_id}</span><Link to="/">Cambiar municipio</Link><button type="button" onClick={() => void signOut()}>Cerrar sesión</button></div> : null}
       </div>
     </aside>
     <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />
