@@ -112,8 +112,8 @@ export interface CanonicalRuntimeGate {
 
 export interface RadarContextKey {
   municipality_code: string;
-  campaign_id: string | null;
-  user_role: string;
+  campaign_id: string;
+  user_role: UserRole;
   permissions: string[];
 }
 
