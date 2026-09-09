@@ -158,11 +158,20 @@ export async function loadAuthorizedGeoBundle(
 }
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
-  const [context, layers, geo] = await Promise.all([
-    loadAuthorizedRadarContext(municipalityCode, accessToken),
-    loadAuthorizedRadarLayers(municipalityCode, accessToken),
-    loadAuthorizedGeoSummary(municipalityCode, accessToken),
-  ]);
+  assertMunicipalityCode(municipalityCode);
+  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v3", {
+    p_municipality_code: municipalityCode,
+  }, accessToken);
 
-  return { context, layers, geo };
+  if (
+    !bundle ||
+    bundle.context?.municipality_code !== municipalityCode ||
+    bundle.geo?.municipality?.municipality_code !== municipalityCode ||
+    !Array.isArray(bundle.context.permissions) ||
+    !Array.isArray(bundle.layers)
+  ) {
+    throw new Error("La sesión no tiene un runtime municipal autorizado.");
+  }
+
+  return bundle;
 }
