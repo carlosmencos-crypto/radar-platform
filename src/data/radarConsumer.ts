@@ -1,4 +1,5 @@
 import { findMunicipality } from "./municipalities";
+import { getInstalledRadarRuntime } from "./radarRuntimeCache";
 import {
   CANONICAL_CONTRACT_PRODUCTS,
   CANONICAL_LAYER_DEFINITIONS,
@@ -144,8 +145,20 @@ export function resolveRadarConsumer(municipalityCode?: string): RadarMunicipalC
     navigation.route_path !== `/municipio/${municipality.code}`
   ) return undefined;
 
+  const authorizedRuntime = getInstalledRadarRuntime(municipality.code);
+  if (
+    authorizedRuntime &&
+    (authorizedRuntime.context.municipality_code !== municipality.code ||
+      authorizedRuntime.geo.municipality.municipality_code !== municipality.code)
+  ) return undefined;
+
   return {
-    context: {
+    context: authorizedRuntime ? {
+      municipality_code: authorizedRuntime.context.municipality_code,
+      campaign_id: authorizedRuntime.context.campaign_id,
+      user_role: authorizedRuntime.context.user_role,
+      permissions: [...authorizedRuntime.context.permissions],
+    } : {
       municipality_code: municipality.code,
       campaign_id: "public-demo",
       user_role: "public_viewer",
