@@ -221,13 +221,19 @@ assert(nationalSource.includes("catalogMunicipalities.map"), "El catálogo raíz
 assert(nationalSource.includes("national-territory-grid") && nationalSource.includes("national-territory-card"), "El catálogo no está aislado del CSS del Mapa V70.");
 assert(!nationalSource.includes("priorityCodes") && !nationalSource.includes("priorityMunicipalities"), "El catálogo conserva un subconjunto prioritario.");
 assert(appSource.includes('path="municipios" element={<MunicipalitiesPage />}'), "Falta la ruta pública /municipios.");
+assert(appSource.includes('<Route index element={<MunicipalitiesPage />} />'), "La portada nacional no reutiliza el explorador municipal.");
 assert(nationalSource.includes("export function MunicipalitiesPage()") && nationalSource.includes("catalog-department-index"), "El catálogo nacional no permite explorar los 22 departamentos.");
+assert(nationalSource.includes('data-catalog-department="all"') && nationalSource.includes("<span>Todos</span><b>340</b>"), "El catálogo no ofrece el selector Todos antes de los 22 departamentos.");
+assert(nationalSource.includes("aria-pressed={departmentCode === department.code}") && nationalSource.includes("selectDepartment(department.code)"), "El selector departamental no filtra la grilla municipal en la misma interfaz.");
+assert(nationalSource.includes('return <MunicipalitiesPage />'), "La ruta departamental no reutiliza el explorador nacional.");
 assert(nationalSource.includes("data-municipality-code") && nationalSource.includes("data-department-code"), "Las tarjetas no conservan identidad territorial verificable.");
 assert(nationalSource.includes("catalog-municipality-grid") && nationalSource.includes("catalog-municipality-card"), "La grilla municipal no está aislada del Mapa V70.");
 assert(!/export function DepartmentPage\(\)[\s\S]*?export function MunicipalityPage\(\)/.exec(nationalSource)?.[0].includes('className="territory-card"'), "Departamento reutiliza la ficha absoluta del Mapa V70.");
 assert(catalogCssSource.includes(".catalog-municipality-card") && catalogCssSource.includes("position: static"), "Las tarjetas del catálogo no neutralizan posicionamiento flotante.");
 assert(catalogCssSource.includes("repeat(4, minmax(0, 1fr))") && catalogCssSource.includes("repeat(2, minmax(0, 1fr))") && catalogCssSource.includes("grid-template-columns: 1fr"), "La grilla del catálogo no cubre desktop, tablet y móvil.");
 assert(layoutSource.includes('/municipios') && layoutSource.includes('/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg'), "La navegación pública no usa el catálogo o logo oficial.");
+assert(!layoutSource.includes('label: "Nacional"') && !layoutSource.includes('label: "Departamentos"'), "La navegación pública conserva accesos redundantes.");
+assert(catalogCssSource.includes("content: none") && !catalogCssSource.includes("radial-gradient(circle at 88% 14%"), "El hero del catálogo conserva el halo morado.");
 assert(indexSource.includes('/brand/radar-isotipo.svg'), "Favicon oficial RADAR ausente.");
 
 const tseGeo = contract.layers.find((layer) => layer.layer_id === "TSE_CENTROS_GEO");

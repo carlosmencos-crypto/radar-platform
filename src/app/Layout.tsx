@@ -1,13 +1,13 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 const nav = [
-  { to: "/", label: "Nacional" },
-  { to: "/#departamentos", label: "Departamentos" },
   { to: "/municipios", label: "Municipios" },
   { to: "/comparar", label: "Comparar" },
 ];
 
 export function Layout() {
+  const location = useLocation();
+
   return (
     <div className="app-shell public-shell">
       <header className="topbar">
@@ -16,7 +16,15 @@ export function Layout() {
         </NavLink>
         <nav className="nav" aria-label="Navegación principal">
           {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === "/"}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                isActive || (item.to === "/municipios" && location.pathname.startsWith("/departamento/"))
+                  ? "active"
+                  : undefined
+              }
+            >
               {item.label}
             </NavLink>
           ))}

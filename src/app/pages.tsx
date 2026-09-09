@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { MunicipalProfile } from "../components/MunicipalProfile";
 import { StatusBadge } from "../components/StatusBadge";
 import { TerritorialMap0509 } from "../components/TerritorialMap0509";
@@ -160,8 +160,18 @@ export function NationalPage() {
 }
 
 export function MunicipalitiesPage() {
+  const { departmentCode: routeDepartmentCode } = useParams();
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [departmentCode, setDepartmentCode] = useState("all");
+  const [departmentCode, setDepartmentCode] = useState(() =>
+    findDepartment(routeDepartmentCode)?.code ?? "all",
+  );
+  const activeDepartment = findDepartment(departmentCode);
+
+  useEffect(() => {
+    setDepartmentCode(findDepartment(routeDepartmentCode)?.code ?? "all");
+  }, [routeDepartmentCode]);
+
   const items = useMemo(() => {
     const term = normalize(query.trim());
     return sortMunicipalities(municipalities).filter((municipality) => {
@@ -171,46 +181,63 @@ export function MunicipalitiesPage() {
     });
   }, [departmentCode, query]);
 
+  const selectDepartment = (nextDepartmentCode: string) => {
+    setDepartmentCode(nextDepartmentCode);
+    navigate(nextDepartmentCode === "all" ? "/municipios" : `/departamento/${nextDepartmentCode}`);
+  };
+
   return (
     <div className="catalog-page">
       <section className="catalog-hero catalog-hero--national">
         <div>
           <Link className="catalog-backlink" to="/">RADAR Guatemala</Link>
-          <span className="catalog-eyebrow">Catálogo nacional</span>
-          <h1>Municipios de Guatemala</h1>
-          <p>Explorá la cobertura pública disponible para cada territorio desde una única plataforma nacional.</p>
+          <span className="catalog-eyebrow">Cobertura nacional</span>
+          <h1>Explorador municipal</h1>
+          <p>Inteligencia electoral disponible para los 340 municipios de Guatemala.</p>
         </div>
         <div className="catalog-hero-stats" aria-label="Cobertura nacional">
           <span><strong>340</strong><small>municipios</small></span>
           <span><strong>22</strong><small>departamentos</small></span>
-          <span><strong>17</strong><small>capas por municipio</small></span>
+          <span><strong>17</strong><small>capas</small></span>
         </div>
       </section>
 
       <section className="catalog-directory" aria-labelledby="catalog-title">
         <div className="catalog-directory-heading">
-          <div><span className="catalog-eyebrow">Explorador territorial</span><h2 id="catalog-title">Encontrá cualquier municipio</h2></div>
+          <div>
+            <span className="catalog-eyebrow">Directorio territorial</span>
+            <h2 id="catalog-title">{activeDepartment ? `Municipios de ${activeDepartment.name}` : "Todos los municipios"}</h2>
+          </div>
           <span className="catalog-result-count">{items.length} resultados</span>
         </div>
-        <div className="catalog-controls">
+        <div className="catalog-controls catalog-controls--municipalities">
           <label className="catalog-search">
             <span>Buscar municipio</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre o código municipal" type="search" />
           </label>
-          <label className="catalog-filter">
-            <span>Departamento</span>
-            <select value={departmentCode} onChange={(event) => setDepartmentCode(event.target.value)}>
-              <option value="all">Todos los departamentos</option>
-              {departments.map((department) => <option key={department.code} value={department.code}>{department.code} · {department.name}</option>)}
-            </select>
-          </label>
         </div>
 
         <div className="catalog-department-index" aria-label="Explorar departamentos">
+          <button
+            className={departmentCode === "all" ? "active" : undefined}
+            type="button"
+            aria-pressed={departmentCode === "all"}
+            data-catalog-department="all"
+            onClick={() => selectDepartment("all")}
+          >
+            <small>GT</small><span>Todos</span><b>340</b>
+          </button>
           {departments.map((department) => (
-            <Link to={`/departamento/${department.code}`} key={department.code}>
+            <button
+              className={departmentCode === department.code ? "active" : undefined}
+              type="button"
+              aria-pressed={departmentCode === department.code}
+              data-catalog-department={department.code}
+              onClick={() => selectDepartment(department.code)}
+              key={department.code}
+            >
               <small>{department.code}</small><span>{department.name}</span><b>{department.municipalityCount}</b>
-            </Link>
+            </button>
           ))}
         </div>
 
@@ -228,57 +255,8 @@ export function MunicipalitiesPage() {
 
 export function DepartmentPage() {
   const { departmentCode } = useParams();
-  const [query, setQuery] = useState("");
-  const department = findDepartment(departmentCode);
-  const departmentItems = useMemo(
-    () => sortMunicipalities(municipalities.filter((municipality) => municipality.departmentCode === departmentCode)),
-    [departmentCode],
-  );
-  const items = useMemo(() => {
-    const term = normalize(query.trim());
-    if (!term) return departmentItems;
-    return departmentItems.filter((municipality) => normalize(`${municipality.code} ${municipality.name} ${municipality.displayName ?? ""}`).includes(term));
-  }, [departmentItems, query]);
-
-  if (!department) return <NotFoundPage />;
-  return (
-    <div className="catalog-page">
-      <section className="catalog-hero catalog-hero--department">
-        <div>
-          <Link className="catalog-backlink" to="/municipios">← Catálogo nacional</Link>
-          <span className="catalog-eyebrow">Departamento {department.code}</span>
-          <h1>{department.name}</h1>
-          <p>{departmentItems.length} municipios · Inteligencia electoral disponible por municipio.</p>
-        </div>
-        <div className="catalog-department-seal" aria-label={`${departmentItems.length} municipios`}>
-          <strong>{department.code}</strong>
-          <span>{departmentItems.length}</span>
-          <small>municipios</small>
-        </div>
-      </section>
-
-      <section className="catalog-directory" aria-labelledby="department-directory-title">
-        <div className="catalog-directory-heading">
-          <div><span className="catalog-eyebrow">Directorio departamental</span><h2 id="department-directory-title">Municipios de {department.name}</h2></div>
-          <span className="catalog-result-count">{items.length} de {departmentItems.length}</span>
-        </div>
-        <div className="catalog-controls catalog-controls--department">
-          <label className="catalog-search">
-            <span>Buscar municipio</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Municipio o código de ${department.name}`} type="search" />
-          </label>
-        </div>
-
-        {items.length > 0 ? (
-          <div className="catalog-municipality-grid">
-            {items.map((municipality) => <CatalogMunicipalityCard municipality={municipality} key={municipality.code} />)}
-          </div>
-        ) : (
-          <p className="catalog-empty">No encontramos un municipio con ese nombre o código.</p>
-        )}
-      </section>
-    </div>
-  );
+  if (!findDepartment(departmentCode)) return <NotFoundPage />;
+  return <MunicipalitiesPage />;
 }
 
 export function MunicipalityPage() {
