@@ -16,6 +16,7 @@ const geoRuntime = read("src/data/radarGeoRuntime.ts");
 const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
 const visibleRuntimeMigration = read("supabase/migrations/20260909205200_radar_authorized_runtime_v3_visible_layers_fix.sql");
+const voterRuntimeMigration = read("supabase/migrations/20260909220500_radar_voter_roll_runtime_v4.sql");
 
 test("authorized runtime is installed before canonical V70 renders", () => {
   assert.match(gate, /installRadarRuntime\(consumer\.runtime\)/);
@@ -57,9 +58,9 @@ test("V70 gate loads one compact authorized runtime RPC while retaining point bu
   assert.match(runtime, /radar_municipality_geo_summary/);
   assert.match(runtime, /loadAuthorizedGeoSummary/);
   assert.match(runtime, /loadAuthorizedGeoBundle/);
-  assert.match(runtime, /radar_authorized_runtime_v3/);
+  assert.match(runtime, /radar_authorized_runtime_v4/);
   const loader = runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "";
-  assert.match(loader, /radar_authorized_runtime_v3/);
+  assert.match(loader, /radar_authorized_runtime_v4/);
   assert.doesNotMatch(loader, /Promise\.all/);
   assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
 });
@@ -102,4 +103,19 @@ test("server runtime exposes exactly the 16 V70 launch layers and excludes post-
   assert.doesNotMatch(visibleRuntimeMigration, /ACTIVOS_RESUMEN/);
   assert.match(visibleRuntimeMigration, /revoke all on function public\.radar_authorized_runtime_v3\(text\) from anon/);
   assert.match(visibleRuntimeMigration, /grant execute on function public\.radar_authorized_runtime_v3\(text\) to authenticated/);
+});
+
+test("voter aggregates stay authenticated, aggregate-only and universe-separated", () => {
+  assert.match(voterRuntimeMigration, /radar_authorized_voter_roll_summary_v1/);
+  assert.match(voterRuntimeMigration, /PADRON_DETALLADO_2023/);
+  assert.match(voterRuntimeMigration, /NUCLEO_ELECTORAL_2026/);
+  assert.match(voterRuntimeMigration, /GT_RADAR_PADRON_2023_AGREGADOS_340_v1/);
+  assert.match(voterRuntimeMigration, /GT_RADAR_PORTAL_MASTER_340_DASHBOARD_READY_v6/);
+  assert.match(voterRuntimeMigration, /voter_roll_community_aggregates/);
+  assert.match(voterRuntimeMigration, /revoke all on function public\.radar_authorized_voter_roll_summary_v1\(text\) from anon/);
+  assert.match(voterRuntimeMigration, /grant execute on function public\.radar_authorized_voter_roll_summary_v1\(text\) to authenticated/);
+  assert.match(runtimeProfile, /Empadronados oficiales 2023/);
+  assert.match(runtimeProfile, /Registros detallados 2023/);
+  assert.match(runtimeProfile, /universo separado del total oficial/);
+  assert.doesNotMatch(voterRuntimeMigration, /full_name|phone|dpi|address_text/i);
 });
