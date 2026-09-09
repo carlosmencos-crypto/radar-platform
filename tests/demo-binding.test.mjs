@@ -23,6 +23,8 @@ test("Valle Nexo loads every existing dataset through authenticated RPCs", () =>
   }
   assert.match(map, /MAPA DEMO · NO CORRESPONDE A UN MUNICIPIO REAL/);
   assert.match(modules, /SIMULACIÓN/);
+  assert.match(dashboard, /DEMO · SINTÉTICO/);
+  assert.match(dashboard, /DEMO · SIMULACIÓN: los 17 módulos/);
 });
 
 test("demo mutations are campaign-scoped and reset refreshes all queries", () => {
