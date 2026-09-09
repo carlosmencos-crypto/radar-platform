@@ -27,6 +27,11 @@ function formatInteger(value: unknown) {
   return number === undefined ? undefined : new Intl.NumberFormat("es-GT", { maximumFractionDigits: 0 }).format(number);
 }
 
+function formatDecimal(value: unknown) {
+  const number = asNumber(value);
+  return number === undefined ? undefined : new Intl.NumberFormat("es-GT", { maximumFractionDigits: 1 }).format(number);
+}
+
 function formatCurrency(value: unknown) {
   const number = asNumber(value);
   return number === undefined ? undefined : new Intl.NumberFormat("es-GT", {
@@ -46,10 +51,13 @@ function formatRatio(value: unknown) {
   return number === undefined ? undefined : `${(number * 100).toFixed(1)}%`;
 }
 
-function sourceFor(records: Array<AuthorizedLayerRecord | undefined>) {
-  const labels = records
-    .map((record) => record?.source_label)
-    .filter((label): label is string => Boolean(label));
+function sourceFor(records: Array<AuthorizedLayerRecord | undefined>, extraLabels: string[] = []) {
+  const labels = [
+    ...records
+      .map((record) => record?.source_label)
+      .filter((label): label is string => Boolean(label)),
+    ...extraLabels.filter(Boolean),
+  ];
   return [...new Set(labels)].join(" · ") || "RADAR Data Vault autorizado";
 }
 
@@ -67,8 +75,9 @@ function moduleFrom(
   summary: string,
   records: Array<AuthorizedLayerRecord | undefined>,
   metrics: ProfileMetric[],
+  extraSources: string[] = [],
 ): ProfileModule {
-  return { id, title, summary, metrics, status: statusFor(records), source: sourceFor(records) };
+  return { id, title, summary, metrics, status: statusFor(records), source: sourceFor(records, extraSources) };
 }
 
 function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
@@ -78,6 +87,11 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
   const electoralPayload = asRecord(electoral?.payload);
   const electoralMunicipality = asRecord(electoralPayload?.municipality);
   const communities = asRecord(electoralPayload?.communities);
+  const voterDetailed2023 = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023");
+  const voterActive2026 = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026");
+  const voterSources = runtime.voter_roll.aggregates
+    .map((item) => item.source_product_id)
+    .filter((item): item is string => Boolean(item));
   const centers = layer(runtime, "TSE_CENTROS_GEO");
   const centersPayload = asRecord(centers?.payload);
   const education = layer(runtime, "MINEDUC_ESCUELAS");
@@ -109,13 +123,17 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
     moduleFrom(
       "electoral",
       "Electoral",
-      "Núcleo electoral y geografía TSE consumidos como universos separados según el contrato canónico.",
+      "Núcleo electoral, padrón agregado y geografía TSE permanecen como universos separados y trazables.",
       [electoral, centers],
       compactMetrics([
-        metric("Padrón activo 2026", formatInteger(electoralMunicipality?.active_voters_2026), "TSE · núcleo electoral"),
-        metric("Empadronados 2023", formatInteger(electoralMunicipality?.registered_voters_2023), "universo electoral 2023"),
+        metric("Padrón activo 2026", formatInteger(voterActive2026?.elector_count ?? electoralMunicipality?.active_voters_2026), "TSE · núcleo electoral 2026"),
+        metric("Empadronados oficiales 2023", formatInteger(electoralMunicipality?.registered_voters_2023), "TSE · total municipal oficial; no sustituye el padrón detallado"),
+        metric("Registros detallados 2023", formatInteger(voterDetailed2023?.elector_count), "padrón detallado disponible; universo separado del total oficial"),
+        metric("Edad promedio base 2023", formatDecimal(voterDetailed2023?.average_age_base), "solo registros del padrón detallado con edad clasificada"),
+        metric("18–29 en padrón detallado", formatInteger(voterDetailed2023?.age_18_29), "grupo etario del universo detallado 2023"),
         metric("Centros", formatInteger(centersPayload?.center_count), "TSE 2023 · geolocalización canónica"),
       ]),
+      voterSources,
     ),
     moduleFrom(
       "territorio",
@@ -178,6 +196,7 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
         metric("Capas autorizadas", formatInteger(runtime.layers.length), "Data Vault"),
         metric("Puntos geográficos", formatInteger(runtime.geo.feature_total), "resumen geográfico autorizado"),
       ]),
+      voterSources,
     ),
   ];
 }
@@ -228,7 +247,8 @@ export function buildRuntimeMunicipalProfile(
   if (!runtime) return base;
   if (
     runtime.context.municipality_code !== municipalityCode ||
-    runtime.geo.municipality.municipality_code !== municipalityCode
+    runtime.geo.municipality.municipality_code !== municipalityCode ||
+    runtime.voter_roll.municipality_code !== municipalityCode
   ) return undefined;
 
   return {
