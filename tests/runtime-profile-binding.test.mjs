@@ -12,12 +12,14 @@ const cache = read("src/data/radarRuntimeCache.ts");
 const consumer = read("src/data/radarConsumer.ts");
 const profiles = read("src/data/municipalProfiles.ts");
 const runtime = read("src/data/radarRuntime.ts");
+const geoRuntime = read("src/data/radarGeoRuntime.ts");
 const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
 const visibleRuntimeMigration = read("supabase/migrations/20260909205200_radar_authorized_runtime_v3_visible_layers_fix.sql");
 
 test("authorized runtime is installed before canonical V70 renders", () => {
-  assert.match(gate, /installRadarRuntime\(consumer\.runtime\);\s*setState\(\{ status: "authorized", consumer \}\)/);
+  assert.match(gate, /installRadarRuntime\(consumer\.runtime\)/);
+  assert.match(gate, /setState\(\{ status: "authorized", consumer \}\)/);
   assert.match(gate, /clearInstalledRadarRuntime\(municipalityCode\)/);
   assert.match(cache, /new Map<string, RadarRuntimeBundle>\(\)/);
   assert.doesNotMatch(cache, /localStorage|sessionStorage|service[_-]?role/i);
@@ -60,6 +62,21 @@ test("V70 gate loads one compact authorized runtime RPC while retaining point bu
   assert.match(loader, /radar_authorized_runtime_v3/);
   assert.doesNotMatch(loader, /Promise\.all/);
   assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
+});
+
+test("detailed public geography is loaded only for mapa and reconciles fail closed", () => {
+  assert.match(gate, /section === "mapa"/);
+  assert.match(gate, /loadAuthorizedGeoBundle\(municipalityCode, accessToken, \[\.\.\.RADAR_PUBLIC_MAP_FEATURE_TYPES\]\)/);
+  assert.match(gate, /assertGeoBundleMatchesRuntime\(consumer\.runtime, geoBundle\)/);
+  assert.match(gate, /installRadarGeoBundle\(geoBundle\)/);
+  assert.match(cache, /new Map<string, MunicipalityGeoBundle>\(\)/);
+  assert.match(cache, /clearInstalledRadarGeoBundle/);
+  for (const featureType of ["populated_place", "tse_voting_center", "school", "health_facility"]) {
+    assert.match(geoRuntime, new RegExp(`"${featureType}"`));
+  }
+  assert.match(geoRuntime, /actual !== bundleCount \|\| actual !== runtimeCount/);
+  assert.match(geoRuntime, /bundle\.features\.length !== runtime\.geo\.feature_total/);
+  assert.doesNotMatch(dashboard, /loadAuthorizedGeoBundle|assertGeoBundleMatchesRuntime|installRadarGeoBundle/);
 });
 
 test("server runtime exposes exactly the 16 V70 launch layers and excludes post-launch assets", () => {
