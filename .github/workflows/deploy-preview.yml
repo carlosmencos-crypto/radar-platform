@@ -1,8 +1,10 @@
-name: Deploy preview
+name: Temporary Valle Nexo V70 binding preview
+# Source: feature/valle-nexo-v70-binding
 
 on:
   push:
-    branches: [main]
+    branches:
+      - preview/valle-nexo-v70-binding
   workflow_dispatch:
 
 permissions:
@@ -11,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-valle-nexo-v70-binding-preview
   cancel-in-progress: true
 
 jobs:
@@ -24,21 +26,34 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
+      - run: npm run smoke:340
       - run: npm run build -- --base=/radar-platform/
-      - run: cp dist/index.html dist/404.html
+      - run: npm run audit:bundle
+      - name: Prepare isolated SPA preview
+        run: |
+          sed -i 's|/brand/|/radar-platform/brand/|g' dist/assets/*.js
+          cp dist/index.html dist/404.html
+          for route in login municipios demo/valle-nexo demo/valle-nexo/inteligencia demo/valle-nexo/estrategia demo/valle-nexo/directorio demo/valle-nexo/agenda demo/valle-nexo/mapa demo/valle-nexo/dia-d demo/valle-nexo/recursos demo/valle-nexo/pulso demo/valle-nexo/ia-radar demo/valle-nexo/configuracion municipio/0509 municipio/1901; do
+            mkdir -p "dist/$route"
+            cp dist/index.html "dist/$route/index.html"
+          done
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     environment:
-      name: github-pages
+      name: valle-nexo-v70-binding-preview
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy isolated Valle Nexo preview
         id: deployment
         uses: actions/deploy-pages@v4
