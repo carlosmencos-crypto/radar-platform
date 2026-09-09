@@ -2,7 +2,13 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
-import { clearInstalledRadarRuntime, installRadarRuntime } from "../data/radarRuntimeCache";
+import {
+  clearInstalledRadarGeoBundle,
+  clearInstalledRadarRuntime,
+  installRadarGeoBundle,
+  installRadarRuntime,
+} from "../data/radarRuntimeCache";
+import { loadAuthorizedGeoBundle, type MunicipalityGeoBundle } from "../data/radarRuntime";
 import { MunicipalDashboard as CanonicalMunicipalDashboard } from "./MunicipalDashboard";
 
 type GateState =
@@ -12,6 +18,7 @@ type GateState =
   | { status: "forbidden" };
 
 const AuthorizedRuntimeContext = createContext<AuthorizedRadarConsumer | null>(null);
+const MAP_PUBLIC_FEATURE_TYPES = ["populated_place", "tse_voting_center", "school", "health_facility"];
 
 function isAuthenticationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
@@ -29,7 +36,7 @@ export function useAuthorizedRadarRuntime() {
 }
 
 export function MunicipalityAccessGate() {
-  const { municipalityCode } = useParams();
+  const { municipalityCode, section } = useParams();
   const location = useLocation();
   const [state, setState] = useState<GateState>({ status: "loading" });
 
@@ -43,17 +50,26 @@ export function MunicipalityAccessGate() {
     }
 
     clearInstalledRadarRuntime(municipalityCode);
+    clearInstalledRadarGeoBundle(municipalityCode);
     setState({ status: "loading" });
     ensureRadarAccessToken()
-      .then((accessToken) => resolveAuthorizedRadarConsumer(municipalityCode, accessToken))
-      .then((consumer) => {
+      .then(async (accessToken) => {
+        const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
+        const geoBundle: MunicipalityGeoBundle | null = section === "mapa"
+          ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, MAP_PUBLIC_FEATURE_TYPES)
+          : null;
+        return { consumer, geoBundle };
+      })
+      .then(({ consumer, geoBundle }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
+        if (geoBundle) installRadarGeoBundle(geoBundle);
         setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         clearInstalledRadarRuntime(municipalityCode);
+        clearInstalledRadarGeoBundle(municipalityCode);
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -65,8 +81,9 @@ export function MunicipalityAccessGate() {
     return () => {
       cancelled = true;
       clearInstalledRadarRuntime(municipalityCode);
+      clearInstalledRadarGeoBundle(municipalityCode);
     };
-  }, [municipalityCode]);
+  }, [municipalityCode, section]);
 
   if (state.status === "loading") {
     return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Verificando acceso…</h1></div>;
