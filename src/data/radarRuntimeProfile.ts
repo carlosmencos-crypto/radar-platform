@@ -14,10 +14,6 @@ function layer(runtime: RadarRuntimeBundle, layerId: string) {
   return runtime.layers.find((item) => item.layer_id === layerId);
 }
 
-function payload(runtime: RadarRuntimeBundle, layerId: string) {
-  return asRecord(layer(runtime, layerId)?.payload);
-}
-
 function metric(label: string, value: string | undefined, detail: string): ProfileMetric | undefined {
   return value === undefined ? undefined : { label, value, detail };
 }
@@ -180,24 +176,17 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
       runtime.layers,
       compactMetrics([
         metric("Capas autorizadas", formatInteger(runtime.layers.length), "Data Vault"),
-        metric("Puntos geográficos", formatInteger(runtime.geo.features.length), "bundle municipal autorizado"),
+        metric("Puntos geográficos", formatInteger(runtime.geo.feature_total), "resumen geográfico autorizado"),
       ]),
     ),
   ];
 }
 
 function buildMap(runtime: RadarRuntimeBundle): MunicipalProfile["map"] | undefined {
-  const coordinates = runtime.geo.features
-    .filter((feature) => typeof feature.latitude === "number" && typeof feature.longitude === "number")
-    .map((feature) => ({ latitude: feature.latitude as number, longitude: feature.longitude as number }));
-  if (!coordinates.length) return undefined;
+  const bounds = runtime.geo.bbox;
+  if (!bounds) return undefined;
 
-  const latitudes = coordinates.map((point) => point.latitude);
-  const longitudes = coordinates.map((point) => point.longitude);
-  let south = Math.min(...latitudes);
-  let north = Math.max(...latitudes);
-  let west = Math.min(...longitudes);
-  let east = Math.max(...longitudes);
+  let { south, north, west, east } = bounds;
   const latPadding = Math.max((north - south) * 0.08, 0.01);
   const lonPadding = Math.max((east - west) * 0.08, 0.01);
   south -= latPadding;
@@ -219,18 +208,16 @@ function buildMap(runtime: RadarRuntimeBundle): MunicipalProfile["map"] | undefi
 
   return {
     embedUrl: `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(`${west},${south},${east},${north}`)}&layer=mapnik`,
-    populatedPlacesWithCoordinates: counts.populated_place ?? coordinates.filter((_, index) => runtime.geo.features[index]?.feature_type === "populated_place").length,
-    votingCenters: counts.tse_voting_center ?? coordinates.filter((_, index) => runtime.geo.features[index]?.feature_type === "tse_voting_center").length,
+    populatedPlacesWithCoordinates: counts.populated_place ?? 0,
+    votingCenters: counts.tse_voting_center ?? 0,
     publicLayers,
   };
 }
 
 function latestGeoDate(runtime: RadarRuntimeBundle, fallback?: string) {
-  const timestamps = runtime.geo.features
-    .map((feature) => Date.parse(feature.updated_at))
-    .filter((value) => Number.isFinite(value));
-  if (!timestamps.length) return fallback ?? "";
-  return new Date(Math.max(...timestamps)).toISOString().slice(0, 10);
+  const value = runtime.geo.updated_at ? Date.parse(runtime.geo.updated_at) : Number.NaN;
+  if (!Number.isFinite(value)) return fallback ?? "";
+  return new Date(value).toISOString().slice(0, 10);
 }
 
 export function buildRuntimeMunicipalProfile(
