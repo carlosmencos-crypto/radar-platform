@@ -5,7 +5,7 @@ export interface AuthorizedRadarContext {
   municipality_name: string;
   department_code: string;
   department_name: string;
-  campaign_id: string;
+  campaign_id: string | null;
   campaign_name: string | null;
   user_role: string;
   permissions: string[];
@@ -91,7 +91,7 @@ async function rpc<T>(functionName: string, body: Record<string, unknown>, acces
 
 export async function loadAuthorizedRadarContext(municipalityCode: string, accessToken: string) {
   assertMunicipalityCode(municipalityCode);
-  const rows = await rpc<AuthorizedRadarContext[]>("radar_authorized_context", {
+  const rows = await rpc<AuthorizedRadarContext[]>("radar_authorized_context_v2", {
     route_kind: "municipality",
     route_key: municipalityCode,
   }, accessToken);
@@ -105,7 +105,7 @@ export async function loadAuthorizedRadarContext(municipalityCode: string, acces
 
 export async function loadAuthorizedRadarLayers(municipalityCode: string, accessToken: string) {
   assertMunicipalityCode(municipalityCode);
-  return rpc<AuthorizedLayerRecord[]>("radar_authorized_layers", {
+  return rpc<AuthorizedLayerRecord[]>("radar_authorized_layers_v2", {
     route_kind: "municipality",
     route_key: municipalityCode,
   }, accessToken);
