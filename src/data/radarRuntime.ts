@@ -35,16 +35,33 @@ export interface GeoFeatureRecord {
   updated_at: string;
 }
 
+export interface MunicipalityGeoIdentity {
+  id: string;
+  country_code: string;
+  municipality_code: string;
+  department_code: string;
+  department_name: string;
+  municipality_name: string;
+  slug: string;
+}
+
+export interface GeoBoundingBox {
+  south: number;
+  north: number;
+  west: number;
+  east: number;
+}
+
+export interface MunicipalityGeoSummary {
+  municipality: MunicipalityGeoIdentity;
+  feature_counts: Record<string, number>;
+  feature_total: number;
+  bbox: GeoBoundingBox | null;
+  updated_at: string | null;
+}
+
 export interface MunicipalityGeoBundle {
-  municipality: {
-    id: string;
-    country_code: string;
-    municipality_code: string;
-    department_code: string;
-    department_name: string;
-    municipality_name: string;
-    slug: string;
-  };
+  municipality: MunicipalityGeoIdentity;
   feature_counts: Record<string, number>;
   features: GeoFeatureRecord[];
 }
@@ -52,7 +69,7 @@ export interface MunicipalityGeoBundle {
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
-  geo: MunicipalityGeoBundle;
+  geo: MunicipalityGeoSummary;
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -111,6 +128,23 @@ export async function loadAuthorizedRadarLayers(municipalityCode: string, access
   }, accessToken);
 }
 
+export async function loadAuthorizedGeoSummary(
+  municipalityCode: string,
+  accessToken: string,
+  featureTypes?: string[],
+) {
+  assertMunicipalityCode(municipalityCode);
+  const summary = await rpc<MunicipalityGeoSummary | null>("radar_municipality_geo_summary", {
+    p_municipality_code: municipalityCode,
+    p_feature_types: featureTypes?.length ? featureTypes : null,
+  }, accessToken);
+
+  if (!summary || summary.municipality?.municipality_code !== municipalityCode) {
+    throw new Error("La sesión no tiene geografía municipal autorizada.");
+  }
+  return summary;
+}
+
 export async function loadAuthorizedGeoBundle(
   municipalityCode: string,
   accessToken: string,
@@ -127,7 +161,7 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
   const [context, layers, geo] = await Promise.all([
     loadAuthorizedRadarContext(municipalityCode, accessToken),
     loadAuthorizedRadarLayers(municipalityCode, accessToken),
-    loadAuthorizedGeoBundle(municipalityCode, accessToken),
+    loadAuthorizedGeoSummary(municipalityCode, accessToken),
   ]);
 
   return { context, layers, geo };
