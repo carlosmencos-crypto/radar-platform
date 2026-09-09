@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
+import { clearInstalledRadarRuntime, installRadarRuntime } from "../data/radarRuntimeCache";
 import { MunicipalDashboard as CanonicalMunicipalDashboard } from "./MunicipalDashboard";
 
 type GateState =
@@ -41,14 +42,18 @@ export function MunicipalityAccessGate() {
       };
     }
 
+    clearInstalledRadarRuntime(municipalityCode);
     setState({ status: "loading" });
     ensureRadarAccessToken()
       .then((accessToken) => resolveAuthorizedRadarConsumer(municipalityCode, accessToken))
       .then((consumer) => {
-        if (!cancelled) setState({ status: "authorized", consumer });
+        if (cancelled) return;
+        installRadarRuntime(consumer.runtime);
+        setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
         if (cancelled) return;
+        clearInstalledRadarRuntime(municipalityCode);
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -59,6 +64,7 @@ export function MunicipalityAccessGate() {
 
     return () => {
       cancelled = true;
+      clearInstalledRadarRuntime(municipalityCode);
     };
   }, [municipalityCode]);
 
