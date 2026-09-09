@@ -2,7 +2,7 @@ import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
 import { RadarAccessPage } from "./RadarAccessPage";
-import { MunicipalDashboard } from "../components/MunicipalDashboard";
+import { MunicipalityAccessGate as MunicipalDashboard } from "../components/MunicipalityAccessGate";
 
 function AccessDeniedPage() {
   return (
