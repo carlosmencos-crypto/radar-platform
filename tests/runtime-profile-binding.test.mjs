@@ -50,10 +50,13 @@ test("municipal profile derives map and operational metrics from authorized Data
   assert.doesNotMatch(runtimeProfile, /localStorage|sessionStorage|service[_-]?role/i);
 });
 
-test("V70 gate loads compact geography while retaining point bundle as on-demand capability", () => {
+test("V70 gate loads one compact authorized runtime RPC while retaining point bundle on demand", () => {
   assert.match(runtime, /radar_municipality_geo_summary/);
   assert.match(runtime, /loadAuthorizedGeoSummary/);
   assert.match(runtime, /loadAuthorizedGeoBundle/);
-  assert.match(runtime, /loadAuthorizedGeoSummary\(municipalityCode, accessToken\)/);
-  assert.doesNotMatch(runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "", /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
+  assert.match(runtime, /radar_authorized_runtime_v3/);
+  const loader = runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "";
+  assert.match(loader, /radar_authorized_runtime_v3/);
+  assert.doesNotMatch(loader, /Promise\.all/);
+  assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
 });
