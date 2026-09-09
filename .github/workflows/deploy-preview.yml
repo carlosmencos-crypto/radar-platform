@@ -1,5 +1,5 @@
 name: Temporary RADAR catalog V70 preview
-# Source: 00a2d617a96009076ad9524ba42a81d0a42dd202
+# Source: 7ed1136f59a219aa9894080689e455a364d99b1e
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       - name: Checkout exact catalog commit
         uses: actions/checkout@v4
         with:
-          ref: 00a2d617a96009076ad9524ba42a81d0a42dd202
+          ref: 7ed1136f59a219aa9894080689e455a364d99b1e
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -112,7 +112,7 @@ jobs:
             };
           });
 
-          await page.setViewport({ width: 1440, height: 1100, deviceScaleFactor: 1 });
+          await page.setViewport({ width: 1440, height: 1400, deviceScaleFactor: 1 });
           await page.goto(base + "/municipios/", { waitUntil: "networkidle0" });
           const national = await page.evaluate(async () => {
             await document.fonts.ready;
@@ -121,15 +121,33 @@ jobs:
             return {
               cards: cards.length,
               unique: new Set(codes).size,
-              departments: document.querySelectorAll(".catalog-department-index a").length,
+              departments: document.querySelectorAll(".catalog-department-index button").length,
+              firstDepartment: document.querySelector(".catalog-department-index button")?.dataset.catalogDepartment,
+              activeDepartment: document.querySelector(".catalog-department-index button.active")?.dataset.catalogDepartment,
+              navLabels: [...document.querySelectorAll(".public-shell > .topbar .nav a")].map((link) => link.textContent?.trim()),
+              logoWidth: Math.round(document.querySelector(".public-shell > .topbar .brand img")?.getBoundingClientRect().width ?? 0),
+              heroHalo: getComputedStyle(document.querySelector(".catalog-hero"), "::after").content,
               first: codes[0],
               last: codes.at(-1),
               font: getComputedStyle(document.body).fontFamily,
             };
           });
-          if (national.cards !== 340 || national.unique !== 340 || national.departments !== 22 || national.first !== "0101" || national.last !== "2217" || !national.font.startsWith("Inter")) {
+          if (national.cards !== 340 || national.unique !== 340 || national.departments !== 23 || national.firstDepartment !== "all" || national.activeDepartment !== "all" || JSON.stringify(national.navLabels) !== JSON.stringify(["Municipios", "Comparar"]) || national.logoWidth < 200 || (national.heroHalo !== "none" && national.heroHalo !== "normal") || national.first !== "0101" || national.last !== "2217" || !national.font.startsWith("Inter")) {
             throw new Error("Catálogo nacional inválido: " + JSON.stringify(national));
           }
+
+          await page.click('[data-catalog-department="05"]');
+          await page.waitForFunction(() => location.pathname.endsWith("/departamento/05") && document.querySelectorAll(".catalog-municipality-card").length === 14);
+          const filteredWithoutReload = await page.evaluate(() => ({
+            path: location.pathname,
+            cards: document.querySelectorAll(".catalog-municipality-card").length,
+            active: document.querySelector(".catalog-department-index button.active")?.dataset.catalogDepartment,
+          }));
+          if (filteredWithoutReload.path !== "/departamento/05" || filteredWithoutReload.cards !== 14 || filteredWithoutReload.active !== "05") {
+            throw new Error("Filtro departamental dinámico inválido: " + JSON.stringify(filteredWithoutReload));
+          }
+          await page.click('[data-catalog-department="all"]');
+          await page.waitForFunction(() => location.pathname.endsWith("/municipios") && document.querySelectorAll(".catalog-municipality-card").length === 340);
 
           let visibleTotal = 0;
           for (const [code, expected] of Object.entries(departmentCounts)) {
@@ -140,9 +158,11 @@ jobs:
                 count: cards.length,
                 unique: new Set(cards.map((card) => card.dataset.municipalityCode)).size,
                 correctDepartment: cards.every((card) => card.dataset.departmentCode === departmentCode),
+                departmentControls: document.querySelectorAll(".catalog-department-index button").length,
+                activeDepartment: document.querySelector(".catalog-department-index button.active")?.dataset.catalogDepartment,
               };
             }, code);
-            if (observed.count !== expected || observed.unique !== expected || !observed.correctDepartment) {
+            if (observed.count !== expected || observed.unique !== expected || !observed.correctDepartment || observed.departmentControls !== 23 || observed.activeDepartment !== code) {
               throw new Error("Departamento inválido " + code + ": " + JSON.stringify(observed));
             }
             visibleTotal += observed.count;
@@ -166,7 +186,7 @@ jobs:
           const tablet = await overlapStats();
           if (tablet.overlaps !== 0 || tablet.columns !== 2 || tablet.horizontalOverflow) throw new Error("Layout tablet inválido: " + JSON.stringify(tablet));
 
-          await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+          await page.setViewport({ width: 390, height: 1200, deviceScaleFactor: 1 });
           await page.reload({ waitUntil: "networkidle0" });
           const mobile = await overlapStats();
           if (mobile.overlaps !== 0 || mobile.columns !== 1 || mobile.horizontalOverflow) throw new Error("Layout móvil inválido: " + JSON.stringify(mobile));
@@ -186,7 +206,7 @@ jobs:
             }
           }
 
-          console.log("CATALOG_RUNTIME_OK 22/22 departamentos · 340/340 municipios · Escuintla 14/14 · desktop/tablet/mobile 0 solapamientos");
+          console.log("CATALOG_RUNTIME_OK Todos + 22/22 departamentos · 340/340 municipios · filtro dinámico PASS · Escuintla 14/14 · desktop/tablet/mobile 0 solapamientos");
           console.log("CATALOG_DESKTOP_OK " + JSON.stringify(desktop));
           console.log("CATALOG_TABLET_OK " + JSON.stringify(tablet));
           console.log("CATALOG_MOBILE_OK " + JSON.stringify(mobile));
