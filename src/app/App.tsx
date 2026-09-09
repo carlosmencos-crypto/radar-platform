@@ -1,6 +1,7 @@
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
+import { RadarAccessPage } from "./RadarAccessPage";
 import { MunicipalDashboard } from "../components/MunicipalDashboard";
 
 function AccessDeniedPage() {
@@ -26,6 +27,7 @@ export function App() {
         <Route path="municipios" element={<MunicipalitiesPage />} />
         <Route path="departamento/:departmentCode" element={<DepartmentPage />} />
         <Route path="comparar" element={<ComparePage />} />
+        <Route path="acceso" element={<RadarAccessPage />} />
         <Route path="admin" element={<Navigate to="/acceso-restringido" replace />} />
         <Route path="acceso-restringido" element={<AccessDeniedPage />} />
         <Route path="*" element={<NotFoundPage />} />
