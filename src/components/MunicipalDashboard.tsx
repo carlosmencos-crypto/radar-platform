@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { DemoMap } from "./DemoMap";
+import { DemoAgenda, DemoConfiguration, DemoDayD, DemoDirectory, DemoPulse, DemoResources, DemoStrategy } from "./DemoModules";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { loadRadarConsumer } from "../data/radarConsumer";
 import { buildRuntimeProfile } from "../data/runtimeProfile";
-import { supabase } from "../lib/supabase";
 import type { AvailabilityState, RadarMunicipalConsumer } from "../types/radar";
 
 const sections = [
@@ -98,6 +99,27 @@ function Status({ state }: { state: AvailabilityState }) {
   return <span className={`canonical-state canonical-state--${state}`}>{labels[state]}</span>;
 }
 
+const metricLabels: Record<string, string> = {
+  registered_voters: "Padrón activo", women: "Mujeres", men: "Hombres", population: "Población",
+  households: "Hogares", urban_pct: "Población urbana", rural_pct: "Población rural",
+  water_network_pct: "Red de agua", drainage_pct: "Drenajes", solid_waste_collection_pct: "Recolección",
+  forest_cover_ha: "Cobertura forestal (ha)", forest_cover_pct: "Cobertura forestal",
+  risk_index: "Índice de riesgo", chronic_malnutrition_pct: "Desnutrición crónica",
+  facilities: "Servicios de salud", schools: "Centros educativos", budget: "Presupuesto",
+  execution_pct: "Ejecución", projects: "Proyectos", contracts: "Contratos",
+  contracted_amount: "Monto contratado", assets_count: "Activos", book_value: "Valor en libros",
+  centers: "Centros de votación", jrv: "JRV", communities: "Comunidades", microrregions: "Microrregiones",
+};
+
+function displayMetric(key: string, value: unknown) {
+  const label = metricLabels[key] ?? key.replaceAll("_", " ");
+  if (typeof value === "number") {
+    const formatted = new Intl.NumberFormat("es-GT", { maximumFractionDigits: 1 }).format(value);
+    return { label, value: key.endsWith("_pct") ? `${formatted}%` : formatted };
+  }
+  return { label, value: typeof value === "boolean" ? (value ? "Sí" : "No") : String(value) };
+}
+
 function SectionBanner({ eyebrow, title, description, status }: { eyebrow: string; title: string; description: string; status?: AvailabilityState }) {
   return <section className="section-banner">
     <div className="section-banner-copy">
@@ -111,6 +133,11 @@ function SectionBanner({ eyebrow, title, description, status }: { eyebrow: strin
 
 function PublicHome() {
   const { consumer, municipality_name: municipality } = useMunicipalityContext();
+  const demo = consumer.demo;
+  const candidate = demo?.candidates.find((item) => item.is_principal) ?? demo?.candidates[0];
+  const upcoming = demo?.activities.slice(0, 3) ?? [];
+  const openCommitments = demo?.commitments.filter((item) => item.status !== "completado") ?? [];
+  const activeTerritories = new Set(demo?.activities.map((item) => item.community).filter(Boolean)).size;
   const available = consumer.modules.filter((module) => module.vault === "data" && module.state === "disponible").length;
   const today = new Intl.DateTimeFormat("es-GT", {
     timeZone: "America/Guatemala",
@@ -129,12 +156,12 @@ function PublicHome() {
         <span className="campaign-type">Campaña Alcaldía</span>
       </div>
       <aside className="campaign-identity" aria-label="Identidad de campaña protegida">
-        <div className="candidate-photo-wrap"><i aria-label="Perfil de campaña">—</i><span>PERFIL DE CAMPAÑA</span></div>
+        <div className="candidate-photo-wrap"><i aria-label="Perfil de campaña">{candidate ? candidate.full_name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("") : "—"}</i><span>{consumer.is_demo ? "PERFIL SINTÉTICO" : "PERFIL DE CAMPAÑA"}</span></div>
         <div className="candidate-copy">
           <small>CANDIDATO A LA ALCALDÍA</small>
-          <b>Campaña no configurada</b>
-          <span>Contexto municipal · {municipality}</span>
-          <div className="party-signature"><span className="party-logo-button"><i>LOGO</i></span><span><small>ORGANIZACIÓN POLÍTICA</small><strong>Sesión autorizada requerida</strong></span></div>
+          <b>{candidate?.full_name ?? "Campaña no configurada"}</b>
+          <span>{candidate?.office ?? "Contexto municipal"} · {municipality}</span>
+          <div className="party-signature"><span className="party-logo-button"><i>{consumer.is_demo ? "DEMO" : "LOGO"}</i></span><span><small>ORGANIZACIÓN POLÍTICA</small><strong>{candidate?.party_name ?? consumer.campaign_name}</strong></span></div>
         </div>
       </aside>
     </section>
@@ -146,15 +173,21 @@ function PublicHome() {
     </section>
 
     <section className="command-kpis" aria-label="Indicadores operativos protegidos">
-      <article><small>Actividades de hoy</small><b>—</b></article>
-      <article><small>Compromisos abiertos</small><b>—</b></article>
-      <article><small>Territorios con actividades</small><b>—</b></article>
+      <article><small>Actividades próximas</small><b>{demo?.activities.length ?? "—"}</b></article>
+      <article><small>Compromisos abiertos</small><b>{demo ? openCommitments.length : "—"}</b></article>
+      <article><small>Territorios con actividades</small><b>{demo ? activeTerritories : "—"}</b></article>
     </section>
 
     <section className="slate-overview canonical-locked-slate" aria-labelledby="slate-title">
       <header><div><small>CAMPAÑA MUNICIPAL</small><h2 id="slate-title">Planilla Municipal</h2><p>Vista rápida del equipo, avance de su agenda y documentos legales</p></div></header>
-      <div className="canonical-vault-notice"><span>CAMPAIGN VAULT</span><h3>Información protegida por campaña</h3><p>La estructura está lista. Los nombres, contactos, agenda y documentos solo se cargarán después de verificar campaña, rol y permisos en el servidor.</p></div>
+      {demo ? <div className="demo-candidate-grid" data-demo-count={demo.candidates.length}>{demo.candidates.map((item) => <article key={item.id}><span>{item.list_position ?? "—"}</span><div><small>{item.office}</small><b>{item.full_name}</b><em>{item.party_name}</em></div></article>)}</div> : <div className="canonical-vault-notice"><span>CAMPAIGN VAULT</span><h3>Información protegida por campaña</h3><p>Los nombres y la operación sólo se cargan después de verificar campaña, rol y permisos.</p></div>}
     </section>
+
+    {demo ? <section className="demo-home-grid" data-demo-section="inicio">
+      <article><header><small>PRÓXIMAS ACTIVIDADES</small><Link to={routeFor(consumer, "agenda")}>Abrir agenda →</Link></header>{upcoming.map((item) => <div key={item.id}><b>{item.title}</b><span>{item.community} · {item.starts_at ? new Date(item.starts_at).toLocaleString("es-GT", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Guatemala" }) : "Sin fecha"}</span></div>)}</article>
+      <article><header><small>COMPROMISOS</small><b>{openCommitments.length} abiertos</b></header>{openCommitments.map((item) => <div key={item.id}><b>{item.title}</b><span>{item.community} · {item.responsible}</span></div>)}</article>
+      <article><header><small>ESTADO DE CAMPAÑA</small><span className="demo-badge">DEMO ACTIVA</span></header><div><b>{consumer.campaign_name}</b><span>{demo.contacts.length} contactos · {demo.fiscales.length} fiscales · {demo.rtd_results.length} RTD</span></div><div><b>Resumen territorial</b><span>{demo.geo_features.length} features sintéticas · {consumer.layers.length}/17 capas</span></div></article>
+    </section> : null}
 
     <section className="home-municipality-context" aria-labelledby="municipal-context-title">
       <header><small>CONTEXTO MUNICIPAL</small><h2 id="municipal-context-title">{municipality}</h2></header>
@@ -176,10 +209,13 @@ function Intelligence() {
     <summary><span><small>CONTRATO NACIONAL 340×17</small><b>Cobertura pública y trazabilidad</b></span><Status state={overallState} /></summary>
     <section className="module-card-grid canonical-module-grid">
       {publicModules.map((module) => {
+        const layer = consumer.layers.find((item) => item.layer_id === module.layer_id);
+        const metrics = Object.entries(layer?.payload ?? {}).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)).slice(0, 3).map(([key, value]) => displayMetric(key, value));
         return <article key={module.id}>
           <Status state={module.state} />
           <h2>{module.label}</h2>
           <p>{module.state === "no_publicado" ? "No publicado para esta sesión." : "Dato entregado por Supabase bajo RLS."}</p>
+          {metrics.map((metric) => <div className="canonical-metric" key={metric.label}><b>{metric.value}</b><span>{metric.label}</span></div>)}
           <small className="canonical-source">{module.source ?? "Fuente no publicada"}</small>
         </article>;
       })}
@@ -217,6 +253,9 @@ function Intelligence() {
 function MapModule() {
   const { consumer, municipality_name } = useMunicipalityContext();
   const map = buildRuntimeProfile(consumer).map;
+  const demoFeatures = consumer.demo?.geo_features ?? [];
+  const featureCounts = new Map<string, number>();
+  for (const feature of demoFeatures) featureCounts.set(feature.feature_type, (featureCounts.get(feature.feature_type) ?? 0) + 1);
   const territoryState = consumer.modules.find((module) => module.layer_id === "TSE_CENTROS_GEO")?.state ?? "pendiente";
   const [satellite, setSatellite] = useState(false);
   const [query, setQuery] = useState("");
@@ -224,39 +263,37 @@ function MapModule() {
   return <>
     <section className="map-product-head">
       <div><small>TERRITORIO Y OPERACIÓN · {municipality_name.toUpperCase()}</small><h1>Mapa Inteligente</h1><p>Actividades, electores y comunidades prioritarias en una sola vista</p></div>
-      <div className="map-head-stats"><span><b>—</b> actividades</span><span><b>—</b> zonas sin cobertura</span><Status state={map ? "disponible" : territoryState} /></div>
+      <div className="map-head-stats"><span><b>{consumer.demo?.activities.filter((item) => item.latitude !== null && item.longitude !== null).length ?? "—"}</b> actividades geo</span><span><b>{demoFeatures.length || map?.populatedPlacesWithCoordinates || "—"}</b> features</span><Status state={map || demoFeatures.length ? "disponible" : territoryState} /></div>
     </section>
     <section className="operational-map-toolbar">
       <label className="map-toolbar-search"><span className="map-search"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Buscar comunidad, estadio, municipalidad, finca…" aria-label="Buscar territorio" /></span></label>
       <label className="toolbar-select"><span>Actividades programadas</span><select aria-label="Período de actividades" defaultValue="mes"><option value="hoy">Hoy</option><option value="semana">7 días</option><option value="mes">30 días</option><option value="todos">Todas</option></select></label>
       <details className="map-more-filters"><summary>Filtros <span>⌄</span></summary><div className="map-more-panel"><div className="toolbar-layer-block"><small>CAPAS VISIBLES</small><div className="smart-layers toolbar-layers">{(map?.publicLayers ?? []).map((layer) => <button type="button" className="on" key={layer.label}><i style={{ background: "var(--radar-petroleo)" }} /><span>{layer.label}</span><em>{layer.value}</em></button>)}</div></div><p className="canonical-filter-note">Las capas privadas de actividad y campaña requieren una sesión autorizada.</p></div></details>
-      <button type="button" className="map-new-activity" disabled title="Requiere autorización de Campaign Vault">+ Nueva actividad</button>
+      <Link className="map-new-activity" to={routeFor(consumer, "agenda")}>+ Nueva actividad</Link>
       <button type="button" className="map-satellite-toggle" onClick={() => setSatellite((value) => !value)}>{satellite ? "Vista mapa" : "Vista satelital"}</button>
     </section>
     <section className="smart-map-shell map-v3">
       <div className="map-stage">
-        {map ? <>
+        {consumer.is_demo && demoFeatures.length ? <>
+          <DemoMap features={demoFeatures} activities={consumer.demo?.activities ?? []} />
+          <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault sintético</b><span>{demoFeatures.length} features</span></div></header>{[
+            ["Microrregiones", featureCounts.get("microrregion") ?? 0], ["Comunidades", featureCounts.get("community") ?? 0],
+            ["Centros de votación", featureCounts.get("voting_center") ?? 0], ["Escuelas", featureCounts.get("school") ?? 0],
+            ["Salud", featureCounts.get("health") ?? 0], ["Proyectos", featureCounts.get("project") ?? 0],
+          ].filter(([, value]) => Number(value) > 0).map(([label, value]) => <button type="button" key={label}><span><b>{String(label).toUpperCase()}</b><small>Geografía sintética</small></span><em>{value}</em></button>)}</aside>
+        </> : map ? <>
           {map.embedUrl ? <iframe className="smart-map-canvas" title={`Mapa autorizado de ${municipality_name}, ${consumer.municipality.department}`} loading="lazy" src={satellite && map.satelliteEmbedUrl ? map.satelliteEmbedUrl : map.embedUrl} /> : <div className="smart-map-canvas canonical-map-pending"><span>SESIÓN AUTORIZADA</span><h2>Capas territoriales cargadas</h2><p>La fuente no publicó un mapa embebible para este municipio.</p></div>}
           <aside className="map-electoral-priorities"><header><small>COBERTURA TERRITORIAL</small><div><b>Data Vault</b><span>{map.populatedPlacesWithCoordinates ?? "—"} puntos</span></div></header>{publicLayers.map((layer) => <button type="button" key={layer.label}><span><b>{layer.label.toUpperCase()}</b><small>{layer.detail}</small></span><em>{layer.value}</em></button>)}{!publicLayers.length ? <p className="canonical-layer-empty">Sin coincidencias autorizadas.</p> : null}</aside>
         </> : <div className="smart-map-canvas canonical-map-pending"><span>{labels[territoryState].toUpperCase()}</span><h2>Cartografía municipal en validación</h2><p>RADAR no publicará puntos ni agregados hasta comprobar su correspondencia con {consumer.municipality.name}.</p></div>}
-        <div className="map-boundary-note">Municipio {consumer.municipality.code} · contexto limitado</div>
-        <div className="map-privacy"><b>SESIÓN AUTORIZADA</b><span>RLS limita las capas a este contexto.</span></div>
+        <div className="map-boundary-note">{consumer.is_demo ? "Valle Nexo · territorio sintético" : `Municipio ${consumer.municipality.code} · contexto limitado`}</div>
+        <div className="map-privacy"><b>{consumer.is_demo ? "SIMULACIÓN" : "SESIÓN AUTORIZADA"}</b><span>RLS limita las capas a este contexto.</span></div>
       </div>
     </section>
   </>;
 }
 
 function ProtectedModule({ title, eyebrow }: { title: string; eyebrow: string }) {
-  const { consumer, municipality_name, campaign_id, permissions } = useMunicipalityContext();
-  const [resetState, setResetState] = useState<"idle" | "running" | "done" | "error">("idle");
-  const canResetDemo = consumer.is_demo && permissions.includes("demo_vault:reset");
-
-  async function resetDemo() {
-    if (!canResetDemo || !supabase) return;
-    setResetState("running");
-    const { error } = await supabase.rpc("reset_demo_campaign", { target_campaign: campaign_id });
-    setResetState(error ? "error" : "done");
-  }
+  const { consumer, municipality_name } = useMunicipalityContext();
 
   return <>
     <SectionBanner eyebrow={eyebrow} title={title} description={`${municipality_name} · módulo operativo de campaña`} status="no_publicado" />
@@ -271,12 +308,6 @@ function ProtectedModule({ title, eyebrow }: { title: string; eyebrow: string })
         <div><dt>Rol</dt><dd>{consumer.context.user_role}</dd></div>
         <div><dt>Permisos</dt><dd>{consumer.context.permissions.join(", ")}</dd></div>
       </dl>
-      {title === "Configuración" && canResetDemo ? <div className="demo-reset-control">
-        <b>Demo Vault</b>
-        <p>Restablece únicamente la campaña sintética. Data Vault y campañas reales quedan fuera de esta operación.</p>
-        <button type="button" disabled={resetState === "running"} onClick={() => void resetDemo()}>{resetState === "running" ? "Restableciendo…" : "Restablecer demo"}</button>
-        {resetState === "done" ? <small>Demo restablecida.</small> : resetState === "error" ? <small role="alert">No fue posible restablecer la demo.</small> : null}
-      </div> : null}
     </section>
   </>;
 }
@@ -303,10 +334,16 @@ export function MunicipalDashboard({ routeKind }: { routeKind: "municipality" | 
     return () => { active = false; };
   }, [routeKey, routeKind]);
 
+  async function refresh() {
+    if (!routeKey) return;
+    const value = await loadRadarConsumer(routeKind, routeKey);
+    setConsumer(value);
+  }
+
   if (error) return <div className="auth-loading auth-loading--error" role="alert"><b>Acceso no disponible</b><span>{error}</span><Link to="/municipios">Volver al catálogo</Link></div>;
   if (!consumer) return <div className="auth-loading" role="status">Cargando contexto autorizado…</div>;
 
-  return <MunicipalityProvider consumer={consumer}><MunicipalDashboardShell /></MunicipalityProvider>;
+  return <MunicipalityProvider consumer={consumer} refresh={refresh}><MunicipalDashboardShell /></MunicipalityProvider>;
 }
 
 function MunicipalDashboardShell() {
@@ -363,7 +400,17 @@ function MunicipalDashboardShell() {
         <div><small>{eyebrow}</small><b>{name}</b></div>
         <PortalControls theme={theme} textSize={textSize} onExport={() => setReportOpen(true)} onTextSize={increaseTextSize} onTheme={toggleTheme} />
       </header>
-      {active === "inicio" ? <PublicHome /> : active === "inteligencia" ? <Intelligence /> : active === "mapa" ? <MapModule /> : <ProtectedModule title={title} eyebrow={eyebrow} />}
+      {active === "inicio" ? <PublicHome />
+        : active === "inteligencia" ? <Intelligence />
+        : active === "mapa" ? <MapModule />
+        : consumer.is_demo && active === "estrategia" ? <DemoStrategy />
+        : consumer.is_demo && active === "directorio" ? <DemoDirectory />
+        : consumer.is_demo && active === "agenda" ? <DemoAgenda />
+        : consumer.is_demo && active === "dia-d" ? <DemoDayD />
+        : consumer.is_demo && active === "recursos" ? <DemoResources />
+        : consumer.is_demo && active === "pulso" ? <DemoPulse />
+        : consumer.is_demo && active === "configuracion" ? <DemoConfiguration />
+        : <ProtectedModule title={title} eyebrow={eyebrow} />}
     </main>
     {reportOpen ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-labelledby="public-report-title"><div className="simple-campaign-modal canonical-report-modal"><header><div><small>REPORTE RADAR</small><h2 id="public-report-title">Reporte de {municipality_name}</h2></div><button type="button" onClick={() => setReportOpen(false)} aria-label="Cerrar">×</button></header><p>La exportación pública incluirá únicamente información autorizada del Data Vault. Los reportes operativos requieren una sesión de campaña válida.</p><footer><button type="button" onClick={() => setReportOpen(false)}>Cerrar</button><button type="button" onClick={() => window.print()}>Imprimir vista pública</button></footer></div></div> : null}
   </div>;

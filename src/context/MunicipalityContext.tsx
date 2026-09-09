@@ -11,11 +11,12 @@ export interface MunicipalityRuntimeContext {
   user_role: UserRole;
   permissions: string[];
   consumer: RadarMunicipalConsumer;
+  refresh: () => Promise<void>;
 }
 
 const MunicipalityContext = createContext<MunicipalityRuntimeContext | null>(null);
 
-export function MunicipalityProvider({ consumer, children }: { consumer: RadarMunicipalConsumer; children: ReactNode }) {
+export function MunicipalityProvider({ consumer, refresh, children }: { consumer: RadarMunicipalConsumer; refresh: () => Promise<void>; children: ReactNode }) {
   const value: MunicipalityRuntimeContext = {
     country_code: consumer.context.country_code,
     municipality_code: consumer.municipality.code,
@@ -26,6 +27,7 @@ export function MunicipalityProvider({ consumer, children }: { consumer: RadarMu
     user_role: consumer.context.user_role,
     permissions: consumer.context.permissions,
     consumer,
+    refresh,
   };
 
   return <MunicipalityContext.Provider value={value}>{children}</MunicipalityContext.Provider>;

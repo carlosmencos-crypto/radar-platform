@@ -143,6 +143,147 @@ export interface RadarLayerRecord {
   synthetic_notice: string | null;
 }
 
+export interface DemoCampaign {
+  id: string;
+  name: string;
+  slug: string;
+  is_demo: true;
+  status: string;
+}
+
+export interface DemoCandidate {
+  id: string;
+  full_name: string;
+  office: string;
+  list_position: number | null;
+  party_name: string | null;
+  is_principal: boolean;
+}
+
+export interface DemoContact {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  community: string | null;
+  address_text: string | null;
+  status: string;
+  notes: string | null;
+}
+
+export interface DemoActivity {
+  id: string;
+  title: string;
+  activity_type: string | null;
+  starts_at: string | null;
+  community: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  status: string;
+  notes: string | null;
+}
+
+export interface DemoCommitment {
+  id: string;
+  title: string;
+  community: string | null;
+  responsible: string | null;
+  due_date: string | null;
+  priority: string;
+  status: string;
+  notes: string | null;
+}
+
+export interface DemoStrategyItem {
+  id: string;
+  item_type: string;
+  title: string;
+  description: string | null;
+  target_value: number | null;
+  current_value: number | null;
+  status: string;
+  due_date: string | null;
+}
+
+export interface DemoFiscal {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  voting_center_code: string | null;
+  jrv_code: string | null;
+  status: string;
+}
+
+export interface DemoIncident {
+  id: string;
+  incident_type: string;
+  severity: string | null;
+  description: string;
+  voting_center_code: string | null;
+  jrv_code: string | null;
+  status: string;
+  reported_at: string;
+}
+
+export interface DemoRtdResult {
+  id: string;
+  election_type: string;
+  voting_center_code: string;
+  jrv_code: string;
+  results: Record<string, number>;
+  blank_votes: number | null;
+  null_votes: number | null;
+  total_ballots: number | null;
+  status: string;
+  submitted_at: string | null;
+}
+
+export interface DemoResource {
+  id: string;
+  resource_type: string;
+  name: string;
+  quantity: number | null;
+  unit: string | null;
+  status: string;
+  location: string | null;
+  notes: string | null;
+}
+
+export interface DemoPulseSnapshot {
+  id: string;
+  snapshot_date: string;
+  label: string;
+  value: number;
+  series: string;
+  is_simulation: boolean;
+}
+
+export interface DemoGeoFeature {
+  id: string;
+  feature_type: "boundary" | "microrregion" | "community" | "voting_center" | "school" | "health" | "project";
+  feature_code: string;
+  feature_name: string;
+  x: number;
+  y: number;
+  geometry_json: { type?: string; coordinates?: number[][][] } | null;
+  properties: Record<string, unknown>;
+  synthetic_notice: string;
+}
+
+export interface RadarDemoBundle {
+  campaign: DemoCampaign;
+  geo_features: DemoGeoFeature[];
+  candidates: DemoCandidate[];
+  contacts: DemoContact[];
+  fiscales: DemoFiscal[];
+  activities: DemoActivity[];
+  incidents: DemoIncident[];
+  rtd_results: DemoRtdResult[];
+  commitments: DemoCommitment[];
+  resources: DemoResource[];
+  strategy_items: DemoStrategyItem[];
+  pulse_snapshots: DemoPulseSnapshot[];
+}
+
 export interface ConsumerModule {
   id: CanonicalLayerId;
   layer_id: CanonicalLayerId;
@@ -161,4 +302,6 @@ export interface RadarMunicipalConsumer {
   modules: ConsumerModule[];
   layers: RadarLayerRecord[];
   is_demo: boolean;
+  campaign_name: string;
+  demo?: RadarDemoBundle;
 }

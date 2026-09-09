@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { loadDemoBundle } from "./demoVault";
 import type {
   AuthorizedRadarContext,
   AvailabilityState,
@@ -100,6 +101,8 @@ export async function loadRadarConsumer(routeKind: "municipality" | "demo", rout
     };
   });
 
+  const demo = context.is_demo ? await loadDemoBundle(context.campaign_id) : undefined;
+
   return {
     context: {
       country_code: context.country_code,
@@ -112,6 +115,8 @@ export async function loadRadarConsumer(routeKind: "municipality" | "demo", rout
     modules,
     layers,
     is_demo: context.is_demo,
+    campaign_name: context.campaign_name,
+    demo,
   };
 }
 
