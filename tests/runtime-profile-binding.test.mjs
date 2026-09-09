@@ -11,6 +11,7 @@ const gate = read("src/components/MunicipalityAccessGate.tsx");
 const cache = read("src/data/radarRuntimeCache.ts");
 const consumer = read("src/data/radarConsumer.ts");
 const profiles = read("src/data/municipalProfiles.ts");
+const runtime = read("src/data/radarRuntime.ts");
 const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
 
@@ -43,6 +44,16 @@ test("municipal profile derives map and operational metrics from authorized Data
     "GUATECOMPRAS",
   ]) assert.match(runtimeProfile, new RegExp(source));
   assert.match(runtimeProfile, /runtime\.geo\.feature_counts/);
+  assert.match(runtimeProfile, /runtime\.geo\.feature_total/);
+  assert.match(runtimeProfile, /runtime\.geo\.bbox/);
   assert.match(runtimeProfile, /openstreetmap\.org\/export\/embed\.html/);
   assert.doesNotMatch(runtimeProfile, /localStorage|sessionStorage|service[_-]?role/i);
+});
+
+test("V70 gate loads compact geography while retaining point bundle as on-demand capability", () => {
+  assert.match(runtime, /radar_municipality_geo_summary/);
+  assert.match(runtime, /loadAuthorizedGeoSummary/);
+  assert.match(runtime, /loadAuthorizedGeoBundle/);
+  assert.match(runtime, /loadAuthorizedGeoSummary\(municipalityCode, accessToken\)/);
+  assert.doesNotMatch(runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "", /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
 });
