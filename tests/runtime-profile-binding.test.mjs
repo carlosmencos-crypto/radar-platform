@@ -17,6 +17,7 @@ const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
 const visibleRuntimeMigration = read("supabase/migrations/20260909205200_radar_authorized_runtime_v3_visible_layers_fix.sql");
 const voterRuntimeMigration = read("supabase/migrations/20260909220500_radar_voter_roll_runtime_v4.sql");
+const voterCanonicalCodeFix = read("supabase/migrations/20260909232000_fix_padron_2023_canonical_department_codes.sql");
 
 test("authorized runtime is installed before canonical V70 renders", () => {
   assert.match(gate, /installRadarRuntime\(consumer\.runtime\)/);
@@ -118,4 +119,16 @@ test("voter aggregates stay authenticated, aggregate-only and universe-separated
   assert.match(runtimeProfile, /Registros detallados 2023/);
   assert.match(runtimeProfile, /universo separado del total oficial/);
   assert.doesNotMatch(voterRuntimeMigration, /full_name|phone|dpi|address_text/i);
+});
+
+test("2023 detailed voter aggregates are remapped to canonical department codes and fail closed at 340", () => {
+  assert.match(voterCanonicalCodeFix, /GT_RADAR_PADRON_2023_AGREGADOS_340_v1/);
+  for (const municipalityCode of ["0201", "0208", "0301", "0316", "0401", "0409", "0416"]) {
+    assert.match(voterCanonicalCodeFix, new RegExp(`'${municipalityCode}'`));
+  }
+  assert.match(voterCanonicalCodeFix, /on conflict \(municipality_id, source_year\) do update/);
+  assert.match(voterCanonicalCodeFix, /v_rows <> 340/);
+  assert.match(voterCanonicalCodeFix, /v_electors <> 8947471/);
+  assert.match(voterCanonicalCodeFix, /v_reconciliation_failures <> 0/);
+  assert.doesNotMatch(voterCanonicalCodeFix, /full_name|phone|dpi|address_text/i);
 });
