@@ -3,6 +3,11 @@ import fs from "node:fs";
 import test from "node:test";
 
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const readMigrations = () => fs.readdirSync(new URL("../supabase/migrations/", import.meta.url))
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => read(`supabase/migrations/${name}`))
+  .join("\n");
 
 test("municipal and demo routes are guarded and preserve returnTo", () => {
   const app = read("src/app/App.tsx");
@@ -40,7 +45,7 @@ test("public catalog contains territorial identity only", () => {
 });
 
 test("SQL boundary is fail-closed and demo reset cannot touch immutable vaults", () => {
-  const sql = read("supabase/migrations/202609090001_private_radar_auth.sql");
+  const sql = readMigrations();
   assert.match(sql, /revoke all on all tables in schema data_vault from anon/i);
   assert.match(sql, /revoke all on all tables in schema campaign_vault from anon/i);
   assert.match(sql, /revoke all on all tables in schema demo_vault from anon/i);

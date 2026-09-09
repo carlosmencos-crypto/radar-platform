@@ -10,7 +10,11 @@ const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
 const authSource = read("src/auth/AuthContext.tsx");
 const guardSource = read("src/auth/RequireAuth.tsx");
-const migrationSource = read("supabase/migrations/202609090001_private_radar_auth.sql");
+const migrationSource = fs.readdirSync(path.join(root, "supabase/migrations"))
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => read(`supabase/migrations/${name}`))
+  .join("\n");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
 const layoutSource = read("src/app/Layout.tsx");
