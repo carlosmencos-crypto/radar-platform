@@ -1,4 +1,5 @@
 import { findMunicipality } from "./municipalities";
+import { getInstalledRadarRuntime } from "./radarRuntimeCache";
 import {
   CANONICAL_CONTRACT_PRODUCTS,
   CANONICAL_LAYER_DEFINITIONS,
@@ -18,6 +19,7 @@ import type {
   ConsumerModule,
   MunicipalProfileModuleId,
   RadarMunicipalConsumer,
+  UserRole,
 } from "../types/radar";
 
 const UI_PROFILE_BY_LAYER: Record<CanonicalLayerId, MunicipalProfileModuleId> = {
@@ -69,6 +71,14 @@ function specialState(rule: CanonicalRenderRule): CanonicalSpecialState {
   if (rule.empty_reason === "NO_EXPLICIT_ASSOCIATION") return "NO_EXPLICIT_ASSOCIATION";
   if (rule.empty_reason === "NO_RECORD_IN_SOURCE") return "NO_RECORD_IN_SOURCE";
   return null;
+}
+
+function canonicalUserRole(role: string): UserRole {
+  const normalized = role.trim().toLowerCase();
+  if (normalized === "national_admin" || normalized === "platform_admin") return "national_admin";
+  if (normalized === "municipal_admin" || normalized.includes("owner") || normalized.includes("admin")) return "municipal_admin";
+  if (normalized === "campaign_operator" || normalized.includes("operator") || normalized.includes("editor")) return "campaign_operator";
+  return "public_viewer";
 }
 
 export function resolveCanonicalRouteModules(municipalityCode: string): ConsumerModule[] | undefined {
@@ -144,8 +154,20 @@ export function resolveRadarConsumer(municipalityCode?: string): RadarMunicipalC
     navigation.route_path !== `/municipio/${municipality.code}`
   ) return undefined;
 
+  const authorizedRuntime = getInstalledRadarRuntime(municipality.code);
+  if (
+    authorizedRuntime &&
+    (authorizedRuntime.context.municipality_code !== municipality.code ||
+      authorizedRuntime.geo.municipality.municipality_code !== municipality.code)
+  ) return undefined;
+
   return {
-    context: {
+    context: authorizedRuntime ? {
+      municipality_code: authorizedRuntime.context.municipality_code,
+      campaign_id: authorizedRuntime.context.campaign_id ?? "",
+      user_role: canonicalUserRole(authorizedRuntime.context.user_role),
+      permissions: [...authorizedRuntime.context.permissions],
+    } : {
       municipality_code: municipality.code,
       campaign_id: "public-demo",
       user_role: "public_viewer",
