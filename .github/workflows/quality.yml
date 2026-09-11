@@ -20,4 +20,5 @@ jobs:
       - run: npm test
       - run: npm run smoke:340
       - run: npm run build
+      - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
