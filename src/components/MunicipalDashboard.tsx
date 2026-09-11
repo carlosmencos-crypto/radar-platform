@@ -220,22 +220,7 @@ function Intelligence() {
         </div>
         <p className="trace-note"><Status state="disponible" /> Fuentes: TSE · Ciudadanos empadronados activos 2026; INE · Censo 2018 y proyecciones municipales. Los porcentajes se calculan sobre cada universo oficial, sin imputar urbano/rural al padrón actual.</p>
       </section>
-    </> : profile ? <section className="section">
-      <div className="section-head"><div><p className="eyebrow">DATA VAULT · RUNTIME AUTORIZADO</p><h2>Inteligencia municipal disponible</h2></div><p>Datos reales del municipio enlazados al V70. Cada indicador conserva fuente, período y universo; los faltantes permanecen explícitos y no se convierten en cero.</p></div>
-      <section className="module-card-grid canonical-module-grid" aria-label="Inteligencia municipal por dominio">
-        {profile.modules.map((module) => {
-          const state: AvailabilityState = module.status === "validated" ? "disponible" : module.status === "partial" ? "parcial" : "pendiente";
-          return <article key={module.id}>
-            <Status state={state} />
-            <h2>{module.title}</h2>
-            <p>{module.summary}</p>
-            {module.metrics.slice(0, 6).map((metric) => <div className="canonical-metric" key={metric.label}><b>{metric.value}</b><span>{metric.label} · {metric.detail}</span></div>)}
-            <small className="canonical-source">{module.source}</small>
-          </article>;
-        })}
-      </section>
-      <p className="trace-note"><Status state="disponible" /> Runtime autenticado · Data Vault. Esta vista no incorpora Campaign Vault ni datos personales individuales.</p>
-    </section> : <section className="canonical-intelligence-pending"><Status state={overallState} /><h2>Información municipal en validación</h2><p>La composición V70 permanece activa. Los indicadores se publicarán dentro de sus bloques canónicos cuando cada fuente supere control de cobertura y trazabilidad.</p></section>}
+    </> : <section className="canonical-intelligence-pending"><Status state={overallState} /><h2>Información municipal en validación</h2><p>La composición V70 permanece activa. Los indicadores se publicarán dentro de sus bloques canónicos cuando cada fuente supere control de cobertura y trazabilidad.</p></section>}
     {coverage}
   </>;
 }
