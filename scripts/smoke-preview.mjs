@@ -13,7 +13,8 @@ if (municipalityCodes.length !== 340 || new Set(municipalityCodes).size !== 340)
 const host = "127.0.0.1";
 const port = 4173;
 const baseUrl = `http://${host}:${port}`;
-const preview = spawn("npm", ["run", "preview", "--", "--host", host, "--port", String(port)], {
+const viteCli = path.join(root, "node_modules", "vite", "bin", "vite.js");
+const preview = spawn(process.execPath, [viteCli, "preview", "--host", host, "--port", String(port)], {
   cwd: root,
   env: process.env,
   stdio: ["ignore", "pipe", "pipe"],
@@ -31,6 +32,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitForServer() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
+    if (preview.exitCode !== null) {
+      throw new Error(`Preview server exited early (${preview.exitCode}). Output:\n${previewOutput}`);
+    }
     try {
       const response = await fetch(baseUrl, { redirect: "manual" });
       if (response.status >= 200 && response.status < 500) return;
@@ -73,7 +77,13 @@ async function shutdown() {
     new Promise((resolve) => preview.once("exit", resolve)),
     sleep(1500),
   ]);
-  if (preview.exitCode === null) preview.kill("SIGKILL");
+  if (preview.exitCode === null) {
+    preview.kill("SIGKILL");
+    await Promise.race([
+      new Promise((resolve) => preview.once("exit", resolve)),
+      sleep(1000),
+    ]);
+  }
 }
 
 try {
