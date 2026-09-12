@@ -97,8 +97,10 @@ test("detailed public geography loads for intelligence and mapa and reconciles f
   assert.match(geoRuntime, /actual !== bundleCount \|\| actual !== runtimeCount/);
   assert.match(geoRuntime, /bundle\.features\.length !== runtime\.geo\.feature_total/);
   assert.match(enrichedDashboard, /RuntimeSynchronizedMap/);
-  assert.match(synchronizedMap, /L\.map/);
-  assert.match(synchronizedMap, /L\.circleMarker/);
+  assert.match(synchronizedMap, /maplibregl\.Map/);
+  assert.match(synchronizedMap, /addSource\('radar-points'/);
+  assert.match(synchronizedMap, /tiles\.openfreemap\.org\/styles\/liberty/);
+  assert.doesNotMatch(synchronizedMap, /tile\.openstreetmap\.org/);
   assert.doesNotMatch(dashboard, /loadAuthorizedGeoBundle|assertGeoBundleMatchesRuntime|installRadarGeoBundle/);
 });
 
