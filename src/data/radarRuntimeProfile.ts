@@ -10,6 +10,10 @@ function asNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function asText(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 function layer(runtime: RadarRuntimeBundle, layerId: string) {
   return runtime.layers.find((item) => item.layer_id === layerId);
 }
@@ -114,6 +118,8 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
   const minfinYtdPayload = asRecord(minfinYtd?.payload);
   const minfinHist = layer(runtime, "MINFIN_HIST");
   const minfinHistPayload = asRecord(minfinHist?.payload);
+  const assets = layer(runtime, "ACTIVOS_RESUMEN");
+  const assetsPayload = asRecord(assets?.payload);
   const snip = layer(runtime, "SNIP_2026");
   const snipPayload = asRecord(snip?.payload);
   const compras = layer(runtime, "GUATECOMPRAS");
@@ -152,7 +158,7 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
     moduleFrom(
       "electoral",
       "Electoral",
-      "Núcleo electoral, padrón agregado y geografía TSE permanecen como universos separados y trazables.",
+      "Padrón actual, competencia e histórico municipal se mantienen dentro de sus universos TSE trazables.",
       [electoral, centers],
       compactMetrics([
         metric("Padrón activo 2026", formatInteger(voterActive2026?.elector_count ?? electoralMunicipality?.active_voters_2026), "TSE · núcleo electoral 2026"),
@@ -161,8 +167,15 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
         metric("Alfabetismo registrado", formatRatio(electoralMunicipality?.literacy_share_2026), "TSE · núcleo electoral"),
         metric("Empadronados oficiales 2023", formatInteger(electoralMunicipality?.registered_voters_2023), "TSE · total municipal oficial; universo separado"),
         metric("Registros detallados 2023", formatInteger(voterDetailed2023?.elector_count), "padrón detallado agregado"),
-        metric("Ganador 2023", typeof electoralMunicipality?.winner_2023 === "string" ? electoralMunicipality.winner_2023 : undefined, "corporación municipal"),
+        metric("Ganador 2023", asText(electoralMunicipality?.winner_2023), "corporación municipal"),
+        metric("Segundo lugar 2023", asText(electoralMunicipality?.runner_up_2023), "corporación municipal"),
         metric("Margen 2023", formatInteger(electoralMunicipality?.margin_votes_2023), "votos frente al segundo lugar"),
+        metric("Margen sobre válidos", formatRatio(electoralMunicipality?.margin_share_valid_2023), "corporación municipal 2023"),
+        metric("Organizaciones 2023", formatInteger(electoralMunicipality?.organizations_2023), "competencia registrada"),
+        metric("Ganador 2019", asText(electoralMunicipality?.winner_2019), "corporación municipal"),
+        metric("Ganador 2015", asText(electoralMunicipality?.winner_2015), "corporación municipal"),
+        metric("Ganador 2011", asText(electoralMunicipality?.winner_2011), "corporación municipal"),
+        metric("Ganadores distintos 2011–2023", formatInteger(electoralMunicipality?.distinct_winners_2011_2023), "rotación política municipal"),
         metric("Centros", formatInteger(centersPayload?.center_count), "TSE 2023 · geolocalización canónica"),
       ]),
       voterSources,
@@ -213,14 +226,16 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
     moduleFrom(
       "finanzas",
       "Finanzas",
-      "Ejecución histórica y corte 2026 YTD permanecen separados para evitar comparaciones de períodos incompatibles.",
-      [minfinHist, minfinYtd],
+      "Ejecución, serie histórica e inventarios validados se presentan por separado para evitar comparaciones incompatibles.",
+      [minfinHist, minfinYtd, assets],
       compactMetrics([
         metric("Ejecución 2026 YTD", formatPercent100(minfinYtdPayload?.budget_execution_pct), "corte parcial; no equivale a año completo"),
         metric("Presupuesto vigente 2026", formatCurrency(minfinYtdPayload?.current_budget_amount), "MINFIN · YTD"),
         metric("Devengado 2026", formatCurrency(minfinYtdPayload?.accrued_amount), "MINFIN · YTD"),
         metric("Pagado 2026", formatCurrency(minfinYtdPayload?.paid_amount), "MINFIN · YTD"),
         metric("Inversión vigente", formatCurrency(minfinYtdPayload?.investment_current_amount), "MINFIN · YTD"),
+        metric("Activos municipales", formatCurrency(assetsPayload?.asset_total_gtq), `${asText(assetsPayload?.cutoff_date) ?? assets?.period ?? "corte fuente"} · resumen contable validado`),
+        metric("Cuentas de activos", formatInteger(assetsPayload?.accounts_count), "resumen por cuenta; no detalle individual de bienes"),
         metric("Años históricos", formatInteger(minfinHistPayload?.years_available), "serie 2016–2025"),
         metric("Ingresos percibidos 10 años", formatCurrency(minfinHistPayload?.ingresos_percibidos_10y), "2016–2025"),
         metric("Egresos devengados 10 años", formatCurrency(minfinHistPayload?.egresos_devengados_10y), "2016–2025"),
