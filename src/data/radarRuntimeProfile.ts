@@ -275,18 +275,18 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
   const literate = literacyShare === undefined ? undefined : Math.round(active * literacyShare);
   const unregisteredLiteracy = literate === undefined ? undefined : Math.max(active - literate, 0);
   const detailedTotal = asNumber(detailed?.elector_count) ?? 0;
-  const ageRows = [
+  const ageRows: Array<[string, number | undefined]> = [
     ["18–29", asNumber(detailed?.age_18_29)],
     ["30–44", asNumber(detailed?.age_30_44)],
     ["45–59", asNumber(detailed?.age_45_59)],
     ["60+", asNumber(detailed?.age_60_plus)],
-  ] as const;
+  ];
   const ages = detailedTotal > 0
-    ? ageRows.filter((row): row is readonly [string, number] => row[1] !== undefined).map(([label, value]) => ({
+    ? ageRows.flatMap(([label, value]) => value === undefined ? [] : [{
       label,
       value: formatInteger(value) ?? "0",
       share: value / detailedTotal * 100,
-    }))
+    }])
     : base?.ages ?? [];
 
   return {
