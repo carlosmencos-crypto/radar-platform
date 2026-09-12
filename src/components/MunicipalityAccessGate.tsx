@@ -17,11 +17,24 @@ type GateState =
   | { status: "loading" }
   | { status: "authorized"; consumer: AuthorizedRadarConsumer }
   | { status: "auth_required" }
+  | { status: "runtime_error" }
   | { status: "forbidden" };
 
 function isAuthenticationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes("RADAR_AUTH_REQUIRED") || message.includes("RADAR_AUTH_401") || message.includes("(401)");
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
+  const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
+  const geoBundle: MunicipalityGeoBundle | null = section === "mapa"
+    ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
+    : null;
+  return { consumer, geoBundle };
 }
 
 export function MunicipalityAccessGate() {
@@ -39,13 +52,16 @@ export function MunicipalityAccessGate() {
     clearInstalledRadarRuntime(municipalityCode);
     clearInstalledRadarGeoBundle(municipalityCode);
     setState({ status: "loading" });
+
     ensureRadarAccessToken()
       .then(async (accessToken) => {
-        const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
-        const geoBundle: MunicipalityGeoBundle | null = section === "mapa"
-          ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
-          : null;
-        return { consumer, geoBundle };
+        try {
+          return await loadMunicipalityRuntime(municipalityCode, section, accessToken);
+        } catch (error) {
+          if (isAuthenticationFailure(error)) throw error;
+          await delay(250);
+          return loadMunicipalityRuntime(municipalityCode, section, accessToken);
+        }
       })
       .then(({ consumer, geoBundle }) => {
         if (cancelled) return;
@@ -65,7 +81,7 @@ export function MunicipalityAccessGate() {
           setState({ status: "auth_required" });
           return;
         }
-        setState({ status: "forbidden" });
+        setState({ status: "runtime_error" });
       });
 
     return () => {
@@ -76,12 +92,16 @@ export function MunicipalityAccessGate() {
   }, [municipalityCode, section]);
 
   if (state.status === "loading") {
-    return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Verificando acceso…</h1></div>;
+    return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Actualizando municipio…</h1></div>;
   }
 
   if (state.status === "auth_required") {
     const next = encodeURIComponent(`${location.pathname}${location.search}`);
     return <Navigate to={`/acceso?next=${next}`} replace />;
+  }
+
+  if (state.status === "runtime_error") {
+    return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>No pudimos actualizar este municipio.</h1><p>Tu acceso sigue activo. Reintentá la carga para recuperar la información municipal.</p><button type="button" onClick={() => window.location.reload()}>Reintentar</button></div>;
   }
 
   if (state.status === "forbidden") {
