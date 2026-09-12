@@ -91,11 +91,23 @@ export interface AuthorizedVoterRollSummary {
   };
 }
 
+export interface AuthorizedDemographicSummary {
+  municipality_code: string;
+  projection_year: number;
+  reference_date: string;
+  population_total: number;
+  population_male: number;
+  population_female: number;
+  source_product_id: string;
+  source_label: string;
+}
+
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
   geo: MunicipalityGeoSummary;
   voter_roll: AuthorizedVoterRollSummary;
+  demographics: AuthorizedDemographicSummary | null;
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -185,7 +197,7 @@ export async function loadAuthorizedGeoBundle(
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
-  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v4", {
+  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v5", {
     p_municipality_code: municipalityCode,
   }, accessToken);
 
@@ -196,7 +208,8 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
     bundle.voter_roll?.municipality_code !== municipalityCode ||
     !Array.isArray(bundle.context.permissions) ||
     !Array.isArray(bundle.layers) ||
-    !Array.isArray(bundle.voter_roll.aggregates)
+    !Array.isArray(bundle.voter_roll.aggregates) ||
+    (bundle.demographics !== null && bundle.demographics?.municipality_code !== municipalityCode)
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }
