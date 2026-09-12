@@ -19,6 +19,13 @@ test("municipal V70 route is gated by an authenticated Supabase runtime before r
   assert.doesNotMatch(gate, /public-demo/);
 });
 
+test("authenticated Intelligence exposes the existing V70 coverage block without changing canonical markup", () => {
+  assert.match(gate, /section !== "inteligencia"/);
+  assert.match(gate, /details\.canonical-coverage-secondary/);
+  assert.match(gate, /coverage\.open = true/);
+  assert.match(gate, /requestAnimationFrame/);
+});
+
 test("canonical V70 MunicipalityContext remains unchanged by auth binding", () => {
   assert.doesNotMatch(context, /radarAuth|radarAuthorizedConsumer|RadarRuntimeBundle/);
   assert.match(context, /consumer\.context\.campaign_id/);
