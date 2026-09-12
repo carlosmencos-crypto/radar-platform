@@ -10,7 +10,7 @@ import {
   installRadarRuntime,
 } from "../data/radarRuntimeCache";
 import { loadAuthorizedGeoBundle, type MunicipalityGeoBundle } from "../data/radarRuntime";
-import { MunicipalDashboard as CanonicalMunicipalDashboard } from "./MunicipalDashboard";
+import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 
 type GateState =
   | { status: "loading" }
@@ -44,9 +44,7 @@ export function MunicipalityAccessGate() {
     let cancelled = false;
     if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) {
       setState({ status: "forbidden" });
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
 
     clearInstalledRadarRuntime(municipalityCode);
@@ -101,9 +99,5 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  return (
-    <AuthorizedRuntimeProvider consumer={state.consumer}>
-      <CanonicalMunicipalDashboard />
-    </AuthorizedRuntimeProvider>
-  );
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
 }
