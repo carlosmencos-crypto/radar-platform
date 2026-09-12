@@ -16,6 +16,7 @@ const geoRuntime = read("src/data/radarGeoRuntime.ts");
 const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
 const enrichedDashboard = read("src/components/MunicipalDashboardV70Runtime.tsx");
+const synchronizedMap = read("src/components/RuntimeSynchronizedMap.tsx");
 const visibleRuntimeMigration = read("supabase/migrations/20260909205200_radar_authorized_runtime_v3_visible_layers_fix.sql");
 const voterRuntimeMigration = read("supabase/migrations/20260909220500_radar_voter_roll_runtime_v4.sql");
 const demographicRuntimeMigration = read("supabase/migrations/20260912001500_add_demographic_projection_runtime_v5.sql");
@@ -80,8 +81,9 @@ test("V70 gate loads compact authorized runtime v6 while retaining point bundle 
   assert.match(runtimeV6Migration, /grant execute on function public\.radar_authorized_runtime_v6\(text\) to authenticated/);
 });
 
-test("detailed public geography is loaded only for mapa and reconciles fail closed", () => {
+test("detailed public geography loads for intelligence and mapa and reconciles fail closed", () => {
   assert.match(gate, /section === "mapa"/);
+  assert.match(gate, /section === "inteligencia"/);
   assert.match(gate, /loadAuthorizedGeoBundle\(municipalityCode, accessToken, \[\.\.\.RADAR_PUBLIC_MAP_FEATURE_TYPES\]\)/);
   assert.match(gate, /assertGeoBundleMatchesRuntime\(consumer\.runtime, geoBundle\)/);
   assert.match(gate, /installRadarGeoBundle\(geoBundle\)/);
@@ -90,10 +92,13 @@ test("detailed public geography is loaded only for mapa and reconciles fail clos
   for (const featureType of ["populated_place", "tse_voting_center", "school", "health_facility"]) {
     assert.match(geoRuntime, new RegExp(`"${featureType}"`));
     assert.match(enrichedDashboard, new RegExp(`${featureType}`));
+    assert.match(synchronizedMap, new RegExp(`${featureType}`));
   }
   assert.match(geoRuntime, /actual !== bundleCount \|\| actual !== runtimeCount/);
   assert.match(geoRuntime, /bundle\.features\.length !== runtime\.geo\.feature_total/);
-  assert.match(enrichedDashboard, /RuntimeGeoOverlay/);
+  assert.match(enrichedDashboard, /RuntimeSynchronizedMap/);
+  assert.match(synchronizedMap, /L\.map/);
+  assert.match(synchronizedMap, /L\.circleMarker/);
   assert.doesNotMatch(dashboard, /loadAuthorizedGeoBundle|assertGeoBundleMatchesRuntime|installRadarGeoBundle/);
 });
 
