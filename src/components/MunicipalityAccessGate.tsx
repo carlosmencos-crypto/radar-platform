@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
+import { AuthorizedRuntimeProvider } from "../context/AuthorizedRuntimeContext";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
 import { assertGeoBundleMatchesRuntime, RADAR_PUBLIC_MAP_FEATURE_TYPES } from "../data/radarGeoRuntime";
@@ -18,21 +19,9 @@ type GateState =
   | { status: "auth_required" }
   | { status: "forbidden" };
 
-const AuthorizedRuntimeContext = createContext<AuthorizedRadarConsumer | null>(null);
-
 function isAuthenticationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes("RADAR_AUTH_REQUIRED") || message.includes("RADAR_AUTH_401") || message.includes("(401)");
-}
-
-function AuthorizedRuntimeProvider({ consumer, children }: { consumer: AuthorizedRadarConsumer; children: ReactNode }) {
-  return <AuthorizedRuntimeContext.Provider value={consumer}>{children}</AuthorizedRuntimeContext.Provider>;
-}
-
-export function useAuthorizedRadarRuntime() {
-  const context = useContext(AuthorizedRuntimeContext);
-  if (!context) throw new Error("RADAR_AUTHORIZED_RUNTIME_REQUIRED");
-  return context;
 }
 
 export function MunicipalityAccessGate() {
