@@ -197,7 +197,7 @@ export async function loadAuthorizedGeoBundle(
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
-  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v5", {
+  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v6", {
     p_municipality_code: municipalityCode,
   }, accessToken);
 
