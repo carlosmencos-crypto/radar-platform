@@ -88,6 +88,15 @@ export function MunicipalityAccessGate() {
     };
   }, [municipalityCode, section]);
 
+  useEffect(() => {
+    if (state.status !== "authorized" || section !== "inteligencia") return;
+    const frame = window.requestAnimationFrame(() => {
+      const coverage = document.querySelector<HTMLDetailsElement>("details.canonical-coverage-secondary");
+      if (coverage) coverage.open = true;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state.status, municipalityCode, section]);
+
   if (state.status === "loading") {
     return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Verificando acceso…</h1></div>;
   }
