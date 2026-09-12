@@ -15,27 +15,31 @@ const runtime = read("src/data/radarRuntime.ts");
 const geoRuntime = read("src/data/radarGeoRuntime.ts");
 const runtimeProfile = read("src/data/radarRuntimeProfile.ts");
 const dashboard = read("src/components/MunicipalDashboard.tsx");
+const enrichedDashboard = read("src/components/MunicipalDashboardV70Runtime.tsx");
 const visibleRuntimeMigration = read("supabase/migrations/20260909205200_radar_authorized_runtime_v3_visible_layers_fix.sql");
 const voterRuntimeMigration = read("supabase/migrations/20260909220500_radar_voter_roll_runtime_v4.sql");
+const demographicRuntimeMigration = read("supabase/migrations/20260912001500_add_demographic_projection_runtime_v5.sql");
 const voterCanonicalCodeFix = read("supabase/migrations/20260909232000_fix_padron_2023_canonical_department_codes.sql");
 
-test("authorized runtime is installed before canonical V70 renders", () => {
+test("authorized runtime is installed before enriched V70 renders", () => {
   assert.match(gate, /installRadarRuntime\(consumer\.runtime\)/);
   assert.match(gate, /setState\(\{ status: "authorized", consumer \}\)/);
   assert.match(gate, /clearInstalledRadarRuntime\(municipalityCode\)/);
   assert.match(cache, /new Map<string, RadarRuntimeBundle>\(\)/);
+  assert.match(gate, /MunicipalDashboardV70Runtime/);
   assert.doesNotMatch(cache, /localStorage|sessionStorage|service[_-]?role/i);
 });
 
-test("canonical consumer binds session context without modifying V70", () => {
+test("canonical consumer binds session context while original V70 remains isolated", () => {
   assert.match(consumer, /getInstalledRadarRuntime\(municipality\.code\)/);
   assert.match(consumer, /authorizedRuntime\.context\.campaign_id/);
   assert.match(consumer, /authorizedRuntime\.context\.permissions/);
   assert.match(consumer, /canonicalUserRole\(authorizedRuntime\.context\.user_role\)/);
-  assert.doesNotMatch(dashboard, /radarRuntimeCache|radarRuntimeProfile|loadRadarRuntimeBundle/);
+  assert.doesNotMatch(dashboard, /radarRuntimeCache|radarRuntimeProfile|loadRadarRuntimeBundle|loadAuthorizedGeoBundle/);
+  assert.match(enrichedDashboard, /findMunicipalProfile/);
 });
 
-test("municipal profile derives map and operational metrics from authorized Data Vault only", () => {
+test("municipal profile derives rich intelligence and map metrics from authorized Data Vault", () => {
   assert.match(profiles, /buildRuntimeMunicipalProfile\(municipalityCode, municipalProfiles\[municipalityCode\]\)/);
   for (const source of [
     "NUCLEO_ELECTORAL",
@@ -51,19 +55,25 @@ test("municipal profile derives map and operational metrics from authorized Data
   assert.match(runtimeProfile, /runtime\.geo\.feature_counts/);
   assert.match(runtimeProfile, /runtime\.geo\.feature_total/);
   assert.match(runtimeProfile, /runtime\.geo\.bbox/);
+  assert.match(runtimeProfile, /runtime\.demographics\?\.population_total/);
+  assert.match(runtimeProfile, /buildIntelligence/);
   assert.match(runtimeProfile, /openstreetmap\.org\/export\/embed\.html/);
   assert.doesNotMatch(runtimeProfile, /localStorage|sessionStorage|service[_-]?role/i);
 });
 
-test("V70 gate loads one compact authorized runtime RPC while retaining point bundle on demand", () => {
+test("V70 gate loads one compact authorized runtime v5 while retaining point bundle on demand", () => {
   assert.match(runtime, /radar_municipality_geo_summary/);
   assert.match(runtime, /loadAuthorizedGeoSummary/);
   assert.match(runtime, /loadAuthorizedGeoBundle/);
-  assert.match(runtime, /radar_authorized_runtime_v4/);
+  assert.match(runtime, /radar_authorized_runtime_v5/);
   const loader = runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "";
-  assert.match(loader, /radar_authorized_runtime_v4/);
+  assert.match(loader, /radar_authorized_runtime_v5/);
   assert.doesNotMatch(loader, /Promise\.all/);
   assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
+  assert.match(demographicRuntimeMigration, /radar_authorized_runtime_v5/);
+  assert.match(demographicRuntimeMigration, /municipality_demographic_aggregates/);
+  assert.match(demographicRuntimeMigration, /private\.can_read_data_vault/);
+  assert.match(demographicRuntimeMigration, /grant execute on function public\.radar_authorized_runtime_v5\(text\) to authenticated/);
 });
 
 test("detailed public geography is loaded only for mapa and reconciles fail closed", () => {
@@ -75,9 +85,11 @@ test("detailed public geography is loaded only for mapa and reconciles fail clos
   assert.match(cache, /clearInstalledRadarGeoBundle/);
   for (const featureType of ["populated_place", "tse_voting_center", "school", "health_facility"]) {
     assert.match(geoRuntime, new RegExp(`"${featureType}"`));
+    assert.match(enrichedDashboard, new RegExp(`${featureType}`));
   }
   assert.match(geoRuntime, /actual !== bundleCount \|\| actual !== runtimeCount/);
   assert.match(geoRuntime, /bundle\.features\.length !== runtime\.geo\.feature_total/);
+  assert.match(enrichedDashboard, /RuntimeGeoOverlay/);
   assert.doesNotMatch(dashboard, /loadAuthorizedGeoBundle|assertGeoBundleMatchesRuntime|installRadarGeoBundle/);
 });
 
@@ -117,7 +129,7 @@ test("voter aggregates stay authenticated, aggregate-only and universe-separated
   assert.match(voterRuntimeMigration, /grant execute on function public\.radar_authorized_voter_roll_summary_v1\(text\) to authenticated/);
   assert.match(runtimeProfile, /Empadronados oficiales 2023/);
   assert.match(runtimeProfile, /Registros detallados 2023/);
-  assert.match(runtimeProfile, /universo separado del total oficial/);
+  assert.match(runtimeProfile, /universo separado|universos separados|padrón detallado agregado/i);
   assert.doesNotMatch(voterRuntimeMigration, /full_name|phone|dpi|address_text/i);
 });
 
