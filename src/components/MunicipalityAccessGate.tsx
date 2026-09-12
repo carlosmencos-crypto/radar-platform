@@ -31,7 +31,8 @@ function delay(ms: number) {
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
   const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
-  const geoBundle: MunicipalityGeoBundle | null = section === "mapa"
+  const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
+  const geoBundle: MunicipalityGeoBundle | null = needsTerritorialDetail
     ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
     : null;
   return { consumer, geoBundle };
@@ -81,6 +82,7 @@ export function MunicipalityAccessGate() {
           setState({ status: "auth_required" });
           return;
         }
+        console.error("RADAR_MUNICIPAL_RUNTIME_LOAD_FAILED", municipalityCode, section ?? "inicio", error);
         setState({ status: "runtime_error" });
       });
 
