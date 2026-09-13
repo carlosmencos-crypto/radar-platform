@@ -108,12 +108,22 @@ export interface RadarRuntimeBundle {
   geo: MunicipalityGeoSummary;
   voter_roll: AuthorizedVoterRollSummary;
   demographics: AuthorizedDemographicSummary | null;
+  electoral_territory?: AuthorizedLayerRecord[];
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
 export const radarRuntimeConfigured = Boolean(supabaseUrl && publishableKey);
+
+const electoralTerritoryLayerIds = new Set([
+  "TREP_2023_CENTER_INDEX",
+  "TREP_2023_CENTER_RESULTS_PRESIDENTE",
+  "TREP_2023_CENTER_RESULTS_DIP_NAC",
+  "TREP_2023_CENTER_RESULTS_DIP_DIST",
+  "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+  "TREP_2023_CENTER_RESULTS_DIP_PAR",
+]);
 
 function assertMunicipalityCode(value: string) {
   if (!/^\d{4}$/.test(value)) throw new Error("Código municipal inválido.");
@@ -197,9 +207,12 @@ export async function loadAuthorizedGeoBundle(
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
-  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v6", {
-    p_municipality_code: municipalityCode,
-  }, accessToken);
+  const [bundle, authorizedLayers] = await Promise.all([
+    rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v6", {
+      p_municipality_code: municipalityCode,
+    }, accessToken),
+    loadAuthorizedRadarLayers(municipalityCode, accessToken),
+  ]);
 
   if (
     !bundle ||
@@ -214,5 +227,14 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }
 
-  return bundle;
+  const electoralTerritory = authorizedLayers.filter((layer) => electoralTerritoryLayerIds.has(layer.layer_id));
+  const electoralLayerIds = electoralTerritory.map((layer) => layer.layer_id);
+  if (electoralLayerIds.length !== new Set(electoralLayerIds).size) {
+    throw new Error("El runtime electoral autorizado devolvió capas duplicadas.");
+  }
+
+  return {
+    ...bundle,
+    electoral_territory: electoralTerritory,
+  };
 }
