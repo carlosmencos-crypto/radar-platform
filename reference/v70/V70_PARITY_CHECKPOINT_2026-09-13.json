@@ -1,0 +1,76 @@
+{
+  "checkpoint": "V70_STRICT_PARITY_RUNTIME",
+  "status": "FAIL_NOT_CLIENT_READY",
+  "golden": {
+    "municipality_code": "0509",
+    "project": "radar-identidad-electoral",
+    "version": 70,
+    "published_commit": "eb6359211867ac0a81163b0a0242ea86608da56e",
+    "source_sha256": "964d06fb25ea95832b3c28c49b192de315e3b42337be4abb44940d499a2e41d2"
+  },
+  "frontend_qa": {
+    "branch": "qa/v70-golden-electoral-runtime",
+    "draft_pr": 28,
+    "head_sha": "3751f9b6b05e2e1b8abc87e5a70c6efadb6146c1",
+    "quality_run": 141,
+    "quality_conclusion": "success",
+    "integration": "QA-only parity bridge; no merge/deploy/cutover",
+    "preserved_contract": [
+      "El voto centro por centro",
+      "Presidencia",
+      "Lista nacional",
+      "Distrito",
+      "Alcaldía",
+      "Parlacen",
+      "Directorio de centros/JRV",
+      "Electoral",
+      "Escuelas",
+      "CEM",
+      "Salud",
+      "Obras",
+      "popover detallado por centro",
+      "ranking de Corporación Municipal",
+      "scroll independiente",
+      "NO_PUBLICADO",
+      "PARCIAL",
+      "SIN_REGISTRO",
+      "SIN_ASOCIACION"
+    ],
+    "runtime_guardrail": "TREP layers are loaded through the authenticated RLS path and cached separately from canonical runtime.layers; the 340x17 contract is unchanged",
+    "map_microfunction_qa": {
+      "status": "PASS_STATIC_CONTRACT",
+      "center_marker_geometry": "Golden 54px / active 62px anchor behavior locked",
+      "school_symbology": "Golden radius 6 / #f59e0b locked",
+      "health_symbology": "Golden radius 7 / #059669 locked",
+      "cem_semantics": "Golden 650m dashed reference circles around CEM-associated electoral centers; populated_place is not substituted for CEM",
+      "selection_extent": "Golden fitBounds behavior retained; directory selection does not force map recenter",
+      "works_semantics": "NO_PUBLICADO until an authorized same-period project geo layer exists"
+    },
+    "visual_qa": "PENDING_RENDERED_SCREENSHOT_COMPARISON",
+    "client_ready": false
+  },
+  "trep_data_vault": {
+    "0106": {"layers": 6, "center_option_rows": 1904, "centers": 16, "jrv": 210, "geo_exact": 15, "geo_held": 1},
+    "1901": {"layers": 6, "center_option_rows": 1386, "centers": 14, "jrv": 108, "geo_exact": 14, "geo_held": 0},
+    "0101": {"layers": 0, "promotion": "STAGED_QA_ONLY_NOT_YET_PROMOTED", "centers": 123, "jrv": 2023, "geo_exact": 122, "geo_held": 1, "center_option_rows_staged": 15006}
+  },
+  "supabase_current_run": {
+    "verification": "BLOCKED_BEFORE_EXECUTION_BY_CONNECTOR_SAFETY",
+    "writes": 0,
+    "partial_writes": 0,
+    "action": "No bypass, no ad-hoc direct write; retained last validated Data Vault checkpoint"
+  },
+  "snip_2026_priority_status": {
+    "0101": {"source_status": "DASHBOARD_READY", "project_count": 18, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"},
+    "0106": {"source_status": "DASHBOARD_READY", "project_count": 10, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"},
+    "1901": {"source_status": "DASHBOARD_READY", "project_count": 35, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"}
+  },
+  "fail_closed": [
+    "0101 TREP remains unpromoted; no partial write was made",
+    "Supabase execute_sql verification was blocked before execution in this run; no state is claimed from an unverified query",
+    "SNIP_2026 summary is not converted into work markers because the authorized public geo bundle contains no work/project feature type",
+    "The available SEGEPLAN 2025 geospatial product is not substituted into the canonical SNIP_2026 layer because periods must not be mixed",
+    "No screenshot parity PASS is claimed without a rendered Golden-vs-national comparison"
+  ],
+  "next_checkpoint": "Promote the six validated 0101 TREP payloads through the safe idempotent helper when the connector permits the verified path; replace the QA DOM portal bridge with direct component integration; then perform Golden 0509 -> 0106 rendered screenshot comparison before any client-ready promotion."
+}

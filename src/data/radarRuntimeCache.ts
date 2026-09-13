@@ -1,7 +1,8 @@
-import type { MunicipalityGeoBundle, RadarRuntimeBundle } from "./radarRuntime";
+import type { AuthorizedLayerRecord, MunicipalityGeoBundle, RadarRuntimeBundle } from "./radarRuntime";
 
 const authorizedRuntimeByMunicipality = new Map<string, RadarRuntimeBundle>();
 const authorizedGeoByMunicipality = new Map<string, MunicipalityGeoBundle>();
+const authorizedElectoralLayersByMunicipality = new Map<string, AuthorizedLayerRecord[]>();
 
 function assertRuntimeMunicipality(runtime: RadarRuntimeBundle) {
   const contextCode = runtime.context.municipality_code;
@@ -18,6 +19,16 @@ function assertGeoBundleMunicipality(bundle: MunicipalityGeoBundle) {
     throw new Error("El bundle geográfico autorizado no tiene municipio válido.");
   }
   return municipalityCode;
+}
+
+function assertElectoralLayersMunicipality(municipalityCode: string, layers: AuthorizedLayerRecord[]) {
+  if (!/^\d{4}$/.test(municipalityCode)) {
+    throw new Error("Código municipal electoral inválido.");
+  }
+  const layerIds = layers.map((layer) => layer.layer_id);
+  if (layerIds.length !== new Set(layerIds).size) {
+    throw new Error("Las capas electorales autorizadas contienen duplicados.");
+  }
 }
 
 export function installRadarRuntime(runtime: RadarRuntimeBundle) {
@@ -40,6 +51,16 @@ export function getInstalledRadarGeoBundle(municipalityCode?: string) {
   return authorizedGeoByMunicipality.get(municipalityCode);
 }
 
+export function installRadarElectoralLayers(municipalityCode: string, layers: AuthorizedLayerRecord[]) {
+  assertElectoralLayersMunicipality(municipalityCode, layers);
+  authorizedElectoralLayersByMunicipality.set(municipalityCode, [...layers]);
+}
+
+export function getInstalledRadarElectoralLayers(municipalityCode?: string) {
+  if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) return undefined;
+  return authorizedElectoralLayersByMunicipality.get(municipalityCode);
+}
+
 export function clearInstalledRadarRuntime(municipalityCode?: string) {
   if (municipalityCode) {
     authorizedRuntimeByMunicipality.delete(municipalityCode);
@@ -54,4 +75,12 @@ export function clearInstalledRadarGeoBundle(municipalityCode?: string) {
     return;
   }
   authorizedGeoByMunicipality.clear();
+}
+
+export function clearInstalledRadarElectoralLayers(municipalityCode?: string) {
+  if (municipalityCode) {
+    authorizedElectoralLayersByMunicipality.delete(municipalityCode);
+    return;
+  }
+  authorizedElectoralLayersByMunicipality.clear();
 }

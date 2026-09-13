@@ -5,13 +5,21 @@ import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "..
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
 import { assertGeoBundleMatchesRuntime, RADAR_PUBLIC_MAP_FEATURE_TYPES } from "../data/radarGeoRuntime";
 import {
+  clearInstalledRadarElectoralLayers,
   clearInstalledRadarGeoBundle,
   clearInstalledRadarRuntime,
+  installRadarElectoralLayers,
   installRadarGeoBundle,
   installRadarRuntime,
 } from "../data/radarRuntimeCache";
-import { loadAuthorizedGeoBundle, type MunicipalityGeoBundle } from "../data/radarRuntime";
+import {
+  loadAuthorizedElectoralTerritoryLayers,
+  loadAuthorizedGeoBundle,
+  type AuthorizedLayerRecord,
+  type MunicipalityGeoBundle,
+} from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
+import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 
 type GateState =
   | { status: "loading" }
@@ -30,12 +38,18 @@ function delay(ms: number) {
 }
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
-  const consumer = await resolveAuthorizedRadarConsumer(municipalityCode, accessToken);
   const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const geoBundle: MunicipalityGeoBundle | null = needsTerritorialDetail
-    ? await loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
-    : null;
-  return { consumer, geoBundle };
+  const needsElectoralTerritory = section === "inteligencia";
+  const [consumer, geoBundle, electoralLayers] = await Promise.all([
+    resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
+    needsTerritorialDetail
+      ? loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
+      : Promise.resolve<MunicipalityGeoBundle | null>(null),
+    needsElectoralTerritory
+      ? loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken)
+      : Promise.resolve<AuthorizedLayerRecord[]>([]),
+  ]);
+  return { consumer, geoBundle, electoralLayers };
 }
 
 export function MunicipalityAccessGate() {
@@ -52,6 +66,7 @@ export function MunicipalityAccessGate() {
 
     clearInstalledRadarRuntime(municipalityCode);
     clearInstalledRadarGeoBundle(municipalityCode);
+    clearInstalledRadarElectoralLayers(municipalityCode);
     setState({ status: "loading" });
 
     ensureRadarAccessToken()
@@ -64,12 +79,15 @@ export function MunicipalityAccessGate() {
           return loadMunicipalityRuntime(municipalityCode, section, accessToken);
         }
       })
-      .then(({ consumer, geoBundle }) => {
+      .then(({ consumer, geoBundle, electoralLayers }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
         if (geoBundle) {
           assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
           installRadarGeoBundle(geoBundle);
+        }
+        if (section === "inteligencia") {
+          installRadarElectoralLayers(municipalityCode, electoralLayers);
         }
         setState({ status: "authorized", consumer });
       })
@@ -77,6 +95,7 @@ export function MunicipalityAccessGate() {
         if (cancelled) return;
         clearInstalledRadarRuntime(municipalityCode);
         clearInstalledRadarGeoBundle(municipalityCode);
+        clearInstalledRadarElectoralLayers(municipalityCode);
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -90,6 +109,7 @@ export function MunicipalityAccessGate() {
       cancelled = true;
       clearInstalledRadarRuntime(municipalityCode);
       clearInstalledRadarGeoBundle(municipalityCode);
+      clearInstalledRadarElectoralLayers(municipalityCode);
     };
   }, [municipalityCode, section]);
 
@@ -110,5 +130,5 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime />{section === "inteligencia" ? <V70ElectoralParityBridge /> : null}</AuthorizedRuntimeProvider>;
 }
