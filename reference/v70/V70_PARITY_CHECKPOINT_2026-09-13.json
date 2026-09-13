@@ -20,25 +20,25 @@
     "runtime_head_before_checkpoint_only_commits": "2718686383f2610d8fe9da3c590c4352f86765ab",
     "pr_state": "OPEN_DRAFT_NOT_MERGED",
     "integration": "QA-only; no merge/deploy/cutover",
-    "latest_runtime_quality": {"run_number": 154, "conclusion": "success", "artifacts": 0},
+    "latest_runtime_quality": {"run_number": 155, "conclusion": "success", "artifacts": 0},
     "visual_qa": "PENDING_RENDERED_AUTHENTICATED_0509_TO_0106_SCREENSHOT_COMPARISON",
     "client_ready": false
   },
   "trep_data_vault": {
     "authoritative_supabase_state": {
-      "complete_6_layer_municipalities": 26,
-      "complete_codes": ["0101","0102","0103","0105","0106","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117","0201","0202","0203","0204","0205","0301","0901","1601","1901","2201"],
+      "complete_6_layer_municipalities": 27,
+      "complete_codes": ["0101","0102","0103","0105","0106","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117","0201","0202","0203","0204","0205","0206","0301","0901","1601","1901","2201"],
       "semantic_no_publicado": ["0104"],
-      "resolved_contracts": 27,
-      "zero_layer_municipalities": 313,
+      "resolved_contracts": 28,
+      "zero_layer_municipalities": 312,
       "one_layer_semantic_municipalities": 1,
       "partial_materializations_2_to_5": 0,
-      "centers_universe": 614,
-      "jrv_universe": 6540,
-      "registered_voters_center_total": 2575707,
-      "geo_exact": 604,
+      "centers_universe": 618,
+      "jrv_universe": 6567,
+      "registered_voters_center_total": 2585780,
+      "geo_exact": 608,
       "geo_held": 10,
-      "center_option_rows": 72536
+      "center_option_rows": 72936
     },
     "0205": {
       "municipality_name": "El Jícaro",
@@ -65,7 +65,7 @@
     "0206": {
       "municipality_name": "Sansare",
       "department_name": "El Progreso",
-      "status": "PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "status": "PASS_6_OF_6_TREP_LAYERS",
       "centers": 4,
       "jrv": 27,
       "registered_voters": 10073,
@@ -80,10 +80,32 @@
         "CORPORACION_MUNICIPAL": {"counted":27,"expected":27,"leader":"VAMOS","leader_votes":1724,"runner_up":"CABAL","runner_up_votes":1656},
         "DIP_PAR": {"counted":27,"expected":27,"leader":"UNE","leader_votes":1169,"runner_up":"VAMOS","runner_up_votes":1092}
       },
-      "qa": "PASS_PREVALIDATION_ALL_FIVE_VALID_CALCULATED_EQUALS_OPTION_SUM_AND_VALID_PLUS_NULL_PLUS_BLANK_EQUALS_EMITTED_27_OF_27_JRV_MAPPED",
+      "qa": "PASS_POST_PROMOTION_VALID_VOTES_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_FOR_ALL_FIVE_ELECTIONS",
+      "source_status": "DASHBOARD_READY",
+      "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
+    },
+    "0207": {
+      "municipality_name": "Sanarate",
+      "department_name": "El Progreso",
+      "status": "PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "centers": 12,
+      "jrv": 78,
+      "registered_voters": 27716,
+      "geo_exact": 12,
+      "geo_held": 0,
+      "center_option_rows": 1176,
+      "physical_center_crosswalk": "15_TREP_CODES_TO_12_PHYSICAL_CENTERS; centers 001 has 780+781, 002 has 782+784+785, 003 has 783+786",
+      "elections": {
+        "PRESIDENTE": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":3746,"runner_up":"UNE","runner_up_votes":2562},
+        "DIP_NAC": {"counted":77,"expected":78,"leader":"VAMOS","leader_votes":5326,"runner_up":"CABAL","runner_up_votes":2593},
+        "DIP_DIST": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":7157,"runner_up":"CABAL","runner_up_votes":3741},
+        "CORPORACION_MUNICIPAL": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":7382,"runner_up":"CABAL","runner_up_votes":5455},
+        "DIP_PAR": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":5533,"runner_up":"UNE","runner_up_votes":2233}
+      },
+      "qa": "PASS_PREVALIDATION_ALL_FIVE_VALID_CALCULATED_EQUALS_OPTION_SUM_AND_VALID_PLUS_NULL_PLUS_BLANK_EQUALS_EMITTED_78_JRV_MAPPED; DIP_NAC_77_OF_78_COUNTED",
       "promotion": "ZERO_WRITES_PREVALIDATION_ONLY",
       "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
-      "corporacion_raw_sha256": "ae73ec400c58e862d94e815c21c644f74c4d0e498e2d06315dad28c8ab6b4f56"
+      "corporacion_raw_sha256": "e436af9caee42adccbfb1cbf835026d057b2f96821c1514302056a68082f9f32"
     }
   },
   "supabase": {
@@ -101,5 +123,5 @@
     "Do not bypass private.upsert_singleton_layer_batch or use direct ad-hoc UPDATE for TREP promotion.",
     "No merge/deploy/cutover from QA branch while visual parity remains FAIL."
   ],
-  "next_checkpoint": "Promote the six prevalidated 0206 Sansare TREP layers only through private.upsert_singleton_layer_batch, run post-promotion stored matrix/options/vote identity QA, then prevalidate 0207 Sanarate. Keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
+  "next_checkpoint": "Promote the six prevalidated 0207 Sanarate TREP layers only through private.upsert_singleton_layer_batch, run post-promotion stored matrix/options/vote identity QA, then prevalidate 0208 San Antonio La Paz. Keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
 }
