@@ -115,6 +115,15 @@ const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
 export const radarRuntimeConfigured = Boolean(supabaseUrl && publishableKey);
 
+const electoralTerritoryLayerIds = new Set([
+  "TREP_2023_CENTER_INDEX",
+  "TREP_2023_CENTER_RESULTS_PRESIDENTE",
+  "TREP_2023_CENTER_RESULTS_DIP_NAC",
+  "TREP_2023_CENTER_RESULTS_DIP_DIST",
+  "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+  "TREP_2023_CENTER_RESULTS_DIP_PAR",
+]);
+
 function assertMunicipalityCode(value: string) {
   if (!/^\d{4}$/.test(value)) throw new Error("Código municipal inválido.");
 }
@@ -166,6 +175,16 @@ export async function loadAuthorizedRadarLayers(municipalityCode: string, access
   }, accessToken);
 }
 
+export async function loadAuthorizedElectoralTerritoryLayers(municipalityCode: string, accessToken: string) {
+  const layers = await loadAuthorizedRadarLayers(municipalityCode, accessToken);
+  const electoralTerritory = layers.filter((layer) => electoralTerritoryLayerIds.has(layer.layer_id));
+  const layerIds = electoralTerritory.map((layer) => layer.layer_id);
+  if (layerIds.length !== new Set(layerIds).size) {
+    throw new Error("El runtime electoral autorizado devolvió capas duplicadas.");
+  }
+  return electoralTerritory;
+}
+
 export async function loadAuthorizedGeoSummary(
   municipalityCode: string,
   accessToken: string,
@@ -213,6 +232,5 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }
-
   return bundle;
 }
