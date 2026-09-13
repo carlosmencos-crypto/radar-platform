@@ -20,27 +20,6 @@
     "draft_pr": 28,
     "integration": "QA-only parity bridge; no merge/deploy/cutover",
     "bridge_context_qa": "PASS_AUTHORIZED_RUNTIME_CONTEXT",
-    "preserved_contract": [
-      "El voto centro por centro",
-      "Presidencia",
-      "Lista nacional",
-      "Distrito",
-      "Alcaldía",
-      "Parlacen",
-      "Directorio de centros/JRV",
-      "Electoral",
-      "Escuelas",
-      "CEM",
-      "Salud",
-      "Obras",
-      "popover detallado por centro",
-      "ranking de Corporación Municipal",
-      "scroll independiente",
-      "NO_PUBLICADO",
-      "PARCIAL",
-      "SIN_REGISTRO",
-      "SIN_ASOCIACION"
-    ],
     "runtime_guardrail": "TREP layers are loaded through the authenticated RLS path and cached separately from canonical runtime.layers; the 340x17 contract is unchanged",
     "map_microfunction_qa": {
       "center_marker_geometry": "PASS_STATIC_GOLDEN_54_ACTIVE_62",
@@ -55,6 +34,14 @@
     "client_ready": false
   },
   "trep_data_vault": {
+    "aggregate": {
+      "municipalities_completed": 3,
+      "municipality_codes": ["0106", "1901", "0101"],
+      "center_option_rows": 18296,
+      "jrv_universe": 2341,
+      "centers_universe": 153,
+      "geo_held": 2
+    },
     "0106": {
       "layers_present": 6,
       "center_option_rows": 1904,
@@ -74,64 +61,62 @@
       "status": "VALIDATED_NO_REPROCESS"
     },
     "0101": {
-      "layers_present": 3,
-      "ready_layers": ["TREP_2023_CENTER_INDEX", "TREP_2023_CENTER_RESULTS_PRESIDENTE"],
-      "partial_layers": ["TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL"],
-      "missing_layers": ["TREP_2023_CENTER_RESULTS_DIP_NAC", "TREP_2023_CENTER_RESULTS_DIP_DIST", "TREP_2023_CENTER_RESULTS_DIP_PAR"],
+      "layers_present": 6,
+      "center_option_rows": 15006,
       "centers": 123,
       "jrv": 2023,
       "geo_exact": 122,
       "geo_held": 1,
-      "presidente_center_option_rows": 2706,
-      "corporacion_status": "BUILDING_FAIL_CLOSED",
-      "corporacion_center_metrics_present": 41,
-      "corporacion_center_option_rows_present": 0,
-      "staged_center_option_rows_total_expected": 15006,
-      "promotion": "PARTIAL_EXISTING_STATE_DISCOVERED_DO_NOT_REPEAT_READY_LAYERS"
+      "held_center": "109",
+      "status": "PASS_6_OF_6_TREP_LAYERS_WITH_1_GEO_ASSOCIATION_HELD",
+      "result_layers": {
+        "PRESIDENTE": {"center_option_rows": 2706, "counted_actas": 2016, "valid_votes": 416689},
+        "DIP_NAC": {"center_option_rows": 3198, "counted_actas": 2006, "valid_votes": 401453},
+        "DIP_DIST": {"center_option_rows": 3321, "counted_actas": 2010, "valid_votes": 406363},
+        "CORPORACION_MUNICIPAL": {"center_option_rows": 2952, "counted_actas": 2015, "valid_votes": 432208},
+        "DIP_PAR": {"center_option_rows": 2829, "counted_actas": 2015, "valid_votes": 303801}
+      },
+      "promotion": "COMPLETED_ONLY_MISSING_OR_PARTIAL_LAYERS; CENTER_INDEX_AND_PRESIDENTE_NOT_REPROCESSED"
     },
     "priority_after_0101": ["0301", "0901", "1601", "2201"]
   },
+  "source_recovery": {
+    "drive_root": "RADAR_Data_Vault_v0_1/01_RAW_SOURCES/01_TSE/05_TREP_2023",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00",
+    "0101_files": {
+      "DIP_NAC": {"file": "gtm2023_e2.csv", "sha256": "558f2d006d5f4aa3dac13b19be48ba0cca7f77ce5265d650fa2606b13e948cf7"},
+      "DIP_DIST": {"file": "gtm2023_e3d00.csv", "sha256": "0f0c86ca61fb9dee38f3e9a07c7b2390304dde668ee65bd4b03b2686af3b56d9"},
+      "CORPORACION_MUNICIPAL": {"file": "gtm2023_e4d00m01.csv", "sha256": "eb56a0b2dfb03e21916a2e615a83430635ad1c3491db1cb8f0dd983d233e6ba2"},
+      "DIP_PAR": {"file": "gtm2023_e5.csv", "sha256": "356fd292d8d0f14e5ac1c1c36ad0fbee1c645d1be0d6fe6e48fd2d909c8d6b1"}
+    },
+    "crosswalk": "GT_TSE_2023_JRV_CENTRO_CROSSWALK_24427_v1",
+    "qa": "PASS_BYTES_HASH_AND_2023_JRV_COVERAGE"
+  },
   "supabase_current_run": {
     "project_ref": "xxobbhnhxhcjkdxmjmwj",
-    "verification": "PASS_SINGLE_STATEMENT_SQL_VERIFICATION",
-    "data_vault_rls_inventory": "ENABLED_ON_LISTED_DATA_VAULT_TABLES",
+    "promotion_path": "SINGLE_STATEMENT_FAIL_CLOSED_SOURCE_PARSE_TO_PRIVATE_UPSERT_SINGLETON_LAYER_BATCH",
+    "promoted_or_completed_layers_0101": ["TREP_2023_CENTER_RESULTS_DIP_NAC", "TREP_2023_CENTER_RESULTS_DIP_DIST", "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL", "TREP_2023_CENTER_RESULTS_DIP_PAR"],
+    "reprocessed_validated_layers": false,
+    "post_promotion_qa": "PASS_6_OF_6",
     "private_rls_inventory": "12_PRIVATE_TABLES_RLS_DISABLED",
     "effective_client_privileges": {
-      "anon": {
-        "private_schema_usage": false,
-        "selectable_private_tables": 0,
-        "writable_private_tables": 0
-      },
-      "authenticated": {
-        "private_schema_usage": true,
-        "selectable_private_tables": 0,
-        "writable_private_tables": 0
-      },
+      "anon": {"private_schema_usage": false, "selectable_private_tables": 0, "writable_private_tables": 0},
+      "authenticated": {"private_schema_usage": true, "selectable_private_tables": 0, "writable_private_tables": 0},
       "helper_execute": {
         "private.apply_voter_roll_community_batch": {"anon": false, "authenticated": false},
         "private.upsert_singleton_layer_batch": {"anon": false, "authenticated": false}
       }
     },
     "security_advisor_api": "WARN_ONLY_LEAKED_PASSWORD_PROTECTION_DISABLED",
-    "security_qa": "PASS_NO_DIRECT_CLIENT_TABLE_PRIVILEGES_WITH_RLS_GAP_RETAINED_FOR_INTERNAL_PIPELINES",
-    "writes": 0,
-    "partial_writes": 0,
-    "action": "No DDL or policy change. Do not enable RLS blindly on private staging/checkpoint tables; preserve internal pipelines and client privilege boundary."
-  },
-  "drive_current_run": {
-    "control": "GT_RADAR_ESCALAMIENTO_340_CONTROL_MUESTRA_12_v23",
-    "control_updated_at_utc": "2026-09-13T00:12:21.872Z",
-    "trep_folder": "05_TREP_2023",
-    "trep_subfolders_verified": ["01_PRESIDENTE", "02_DIP-NAC", "03_DIP-DIST", "04_CORPORACION", "05_DIP-PAR", "00_PACKAGE_BACKUP"],
-    "0101_missing_payload_recovery": "BLOCKED_FOLDER_CHILD_FILE_ENUMERATION_RETURNED_NO_FILES"
+    "security_qa": "PASS_NO_DIRECT_CLIENT_TABLE_PRIVILEGES; NO_DDL_OR_POLICY_CHANGE"
   },
   "fail_closed": [
-    "Do not re-promote 0101 CENTER_INDEX or PRESIDENTE; both are already dashboard-ready in the authoritative Data Vault.",
-    "Do not treat 0101 CORPORACION_MUNICIPAL as published: its current payload is partial BUILDING_FAIL_CLOSED with 41 center metrics and zero center-option rows.",
-    "Do not synthesize DIP_NAC, DIP_DIST or DIP_PAR for 0101; source payloads must be recovered reproducibly before promotion.",
+    "Do not reprocess 0106, 1901 or the six validated 0101 TREP layers unless source evidence changes.",
+    "Keep 0101 center 109 SIN_ASOCIACION; the physical voting site and geocandidate do not match.",
     "Do not claim strict frontend parity while the QA runtime uses an iframe map and omits the Golden flyTo selection behavior.",
-    "Do not enable RLS blindly on private staging/checkpoint tables; effective client roles currently have zero direct table SELECT/write privileges.",
+    "Do not enable RLS blindly on private staging/checkpoint tables; effective client roles have zero direct table SELECT/write privileges.",
     "Do not promote preview to client-ready without rendered Golden 0509 -> national screenshot comparison and zero unauthorized regressions."
   ],
-  "next_checkpoint": "Replace the iframe/srcDoc electoral map with the exact direct Leaflet DOM/microfunctions from the verified V70 source, including center-selection flyTo zoom 15 duration 0.8; run QA before any merge. In parallel recover the complete canonical 0101 CORPORACION, DIP_NAC, DIP_DIST and DIP_PAR payloads and promote only those missing/partial layers through the existing idempotent helper; then run post-promotion QA without repeating CENTER_INDEX/PRESIDENTE."
+  "next_checkpoint": "Keep completed 0106/1901/0101 data fixed. On the isolated QA branch replace the iframe/srcDoc electoral map with the exact direct Leaflet DOM and Golden center-selection flyTo zoom 15 duration 0.8, then run rendered 0509->0106 module comparison. Backend next municipality after the parity gate is 0301, without repeating validated municipalities."
 }
