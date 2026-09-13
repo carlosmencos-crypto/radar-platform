@@ -108,7 +108,6 @@ export interface RadarRuntimeBundle {
   geo: MunicipalityGeoSummary;
   voter_roll: AuthorizedVoterRollSummary;
   demographics: AuthorizedDemographicSummary | null;
-  electoral_territory?: AuthorizedLayerRecord[];
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -176,6 +175,16 @@ export async function loadAuthorizedRadarLayers(municipalityCode: string, access
   }, accessToken);
 }
 
+export async function loadAuthorizedElectoralTerritoryLayers(municipalityCode: string, accessToken: string) {
+  const layers = await loadAuthorizedRadarLayers(municipalityCode, accessToken);
+  const electoralTerritory = layers.filter((layer) => electoralTerritoryLayerIds.has(layer.layer_id));
+  const layerIds = electoralTerritory.map((layer) => layer.layer_id);
+  if (layerIds.length !== new Set(layerIds).size) {
+    throw new Error("El runtime electoral autorizado devolvió capas duplicadas.");
+  }
+  return electoralTerritory;
+}
+
 export async function loadAuthorizedGeoSummary(
   municipalityCode: string,
   accessToken: string,
@@ -207,12 +216,9 @@ export async function loadAuthorizedGeoBundle(
 
 export async function loadRadarRuntimeBundle(municipalityCode: string, accessToken: string): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
-  const [bundle, authorizedLayers] = await Promise.all([
-    rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v6", {
-      p_municipality_code: municipalityCode,
-    }, accessToken),
-    loadAuthorizedRadarLayers(municipalityCode, accessToken),
-  ]);
+  const bundle = await rpc<RadarRuntimeBundle | null>("radar_authorized_runtime_v6", {
+    p_municipality_code: municipalityCode,
+  }, accessToken);
 
   if (
     !bundle ||
@@ -226,15 +232,5 @@ export async function loadRadarRuntimeBundle(municipalityCode: string, accessTok
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }
-
-  const electoralTerritory = authorizedLayers.filter((layer) => electoralTerritoryLayerIds.has(layer.layer_id));
-  const electoralLayerIds = electoralTerritory.map((layer) => layer.layer_id);
-  if (electoralLayerIds.length !== new Set(electoralLayerIds).size) {
-    throw new Error("El runtime electoral autorizado devolvió capas duplicadas.");
-  }
-
-  return {
-    ...bundle,
-    electoral_territory: electoralTerritory,
-  };
+  return bundle;
 }
