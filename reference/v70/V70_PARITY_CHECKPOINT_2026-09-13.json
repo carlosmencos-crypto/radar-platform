@@ -6,18 +6,20 @@
     "project": "radar-identidad-electoral",
     "version": 70,
     "published_commit": "eb6359211867ac0a81163b0a0242ea86608da56e",
-    "source_sha256": "964d06fb25ea95832b3c28c49b192de315e3b42337be4abb44940d499a2e41d2"
+    "source_sha256": "964d06fb25ea95832b3c28c49b192de315e3b42337be4abb44940d499a2e41d2",
+    "source_archive_verification": "PASS_LIBRARY_BYTES_SHA256_MATCH",
+    "exact_source_contract": {
+      "map_architecture": "DIRECT_LEAFLET_DOM",
+      "center_selection": "map.flyTo([center.lat, center.lon], 15, { duration: 0.8 })",
+      "election_tabs": ["Presidencia", "Lista nacional", "Distrito", "Alcaldía", "Parlacen"],
+      "layers": ["Electoral", "Escuelas", "CEM", "Salud", "Obras"]
+    }
   },
   "frontend_qa": {
     "branch": "qa/v70-golden-electoral-runtime",
     "draft_pr": 28,
-    "head_sha": "67b94c29e25c3729b8347c37653bbbf0eadb17e5",
-    "quality_run": 144,
-    "quality_conclusion": "success",
     "integration": "QA-only parity bridge; no merge/deploy/cutover",
     "bridge_context_qa": "PASS_AUTHORIZED_RUNTIME_CONTEXT",
-    "bridge_context_fix": "V70ElectoralParityBridge now consumes AuthorizedRuntimeContext directly, matching its actual provider boundary and removing the sibling MunicipalityContext runtime crash path",
-    "bridge_context_test": "tests/v70-electoral-bridge-context.test.mjs",
     "preserved_contract": [
       "El voto centro por centro",
       "Presidencia",
@@ -41,45 +43,95 @@
     ],
     "runtime_guardrail": "TREP layers are loaded through the authenticated RLS path and cached separately from canonical runtime.layers; the 340x17 contract is unchanged",
     "map_microfunction_qa": {
-      "status": "PASS_STATIC_CONTRACT",
-      "center_marker_geometry": "Golden 54px / active 62px anchor behavior locked",
-      "school_symbology": "Golden radius 6 / #f59e0b locked",
-      "health_symbology": "Golden radius 7 / #059669 locked",
-      "cem_semantics": "Golden 650m dashed reference circles around CEM-associated electoral centers; populated_place is not substituted for CEM",
-      "selection_extent": "Golden fitBounds behavior retained; directory selection does not force map recenter",
-      "works_semantics": "NO_PUBLICADO until an authorized same-period project geo layer exists"
+      "center_marker_geometry": "PASS_STATIC_GOLDEN_54_ACTIVE_62",
+      "school_symbology": "PASS_STATIC_GOLDEN_RADIUS_6_F59E0B",
+      "health_symbology": "PASS_STATIC_GOLDEN_RADIUS_7_059669",
+      "cem_semantics": "PASS_STATIC_GOLDEN_650M_DASHED_REFERENCE_CIRCLES",
+      "works_semantics": "FAIL_CLOSED_NO_AUTHORIZED_SAME_PERIOD_PROJECT_GEO_LAYER",
+      "selection_behavior": "FAIL_CURRENT_RUNTIME_DOES_NOT_MATCH_GOLDEN_FLYTO_Z15_DURATION_0_8",
+      "dom_architecture": "FAIL_CURRENT_RUNTIME_USES_IFRAME_SRCDOC_MAP_WHILE_GOLDEN_USES_DIRECT_LEAFLET_DOM"
     },
-    "visual_qa": "PENDING_RENDERED_SCREENSHOT_COMPARISON",
+    "visual_qa": "PENDING_RENDERED_SCREENSHOT_COMPARISON_AFTER_DIRECT_GOLDEN_MAP_INTEGRATION",
     "client_ready": false
   },
   "trep_data_vault": {
-    "0106": {"layers": 6, "center_option_rows": 1904, "centers": 16, "jrv": 210, "geo_exact": 15, "geo_held": 1},
-    "1901": {"layers": 6, "center_option_rows": 1386, "centers": 14, "jrv": 108, "geo_exact": 14, "geo_held": 0},
-    "0101": {"layers": 0, "promotion": "STAGED_QA_ONLY_NOT_YET_PROMOTED", "centers": 123, "jrv": 2023, "geo_exact": 122, "geo_held": 1, "center_option_rows_staged": 15006}
+    "0106": {
+      "layers_present": 6,
+      "center_option_rows": 1904,
+      "centers": 16,
+      "jrv": 210,
+      "geo_exact": 15,
+      "geo_held": 1,
+      "status": "VALIDATED_NO_REPROCESS"
+    },
+    "1901": {
+      "layers_present": 6,
+      "center_option_rows": 1386,
+      "centers": 14,
+      "jrv": 108,
+      "geo_exact": 14,
+      "geo_held": 0,
+      "status": "VALIDATED_NO_REPROCESS"
+    },
+    "0101": {
+      "layers_present": 3,
+      "ready_layers": ["TREP_2023_CENTER_INDEX", "TREP_2023_CENTER_RESULTS_PRESIDENTE"],
+      "partial_layers": ["TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL"],
+      "missing_layers": ["TREP_2023_CENTER_RESULTS_DIP_NAC", "TREP_2023_CENTER_RESULTS_DIP_DIST", "TREP_2023_CENTER_RESULTS_DIP_PAR"],
+      "centers": 123,
+      "jrv": 2023,
+      "geo_exact": 122,
+      "geo_held": 1,
+      "presidente_center_option_rows": 2706,
+      "corporacion_status": "BUILDING_FAIL_CLOSED",
+      "corporacion_center_metrics_present": 41,
+      "corporacion_center_option_rows_present": 0,
+      "staged_center_option_rows_total_expected": 15006,
+      "promotion": "PARTIAL_EXISTING_STATE_DISCOVERED_DO_NOT_REPEAT_READY_LAYERS"
+    },
+    "priority_after_0101": ["0301", "0901", "1601", "2201"]
   },
   "supabase_current_run": {
     "project_ref": "xxobbhnhxhcjkdxmjmwj",
-    "verification": "PARTIAL_METADATA_VERIFIED_SQL_BLOCKED_BEFORE_EXECUTION",
+    "verification": "PASS_SINGLE_STATEMENT_SQL_VERIFICATION",
     "data_vault_rls_inventory": "ENABLED_ON_LISTED_DATA_VAULT_TABLES",
-    "private_rls_inventory": "FAIL_12_PRIVATE_TABLES_RLS_DISABLED",
+    "private_rls_inventory": "12_PRIVATE_TABLES_RLS_DISABLED",
+    "effective_client_privileges": {
+      "anon": {
+        "private_schema_usage": false,
+        "selectable_private_tables": 0,
+        "writable_private_tables": 0
+      },
+      "authenticated": {
+        "private_schema_usage": true,
+        "selectable_private_tables": 0,
+        "writable_private_tables": 0
+      },
+      "helper_execute": {
+        "private.apply_voter_roll_community_batch": {"anon": false, "authenticated": false},
+        "private.upsert_singleton_layer_batch": {"anon": false, "authenticated": false}
+      }
+    },
     "security_advisor_api": "WARN_ONLY_LEAKED_PASSWORD_PROTECTION_DISABLED",
-    "security_qa": "FAIL_PENDING_EFFECTIVE_GRANT_VERIFICATION",
+    "security_qa": "PASS_NO_DIRECT_CLIENT_TABLE_PRIVILEGES_WITH_RLS_GAP_RETAINED_FOR_INTERNAL_PIPELINES",
     "writes": 0,
     "partial_writes": 0,
-    "action": "No bypass, no ad-hoc direct write, no DDL; retained last validated Data Vault checkpoint and surfaced the RLS inventory/advisor discrepancy"
+    "action": "No DDL or policy change. Do not enable RLS blindly on private staging/checkpoint tables; preserve internal pipelines and client privilege boundary."
   },
-  "snip_2026_priority_status": {
-    "0101": {"source_status": "DASHBOARD_READY", "project_count": 18, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"},
-    "0106": {"source_status": "DASHBOARD_READY", "project_count": 10, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"},
-    "1901": {"source_status": "DASHBOARD_READY", "project_count": 35, "geo_binding": "NOT_PRESENT_IN_PUBLIC_GEO_BUNDLE"}
+  "drive_current_run": {
+    "control": "GT_RADAR_ESCALAMIENTO_340_CONTROL_MUESTRA_12_v23",
+    "control_updated_at_utc": "2026-09-13T00:12:21.872Z",
+    "trep_folder": "05_TREP_2023",
+    "trep_subfolders_verified": ["01_PRESIDENTE", "02_DIP-NAC", "03_DIP-DIST", "04_CORPORACION", "05_DIP-PAR", "00_PACKAGE_BACKUP"],
+    "0101_missing_payload_recovery": "BLOCKED_FOLDER_CHILD_FILE_ENUMERATION_RETURNED_NO_FILES"
   },
   "fail_closed": [
-    "0101 TREP remains unpromoted; no partial write was made",
-    "Supabase execute_sql verification was blocked before execution in this run; no state is claimed from an unverified query",
-    "Twelve private schema tables are reported with RLS disabled by table inventory; no automatic RLS DDL was applied because equivalent policies and effective grants have not been verified",
-    "SNIP_2026 summary is not converted into work markers because the authorized public geo bundle contains no work/project feature type",
-    "The available SEGEPLAN 2025 geospatial product is not substituted into the canonical SNIP_2026 layer because periods must not be mixed",
-    "No screenshot parity PASS is claimed without a rendered Golden-vs-national comparison"
+    "Do not re-promote 0101 CENTER_INDEX or PRESIDENTE; both are already dashboard-ready in the authoritative Data Vault.",
+    "Do not treat 0101 CORPORACION_MUNICIPAL as published: its current payload is partial BUILDING_FAIL_CLOSED with 41 center metrics and zero center-option rows.",
+    "Do not synthesize DIP_NAC, DIP_DIST or DIP_PAR for 0101; source payloads must be recovered reproducibly before promotion.",
+    "Do not claim strict frontend parity while the QA runtime uses an iframe map and omits the Golden flyTo selection behavior.",
+    "Do not enable RLS blindly on private staging/checkpoint tables; effective client roles currently have zero direct table SELECT/write privileges.",
+    "Do not promote preview to client-ready without rendered Golden 0509 -> national screenshot comparison and zero unauthorized regressions."
   ],
-  "next_checkpoint": "Replace the QA DOM portal bridge with direct component integration while preserving the exact Golden DOM/CSS; obtain an isolated rendered QA endpoint and perform Golden 0509 -> 0106 screenshot comparison; promote the six validated 0101 TREP payloads only when the safe idempotent Supabase path is permitted; verify effective private-schema grants before any RLS policy change."
+  "next_checkpoint": "Replace the iframe/srcDoc electoral map with the exact direct Leaflet DOM/microfunctions from the verified V70 source, including center-selection flyTo zoom 15 duration 0.8; run QA before any merge. In parallel recover the complete canonical 0101 CORPORACION, DIP_NAC, DIP_DIST and DIP_PAR payloads and promote only those missing/partial layers through the existing idempotent helper; then run post-promotion QA without repeating CENTER_INDEX/PRESIDENTE."
 }
