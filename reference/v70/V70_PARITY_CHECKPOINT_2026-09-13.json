@@ -17,95 +17,86 @@
   "frontend_qa": {
     "branch": "qa/v70-golden-electoral-runtime",
     "draft_pr": 28,
-    "runtime_head_before_checkpoint_only_commits": "2718686383f2610d8fe9da3c590c4352f86765ab",
     "pr_state": "OPEN_DRAFT_NOT_MERGED",
     "integration": "QA-only; no merge/deploy/cutover",
-    "latest_runtime_quality": {"run_number": 155, "conclusion": "success", "artifacts": 0},
     "visual_qa": "PENDING_RENDERED_AUTHENTICATED_0509_TO_0106_SCREENSHOT_COMPARISON",
-    "client_ready": false
+    "client_ready": false,
+    "blocker": "No authenticated rendered screenshot artifact proving zero unauthorized regressions."
   },
   "trep_data_vault": {
     "authoritative_supabase_state": {
-      "complete_6_layer_municipalities": 27,
-      "complete_codes": ["0101","0102","0103","0105","0106","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117","0201","0202","0203","0204","0205","0206","0301","0901","1601","1901","2201"],
+      "complete_6_layer_municipalities": 28,
+      "complete_codes": ["0101","0102","0103","0105","0106","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117","0201","0202","0203","0204","0205","0206","0207","0301","0901","1601","1901","2201"],
       "semantic_no_publicado": ["0104"],
-      "resolved_contracts": 28,
-      "zero_layer_municipalities": 312,
+      "resolved_contracts_layer_presence_or_semantic": 29,
+      "zero_layer_municipalities": 311,
       "one_layer_semantic_municipalities": 1,
       "partial_materializations_2_to_5": 0,
-      "centers_universe": 618,
-      "jrv_universe": 6567,
-      "registered_voters_center_total": 2585780,
-      "geo_exact": 608,
+      "centers_universe": 630,
+      "jrv_universe": 6645,
+      "registered_voters_center_total": 2613496,
+      "geo_exact": 620,
       "geo_held": 10,
-      "center_option_rows": 72936
+      "validated_center_option_rows": 74112,
+      "actual_dense_center_option_rows": 56276,
+      "dense_rows_gap": 17836
     },
-    "0205": {
-      "municipality_name": "El Jícaro",
-      "department_name": "El Progreso",
-      "status": "PASS_6_OF_6_TREP_LAYERS",
-      "centers": 7,
-      "jrv": 26,
-      "registered_voters": 9982,
-      "geo_exact": 7,
-      "geo_held": 0,
-      "center_option_rows": 651,
-      "physical_center_crosswalk": "8_TREP_CODES_TO_7_PHYSICAL_CENTERS_CENTER_006_HAS_772_AND_774",
-      "elections": {
-        "PRESIDENTE": {"counted":26,"expected":26,"leader":"VAMOS","leader_votes":1565,"runner_up":"UNE","runner_up_votes":978},
-        "DIP_NAC": {"counted":26,"expected":26,"leader":"VAMOS","leader_votes":2060,"runner_up":"UNE","runner_up_votes":413},
-        "DIP_DIST": {"counted":26,"expected":26,"leader":"VAMOS","leader_votes":2468,"runner_up":"PODEMOS","runner_up_votes":621},
-        "CORPORACION_MUNICIPAL": {"counted":26,"expected":26,"leader":"VAMOS","leader_votes":3958,"runner_up":"AZUL","runner_up_votes":1187},
-        "DIP_PAR": {"counted":26,"expected":26,"leader":"VAMOS","leader_votes":2198,"runner_up":"UNE","runner_up_votes":479}
-      },
-      "qa": "PASS_POST_PROMOTION_VALID_VOTES_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_FOR_ALL_FIVE_ELECTIONS",
-      "source_status": "DASHBOARD_READY",
-      "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
-    },
-    "0206": {
-      "municipality_name": "Sansare",
-      "department_name": "El Progreso",
-      "status": "PASS_6_OF_6_TREP_LAYERS",
-      "centers": 4,
-      "jrv": 27,
-      "registered_voters": 10073,
-      "geo_exact": 4,
-      "geo_held": 0,
-      "center_option_rows": 400,
-      "physical_center_crosswalk": "5_TREP_CODES_TO_4_PHYSICAL_CENTERS_CENTER_002_HAS_776_AND_779",
-      "elections": {
-        "PRESIDENTE": {"counted":27,"expected":27,"leader":"UNE","leader_votes":1628,"runner_up":"CABAL","runner_up_votes":1147},
-        "DIP_NAC": {"counted":27,"expected":27,"leader":"CABAL","leader_votes":1316,"runner_up":"UNE","runner_up_votes":1053},
-        "DIP_DIST": {"counted":27,"expected":27,"leader":"CABAL","leader_votes":1827,"runner_up":"VAMOS","runner_up_votes":1345},
-        "CORPORACION_MUNICIPAL": {"counted":27,"expected":27,"leader":"VAMOS","leader_votes":1724,"runner_up":"CABAL","runner_up_votes":1656},
-        "DIP_PAR": {"counted":27,"expected":27,"leader":"UNE","leader_votes":1169,"runner_up":"VAMOS","runner_up_votes":1092}
-      },
-      "qa": "PASS_POST_PROMOTION_VALID_VOTES_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_FOR_ALL_FIVE_ELECTIONS",
-      "source_status": "DASHBOARD_READY",
-      "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
+    "strict_v70_dense_contract_audit": {
+      "status": "FAIL_3_MUNICIPALITIES_LEGACY_DELTA_CONTRACT",
+      "rule": "6/6 layer presence is not sufficient for V70 functional parity. All five election result layers must use trep_center_results_dense_v1 and preserve centers, options and votes_matrix.",
+      "dense_complete_municipalities": 25,
+      "dense_complete_codes": ["0102","0103","0105","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117","0201","0202","0203","0204","0205","0206","0207","0301","0901","1601","2201"],
+      "gaps": [
+        {"municipality_code":"0101","result_layers":5,"dense_layers":0,"expected_dense_rows":15006,"stored_dense_rows":0},
+        {"municipality_code":"0106","result_layers":5,"dense_layers":1,"expected_dense_rows":1904,"stored_dense_rows":320},
+        {"municipality_code":"1901","result_layers":5,"dense_layers":1,"expected_dense_rows":1386,"stored_dense_rows":140}
+      ],
+      "priority": ["0106","1901","0101"],
+      "action": "Repair legacy delta election payloads before considering these priority municipalities functionally parity-complete."
     },
     "0207": {
       "municipality_name": "Sanarate",
       "department_name": "El Progreso",
-      "status": "PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "status": "PASS_6_OF_6_TREP_LAYERS_DASHBOARD_READY",
       "centers": 12,
       "jrv": 78,
       "registered_voters": 27716,
       "geo_exact": 12,
       "geo_held": 0,
       "center_option_rows": 1176,
-      "physical_center_crosswalk": "15_TREP_CODES_TO_12_PHYSICAL_CENTERS; centers 001 has 780+781, 002 has 782+784+785, 003 has 783+786",
+      "physical_center_crosswalk": "15_TREP_CODES_TO_12_PHYSICAL_CENTERS; center 001 has 780+781, 002 has 782+784+785, 003 has 783+786",
       "elections": {
-        "PRESIDENTE": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":3746,"runner_up":"UNE","runner_up_votes":2562},
-        "DIP_NAC": {"counted":77,"expected":78,"leader":"VAMOS","leader_votes":5326,"runner_up":"CABAL","runner_up_votes":2593},
-        "DIP_DIST": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":7157,"runner_up":"CABAL","runner_up_votes":3741},
-        "CORPORACION_MUNICIPAL": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":7382,"runner_up":"CABAL","runner_up_votes":5455},
-        "DIP_PAR": {"counted":78,"expected":78,"leader":"VAMOS","leader_votes":5533,"runner_up":"UNE","runner_up_votes":2233}
+        "PRESIDENTE": {"counted":78,"expected":78,"valid":14192,"leader":"VAMOS","leader_votes":3746,"runner_up":"UNE","runner_up_votes":2562},
+        "DIP_NAC": {"counted":77,"expected":78,"valid":14097,"leader":"VAMOS","leader_votes":5326,"runner_up":"CABAL","runner_up_votes":2593},
+        "DIP_DIST": {"counted":78,"expected":78,"valid":16465,"leader":"VAMOS","leader_votes":7157,"runner_up":"CABAL","runner_up_votes":3741},
+        "CORPORACION_MUNICIPAL": {"counted":78,"expected":78,"valid":18186,"leader":"VAMOS","leader_votes":7382,"runner_up":"CABAL","runner_up_votes":5455},
+        "DIP_PAR": {"counted":78,"expected":78,"valid":12593,"leader":"VAMOS","leader_votes":5533,"runner_up":"UNE","runner_up_votes":2233}
       },
-      "qa": "PASS_PREVALIDATION_ALL_FIVE_VALID_CALCULATED_EQUALS_OPTION_SUM_AND_VALID_PLUS_NULL_PLUS_BLANK_EQUALS_EMITTED_78_JRV_MAPPED; DIP_NAC_77_OF_78_COUNTED",
+      "qa": "PASS_POST_PROMOTION_VALID_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_ALL_FIVE",
+      "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
+    },
+    "0208": {
+      "municipality_name": "San Antonio La Paz",
+      "department_name": "El Progreso",
+      "status": "PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "centers": 3,
+      "jrv": 38,
+      "registered_voters": 13983,
+      "geo_exact": 3,
+      "geo_held": 0,
+      "center_option_rows": 285,
+      "physical_center_crosswalk": "4_TREP_CODES_TO_3_PHYSICAL_CENTERS; center 001 has 796+799",
+      "elections": {
+        "PRESIDENTE": {"counted":38,"expected":38,"valid":5826,"leader":"UNE","leader_votes":1185,"runner_up":"VAMOS","runner_up_votes":878},
+        "DIP_NAC": {"counted":38,"expected":38,"valid":5930,"leader":"VAMOS","leader_votes":1346,"runner_up":"CABAL","runner_up_votes":1098},
+        "DIP_DIST": {"counted":38,"expected":38,"valid":6527,"leader":"VAMOS","leader_votes":1772,"runner_up":"CABAL","runner_up_votes":1394},
+        "CORPORACION_MUNICIPAL": {"counted":38,"expected":38,"valid":7820,"leader":"VAMOS","leader_votes":2533,"runner_up":"ESDELCA","runner_up_votes":1980},
+        "DIP_PAR": {"counted":38,"expected":38,"valid":5469,"leader":"VAMOS","leader_votes":1530,"runner_up":"UNE","runner_up_votes":785}
+      },
+      "qa": "PASS_PREVALIDATION_VALID_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_ALL_FIVE",
       "promotion": "ZERO_WRITES_PREVALIDATION_ONLY",
       "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
-      "corporacion_raw_sha256": "e436af9caee42adccbfb1cbf835026d057b2f96821c1514302056a68082f9f32"
+      "corporacion_raw_sha256": "6ab2b392a010e84428640c292fa36ef49531d380529d34a2981e159274998d5c"
     }
   },
   "supabase": {
@@ -113,15 +104,15 @@
     "promotion_helper": "private.upsert_singleton_layer_batch",
     "private_rls_inventory": "12_OF_12_PRIVATE_TABLES_RLS_ENABLED",
     "private_direct_select": "ANON_0_AUTHENTICATED_0",
-    "data_vault_rls": "MUNICIPALITY_LAYER_RECORDS_AND_GEO_FEATURES_RLS_ENABLED_ANON_NO_SELECT",
+    "data_vault_rls": "MUNICIPALITY_LAYER_RECORDS_AND_GEO_FEATURES_RLS_ENABLED",
     "security_qa": "PASS_FAIL_CLOSED"
   },
   "fail_closed": [
-    "Do not reprocess 6/6 municipalities unless source evidence changes.",
+    "Do not mark 6/6 layer presence as strict V70 parity when election result payloads still use legacy delta contracts.",
     "Keep 0104 as semantic NO_PUBLICADO; do not fabricate empty election payloads.",
     "Do not mark client-ready until rendered authenticated Golden 0509 -> 0106 comparison reaches zero unauthorized regressions.",
-    "Do not bypass private.upsert_singleton_layer_batch or use direct ad-hoc UPDATE for TREP promotion.",
+    "Do not bypass private.upsert_singleton_layer_batch for TREP promotion.",
     "No merge/deploy/cutover from QA branch while visual parity remains FAIL."
   ],
-  "next_checkpoint": "Promote the six prevalidated 0207 Sanarate TREP layers only through private.upsert_singleton_layer_batch, run post-promotion stored matrix/options/vote identity QA, then prevalidate 0208 San Antonio La Paz. Keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
+  "next_checkpoint": "Repair strict dense election contracts in priority order 0106, 1901, 0101, post-validate matrix/options/vote identities, then promote already-prevalidated 0208 San Antonio La Paz. Keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
 }
