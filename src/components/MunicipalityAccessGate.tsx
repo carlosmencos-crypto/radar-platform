@@ -19,6 +19,7 @@ import {
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
+import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 
 type GateState =
   | { status: "loading" }
@@ -129,5 +130,5 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime />{section === "inteligencia" ? <V70ElectoralParityBridge /> : null}</AuthorizedRuntimeProvider>;
 }
