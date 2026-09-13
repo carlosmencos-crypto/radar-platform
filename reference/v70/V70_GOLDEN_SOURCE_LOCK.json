@@ -1,0 +1,50 @@
+{
+  "project": "radar-identidad-electoral",
+  "version": 70,
+  "canonical_url": "https://radar-identidad-electoral.carlos-mencos.chatgpt.site/",
+  "published_commit": "eb6359211867ac0a81163b0a0242ea86608da56e",
+  "exported_at_utc": "2026-09-13T01:56:56Z",
+  "source_archive": {
+    "name": "RADAR_IDENTIDAD_ELECTORAL_V70_SOURCE_CANONICAL.zip",
+    "sha256": "964d06fb25ea95832b3c28c49b192de315e3b42337be4abb44940d499a2e41d2",
+    "bytes": 5001475
+  },
+  "published_artifact": {
+    "files": 236,
+    "bytes": 10516480,
+    "sha256": "e782bbe983b98c051abceb2e98aec72173e0a634725b020c4bb993463437001a"
+  },
+  "critical_files": {
+    "app/municipio-360/page.tsx": "7aad868c2af5daf741543588e978b71946d4852c52d8e7fc7a76c4b9e130a89d",
+    "app/globals.css": "72cb2595f0bd5c386c7530a30435f253244e83dfc157ef10ddd47af665bb9a57",
+    "app/portal.css": "b7b6e1d529f36a8f57fb201d599a31f59a788d76dee68ab0f4ac9f8c5bcaf7ec",
+    "app/radar-brand-v3.css": "2ec7c0b52fe34c51c511b74ebb0e454242e7a17247e4a248f4e23ece8f026554",
+    "app/radar-data.ts": "fe5d2e4fced084f92e829d0487d8fe6b8318990e54f1bec57073bf4b03c89e05"
+  },
+  "municipio_360_contract": {
+    "route": "/municipio-360",
+    "eyebrow": "INTELIGENCIA ELECTORAL TERRITORIAL",
+    "title": "El voto centro por centro",
+    "election_tabs": ["Presidencia", "Lista nacional", "Distrito", "Alcaldía", "Parlacen"],
+    "map_layers": ["Electoral", "Escuelas", "CEM", "Salud", "Obras"],
+    "required_features": [
+      "Expediente Municipal 360",
+      "directorio de centros/JRV",
+      "popover detallado por centro",
+      "ranking de Corporación Municipal",
+      "leyendas",
+      "notas de universo",
+      "Exportar vista",
+      "scrolls independientes",
+      "hover/active states"
+    ],
+    "missing_data_states": ["NO_PUBLICADO", "PARCIAL", "SIN_REGISTRO", "SIN_ASOCIACION"]
+  },
+  "guardrails": {
+    "no_dom_redesign": true,
+    "no_css_redesign": true,
+    "no_private_bundle": true,
+    "screenshot_parity_required": true,
+    "client_ready_requires_zero_unauthorized_regressions": true
+  }
+}
