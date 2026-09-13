@@ -11,7 +11,7 @@ import {
   installRadarRuntime,
 } from "../data/radarRuntimeCache";
 import { loadAuthorizedGeoBundle, type MunicipalityGeoBundle } from "../data/radarRuntime";
-import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
+import { MunicipalDashboardV70Golden } from "./MunicipalDashboardV70Golden";
 
 type GateState =
   | { status: "loading" }
@@ -110,5 +110,5 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Golden /></AuthorizedRuntimeProvider>;
 }
