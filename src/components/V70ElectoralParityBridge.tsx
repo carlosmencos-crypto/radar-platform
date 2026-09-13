@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useMunicipalityContext } from "../context/MunicipalityContext";
+import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { getInstalledRadarElectoralLayers, getInstalledRadarGeoBundle } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 import { V70ElectoralTerritory } from "./V70ElectoralTerritory";
@@ -18,7 +18,9 @@ function resolveViewModel(municipalityCode: string): V70ElectoralViewModel | nul
 }
 
 export function V70ElectoralParityBridge() {
-  const { municipality_code, municipality_name } = useMunicipalityContext();
+  const authorized = useAuthorizedRadarRuntime();
+  const municipality_code = authorized.municipality.code;
+  const municipality_name = authorized.municipality.displayName ?? authorized.municipality.name;
   const [host, setHost] = useState<HTMLElement | null>(null);
   const electoralView = useMemo(() => resolveViewModel(municipality_code), [municipality_code]);
   const geoBundle = getInstalledRadarGeoBundle(municipality_code);
