@@ -2,13 +2,43 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { MunicipalityGeoBundle } from "../data/radarRuntime";
 import type {
   V70ElectionCode,
-  V70ElectionSummary,
   V70ElectoralCenter,
   V70ElectoralViewModel,
 } from "../data/v70ElectoralAdapter";
 
 type Metric = "leader" | "turnout" | "margin" | "coverage";
 type Layers = { electoral: boolean; schools: boolean; territory: boolean; health: boolean; works: boolean };
+type LatLng = [number, number];
+type LeafletIcon = object;
+type LeafletBounds = { extend(point: LatLng): LeafletBounds; isValid(): boolean };
+type LeafletMap = {
+  fitBounds(bounds: LeafletBounds, options: { padding: [number, number] }): LeafletMap;
+  setView(point: LatLng, zoom: number): LeafletMap;
+  flyTo(point: LatLng, zoom: number, options: { duration: number }): LeafletMap;
+  invalidateSize(): LeafletMap;
+  remove(): void;
+};
+type LeafletMarker = {
+  addTo(map: LeafletMap): LeafletMarker;
+  remove(): void;
+  setIcon(icon: LeafletIcon): LeafletMarker;
+  on(event: "click", handler: () => void): LeafletMarker;
+  bindTooltip(html: string): LeafletMarker;
+};
+type LeafletCircle = { addTo(map: LeafletMap): LeafletCircle; remove(): void; bindTooltip(html: string): LeafletCircle };
+type LeafletLayerGroup = { addTo(map: LeafletMap): LeafletLayerGroup; remove(): void };
+type LeafletNamespace = {
+  map(node: HTMLElement, options: { zoomControl: boolean; attributionControl: boolean; preferCanvas: boolean }): LeafletMap;
+  control: { zoom(options: { position: "bottomright" }): { addTo(map: LeafletMap): unknown } };
+  tileLayer(url: string, options: { maxZoom: number; attribution: string }): { addTo(map: LeafletMap): unknown };
+  latLngBounds(points: LatLng[]): LeafletBounds;
+  marker(point: LatLng, options: { icon: LeafletIcon; title: string }): LeafletMarker;
+  divIcon(options: { className: string; html: string; iconSize: [number, number]; iconAnchor: [number, number] }): LeafletIcon;
+  circleMarker(point: LatLng, options: { radius: number; color: string; weight: number; fillColor: string; fillOpacity: number }): LeafletMarker;
+  circle(point: LatLng, options: { radius: number; color: string; weight: number; dashArray: string; fillColor: string; fillOpacity: number }): LeafletCircle;
+  layerGroup(layers: LeafletMarker[]): LeafletLayerGroup;
+};
+type LeafletWindow = Window & { L?: LeafletNamespace; __radarLeafletPromise?: Promise<LeafletNamespace> };
 
 const fmt = new Intl.NumberFormat("es-GT");
 const partyColors: Record<string, string> = {
@@ -54,8 +84,38 @@ function metricLabel(center: V70ElectoralCenter, code: V70ElectionCode, metric: 
   if (metric === "margin") return pct(result.marginShare, 0);
   return `${result.counted ?? "—"}/${result.expected}`;
 }
-function escapeScriptJson(value: unknown) {
-  return JSON.stringify(value).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026");
+function clean(value: string) {
+  return value.replace(/[<>&]/g, "");
+}
+
+function ensureLeaflet() {
+  const target = window as LeafletWindow;
+  if (target.L) return Promise.resolve(target.L);
+  if (target.__radarLeafletPromise) return target.__radarLeafletPromise;
+  if (!document.getElementById("radar-leaflet-css")) {
+    const link = document.createElement("link");
+    link.id = "radar-leaflet-css";
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(link);
+  }
+  target.__radarLeafletPromise = new Promise<LeafletNamespace>((resolve, reject) => {
+    const finish = () => target.L ? resolve(target.L) : reject(new Error("Leaflet did not initialize"));
+    const existing = document.getElementById("radar-leaflet-js") as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Leaflet failed to load")), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "radar-leaflet-js";
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.async = true;
+    script.addEventListener("load", finish, { once: true });
+    script.addEventListener("error", () => reject(new Error("Leaflet failed to load")), { once: true });
+    document.head.appendChild(script);
+  });
+  return target.__radarLeafletPromise;
 }
 
 function MetricLegend({ metric }: { metric: Metric }) {
@@ -68,51 +128,20 @@ function MetricLegend({ metric }: { metric: Metric }) {
   return <div className="map-legend"><b>{metricNames[metric]}</b><div>{items.map(([color, label]) => <span key={label}><i style={{ background: color }} />{label}</span>)}</div></div>;
 }
 
-function buildMapDocument(
-  viewModel: V70ElectoralViewModel,
-  geo: MunicipalityGeoBundle | undefined,
-  electionCode: V70ElectionCode,
-  metric: Metric,
-  layers: Layers,
-  selectedId: string,
-) {
-  const centers = viewModel.centers.filter((center) => center.lat !== null && center.lon !== null).map((center) => ({
-    id: center.id,
-    name: center.name,
-    community: center.community,
-    lat: center.lat,
-    lon: center.lon,
-    active: center.id === selectedId,
-    color: markerColor(center, electionCode, metric),
-    label: metricLabel(center, electionCode, metric),
-  }));
-  const support = (geo?.features ?? []).filter((feature) => feature.latitude !== null && feature.longitude !== null).map((feature) => ({
-    type: feature.feature_type,
-    name: feature.feature_name ?? feature.feature_type,
-    lat: feature.latitude,
-    lon: feature.longitude,
-  }));
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>
-html,body,#map{height:100%;width:100%;margin:0;background:#f7f5ef}.leaflet-container{font-family:Inter,Arial,sans-serif}.radar-marker-shell{background:transparent!important;border:0!important}.radar-marker{width:50px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px 12px 12px 2px;background:var(--marker);color:white;border:3px solid white;box-shadow:0 5px 14px rgba(47,52,58,.31);transform:rotate(-45deg);transition:.18s ease}.radar-marker b,.radar-marker small{transform:rotate(45deg);display:block;line-height:1}.radar-marker b{font-size:10px}.radar-marker small{font-size:7.5px;max-width:39px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:5px}.radar-marker-shell.active .radar-marker{box-shadow:0 0 0 4px #2d333a,0 7px 19px rgba(47,52,58,.4);transform:rotate(-45deg) scale(1.12)}
-</style></head><body><div id="map"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>(function(){
-const centers=${escapeScriptJson(centers)};const support=${escapeScriptJson(support)};const layers=${escapeScriptJson(layers)};
-const map=L.map('map',{zoomControl:false,attributionControl:true,preferCanvas:true});L.control.zoom({position:'bottomright'}).addTo(map);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);const bounds=L.latLngBounds([]);
-function clean(v){return String(v||'').replace(/[<>&]/g,'');}
-if(layers.electoral){centers.forEach(function(c){const marker=L.marker([c.lat,c.lon],{icon:L.divIcon({className:'radar-marker-shell'+(c.active?' active':''),html:'<span class="radar-marker" style="--marker:'+c.color+'"><b>'+clean(c.id)+'</b><small>'+clean(c.label)+'</small></span>',iconSize:c.active?[62,62]:[54,54],iconAnchor:c.active?[31,55]:[27,47]}),title:c.name}).addTo(map);marker.on('click',function(){parent.postMessage({type:'RADAR_V70_CENTER_SELECT',id:c.id},'*')});bounds.extend([c.lat,c.lon]);});}
-support.forEach(function(p){if(p.type==='school'&&layers.schools){L.circleMarker([p.lat,p.lon],{radius:6,color:'#fff',weight:2,fillColor:'#f59e0b',fillOpacity:.98}).bindTooltip('<b>'+clean(p.name)+'</b><br><small>MINEDUC/SEGEPLAN · sede física</small>').addTo(map);bounds.extend([p.lat,p.lon]);}if(p.type==='health_facility'&&layers.health){L.circleMarker([p.lat,p.lon],{radius:7,color:'#fff',weight:3,fillColor:'#059669',fillOpacity:1}).bindTooltip('<b>'+clean(p.name)+'</b>').addTo(map);bounds.extend([p.lat,p.lon]);}});
-if(layers.territory){centers.filter(function(c){return /^cem(?:\\b|\\s|\\s*·)/i.test(c.community||'');}).forEach(function(c){L.circle([c.lat,c.lon],{radius:650,color:'#7c3aed',weight:2,dashArray:'5 7',fillColor:'#8b5cf6',fillOpacity:.12}).bindTooltip(clean(c.community)+' · referencia territorial, no polígono oficial').addTo(map);bounds.extend([c.lat,c.lon]);});}
-if(bounds.isValid()){map.fitBounds(bounds,{padding:[48,48]});}else{map.setView([15.5,-90.25],7);}setTimeout(function(){map.invalidateSize()},80);
-})();</script></body></html>`;
-}
-
 export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70ElectoralViewModel; geoBundle?: MunicipalityGeoBundle }) {
   const initialElection: V70ElectionCode = viewModel.elections.some((item) => item.code === "CORPORACION_MUNICIPAL") ? "CORPORACION_MUNICIPAL" : viewModel.elections[0]?.code ?? "CORPORACION_MUNICIPAL";
+  const mapNode = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const healthRef = useRef<LeafletLayerGroup | null>(null);
+  const schoolsRef = useRef<LeafletLayerGroup | null>(null);
+  const territoryRef = useRef<LeafletCircle[]>([]);
   const [selectedId, setSelectedId] = useState(viewModel.centers[0]?.id ?? "");
   const [electionCode, setElectionCode] = useState<V70ElectionCode>(initialElection);
   const [metric, setMetric] = useState<Metric>("leader");
   const [query, setQuery] = useState("");
+  const [mapReady, setMapReady] = useState(false);
   const [layers, setLayers] = useState<Layers>({ electoral: true, schools: true, territory: false, health: true, works: true });
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const selected = viewModel.centers.find((center) => center.id === selectedId) ?? viewModel.centers[0];
   const election = viewModel.elections.find((item) => item.code === electionCode) ?? viewModel.elections[0];
@@ -124,17 +153,120 @@ export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70
   }, [query, viewModel.centers]);
   const schoolCount = geoBundle?.feature_counts.school ?? 0;
   const healthCount = geoBundle?.feature_counts.health_facility ?? 0;
-  const mapHtml = useMemo(() => buildMapDocument(viewModel, geoBundle, electionCode, metric, layers, selectedId), [viewModel, geoBundle, electionCode, metric, layers, selectedId]);
 
   useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.source !== iframeRef.current?.contentWindow || event.data?.type !== "RADAR_V70_CENTER_SELECT") return;
-      const id = typeof event.data.id === "string" ? event.data.id : "";
-      if (viewModel.centers.some((center) => center.id === id)) setSelectedId(id);
+    setSelectedId(viewModel.centers[0]?.id ?? "");
+    setElectionCode(viewModel.elections.some((item) => item.code === "CORPORACION_MUNICIPAL") ? "CORPORACION_MUNICIPAL" : viewModel.elections[0]?.code ?? "CORPORACION_MUNICIPAL");
+  }, [viewModel.municipalityCode, viewModel.centers, viewModel.elections]);
+
+  useEffect(() => {
+    if (!mapNode.current || mapRef.current) return;
+    let cancelled = false;
+    void ensureLeaflet().then((L) => {
+      if (cancelled || !mapNode.current) return;
+      const map = L.map(mapNode.current, { zoomControl: false, attributionControl: true, preferCanvas: true });
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+      const bounds = L.latLngBounds([]);
+      viewModel.centers.forEach((center) => {
+        if (center.lat === null || center.lon === null) return;
+        const result = centerResult(center, initialElection);
+        const marker = L.marker([center.lat, center.lon], {
+          icon: L.divIcon({
+            className: "radar-marker-shell",
+            html: `<span class="radar-marker" style="--marker:${markerColor(center, initialElection, "leader")}"><b>${clean(center.id)}</b><small>${clean(result.leader ?? result.availability)}</small></span>`,
+            iconSize: [54, 54], iconAnchor: [27, 47],
+          }),
+          title: center.name,
+        }).addTo(map);
+        marker.on("click", () => setSelectedId(center.id));
+        markersRef.current[center.id] = marker;
+        bounds.extend([center.lat, center.lon]);
+      });
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [48, 48] });
+      else map.setView([15.5, -90.25], 7);
+      mapRef.current = map;
+      setMapReady(true);
+      window.setTimeout(() => map.invalidateSize(), 80);
+    }).catch(() => setMapReady(false));
+    return () => {
+      cancelled = true;
+      setMapReady(false);
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markersRef.current = {};
+      healthRef.current = null;
+      schoolsRef.current = null;
+      territoryRef.current = [];
     };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, [viewModel.centers]);
+  }, [viewModel.municipalityCode]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    void ensureLeaflet().then((L) => {
+      viewModel.centers.forEach((center) => {
+        const marker = markersRef.current[center.id];
+        if (!marker) return;
+        const active = center.id === selectedId;
+        marker.setIcon(L.divIcon({
+          className: `radar-marker-shell ${active ? "active" : ""}`,
+          html: `<span class="radar-marker" style="--marker:${markerColor(center, electionCode, metric)}"><b>${clean(center.id)}</b><small>${clean(metricLabel(center, electionCode, metric))}</small></span>`,
+          iconSize: [active ? 62 : 54, active ? 62 : 54], iconAnchor: [active ? 31 : 27, active ? 55 : 47],
+        }));
+      });
+    });
+  }, [electionCode, mapReady, metric, selectedId, viewModel.centers]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    void ensureLeaflet().then((L) => {
+      const map = mapRef.current;
+      if (!map) return;
+      healthRef.current?.remove();
+      schoolsRef.current?.remove();
+      territoryRef.current.forEach((circle) => circle.remove());
+      healthRef.current = null;
+      schoolsRef.current = null;
+      territoryRef.current = [];
+      const features = geoBundle?.features ?? [];
+      if (layers.health) {
+        const healthMarkers = features.filter((feature) => feature.feature_type === "health_facility" && feature.latitude !== null && feature.longitude !== null).map((site) =>
+          L.circleMarker([site.latitude!, site.longitude!], { radius: 7, color: "#fff", weight: 3, fillColor: "#059669", fillOpacity: 1 })
+            .bindTooltip(`<b>${clean(site.feature_name ?? "Salud")}</b>`).addTo(map),
+        );
+        healthRef.current = L.layerGroup(healthMarkers).addTo(map);
+      }
+      if (layers.schools) {
+        const schoolMarkers = features.filter((feature) => feature.feature_type === "school" && feature.latitude !== null && feature.longitude !== null).map((site) =>
+          L.circleMarker([site.latitude!, site.longitude!], { radius: 6, color: "#fff", weight: 2, fillColor: "#f59e0b", fillOpacity: .98 })
+            .bindTooltip(`<b>${clean(site.feature_name ?? "Escuela")}</b><br><small>MINEDUC/SEGEPLAN · sede física</small>`).addTo(map),
+        );
+        schoolsRef.current = L.layerGroup(schoolMarkers).addTo(map);
+      }
+      if (layers.territory) {
+        territoryRef.current = viewModel.centers.filter((center) => center.lat !== null && center.lon !== null && /^cem(?:\b|\s|\s*·)/i.test(center.community)).map((center) =>
+          L.circle([center.lat!, center.lon!], { radius: 650, color: "#7c3aed", weight: 2, dashArray: "5 7", fillColor: "#8b5cf6", fillOpacity: .12 })
+            .bindTooltip(`${clean(center.community)} · referencia territorial, no polígono oficial`).addTo(map),
+        );
+      }
+    });
+  }, [geoBundle, layers.health, layers.schools, layers.territory, mapReady, viewModel.centers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    (Object.values(markersRef.current) as LeafletMarker[]).forEach((marker) => layers.electoral ? marker.addTo(map) : marker.remove());
+  }, [layers.electoral, mapReady]);
+
+  function focusCenter(id: string) {
+    const center = viewModel.centers.find((item) => item.id === id);
+    if (!center) return;
+    setSelectedId(id);
+    if (center.lat !== null && center.lon !== null) mapRef.current?.flyTo([center.lat, center.lon], 15, { duration: .8 });
+  }
 
   if (!election) return null;
   return <>
@@ -148,7 +280,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70
           <div className="directory-head"><div><p className="eyebrow">DIRECTORIO ELECTORAL</p><h3>{viewModel.centers.length} centros · {viewModel.centers.reduce((total, center) => total + center.jrv, 0)} JRV</h3></div><span>{filtered.length}</span></div>
           <label className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar centro o comunidad" /></label>
           <div className="center-list">
-            {filtered.map((center) => { const result = centerResult(center, electionCode); return <button key={center.id} className={`center-row ${center.id === selectedId ? "selected" : ""}`} onClick={() => setSelectedId(center.id)}><span className="center-code">{center.id}</span><span className="center-copy"><b>{center.name}</b><small>{center.community} · JRV {center.jrvRange}{center.geoState === "SIN_ASOCIACION" ? " · SIN ASOCIACIÓN" : ""}</small></span><span className="center-result"><b>{result.leader ?? result.availability}</b><small>{pct(result.leaderShare)}</small></span></button>; })}
+            {filtered.map((center) => { const result = centerResult(center, electionCode); return <button key={center.id} className={`center-row ${center.id === selectedId ? "selected" : ""}`} onClick={() => focusCenter(center.id)}><span className="center-code">{center.id}</span><span className="center-copy"><b>{center.name}</b><small>{center.community} · JRV {center.jrvRange}{center.geoState === "SIN_ASOCIACION" ? " · SIN ASOCIACIÓN" : ""}</small></span><span className="center-result"><b>{result.leader ?? result.availability}</b><small>{pct(result.leaderShare)}</small></span></button>; })}
           </div>
           <div className="directory-note"><b>Scroll independiente</b><span>Selecciona cualquier centro para mantener visibles su JRV, cobertura y desglose electoral.</span></div>
         </aside>
@@ -164,7 +296,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70
             </div>
           </div>
           <div className="active-reading"><span>Visualizando</span><b>{election.shortName} · {metricNames[metric]}</b><small>Los colores y valores de los {viewModel.centers.length} nodos responden a esta selección.</small></div>
-          <iframe ref={iframeRef} className="real-map" title={`Mapa interactivo de centros de votación de ${viewModel.municipalityName}`} srcDoc={mapHtml} sandbox="allow-scripts" referrerPolicy="strict-origin-when-cross-origin" style={{ border: 0 }} />
+          <div ref={mapNode} className="real-map" role="img" aria-label={`Mapa interactivo de centros de votación de ${viewModel.municipalityName}`} />
           <MetricLegend metric={metric} />
           <div className="map-source"><span>Mapa base © OpenStreetMap · {viewModel.qa.geoExact} centros geolocalizados{viewModel.qa.geoHeld ? ` · ${viewModel.qa.geoHeld} SIN_ASOCIACION` : ""}</span><span>TREP 2023 · corte preliminar {viewModel.snapshot ?? "no publicado"}</span></div>
           {selected && selectedResult ? <article className="center-card include-print" aria-live="polite">
