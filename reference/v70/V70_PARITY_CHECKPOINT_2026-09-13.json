@@ -17,12 +17,13 @@
   "frontend_qa": {
     "branch": "qa/v70-golden-electoral-runtime",
     "draft_pr": 28,
-    "head_sha_before_checkpoint_commit": "fc8d93d16000e29c254754e4320d56c115861482",
+    "head_sha_before_checkpoint_commit": "c427f675d95c357b767d4326026652b537457c57",
+    "pr_state": "OPEN_DRAFT_NOT_MERGED",
     "integration": "QA-only; no merge/deploy/cutover",
     "latest_quality_before_checkpoint_commit": {
-      "run_number": 151,
+      "run_number": 152,
       "conclusion": "success",
-      "head_sha": "fc8d93d16000e29c254754e4320d56c115861482",
+      "head_sha": "c427f675d95c357b767d4326026652b537457c57",
       "artifacts": 0
     },
     "visual_qa": "PENDING_RENDERED_AUTHENTICATED_0509_TO_0106_SCREENSHOT_COMPARISON",
@@ -30,58 +31,61 @@
   },
   "trep_data_vault": {
     "authoritative_supabase_state": {
-      "complete_6_layer_municipalities": 22,
-      "complete_codes": ["0101", "0102", "0103", "0105", "0106", "0107", "0108", "0109", "0110", "0111", "0112", "0113", "0114", "0115", "0116", "0117", "0201", "0301", "0901", "1601", "1901", "2201"],
+      "complete_6_layer_municipalities": 24,
+      "complete_codes": ["0101", "0102", "0103", "0105", "0106", "0107", "0108", "0109", "0110", "0111", "0112", "0113", "0114", "0115", "0116", "0117", "0201", "0202", "0203", "0301", "0901", "1601", "1901", "2201"],
       "semantic_no_publicado": ["0104"],
-      "resolved_contracts": 23,
-      "zero_layer_municipalities": 317,
-      "partial_materializations": 0,
-      "centers_universe": 591,
-      "jrv_universe": 6398,
-      "registered_voters_center_total": 2523133,
-      "geo_exact": 581,
+      "resolved_contracts": 25,
+      "zero_layer_municipalities": 315,
+      "one_layer_semantic_municipalities": 1,
+      "partial_materializations_2_to_5": 0,
+      "centers_universe": 604,
+      "jrv_universe": 6497,
+      "registered_voters_center_total": 2559793,
+      "geo_exact": 594,
       "geo_held": 10,
-      "center_option_rows": 70330
+      "center_option_rows": 71603
     },
-    "0201": {
-      "municipality_name": "Guastatoya",
+    "0203": {
+      "municipality_name": "San Agustín Acasaguastlán",
       "department_name": "El Progreso",
       "status": "PASS_6_OF_6_TREP_LAYERS",
       "centers": 8,
-      "jrv": 61,
-      "registered_voters": 22558,
+      "jrv": 73,
+      "registered_voters": 26669,
       "geo_exact": 8,
       "geo_held": 0,
-      "center_option_rows": 760,
+      "center_option_rows": 808,
+      "physical_center_crosswalk": "9_TREP_CODES_TO_8_PHYSICAL_CENTERS_CENTER_003_HAS_756_AND_757",
       "elections": {
-        "PRESIDENTE": {"counted": 59, "expected": 61, "leader": "VALOR UNIONISTA", "leader_votes": 2402, "runner_up": "VAMOS", "runner_up_votes": 2066},
-        "DIP_NAC": {"counted": 61, "expected": 61, "leader": "VAMOS", "leader_votes": 3275, "runner_up": "VALOR UNIONISTA", "runner_up_votes": 2095},
-        "DIP_DIST": {"counted": 61, "expected": 61, "leader": "VALOR", "leader_votes": 4547, "runner_up": "VAMOS", "runner_up_votes": 4024},
-        "CORPORACION_MUNICIPAL": {"counted": 61, "expected": 61, "leader": "VALOR", "leader_votes": 7343, "runner_up": "VAMOS", "runner_up_votes": 6687},
-        "DIP_PAR": {"counted": 61, "expected": 61, "leader": "VAMOS", "leader_votes": 3354, "runner_up": "VALOR UNIONISTA", "runner_up_votes": 2402}
+        "PRESIDENTE": {"counted": 73, "expected": 73, "leader": "UNE", "leader_votes": 3895, "runner_up": "VIVA", "runner_up_votes": 1211},
+        "DIP_NAC": {"counted": 73, "expected": 73, "leader": "VAMOS", "leader_votes": 2166, "runner_up": "UNE", "runner_up_votes": 1305},
+        "DIP_DIST": {"counted": 73, "expected": 73, "leader": "VALOR", "leader_votes": 2711, "runner_up": "VAMOS", "runner_up_votes": 2636},
+        "CORPORACION_MUNICIPAL": {"counted": 72, "expected": 73, "leader": "VAMOS", "leader_votes": 4879, "runner_up": "VALOR", "runner_up_votes": 4160},
+        "DIP_PAR": {"counted": 73, "expected": 73, "leader": "VAMOS", "leader_votes": 2214, "runner_up": "UNE", "runner_up_votes": 1408}
       },
       "qa": "PASS_POST_PROMOTION_VALID_VOTES_EQUALS_OPTIONS_SUM_EQUALS_MATRIX_SUM_FOR_ALL_FIVE_ELECTIONS",
+      "source_status": "DASHBOARD_READY",
       "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
     },
-    "0202": {
-      "municipality_name": "Morazán",
+    "0204": {
+      "municipality_name": "San Cristóbal Acasaguastlán",
       "department_name": "El Progreso",
       "status": "PREVALIDATED_QA_ONLY_NOT_PROMOTED",
-      "centers": 5,
-      "jrv": 26,
-      "registered_voters": 9991,
-      "geo_exact": 5,
+      "centers": 3,
+      "jrv": 17,
+      "registered_voters": 5932,
+      "geo_exact": 3,
       "geo_held": 0,
-      "center_option_rows": 465,
-      "trep_center_codes": {"001": ["749"], "002": ["750"], "003": ["751"], "004": ["752"], "005": ["753"]},
+      "center_option_rows": 282,
+      "physical_center_crosswalk": "4_TREP_CODES_TO_3_PHYSICAL_CENTERS_CENTER_001_HAS_763_AND_766",
       "elections": {
-        "PRESIDENTE": {"counted": 26, "expected": 26, "leader": "VAMOS", "leader_votes": 834, "runner_up": "UNE", "runner_up_votes": 686},
-        "DIP_NAC": {"counted": 25, "expected": 26, "leader": "VAMOS", "leader_votes": 1349, "runner_up": "VALOR UNIONISTA", "runner_up_votes": 573},
-        "DIP_DIST": {"counted": 26, "expected": 26, "leader": "VALOR", "leader_votes": 1721, "runner_up": "VAMOS", "runner_up_votes": 1685},
-        "CORPORACION_MUNICIPAL": {"counted": 26, "expected": 26, "leader": "VAMOS", "leader_votes": 3210, "runner_up": "VALOR", "runner_up_votes": 2407},
-        "DIP_PAR": {"counted": 26, "expected": 26, "leader": "VAMOS", "leader_votes": 1414, "runner_up": "VALOR UNIONISTA", "runner_up_votes": 694}
+        "PRESIDENTE": {"counted": 17, "expected": 17, "leader": "VAMOS", "leader_votes": 710, "runner_up": "UNE", "runner_up_votes": 644},
+        "DIP_NAC": {"counted": 17, "expected": 17, "leader": "VAMOS", "leader_votes": 1061, "runner_up": "PODEMOS", "runner_up_votes": 711},
+        "DIP_DIST": {"counted": 17, "expected": 17, "leader": "VAMOS", "leader_votes": 1352, "runner_up": "PODEMOS", "runner_up_votes": 1036},
+        "CORPORACION_MUNICIPAL": {"counted": 17, "expected": 17, "leader": "VAMOS", "leader_votes": 2027, "runner_up": "PODEMOS", "runner_up_votes": 1315},
+        "DIP_PAR": {"counted": 17, "expected": 17, "leader": "VAMOS", "leader_votes": 1091, "runner_up": "PODEMOS", "runner_up_votes": 647}
       },
-      "qa": "PASS_PREVALIDATION_ALL_FIVE_OPTION_SUM_EQUALS_VALID_AND_VALID_PLUS_NULL_PLUS_BLANK_EQUALS_CAST_26_OF_26_JRV_MAPPED",
+      "qa": "PASS_PREVALIDATION_ALL_FIVE_OPTION_SUM_EQUALS_VALID_AND_VALID_PLUS_NULL_PLUS_BLANK_EQUALS_CAST_17_OF_17_JRV_MAPPED",
       "promotion": "ZERO_WRITES_PREVALIDATION_ONLY"
     }
   },
@@ -89,7 +93,8 @@
     "project_ref": "xxobbhnhxhcjkdxmjmwj",
     "promotion_helper": "private.upsert_singleton_layer_batch",
     "private_rls_inventory": "12_OF_12_PRIVATE_TABLES_RLS_ENABLED",
-    "security_qa": "PASS_FAIL_CLOSED_ANON_NO_DATA_VAULT_SELECT_AUTHENTICATED_READ_GATED_BY_PRIVATE_CAN_READ_DATA_VAULT_AND_NO_DIRECT_PRIVATE_TABLE_ACCESS"
+    "private_direct_select": "ANON_0_AUTHENTICATED_0",
+    "security_qa": "PASS_FAIL_CLOSED"
   },
   "fail_closed": [
     "Do not reprocess 6/6 municipalities unless source evidence changes.",
@@ -98,5 +103,5 @@
     "Do not bypass private.upsert_singleton_layer_batch or use direct ad-hoc UPDATE for TREP promotion.",
     "No merge/deploy/cutover from QA branch while visual parity remains FAIL."
   ],
-  "next_checkpoint": "Promote the six prevalidated 0202 Morazán TREP layers only through private.upsert_singleton_layer_batch, run post-promotion QA, then continue with the next zero-layer municipality. In parallel keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
+  "next_checkpoint": "Promote the six prevalidated 0204 San Cristóbal Acasaguastlán TREP layers only through private.upsert_singleton_layer_batch, run post-promotion stored matrix/options/vote identity QA, then prevalidate 0205. In parallel keep PR #28 QA-only until authenticated rendered Golden 0509 -> 0106 screenshot comparison reaches zero unauthorized regressions."
 }
