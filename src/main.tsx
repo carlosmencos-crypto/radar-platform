@@ -8,6 +8,7 @@ import "./styles/v70/fonts.css";
 import "./styles/v70/globals.css";
 import "./styles/v70/portal.css";
 import "./styles/v70/radar-brand-v3.css";
+import "./styles/v70/route-overlay.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
