@@ -5,7 +5,7 @@ import { useMunicipalityContext } from "../context/MunicipalityContext";
 type RadarTheme = "light" | "dark";
 type RadarTextSize = "normal" | "large";
 type SectionSlug = "inicio" | "inteligencia" | "estrategia" | "directorio" | "agenda" | "mapa" | "dia-d" | "recursos" | "pulso" | "ia-radar" | "configuracion";
-type Props = { active: SectionSlug; eyebrow: string; topbarTitle: string; accountRole: string; children: ReactNode; dayDNext?: boolean };
+type Props = { active: SectionSlug; eyebrow: string; topbarTitle: string; accountRole?: string; children: ReactNode };
 
 const sections: ReadonlyArray<readonly [string, string, SectionSlug]> = [
   ["⌂", "Inicio", "inicio"], ["◎", "Inteligencia Municipal", "inteligencia"], ["◇", "Estrategia", "estrategia"], ["♙", "Directorio", "directorio"], ["▥", "Agenda", "agenda"], ["⌖", "Mapa Inteligente", "mapa"], ["▤", "Día D", "dia-d"], ["▣", "Recursos", "recursos"], ["◒", "Pulso Electoral", "pulso"], ["✦", "IA RADAR", "ia-radar"], ["⚙", "Configuración", "configuracion"],
@@ -33,24 +33,35 @@ function useRadarPreferences() {
   return { theme, textSize, toggleTheme, increaseTextSize };
 }
 
-export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole, children, dayDNext = false }: Props) {
+export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children }: Props) {
   const { municipality_code, campaign_id, user_role, permissions } = useMunicipalityContext();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [userPhoto, setUserPhoto] = useState("");
   const { theme, textSize, toggleTheme, increaseTextSize } = useRadarPreferences();
 
   useEffect(() => { setOpen(false); setProfileOpen(false); window.scrollTo(0, 0); }, [active, municipality_code]);
-  useEffect(() => { setCollapsed(window.localStorage.getItem("radar-sidebar") === "collapsed"); }, []);
+  useEffect(() => {
+    setCollapsed(window.localStorage.getItem("radar-sidebar") === "collapsed");
+    const syncPhoto = () => setUserPhoto(window.localStorage.getItem("radar-user-photo-v2") || "");
+    syncPhoto();
+    window.addEventListener("radar-profile-updated", syncPhoto);
+    return () => window.removeEventListener("radar-profile-updated", syncPhoto);
+  }, []);
   function toggleSidebar() { setCollapsed((value) => { const next = !value; window.localStorage.setItem("radar-sidebar", next ? "collapsed" : "expanded"); return next; }); }
 
+  const userLabel = "Carlos Mencos";
   return <div className={`portal-shell ${collapsed ? "sidebar-is-collapsed" : ""}`} data-municipality-code={municipality_code} data-campaign-id={campaign_id ?? ""} data-user-role={user_role} data-permissions={permissions.join(",")}>
     <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
       <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
-      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug === "dia-d" && dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
-      <div className="sidebar-account"><button type="button" onClick={() => setProfileOpen((value) => !value)}><i>CM</i><span><b>Carlos Mencos</b><small>{accountRole}</small></span><em>⌄</em></button>{profileOpen ? <div className="account-menu"><b>San José / Puerto San José · Escuintla</b><span>Cuenta del municipio</span><Link to="/">Cambiar municipio</Link></div> : null}</div>
+      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b></Link>)}</nav>
+      <div className="sidebar-account">
+        <button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{userPhoto ? <img src={userPhoto} alt="" /> : "CM"}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button>
+        {profileOpen ? <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div> : null}
+      </div>
     </aside>
     <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />
     <main className="portal-main module-page">
