@@ -37,6 +37,7 @@ function canonicalAsset(path: string) {
 
 export function V70ProductParityBridge() {
   const authorized = useAuthorizedRadarRuntime();
+  const municipalityCode = authorized.municipality.code;
   const runtime = authorized.runtime as typeof authorized.runtime & { elector_profile?: ActiveVoterProfile | null };
   const profile = runtime.elector_profile ?? null;
   const [ageHost, setAgeHost] = useState<HTMLElement | null>(null);
@@ -54,27 +55,66 @@ export function V70ProductParityBridge() {
   }, [profile]);
 
   useEffect(() => {
+    const cleanup: Array<() => void> = [];
+    const rememberText = (node: HTMLElement | null | undefined, text: string) => {
+      if (!node) return;
+      const previous = node.textContent ?? "";
+      node.textContent = text;
+      cleanup.push(() => { node.textContent = previous; });
+    };
+    const rememberHtml = (node: HTMLElement | null | undefined, html: string) => {
+      if (!node) return;
+      const previous = node.innerHTML;
+      node.innerHTML = html;
+      cleanup.push(() => { node.innerHTML = previous; });
+    };
+
     const originals = new Map<HTMLImageElement, string>();
     document.querySelectorAll<HTMLImageElement>('img[src^="/brand/"]').forEach((image) => {
       originals.set(image, image.getAttribute("src") ?? "");
       image.src = canonicalAsset(image.getAttribute("src") ?? "");
     });
+    cleanup.push(() => originals.forEach((src, image) => image.setAttribute("src", src)));
 
     const invented = Array.from(document.querySelectorAll<HTMLElement>("section.section")).find(
       (section) => section.querySelector("h2")?.textContent?.trim() === "Lo que define el municipio",
     );
     const inventedWasHidden = invented?.hidden ?? false;
     if (invented) invented.hidden = true;
+    cleanup.push(() => { if (invented) invented.hidden = inventedWasHidden; });
 
     const eyebrow = document.querySelector<HTMLElement>(".electorate-profile .section-head .eyebrow");
-    const eyebrowText = eyebrow?.textContent ?? "";
-    if (eyebrow) eyebrow.textContent = "PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026";
+    rememberText(eyebrow, "PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026");
 
     const titleMetric = document.querySelector<HTMLElement>(".age-profile .profile-title b");
-    const titleMetricText = titleMetric?.textContent ?? "";
     if (titleMetric && profile?.age_total && (profile.total_active ?? 0) > 0) {
       const young = ["18_25", "26_30", "31_35", "36_40"].reduce((sum, key) => sum + (profile.age_total?.[key] ?? 0), 0);
-      titleMetric.textContent = `${(young / (profile.total_active ?? 1) * 100).toFixed(1)}% tiene entre 18 y 40 años`;
+      rememberText(titleMetric, `${(young / (profile.total_active ?? 1) * 100).toFixed(1)}% tiene entre 18 y 40 años`);
+    }
+
+    if (municipalityCode === "0509") {
+      rememberText(document.querySelector<HTMLElement>(".section-banner-copy > p"), "EXPEDIENTE MUNICIPAL 360 · ESCUINTLA — PUERTO SAN JOSÉ");
+
+      const kpis = Array.from(document.querySelectorAll<HTMLElement>(".kpis > article"));
+      rememberText(kpis[0]?.querySelector<HTMLElement>("em"), "INE · proyección oficial");
+      rememberText(kpis[2]?.querySelector<HTMLElement>("em"), "103 JRV · auditoría completada");
+      rememberText(kpis[3]?.querySelector<HTMLElement>("small"), "ORGANIZACIÓN COMUNITARIA TSE");
+      rememberText(kpis[3]?.querySelector<HTMLElement>("b > i"), "registros");
+      rememberText(kpis[3]?.querySelector<HTMLElement>("em"), "9 agrupaciones territoriales del municipio");
+
+      rememberText(
+        document.querySelector<HTMLElement>(".electorate-profile .section-head > p"),
+        "Sexo, edad y alfabetismo provienen del padrón activo del TSE. La distribución urbana/rural pertenece al Censo 2018 y se muestra aparte para no mezclar universos.",
+      );
+      rememberText(document.querySelector<HTMLElement>(".register-total > span"), "PADRÓN ACTIVO");
+      rememberHtml(
+        document.querySelector<HTMLElement>(".register-total > div > small"),
+        "personas frente al padrón electoral 2023<br>comparación indicativa: +5.0%",
+      );
+      rememberText(
+        document.querySelector<HTMLElement>(".universe-block.current > small"),
+        "Ciudadanos empadronados activos. La fuente actual no publica urbano/rural.",
+      );
     }
 
     const host = document.querySelector<HTMLElement>(".age-profile .age-bars");
@@ -82,17 +122,14 @@ export function V70ProductParityBridge() {
     if (host && ages.length) {
       host.replaceChildren();
       setAgeHost(host);
+      cleanup.push(() => { host.innerHTML = previous; });
     }
 
     return () => {
-      originals.forEach((src, image) => image.setAttribute("src", src));
-      if (invented) invented.hidden = inventedWasHidden;
-      if (eyebrow) eyebrow.textContent = eyebrowText;
-      if (titleMetric) titleMetric.textContent = titleMetricText;
-      if (host && ages.length) host.innerHTML = previous;
+      cleanup.reverse().forEach((restore) => restore());
       setAgeHost(null);
     };
-  }, [ages, profile]);
+  }, [ages, municipalityCode, profile]);
 
   if (!ageHost || !ages.length) return null;
   const maxShare = Math.max(...ages.map((item) => item.share), 1);
