@@ -1,7 +1,7 @@
 {
   "checkpoint": "V70_STRICT_PARITY_RUNTIME",
   "status": "FAIL_NOT_CLIENT_READY",
-  "updated_at": "2026-09-14T06:45:00Z",
+  "updated_at": "2026-09-14T07:39:04Z",
   "golden": {
     "municipality_code": "0509",
     "project": "radar-identidad-electoral",
@@ -12,43 +12,42 @@
     "branch": "qa/v70-golden-electoral-runtime",
     "draft_pr": 28,
     "pr_state": "OPEN_DRAFT_NOT_MERGED",
-    "head_before_checkpoint": "7bd9e01a391bb04ba03a39f7be6b1a1804baa1f2",
     "quality": {
-      "run_number": 214,
-      "run_id": 34813733936,
+      "run_number": 215,
+      "run_id": 34815891799,
       "conclusion": "success",
       "artifacts": 0
     },
     "visual_qa": "PENDING_RENDERED_AUTHENTICATED_0509_TO_0106_SCREENSHOT_COMPARISON",
-    "visual_blocker": "Quality is green but produces no rendered/authenticated screenshot artifacts; this is not sufficient evidence for Golden parity.",
+    "visual_blocker": "Quality is green but still produces no rendered/authenticated screenshot artifacts; this is not sufficient evidence for Golden parity.",
     "client_ready": false
   },
   "trep_data_vault": {
     "authoritative_supabase_state": {
-      "complete_6_layer_municipalities": 43,
+      "complete_6_layer_municipalities": 44,
       "semantic_no_publicado": ["0104"],
-      "resolved_contracts_layer_presence_or_semantic": 44,
-      "zero_layer_municipalities": 296,
+      "resolved_contracts_layer_presence_or_semantic": 45,
+      "zero_layer_municipalities": 295,
       "one_layer_semantic_municipalities": 1,
       "partial_materializations_2_to_5": 0,
-      "centers_universe": 694,
-      "jrv_universe": 7184,
-      "registered_voters_center_total": 2821475,
-      "geo_exact": 683,
+      "centers_universe": 698,
+      "jrv_universe": 7203,
+      "registered_voters_center_total": 2828905,
+      "geo_exact": 687,
       "geo_held": 11,
-      "validated_center_option_rows": 81324,
-      "actual_dense_center_option_rows": 81324,
+      "validated_center_option_rows": 81736,
+      "actual_dense_center_option_rows": 81736,
       "dense_rows_gap": 0
     },
     "strict_v70_dense_contract_audit": {
-      "status": "PASS_ALL_43_SIX_LAYER_MUNICIPALITIES_DENSE_AND_CANONICAL_DEPARTMENT_CODES",
-      "result_layers_audited": 215,
+      "status": "PASS_ALL_44_SIX_LAYER_MUNICIPALITIES_DENSE_AND_CANONICAL_DEPARTMENT_CODES",
+      "result_layers_audited": 220,
       "bad_contract": 0,
       "bad_math": 0,
       "bad_dense_row_count": 0,
       "bad_department_code": 0,
-      "dense_rows_expected_total": 81324,
-      "dense_rows_stored_total": 81324,
+      "dense_rows_expected_total": 81736,
+      "dense_rows_stored_total": 81736,
       "dense_rows_gap": 0
     },
     "0106_geo_correction": {
@@ -57,18 +56,6 @@
       "center_name": "ESCUELA OFICIAL RURAL MIXTA LAS VILLAS J.M.",
       "action": "All five election layers corrected through private.upsert_singleton_layer_batch to lat/lon null and SIN_ASOCIACION; vote options/matrices unchanged.",
       "post_fix_math": "PASS_5_OF_5"
-    },
-    "0313": {
-      "municipality_name": "San Miguel Dueñas",
-      "status": "PASS_6_OF_6_TREP_LAYERS_DASHBOARD_READY",
-      "centers": 1,
-      "jrv": 19,
-      "registered_voters": 7437,
-      "geo_exact": 1,
-      "geo_held": 0,
-      "center_option_rows": 101,
-      "physical_center_crosswalk": "2 TREP codes -> 1 physical center; 604+605->001.",
-      "post_promotion_identity": "PASS_ALL_FIVE_VALID_EQUALS_OPTIONS_EQUALS_MATRIX; DENSE_CARDINALITY_PASS; DEPARTMENT_CODE_03_PASS"
     },
     "0314": {
       "municipality_name": "San Juan Alotenango",
@@ -79,21 +66,11 @@
       "geo_exact": 5,
       "geo_held": 0,
       "center_option_rows": 535,
-      "physical_center_crosswalk": "606->001; 607->002; 608->003; 609->004; 610->005.",
-      "elections": {
-        "PRESIDENTE": "32/32 · SEMILLA 1219 vs VIVA 967 · valid 6532",
-        "DIP_NAC": "32/32 · SEMILLA 813 vs ELEFANTE 796 · valid 6370",
-        "DIP_DIST": "32/32 · CABAL 892 vs VAMOS 855 · valid 6858",
-        "CORPORACION_MUNICIPAL": "32/32 · ELEFANTE 1983 vs VAMOS 1441 · valid 8353",
-        "DIP_PAR": "32/32 · ELEFANTE 833 vs SEMILLA 804 · valid 5576"
-      },
-      "post_promotion_identity": "PASS_ALL_FIVE_VALID_EQUALS_OPTIONS_EQUALS_MATRIX; DENSE_CARDINALITY_PASS; DEPARTMENT_CODE_03_PASS",
-      "source_semantics": "Calculated TREP fields drive the dense contract; raw entered discrepancies remain documented and are not imputed."
+      "physical_center_crosswalk": "606->001; 607->002; 608->003; 609->004; 610->005."
     },
-    "0315_prevalidation": {
+    "0315": {
       "municipality_name": "San Antonio Aguas Calientes",
-      "status": "PASS_PREVALIDATED_QA_ONLY_NOT_PROMOTED",
-      "layer_state": "0_OF_6_NO_PARTIAL_WRITE",
+      "status": "PASS_6_OF_6_TREP_LAYERS_DASHBOARD_READY",
       "centers": 4,
       "jrv": 19,
       "registered_voters": 7430,
@@ -109,8 +86,29 @@
         "DIP_PAR": "19/19 · SEMILLA 859 vs VOS 776 · valid 3524"
       },
       "not_counted": {"PRESIDENTE": [5868]},
+      "post_promotion_identity": "PASS_ALL_FIVE_VALID_EQUALS_OPTIONS_EQUALS_MATRIX; DENSE_CARDINALITY_PASS; DEPARTMENT_CODE_03_PASS",
+      "source_semantics": "Presidential acta 5868 remains uncounted; no vote imputation. Raw/calculated discrepancies remain documented."
+    },
+    "0316_prevalidation": {
+      "municipality_name": "Santa Catarina Barahona",
+      "status": "PASS_PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "layer_state": "0_OF_6_NO_PARTIAL_WRITE",
+      "centers": 3,
+      "jrv": 10,
+      "registered_voters": 3666,
+      "geo_exact": 3,
+      "geo_held": 0,
+      "center_option_rows": 306,
+      "physical_center_crosswalk": "616->001; 617->002; 618->003.",
+      "elections": {
+        "PRESIDENTE": "10/10 · SEMILLA 597 vs VALOR UNIONISTA 234 · valid 2100",
+        "DIP_NAC": "10/10 · SEMILLA 357 vs VALOR UNIONISTA 209 · valid 1784",
+        "DIP_DIST": "10/10 · SEMILLA 373 vs VALOR UNIONISTA 256 · valid 1952",
+        "CORPORACION_MUNICIPAL": "10/10 · CC SOMOS STA CATARINA BARAHONA 1093 vs VALOR UNIONISTA 878 · valid 2931",
+        "DIP_PAR": "10/10 · SEMILLA 371 vs VALOR UNIONISTA 253 · valid 1634"
+      },
       "vote_identity": "PASS_ALL_FIVE_VALIDOS_CALCULADO_EQUALS_OPTIONS_EQUALS_MATRIX",
-      "source_semantics": "Preserve the uncounted presidential acta and raw/calculated discrepancies; no vote imputation."
+      "source_semantics": "Calculated TREP fields drive the dense contract. Raw entered discrepancies remain documented and are not normalized away."
     }
   },
   "security": {
@@ -125,9 +123,9 @@
     "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
     "crosswalk": "GT_TSE_2023_CENTROS_JRV_GEO_CLEAN_v2.xlsx",
     "geo_source": "GT-TSE-2023-CENTROS-VOTACION-COORD-340-001",
-    "corporacion_0313_sha256": "92a58388c8e9f479143e35237de3bb93dbcbd8046a9e26ff94f650f4b9977243",
     "corporacion_0314_sha256": "cb2ed574b4238a9daf83fc0079a8e3f1e815b53cff57ce75958fbcbcff572053",
-    "corporacion_0315_sha256": "502f19aba806483509f8b73da68763d898bc2fbf8685ba9d0f68ba86adab8ae5"
+    "corporacion_0315_sha256": "502f19aba806483509f8b73da68763d898bc2fbf8685ba9d0f68ba86adab8ae5",
+    "corporacion_0316_sha256": "42adb51787d7ef3778cd6853591cf6665d5776a529ea5e56e5611bdc3c13e996"
   },
   "fail_closed": [
     "Keep 0104 semantic NO_PUBLICADO; do not fabricate election payloads.",
@@ -136,5 +134,5 @@
     "No merge/deploy/cutover to client-ready until authenticated Golden screenshot parity reaches zero unauthorized regressions.",
     "Use private.upsert_singleton_layer_batch for TREP promotion; no direct destructive Data Vault writes."
   ],
-  "next_checkpoint": "Promote 0315 San Antonio Aguas Calientes atomically 6/6 from validated dense payload, preserve PRESIDENTE 18/19 without imputation, post-QA it, then prevalidate 0316. Keep PR #28 QA-only."
+  "next_checkpoint": "Promote 0316 Santa Catarina Barahona atomically 6/6 from its prevalidated canonical dense payloads, run post-promotion math/dense/geo QA, then prevalidate 0401 Chimaltenango. Keep PR #28 QA-only."
 }
