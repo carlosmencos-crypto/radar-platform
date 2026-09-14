@@ -92,7 +92,7 @@ function communityPoint(community: AuthorizedVoterCommunity, features: GeoFeatur
     const haystack = normalize(`${item.community} ${item.name}`);
     return target.length >= 5 && (haystack.includes(target) || target.includes(normalize(item.community)));
   });
-  if (center?.lat !== null && center?.lon !== null) return { ...community, lat: center.lat!, lon: center.lon!, precision: `Referencia territorial TSE · ${center.community}` };
+  if (center && center.lat !== null && center.lon !== null) return { ...community, lat: center.lat, lon: center.lon, precision: `Referencia territorial TSE · ${center.community}` };
   return null;
 }
 
@@ -130,7 +130,7 @@ export function V70OperationalMap() {
     if (!term) return topCommunities.slice(0, 7);
     return mappedCommunities.filter((item) => normalize(item.community_label).includes(term)).slice(0, 7);
   }, [mappedCommunities, query, topCommunities]);
-  const priorityCenters = useMemo(() => [...centers].sort((a, b) => b.voters - a.voters).slice(0, 5), [centers]);
+  const priorityCenters = useMemo(() => [...centers].sort((a, b) => (b.voters ?? 0) - (a.voters ?? 0)).slice(0, 5), [centers]);
 
   useEffect(() => {
     if (!mapNode.current || mapRef.current || !runtime?.geo.bbox) return;
@@ -195,18 +195,22 @@ export function V70OperationalMap() {
       }
       if (layers.prioridades) {
         priorityCenters.forEach((center) => {
-          if (center.lat === null || center.lon === null) return;
-          const circle = L.circle([center.lat, center.lon], { radius: 650, color: "#b84e3e", weight: 2, dashArray: "5 7", fillColor: "#d69070", fillOpacity: .10 })
-            .bindTooltip(`<b>${clean(center.name)}</b><br>${fmt.format(center.voters)} empadronados · prioridad territorial`)
+          const lat = center.lat;
+          const lon = center.lon;
+          if (lat === null || lon === null) return;
+          const circle = L.circle([lat, lon], { radius: 650, color: "#b84e3e", weight: 2, dashArray: "5 7", fillColor: "#d69070", fillOpacity: .10 })
+            .bindTooltip(`<b>${clean(center.name)}</b><br>${fmt.format(center.voters ?? 0)} empadronados · prioridad territorial`)
             .on("click", () => setSelectedCenter(center)).addTo(map);
           drawnRef.current.push(circle);
         });
       }
       if (layers.centros) {
         centers.forEach((center) => {
-          if (center.lat === null || center.lon === null) return;
-          const marker = L.circleMarker([center.lat, center.lon], { radius: 7, color: "#fff", weight: 2, fillColor: "#09566C", fillOpacity: 1 })
-            .bindTooltip(`<b>${clean(center.name)}</b><br>${clean(center.community)} · ${fmt.format(center.voters)} empadronados`)
+          const lat = center.lat;
+          const lon = center.lon;
+          if (lat === null || lon === null) return;
+          const marker = L.circleMarker([lat, lon], { radius: 7, color: "#fff", weight: 2, fillColor: "#09566C", fillOpacity: 1 })
+            .bindTooltip(`<b>${clean(center.name)}</b><br>${clean(center.community)} · ${fmt.format(center.voters ?? 0)} empadronados`)
             .on("click", () => setSelectedCenter(center)).addTo(map);
           drawnRef.current.push(marker);
         });
