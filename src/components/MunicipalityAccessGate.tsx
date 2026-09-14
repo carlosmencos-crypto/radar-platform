@@ -23,6 +23,7 @@ import {
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
+import { V70ClientModulesParityBridge } from "./V70ClientModulesParityBridge";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 import { V70HomeParityBridge } from "./V70HomeParityBridge";
 import { V70MapParityBridge } from "./V70MapParityBridge";
@@ -46,7 +47,7 @@ function delay(ms: number) {
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
   const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const needsElectoralTerritory = section === "inteligencia" || section === "mapa";
+  const needsElectoralTerritory = section === "inteligencia" || section === "mapa" || section === "dia-d";
   const needsVoterCommunities = section === "mapa";
   const [consumer, geoBundle, electoralLayers, voterCommunities] = await Promise.all([
     resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
@@ -98,7 +99,7 @@ export function MunicipalityAccessGate() {
           assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
           installRadarGeoBundle(geoBundle);
         }
-        if (section === "inteligencia" || section === "mapa") {
+        if (section === "inteligencia" || section === "mapa" || section === "dia-d") {
           installRadarElectoralLayers(municipalityCode, electoralLayers);
         }
         if (section === "mapa") {
@@ -154,5 +155,6 @@ export function MunicipalityAccessGate() {
     {isHome ? <V70HomeParityBridge /> : null}
     {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
     {section === "mapa" ? <V70MapParityBridge /> : null}
+    <V70ClientModulesParityBridge />
   </AuthorizedRuntimeProvider>;
 }
