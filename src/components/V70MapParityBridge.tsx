@@ -6,7 +6,7 @@ export function V70MapParityBridge() {
   const [host, setHost] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    const main = document.querySelector<HTMLElement>("main.portal-main.module-page");
+    const main = document.querySelector<HTMLElement>(".portal-main");
     const topbar = main?.querySelector<HTMLElement>(":scope > header.portal-topbar");
     if (!main || !topbar) return;
 
