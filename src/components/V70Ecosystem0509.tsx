@@ -1,3 +1,8 @@
+function canonicalAsset(path: string) {
+  const base = import.meta.env.BASE_URL || "/";
+  return `${base}${path.replace(/^\//, "")}`;
+}
+
 export function V70Ecosystem0509() {
   const items = [
     ["01", "Expediente 360", "Fotografía municipal, electoral y territorial", "ACTIVO", "public"],
@@ -16,5 +21,6 @@ export function V70Ecosystem0509() {
       </div>
       <div className="vault-rule"><div><b>RADAR Data Vault</b><span>Fuentes públicas, oficiales y productos validados.</span></div><i>≠</i><div><b>Campaign Vault</b><span>Agenda, acuerdos, encuestas y operación privada del candidato.</span></div></div>
     </section>
+    <footer id="fuentes"><div className="radar-brand compact"><img src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /></div><div><b>Fuentes oficiales integradas</b><span>TSE · INE · SEGEPLAN · MINFIN · MINEDUC · MSPAS · GUATECOMPRAS · CONRED</span></div><p>Versión navegable · 21 julio 2026<br/>Cierre técnico condicionado a coordenadas · sin datos privados de campaña</p></footer>
   </>;
 }
