@@ -19,6 +19,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run smoke:340
+      - run: node scripts/smoke-v70-parity.mjs
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
