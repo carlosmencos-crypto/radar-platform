@@ -1,8 +1,9 @@
-import type { AuthorizedLayerRecord, MunicipalityGeoBundle, RadarRuntimeBundle } from "./radarRuntime";
+import type { AuthorizedLayerRecord, AuthorizedVoterCommunity, MunicipalityGeoBundle, RadarRuntimeBundle } from "./radarRuntime";
 
 const authorizedRuntimeByMunicipality = new Map<string, RadarRuntimeBundle>();
 const authorizedGeoByMunicipality = new Map<string, MunicipalityGeoBundle>();
 const authorizedElectoralLayersByMunicipality = new Map<string, AuthorizedLayerRecord[]>();
+const authorizedVoterCommunitiesByMunicipality = new Map<string, AuthorizedVoterCommunity[]>();
 
 function assertRuntimeMunicipality(runtime: RadarRuntimeBundle) {
   const contextCode = runtime.context.municipality_code;
@@ -28,6 +29,12 @@ function assertElectoralLayersMunicipality(municipalityCode: string, layers: Aut
   const layerIds = layers.map((layer) => layer.layer_id);
   if (layerIds.length !== new Set(layerIds).size) {
     throw new Error("Las capas electorales autorizadas contienen duplicados.");
+  }
+}
+
+function assertVoterCommunitiesMunicipality(municipalityCode: string, communities: AuthorizedVoterCommunity[]) {
+  if (!/^\d{4}$/.test(municipalityCode) || communities.some((item) => item.municipality_code !== municipalityCode)) {
+    throw new Error("Las comunidades autorizadas no coinciden con el municipio.");
   }
 }
 
@@ -61,6 +68,16 @@ export function getInstalledRadarElectoralLayers(municipalityCode?: string) {
   return authorizedElectoralLayersByMunicipality.get(municipalityCode);
 }
 
+export function installRadarVoterCommunities(municipalityCode: string, communities: AuthorizedVoterCommunity[]) {
+  assertVoterCommunitiesMunicipality(municipalityCode, communities);
+  authorizedVoterCommunitiesByMunicipality.set(municipalityCode, [...communities]);
+}
+
+export function getInstalledRadarVoterCommunities(municipalityCode?: string) {
+  if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) return undefined;
+  return authorizedVoterCommunitiesByMunicipality.get(municipalityCode);
+}
+
 export function clearInstalledRadarRuntime(municipalityCode?: string) {
   if (municipalityCode) {
     authorizedRuntimeByMunicipality.delete(municipalityCode);
@@ -83,4 +100,12 @@ export function clearInstalledRadarElectoralLayers(municipalityCode?: string) {
     return;
   }
   authorizedElectoralLayersByMunicipality.clear();
+}
+
+export function clearInstalledRadarVoterCommunities(municipalityCode?: string) {
+  if (municipalityCode) {
+    authorizedVoterCommunitiesByMunicipality.delete(municipalityCode);
+    return;
+  }
+  authorizedVoterCommunitiesByMunicipality.clear();
 }
