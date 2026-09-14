@@ -24,6 +24,7 @@ import {
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
+import { V70HomeParityBridge } from "./V70HomeParityBridge";
 import { V70MapParityBridge } from "./V70MapParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
 
@@ -146,9 +147,11 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
+  const isHome = !section || section === "inicio";
   return <AuthorizedRuntimeProvider consumer={state.consumer}>
     <MunicipalDashboardV70Runtime />
     <V70ProductParityBridge />
+    {isHome ? <V70HomeParityBridge /> : null}
     {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
     {section === "mapa" ? <V70MapParityBridge /> : null}
   </AuthorizedRuntimeProvider>;
