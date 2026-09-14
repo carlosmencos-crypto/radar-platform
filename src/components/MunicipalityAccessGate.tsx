@@ -23,19 +23,17 @@ import {
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
-import { V70ClientChromeParityBridge } from "./V70ClientChromeParityBridge";
 import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
 import { V70DirectAi0509 } from "./V70DirectAi0509";
 import { V70DirectConfiguration0509 } from "./V70DirectConfiguration0509";
 import { V70DirectDayD0509 } from "./V70DirectDayD0509";
 import { V70DirectDirectory0509 } from "./V70DirectDirectory0509";
 import { V70DirectHome0509 } from "./V70DirectHome0509";
+import { V70DirectIntelligence0509 } from "./V70DirectIntelligence0509";
 import { V70DirectMap0509 } from "./V70DirectMap0509";
 import { V70DirectPulse0509 } from "./V70DirectPulse0509";
 import { V70DirectResources0509 } from "./V70DirectResources0509";
 import { V70DirectStrategy0509 } from "./V70DirectStrategy0509";
-import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
-import { V70ProductParityBridge } from "./V70ProductParityBridge";
 
 type GateState =
   | { status: "loading" }
@@ -74,6 +72,7 @@ async function loadMunicipalityRuntime(municipalityCode: string, section: string
 
 function direct0509(section: string | undefined): ReactNode | null {
   if (!section || section === "inicio") return <V70DirectHome0509 />;
+  if (section === "inteligencia") return <V70DirectIntelligence0509 />;
   if (section === "estrategia") return <V70DirectStrategy0509 />;
   if (section === "directorio") return <V70DirectDirectory0509 />;
   if (section === "agenda") return <V70DirectAgenda0509 />;
@@ -171,12 +170,7 @@ export function MunicipalityAccessGate() {
     if (direct) return <AuthorizedRuntimeProvider consumer={state.consumer}>{direct}</AuthorizedRuntimeProvider>;
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}>
-    <MunicipalDashboardV70Runtime />
-    <V70ClientChromeParityBridge />
-    <V70ProductParityBridge />
-    {municipalityCode === "0509" && section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
-  </AuthorizedRuntimeProvider>;
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
 }
 
 function needsElectoralSection(section: string | undefined) {
