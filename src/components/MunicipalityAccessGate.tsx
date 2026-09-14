@@ -24,6 +24,7 @@ import {
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
+import { V70MapParityBridge } from "./V70MapParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
 
 type GateState =
@@ -149,5 +150,6 @@ export function MunicipalityAccessGate() {
     <MunicipalDashboardV70Runtime />
     <V70ProductParityBridge />
     {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
+    {section === "mapa" ? <V70MapParityBridge /> : null}
   </AuthorizedRuntimeProvider>;
 }
