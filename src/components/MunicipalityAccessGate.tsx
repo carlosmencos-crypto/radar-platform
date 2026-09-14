@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthorizedRuntimeProvider } from "../context/AuthorizedRuntimeContext";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
@@ -23,19 +23,19 @@ import {
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
-import { V70AgendaParityBridge } from "./V70AgendaParityBridge";
-import { V70AiParityBridge } from "./V70AiParityBridge";
 import { V70ClientChromeParityBridge } from "./V70ClientChromeParityBridge";
-import { V70ConfigurationParityBridge } from "./V70ConfigurationParityBridge";
-import { V70DayDParityBridge } from "./V70DayDParityBridge";
-import { V70DirectoryParityBridge } from "./V70DirectoryParityBridge";
+import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
+import { V70DirectAi0509 } from "./V70DirectAi0509";
+import { V70DirectConfiguration0509 } from "./V70DirectConfiguration0509";
+import { V70DirectDayD0509 } from "./V70DirectDayD0509";
+import { V70DirectDirectory0509 } from "./V70DirectDirectory0509";
+import { V70DirectHome0509 } from "./V70DirectHome0509";
 import { V70DirectMap0509 } from "./V70DirectMap0509";
+import { V70DirectPulse0509 } from "./V70DirectPulse0509";
+import { V70DirectResources0509 } from "./V70DirectResources0509";
+import { V70DirectStrategy0509 } from "./V70DirectStrategy0509";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
-import { V70HomeParityBridge } from "./V70HomeParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
-import { V70PulseParityBridge } from "./V70PulseParityBridge";
-import { V70ResourcesParityBridge } from "./V70ResourcesParityBridge";
-import { V70StrategyParityBridge } from "./V70StrategyParityBridge";
 
 type GateState =
   | { status: "loading" }
@@ -70,6 +70,20 @@ async function loadMunicipalityRuntime(municipalityCode: string, section: string
       : Promise.resolve<AuthorizedVoterCommunity[]>([]),
   ]);
   return { consumer, geoBundle, electoralLayers, voterCommunities };
+}
+
+function direct0509(section: string | undefined): ReactNode | null {
+  if (!section || section === "inicio") return <V70DirectHome0509 />;
+  if (section === "estrategia") return <V70DirectStrategy0509 />;
+  if (section === "directorio") return <V70DirectDirectory0509 />;
+  if (section === "agenda") return <V70DirectAgenda0509 />;
+  if (section === "mapa") return <V70DirectMap0509 />;
+  if (section === "dia-d") return <V70DirectDayD0509 />;
+  if (section === "recursos") return <V70DirectResources0509 />;
+  if (section === "pulso") return <V70DirectPulse0509 />;
+  if (section === "ia-radar") return <V70DirectAi0509 />;
+  if (section === "configuracion") return <V70DirectConfiguration0509 />;
+  return null;
 }
 
 export function MunicipalityAccessGate() {
@@ -152,25 +166,16 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  if (municipalityCode === "0509" && section === "mapa") {
-    return <AuthorizedRuntimeProvider consumer={state.consumer}><V70DirectMap0509 /></AuthorizedRuntimeProvider>;
+  if (municipalityCode === "0509") {
+    const direct = direct0509(section);
+    if (direct) return <AuthorizedRuntimeProvider consumer={state.consumer}>{direct}</AuthorizedRuntimeProvider>;
   }
 
-  const isHome = !section || section === "inicio";
   return <AuthorizedRuntimeProvider consumer={state.consumer}>
     <MunicipalDashboardV70Runtime />
     <V70ClientChromeParityBridge />
     <V70ProductParityBridge />
-    {isHome ? <V70HomeParityBridge /> : null}
-    {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
-    {section === "estrategia" ? <V70StrategyParityBridge /> : null}
-    {section === "directorio" ? <V70DirectoryParityBridge /> : null}
-    {section === "agenda" ? <V70AgendaParityBridge /> : null}
-    {section === "dia-d" ? <V70DayDParityBridge /> : null}
-    {section === "recursos" ? <V70ResourcesParityBridge /> : null}
-    {section === "pulso" ? <V70PulseParityBridge /> : null}
-    {section === "ia-radar" ? <V70AiParityBridge /> : null}
-    {section === "configuracion" ? <V70ConfigurationParityBridge /> : null}
+    {municipalityCode === "0509" && section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
   </AuthorizedRuntimeProvider>;
 }
 
