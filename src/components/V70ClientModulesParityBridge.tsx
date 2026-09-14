@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
@@ -94,7 +94,7 @@ function AiClient() {
 
 function ConfigurationClient() {
   const [photo, setPhoto] = useState("");
-  const changePhoto = (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setPhoto(String(reader.result || "")); reader.readAsDataURL(file); };
+  const changePhoto = (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setPhoto(String(reader.result || "")); reader.readAsDataURL(file); };
   return <><SectionBanner eyebrow="CONTROL DEL PORTAL" title="Configuración" description="Identidad, acceso, privacidad, alertas y preferencias de la campaña" /><main className="configuration-center simplified"><section className="config-overview"><article><small>CAMPAÑA</small><b>Nombre Apellido</b><span>Organización política</span><Link to="../directorio">Administrar identidad desde el CRM →</Link></article><article><small>MUNICIPIO</small><b>Municipio 0509</b><span>San José · Escuintla</span><em>El alcance está protegido por la sesión.</em></article><article><small>VAULT</small><b>Privado por campaña</b><span>Auditoría y archivos protegidos</span><em>Las consultas sensibles quedan trazadas.</em></article></section><section className="config-essential-grid"><article><header><small>PERFIL</small><h2>Fotografía de usuario</h2></header><div className="config-user-photo">{photo ? <img src={photo} alt="Fotografía del usuario" /> : <i>CM</i>}<label><span>Cambiar fotografía</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={changePhoto} /></label></div><p>Se utiliza en el acceso personal y ayuda a distinguir cuentas.</p></article><article><header><small>ACCESO RÁPIDO</small><h2>Datos maestros</h2></header><nav><Link to="../directorio">Equipo y responsables</Link><Link to="../recursos">Banco de recursos</Link><Link to="../dia-d">Centros, fiscales y JRV</Link></nav><p>La identidad de campaña se actualiza desde las tarjetas CRM y los archivos oficiales.</p></article><article><header><small>SEGURIDAD</small><h2>Sesión</h2></header><p>Usa una cuenta individual. El municipio, la campaña y los permisos se validan en cada operación.</p><button type="button">Cerrar sesión</button></article></section></main></>;
 }
 
@@ -119,7 +119,7 @@ export function V70ClientModulesParityBridge() {
 
   useEffect(() => {
     if (municipality_code !== "0509" || !section || !clientSections.has(section)) return;
-    const main = document.querySelector<HTMLElement>("main.portal-main.module-page");
+    const main = document.querySelector<HTMLElement>(".portal-main");
     const topbar = main?.querySelector<HTMLElement>(":scope > header.portal-topbar");
     if (!main || !topbar) return;
     const existing = main.querySelector<HTMLElement>("[data-v70-client-module-slot]");
