@@ -9,6 +9,7 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 const gate = read("src/components/MunicipalityAccessGate.tsx");
 const shell = read("src/components/V70DirectShell0509.tsx");
 const operationalMap = read("src/components/V70OperationalMap.tsx");
+const ecosystem = read("src/components/V70Ecosystem0509.tsx");
 const routes = [
   ["inicio", "V70DirectHome0509.tsx", "V70DirectHome0509"],
   ["inteligencia", "V70DirectIntelligence0509.tsx", "V70DirectIntelligence0509"],
@@ -57,14 +58,20 @@ assert(shell.includes("radar-electoral-logo-horizontal-oscuro-transparente.svg")
 assert(shell.includes("radar-electoral-isotipo.svg"), "Official V70 collapsed logo is missing.");
 assert(shell.includes("radar-isotipo.svg"), "Official V70 topbar mark is missing.");
 assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>0509</b>"), "Canonical V70 top controls are incomplete.");
+assert(shell.includes('slug === "dia-d" && dayDNext') && shell.includes("PRÓXIMO"), "Canonical Día D próximo marker is missing.");
 
 const directMap = read("src/components/V70DirectMap0509.tsx");
 const directIntelligence = read("src/components/V70DirectIntelligence0509.tsx");
 assert(directMap.includes("<V70OperationalMap />"), "Direct 0509 map does not render the canonical operational map component.");
+assert(directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"') && directMap.includes('topbarTitle="San José / Puerto San José · Escuintla"'), "Direct map chrome drifted from V70 0509.");
 assert(operationalMap.includes('className="operational-map-toolbar"'), "Canonical map toolbar is missing.");
 assert(operationalMap.includes('className="map-satellite-toggle"'), "Canonical satellite control is missing.");
 assert(operationalMap.includes("getInstalledRadarVoterCommunities"), "Canonical map is not connected to authorized voter-community aggregates.");
 assert(directIntelligence.includes("<V70ElectoralTerritory") && directIntelligence.includes("<V70CanonicalRich0509") && directIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing canonical V70 depth components.");
+assert(directIntelligence.includes('eyebrow="EXPEDIENTE MUNICIPAL 360"') && directIntelligence.includes('topbarTitle="San José / Puerto San José"') && directIntelligence.includes('accountRole="Cuenta del municipio"'), "Intelligence chrome drifted from the canonical V70 0509 reference.");
+assert(directIntelligence.includes("EXPEDIENTE MUNICIPAL 360 · ESCUINTLA — PUERTO SAN JOSÉ") && directIntelligence.includes("Fotografía estratégica del municipio para definir mensajes y prioridades"), "Canonical Intelligence heading copy is missing.");
 assert(!directIntelligence.includes("FUENTES Y TRAZABILIDAD") && !directIntelligence.includes("canonical-coverage-secondary"), "Non-canonical traceability tail returned to Intelligence.");
+assert(ecosystem.includes("PORTAL RADAR · VISIÓN DE PRODUCTO") && ecosystem.includes("De la evidencia a la operación diaria"), "Canonical V70 product-vision footer is missing.");
+assert(ecosystem.includes("RADAR Data Vault") && ecosystem.includes("Campaign Vault") && ecosystem.includes("≠"), "Canonical Data Vault / Campaign Vault separation is missing.");
 
-console.log(`V70_PARITY_SMOKE_OK ${routes.length}/11 routes direct-rendered · no mounted portal bridges · canonical 0509 shell preserved`);
+console.log(`V70_PARITY_SMOKE_OK ${routes.length}/11 routes direct-rendered · no mounted portal bridges · canonical 0509 shell/copy/footer preserved`);
