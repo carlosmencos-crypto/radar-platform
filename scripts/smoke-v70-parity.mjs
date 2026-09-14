@@ -60,8 +60,13 @@ assert(shell.includes("radar-isotipo.svg"), "Official V70 topbar mark is missing
 assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>0509</b>"), "Canonical V70 top controls are incomplete.");
 assert(shell.includes('slug === "dia-d" && dayDNext') && shell.includes("PRÓXIMO"), "Canonical Día D próximo marker is missing.");
 
+const directHome = read("src/components/V70DirectHome0509.tsx");
 const directMap = read("src/components/V70DirectMap0509.tsx");
 const directIntelligence = read("src/components/V70DirectIntelligence0509.tsx");
+assert(directHome.includes("BUENOS DÍAS, CARLOS") && directHome.includes("BUENAS TARDES, CARLOS") && directHome.includes("BUENAS NOCHES, CARLOS"), "Canonical time-aware Carlos greeting is missing from Inicio.");
+assert(directHome.includes('aria-label="Perfil de campaña">NA</i>') && directHome.includes("Candidato a alcalde · San José / Puerto San José"), "Canonical 0509 campaign identity copy drifted on Inicio.");
+assert(directHome.includes("TERRITORIO CUBIERTO") && directHome.includes("Revisar pendientes →") && directHome.includes("Planilla Municipal"), "Canonical Inicio operational summary is incomplete.");
+assert(!directHome.includes("Campaign Vault listo para asociar"), "Non-canonical Campaign Vault placeholder returned to the configured V70 home hero.");
 assert(directMap.includes("<V70OperationalMap />"), "Direct 0509 map does not render the canonical operational map component.");
 assert(directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"') && directMap.includes('topbarTitle="San José / Puerto San José · Escuintla"'), "Direct map chrome drifted from V70 0509.");
 assert(operationalMap.includes('className="operational-map-toolbar"'), "Canonical map toolbar is missing.");
@@ -74,4 +79,4 @@ assert(!directIntelligence.includes("FUENTES Y TRAZABILIDAD") && !directIntellig
 assert(ecosystem.includes("PORTAL RADAR · VISIÓN DE PRODUCTO") && ecosystem.includes("De la evidencia a la operación diaria"), "Canonical V70 product-vision footer is missing.");
 assert(ecosystem.includes("RADAR Data Vault") && ecosystem.includes("Campaign Vault") && ecosystem.includes("≠"), "Canonical Data Vault / Campaign Vault separation is missing.");
 
-console.log(`V70_PARITY_SMOKE_OK ${routes.length}/11 routes direct-rendered · no mounted portal bridges · canonical 0509 shell/copy/footer preserved`);
+console.log(`V70_PARITY_SMOKE_OK ${routes.length}/11 routes direct-rendered · no mounted portal bridges · canonical 0509 home/intelligence/map copy preserved`);
