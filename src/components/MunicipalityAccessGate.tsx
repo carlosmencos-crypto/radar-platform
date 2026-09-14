@@ -8,14 +8,18 @@ import {
   clearInstalledRadarElectoralLayers,
   clearInstalledRadarGeoBundle,
   clearInstalledRadarRuntime,
+  clearInstalledRadarVoterCommunities,
   installRadarElectoralLayers,
   installRadarGeoBundle,
   installRadarRuntime,
+  installRadarVoterCommunities,
 } from "../data/radarRuntimeCache";
 import {
   loadAuthorizedElectoralTerritoryLayers,
   loadAuthorizedGeoBundle,
+  loadAuthorizedVoterCommunities,
   type AuthorizedLayerRecord,
+  type AuthorizedVoterCommunity,
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
@@ -40,8 +44,9 @@ function delay(ms: number) {
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
   const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const needsElectoralTerritory = section === "inteligencia";
-  const [consumer, geoBundle, electoralLayers] = await Promise.all([
+  const needsElectoralTerritory = section === "inteligencia" || section === "mapa";
+  const needsVoterCommunities = section === "mapa";
+  const [consumer, geoBundle, electoralLayers, voterCommunities] = await Promise.all([
     resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
     needsTerritorialDetail
       ? loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
@@ -49,8 +54,11 @@ async function loadMunicipalityRuntime(municipalityCode: string, section: string
     needsElectoralTerritory
       ? loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken)
       : Promise.resolve<AuthorizedLayerRecord[]>([]),
+    needsVoterCommunities
+      ? loadAuthorizedVoterCommunities(municipalityCode, accessToken)
+      : Promise.resolve<AuthorizedVoterCommunity[]>([]),
   ]);
-  return { consumer, geoBundle, electoralLayers };
+  return { consumer, geoBundle, electoralLayers, voterCommunities };
 }
 
 export function MunicipalityAccessGate() {
@@ -68,6 +76,7 @@ export function MunicipalityAccessGate() {
     clearInstalledRadarRuntime(municipalityCode);
     clearInstalledRadarGeoBundle(municipalityCode);
     clearInstalledRadarElectoralLayers(municipalityCode);
+    clearInstalledRadarVoterCommunities(municipalityCode);
     setState({ status: "loading" });
 
     ensureRadarAccessToken()
@@ -80,15 +89,18 @@ export function MunicipalityAccessGate() {
           return loadMunicipalityRuntime(municipalityCode, section, accessToken);
         }
       })
-      .then(({ consumer, geoBundle, electoralLayers }) => {
+      .then(({ consumer, geoBundle, electoralLayers, voterCommunities }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
         if (geoBundle) {
           assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
           installRadarGeoBundle(geoBundle);
         }
-        if (section === "inteligencia") {
+        if (section === "inteligencia" || section === "mapa") {
           installRadarElectoralLayers(municipalityCode, electoralLayers);
+        }
+        if (section === "mapa") {
+          installRadarVoterCommunities(municipalityCode, voterCommunities);
         }
         setState({ status: "authorized", consumer });
       })
@@ -97,6 +109,7 @@ export function MunicipalityAccessGate() {
         clearInstalledRadarRuntime(municipalityCode);
         clearInstalledRadarGeoBundle(municipalityCode);
         clearInstalledRadarElectoralLayers(municipalityCode);
+        clearInstalledRadarVoterCommunities(municipalityCode);
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -111,6 +124,7 @@ export function MunicipalityAccessGate() {
       clearInstalledRadarRuntime(municipalityCode);
       clearInstalledRadarGeoBundle(municipalityCode);
       clearInstalledRadarElectoralLayers(municipalityCode);
+      clearInstalledRadarVoterCommunities(municipalityCode);
     };
   }, [municipalityCode, section]);
 
