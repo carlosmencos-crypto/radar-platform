@@ -4,6 +4,7 @@ import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { getInstalledRadarElectoralLayers, getInstalledRadarGeoBundle } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 import { V70CanonicalRich0509 } from "./V70CanonicalRich0509";
+import { V70Ecosystem0509 } from "./V70Ecosystem0509";
 import { V70ElectoralTerritory } from "./V70ElectoralTerritory";
 import { V70ElectoralTerritoryUnavailable } from "./V70ElectoralTerritoryUnavailable";
 
@@ -53,7 +54,12 @@ export function V70ElectoralParityBridge() {
         section.querySelector("h2")?.textContent?.trim() === "Lo que define el municipio",
       );
       hide(genericDefinition);
-      document.querySelectorAll<HTMLElement>(".portal-content > .trace-note, .portal-content > .canonical-coverage-secondary").forEach(hide);
+
+      document.querySelectorAll<HTMLElement>(".canonical-coverage-secondary").forEach(hide);
+      document.querySelectorAll<HTMLElement>(".canonical-coverage-secondary").forEach((details) => {
+        const previous = details.previousElementSibling;
+        if (previous instanceof HTMLElement && previous.classList.contains("trace-note")) hide(previous);
+      });
     }
 
     setHost(slot);
@@ -71,7 +77,7 @@ export function V70ElectoralParityBridge() {
       {electoralView
         ? <V70ElectoralTerritory viewModel={electoralView} geoBundle={geoBundle} />
         : <V70ElectoralTerritoryUnavailable municipalityName={municipality_name} geoBundle={geoBundle} state="NO_PUBLICADO" />}
-      {municipality_code === "0509" ? <V70CanonicalRich0509 /> : null}
+      {municipality_code === "0509" ? <><V70CanonicalRich0509 /><V70Ecosystem0509 /></> : null}
     </>,
     host,
   );
