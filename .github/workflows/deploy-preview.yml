@@ -2,7 +2,7 @@ name: Deploy preview
 
 on:
   push:
-    branches: [main]
+    branches: [main, qa/v70-national-product-parity]
   workflow_dispatch:
 
 permissions:
