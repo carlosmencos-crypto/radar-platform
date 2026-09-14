@@ -39,7 +39,7 @@ export function V70ElectoralParityBridge() {
     const hidden: Array<{ node: HTMLElement; previous: boolean }> = [];
     const hide = (node?: HTMLElement | null) => {
       if (!node) return;
-      hidden.push({ node, previous: node.hidden });
+      hidden.push({ node, previous: node.hidden === true });
       node.hidden = true;
     };
 
