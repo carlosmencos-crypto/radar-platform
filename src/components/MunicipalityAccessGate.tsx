@@ -29,9 +29,9 @@ import { V70ClientChromeParityBridge } from "./V70ClientChromeParityBridge";
 import { V70ConfigurationParityBridge } from "./V70ConfigurationParityBridge";
 import { V70DayDParityBridge } from "./V70DayDParityBridge";
 import { V70DirectoryParityBridge } from "./V70DirectoryParityBridge";
+import { V70DirectMap0509 } from "./V70DirectMap0509";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 import { V70HomeParityBridge } from "./V70HomeParityBridge";
-import { V70MapParityBridge } from "./V70MapParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
 import { V70PulseParityBridge } from "./V70PulseParityBridge";
 import { V70ResourcesParityBridge } from "./V70ResourcesParityBridge";
@@ -152,6 +152,10 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
+  if (municipalityCode === "0509" && section === "mapa") {
+    return <AuthorizedRuntimeProvider consumer={state.consumer}><V70DirectMap0509 /></AuthorizedRuntimeProvider>;
+  }
+
   const isHome = !section || section === "inicio";
   return <AuthorizedRuntimeProvider consumer={state.consumer}>
     <MunicipalDashboardV70Runtime />
@@ -162,7 +166,6 @@ export function MunicipalityAccessGate() {
     {section === "estrategia" ? <V70StrategyParityBridge /> : null}
     {section === "directorio" ? <V70DirectoryParityBridge /> : null}
     {section === "agenda" ? <V70AgendaParityBridge /> : null}
-    {section === "mapa" ? <V70MapParityBridge /> : null}
     {section === "dia-d" ? <V70DayDParityBridge /> : null}
     {section === "recursos" ? <V70ResourcesParityBridge /> : null}
     {section === "pulso" ? <V70PulseParityBridge /> : null}
