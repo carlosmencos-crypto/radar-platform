@@ -23,11 +23,18 @@ import {
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
+import { V70AgendaParityBridge } from "./V70AgendaParityBridge";
+import { V70AiParityBridge } from "./V70AiParityBridge";
 import { V70ClientChromeParityBridge } from "./V70ClientChromeParityBridge";
+import { V70ConfigurationParityBridge } from "./V70ConfigurationParityBridge";
+import { V70DayDParityBridge } from "./V70DayDParityBridge";
+import { V70DirectoryParityBridge } from "./V70DirectoryParityBridge";
 import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 import { V70HomeParityBridge } from "./V70HomeParityBridge";
 import { V70MapParityBridge } from "./V70MapParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
+import { V70PulseParityBridge } from "./V70PulseParityBridge";
+import { V70ResourcesParityBridge } from "./V70ResourcesParityBridge";
 import { V70StrategyParityBridge } from "./V70StrategyParityBridge";
 
 type GateState =
@@ -48,7 +55,7 @@ function delay(ms: number) {
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
   const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const needsElectoralTerritory = section === "inteligencia" || section === "mapa";
+  const needsElectoralTerritory = section === "inteligencia" || section === "mapa" || section === "dia-d";
   const needsVoterCommunities = section === "mapa";
   const [consumer, geoBundle, electoralLayers, voterCommunities] = await Promise.all([
     resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
@@ -100,12 +107,8 @@ export function MunicipalityAccessGate() {
           assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
           installRadarGeoBundle(geoBundle);
         }
-        if (section === "inteligencia" || section === "mapa") {
-          installRadarElectoralLayers(municipalityCode, electoralLayers);
-        }
-        if (section === "mapa") {
-          installRadarVoterCommunities(municipalityCode, voterCommunities);
-        }
+        if (needsElectoralSection(section)) installRadarElectoralLayers(municipalityCode, electoralLayers);
+        if (section === "mapa") installRadarVoterCommunities(municipalityCode, voterCommunities);
         setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
@@ -157,6 +160,17 @@ export function MunicipalityAccessGate() {
     {isHome ? <V70HomeParityBridge /> : null}
     {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
     {section === "estrategia" ? <V70StrategyParityBridge /> : null}
+    {section === "directorio" ? <V70DirectoryParityBridge /> : null}
+    {section === "agenda" ? <V70AgendaParityBridge /> : null}
     {section === "mapa" ? <V70MapParityBridge /> : null}
+    {section === "dia-d" ? <V70DayDParityBridge /> : null}
+    {section === "recursos" ? <V70ResourcesParityBridge /> : null}
+    {section === "pulso" ? <V70PulseParityBridge /> : null}
+    {section === "ia-radar" ? <V70AiParityBridge /> : null}
+    {section === "configuracion" ? <V70ConfigurationParityBridge /> : null}
   </AuthorizedRuntimeProvider>;
+}
+
+function needsElectoralSection(section: string | undefined) {
+  return section === "inteligencia" || section === "mapa" || section === "dia-d";
 }
