@@ -36,15 +36,30 @@ export function V70ElectoralParityBridge() {
     slot.style.display = "contents";
     if (!existing) profile.insertAdjacentElement("afterend", slot);
 
+    const hidden: Array<{ node: HTMLElement; previous: boolean }> = [];
+    const hide = (node?: HTMLElement | null) => {
+      if (!node) return;
+      hidden.push({ node, previous: node.hidden });
+      node.hidden = true;
+    };
+
     const genericTerritorial = Array.from(document.querySelectorAll<HTMLElement>("section.section")).find((section) =>
       section.querySelector("h2")?.textContent?.trim() === "El municipio sobre el mapa",
     );
-    const previousHidden = genericTerritorial?.hidden ?? false;
-    if (genericTerritorial) genericTerritorial.hidden = true;
+    hide(genericTerritorial);
+
+    if (municipality_code === "0509") {
+      const genericDefinition = Array.from(document.querySelectorAll<HTMLElement>("section.section")).find((section) =>
+        section.querySelector("h2")?.textContent?.trim() === "Lo que define el municipio",
+      );
+      hide(genericDefinition);
+      document.querySelectorAll<HTMLElement>(".portal-content > .trace-note, .portal-content > .canonical-coverage-secondary").forEach(hide);
+    }
+
     setHost(slot);
 
     return () => {
-      if (genericTerritorial) genericTerritorial.hidden = previousHidden;
+      hidden.forEach(({ node, previous }) => { node.hidden = previous; });
       if (!existing) slot.remove();
       setHost(null);
     };
