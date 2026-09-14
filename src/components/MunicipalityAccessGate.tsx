@@ -28,6 +28,7 @@ import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
 import { V70HomeParityBridge } from "./V70HomeParityBridge";
 import { V70MapParityBridge } from "./V70MapParityBridge";
 import { V70ProductParityBridge } from "./V70ProductParityBridge";
+import { V70StrategyParityBridge } from "./V70StrategyParityBridge";
 
 type GateState =
   | { status: "loading" }
@@ -155,6 +156,7 @@ export function MunicipalityAccessGate() {
     <V70ProductParityBridge />
     {isHome ? <V70HomeParityBridge /> : null}
     {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
+    {section === "estrategia" ? <V70StrategyParityBridge /> : null}
     {section === "mapa" ? <V70MapParityBridge /> : null}
   </AuthorizedRuntimeProvider>;
 }
