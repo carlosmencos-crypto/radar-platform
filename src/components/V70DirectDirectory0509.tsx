@@ -1,0 +1,46 @@
+import { useMemo, useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
+import { MunicipalityProvider } from "../context/MunicipalityContext";
+import { resolveRadarConsumer } from "../data/radarConsumer";
+import { V70DirectShell0509 } from "./V70DirectShell0509";
+
+type Elector = { id:string; name:string; community:string; age:number; status:string; phone:string };
+const electors: Elector[] = [
+  {id:"QA-0001",name:"Persona de prueba 01",community:"BARRIO PEÑATE",age:34,status:"SIN CONTACTO",phone:"Sin teléfono"},
+  {id:"QA-0002",name:"Persona de prueba 02",community:"PUEBLO SAN JOSE",age:41,status:"CONTACTADO",phone:"5555 0002"},
+  {id:"QA-0003",name:"Persona de prueba 03",community:"PARCELAMIENTO LOS ANGELES",age:29,status:"LIDER",phone:"5555 0003"},
+  {id:"QA-0004",name:"Persona de prueba 04",community:"SANTA ISABEL",age:52,status:"SIN CONTACTO",phone:"Sin teléfono"},
+  {id:"QA-0005",name:"Persona de prueba 05",community:"ARIZONA",age:38,status:"CONTACTADO",phone:"5555 0005"},
+];
+function initials(name:string){return name.split(/\s+/).filter(Boolean).slice(0,2).map((part)=>part[0]).join("").toUpperCase();}
+
+function ElectorsDirectoryQA(){
+  const [query,setQuery]=useState("");
+  const [dpi,setDpi]=useState("");
+  const [community,setCommunity]=useState("");
+  const [ageRange,setAgeRange]=useState("");
+  const [status,setStatus]=useState("");
+  const [affiliation,setAffiliation]=useState("");
+  const [responsible,setResponsible]=useState("");
+  const [role,setRole]=useState("");
+  const visible=useMemo(()=>electors.filter((item)=>{const term=query.trim().toLowerCase(); if(term&&!`${item.name} ${item.community}`.toLowerCase().includes(term))return false; if(community&&item.community!==community)return false; if(status&&item.status!==status)return false; return true;}),[query,community,status]);
+  function clear(){setQuery("");setDpi("");setCommunity("");setAgeRange("");setStatus("");setAffiliation("");setResponsible("");setRole("");}
+  return <><section className="elector-kpis" aria-label="Resumen del Directorio"><span><b>38,934</b><small>Registros</small></span><span><b>2</b><small>Contactos</small></span><span><b>1</b><small>Líderes</small></span><span><b>205</b><small>Comunidades</small></span></section><section className="elector-filters"><label className="wide"><span>Nombre</span><input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Nombre o palabras aproximadas" /></label><label><span>DPI</span><input inputMode="numeric" value={dpi} onChange={(event)=>setDpi(event.target.value)} placeholder="DPI completo" /></label><label><span>Comunidad</span><select value={community} onChange={(event)=>setCommunity(event.target.value)}><option value="">Todas</option>{[...new Set(electors.map((item)=>item.community))].map((item)=><option key={item}>{item}</option>)}</select></label><label><span>Edad estimada</span><select value={ageRange} onChange={(event)=>setAgeRange(event.target.value)}><option value="">Todas</option><option value="18-29">18–29</option><option value="30-44">30–44</option><option value="45-59">45–59</option><option value="60-">60 o más</option></select></label><label><span>Estado</span><select value={status} onChange={(event)=>setStatus(event.target.value)}><option value="">Todos</option><option value="SIN CONTACTO">Sin contacto</option><option value="CONTACTADO">Contactado</option><option value="LIDER">Líder</option></select></label><label><span>Afiliado al partido</span><select value={affiliation} onChange={(event)=>setAffiliation(event.target.value)}><option value="">—</option><option value="SI">Sí</option><option value="NO">No</option></select></label><label><span>Responsable</span><select value={responsible} onChange={(event)=>setResponsible(event.target.value)}><option value="">Todos</option></select></label><label><span>Rol</span><input value={role} onChange={(event)=>setRole(event.target.value)} placeholder="Ej. fiscal o liderazgo" /></label><button type="button" onClick={clear}>Limpiar</button><button type="button" className="primary">+ Agregar contacto</button></section><section className="elector-results"><header><div><small>RESULTADOS · QA PRIVADO</small><h2>38,934 personas</h2></div><label>Por página<select defaultValue="25"><option value="25">25</option><option value="50">50</option></select></label></header><div className="elector-table" role="table"><div className="elector-row head" role="row"><span>Persona</span><span>Comunidad</span><span>Edad estimada</span><span>Estado</span><span>Contacto</span><span /></div>{visible.map((item)=><button className="elector-row" role="row" key={item.id}><span className="elector-person"><i aria-hidden="true">{initials(item.name)}</i><span><b>{item.name}</b><small>•••• ••••• ••••</small></span></span><span>{item.community}</span><span>{item.age}</span><span><i className={`elector-status status-${item.status.toLowerCase().replaceAll(" ","_")}`}>{item.status}</i></span><span>{item.phone}</span><span>→</span></button>)}</div><footer><button disabled>← Anterior</button><span>Página <b>1</b> de 1,558</span><button>Siguiente →</button></footer></section></>;
+}
+
+function TeamDirectoryQA(){
+  const cards=Array.from({length:6},(_,index)=>({name:"Nombre Apellido",type:index===0?"Candidato":index<3?"Coordinador":"Fiscal",community:"San José"}));
+  return <><section className="crm-controlbar"><label className="crm-search"><span>⌕</span><input placeholder="Buscar nombre, teléfono, comunidad o cargo" /></label><label><span>Tipo de contacto</span><select defaultValue="all"><option value="all">Todos</option><option>Candidato</option><option>Coordinador</option><option>Fiscal</option><option>Líder</option></select></label><button className="crm-bulk-carnets">↓ Carnets ({cards.length})</button><div className="crm-view-switch" aria-label="Cambiar vista"><button className="active">Tarjetas</button><button>Lista</button></div></section><section className="crm-directory crm-directory-v2"><header><div><small>CAMPAIGN VAULT · PRIVADO · QA</small><h2>{cards.length} contactos visibles</h2></div></header><div className="crm-card-grid">{cards.map((person,index)=><article className="crm-contact-card" key={index}><header><i>NA</i><div><span className="crm-contact-code">QA-{String(index+1).padStart(3,"0")}</span><h3 className="crm-person-name"><span>Nombre</span><b>Apellido</b></h3></div></header><div className="crm-contact-meta"><span><small>COMUNIDAD</small><b>{person.community}</b></span><span><small>TIPO DE CONTACTO</small><b>{person.type}</b></span></div><div className="crm-contact-lines"><span><b>Teléfono principal</b><em>Pendiente</em></span><span><b>Teléfono secundario</b><em>—</em></span><span><b>Correo</b><em>Pendiente</em></span></div><footer><div className="crm-card-actions"><button>Crear actividad</button><div className="crm-card-secondary"><button className="print-action">Imprimir</button><button className="open-action">Abrir</button></div></div></footer></article>)}</div></section></>;
+}
+
+function DirectoryContent(){
+  const [mode,setMode]=useState<"electors"|"team">("electors");
+  return <><section className="section-banner"><div className="section-banner-copy"><p>CRM</p><h1>Directorio</h1><span>{mode==="electors"?"Base electoral municipal y seguimiento":"Base de datos / contactos por tipo"}</span></div>{mode==="team"?<div className="section-banner-actions"><div className="crm-banner-actions"><button className="secondary">↓ Descargar Excel</button><button>+ Agregar contacto</button></div></div>:null}</section><nav className="directory-universe-tabs" aria-label="Universos del Directorio"><button className={mode==="electors"?"active":""} onClick={()=>setMode("electors")}><b>Posibles votantes</b><span>Base precargada del municipio</span></button><button className={mode==="team"?"active":""} onClick={()=>setMode("team")}><b>Equipo y responsables</b><span>Operación interna de campaña</span></button></nav>{mode==="electors"?<ElectorsDirectoryQA/>:<TeamDirectoryQA/>}</>;
+}
+
+export function V70DirectDirectory0509(){
+  const {municipalityCode}=useParams();
+  const consumer=resolveRadarConsumer(municipalityCode);
+  if(!consumer||municipalityCode!=="0509") return <Navigate to="/" replace/>;
+  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="directorio" eyebrow="RELACIONES" topbarTitle="San José / Puerto San José · Escuintla" accountRole="Dirección de campaña"><DirectoryContent/></V70DirectShell0509></MunicipalityProvider>;
+}
