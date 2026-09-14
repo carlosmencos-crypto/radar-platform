@@ -23,3 +23,9 @@ jobs:
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v70-parity-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
