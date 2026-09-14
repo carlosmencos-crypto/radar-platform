@@ -1,7 +1,7 @@
 {
   "checkpoint": "V70_STRICT_PARITY_RUNTIME",
   "status": "FAIL_NOT_CLIENT_READY",
-  "updated_at": "2026-09-14T05:23:22.978655+00:00",
+  "updated_at": "2026-09-14T05:27:56.477425+00:00",
   "golden": {
     "municipality_code": "0509",
     "project": "radar-identidad-electoral",
@@ -12,10 +12,10 @@
     "branch": "qa/v70-golden-electoral-runtime",
     "draft_pr": 28,
     "pr_state": "OPEN_DRAFT_NOT_MERGED",
-    "head_before_checkpoint": "f9a05be2b427775bebc35ca205f8bb1400055d8d",
-    "quality": {"run_number": 211, "run_id": 34808028889, "conclusion": "success", "artifacts": 0},
+    "head_before_checkpoint": "f62f203c01396cad4ad6387c9fc48ddbccbaf1f3",
+    "quality": {"run_number": 212, "run_id": 34809521667, "conclusion": "success", "artifacts": 0},
     "visual_qa": "PENDING_RENDERED_AUTHENTICATED_0509_TO_0106_SCREENSHOT_COMPARISON",
-    "visual_blocker": "Quality is green but the workflow produces no rendered/authenticated screenshot artifacts; this is not sufficient evidence for Golden parity.",
+    "visual_blocker": "Quality is green but produces no rendered/authenticated screenshot artifacts; this is not sufficient evidence for Golden parity.",
     "client_ready": false
   },
   "trep_data_vault": {
@@ -49,65 +49,51 @@
     "0310": {
       "municipality_name": "Magdalena Milpas Altas",
       "status": "PASS_6_OF_6_TREP_LAYERS_DASHBOARD_READY",
-      "centers": 2,
-      "jrv": 19,
-      "registered_voters": 7190,
-      "geo_exact": 2,
-      "geo_held": 0,
-      "center_option_rows": 214,
-      "physical_center_crosswalk": "3 TREP codes -> 2 physical centers; center 001 groups 591+593 (JRV 5708-5722 + 5726), center 002 maps 592 (JRV 5723-5725).",
-      "elections": {
-        "PRESIDENTE": {"counted": "19/19", "valid": 4254, "leader": "SEMILLA", "leader_votes": 940, "runner_up": "VIVA", "runner_up_votes": 683, "dense_rows": 44},
-        "DIP_NAC": {"counted": "18/19", "valid": 3725, "leader": "SEMILLA", "leader_votes": 561, "runner_up": "CABAL", "runner_up_votes": 545, "dense_rows": 52},
-        "DIP_DIST": {"counted": "19/19", "valid": 4288, "leader": "AZUL", "leader_votes": 806, "runner_up": "CABAL", "runner_up_votes": 617, "dense_rows": 48},
-        "CORPORACION_MUNICIPAL": {"counted": "18/19", "valid": 4682, "leader": "CABAL", "leader_votes": 1164, "runner_up": "VALOR UNIONISTA", "runner_up_votes": 897, "dense_rows": 24},
-        "DIP_PAR": {"counted": "19/19", "valid": 3359, "leader": "SEMILLA", "leader_votes": 584, "runner_up": "VIVA", "runner_up_votes": 358, "dense_rows": 46}
-      },
-      "raw_as_entered_minus_calculated": {
-        "PRESIDENTE": {"valid": 0, "emitted": 0},
-        "DIP_NAC": {"valid": 2, "emitted": 2},
-        "DIP_DIST": {"valid": -100, "emitted": -100, "note": "JRV 5709"},
-        "CORPORACION_MUNICIPAL": {"valid": 0, "emitted": 0},
-        "DIP_PAR": {"valid": 0, "emitted": 0}
-      },
+      "centers": 2, "jrv": 19, "registered_voters": 7190, "geo_exact": 2, "geo_held": 0, "center_option_rows": 214,
+      "physical_center_crosswalk": "3 TREP codes -> 2 physical centers; 001 groups 591+593 and 002 maps 592.",
+      "counted_actas": {"PRESIDENTE": "19/19", "DIP_NAC": "18/19", "DIP_DIST": "19/19", "CORPORACION_MUNICIPAL": "18/19", "DIP_PAR": "19/19"},
+      "leaders": {"PRESIDENTE": "SEMILLA 940", "DIP_NAC": "SEMILLA 561", "DIP_DIST": "AZUL 806", "CORPORACION_MUNICIPAL": "CABAL 1164", "DIP_PAR": "SEMILLA 584"},
+      "raw_source_anomalies": {"DIP_NAC": "+2 valid/+2 emitted entered vs calculated", "DIP_DIST": "-100 valid/-100 emitted on JRV 5709", "CORPORACION_MUNICIPAL": "1 uncounted acta"},
       "post_promotion_identity": "PASS_ALL_FIVE_VALID_EQUALS_OPTIONS_EQUALS_MATRIX; DENSE_CARDINALITY_PASS; DEPARTMENT_CODE_03_PASS"
     },
     "0106_geo_correction": {
       "status": "PASS_FAIL_CLOSED_CORRECTION",
       "center_code": "015",
       "center_name": "ESCUELA OFICIAL RURAL MIXTA LAS VILLAS J.M.",
-      "problem": "Election layers incorrectly inherited coordinates from TSE2023-0106-015 although that geo feature belongs to INSTITUTO NACIONAL DE EDUCACIÓN DIVERSIFICADA EDGAR ARNOLDO MEDRANO MÉNDEZ at a different address.",
-      "canonical_state": "SIN_ASOCIACION",
-      "action": "All five dense election layers were corrected through private.upsert_singleton_layer_batch: lat/lon null, geo/map state SIN_ASOCIACION, QA geo_exact=15, geo_held=1, held_centers=[015]. Vote options and matrices were not changed.",
+      "problem": "Election layers had inherited coordinates from TSE2023-0106-015, but that geo feature is INSTITUTO NACIONAL DE EDUCACIÓN DIVERSIFICADA EDGAR ARNOLDO MEDRANO MÉNDEZ at a different address.",
+      "action": "All five election layers corrected through private.upsert_singleton_layer_batch to lat/lon null and SIN_ASOCIACION; QA geo_exact=15, geo_held=1, held_centers=[015]. Vote options/matrices unchanged.",
       "post_fix_math": "PASS_5_OF_5"
     },
     "0311_prevalidation": {
       "municipality_name": "Santa María de Jesús",
       "status": "PASS_PREVALIDATED_QA_ONLY_NOT_PROMOTED",
       "layer_state": "0_OF_6_NO_PARTIAL_WRITE",
-      "centers": 4,
-      "jrv": 33,
-      "registered_voters": 12809,
-      "geo_exact": 4,
-      "geo_held": 0,
-      "center_option_rows": 424,
+      "centers": 4, "jrv": 33, "registered_voters": 12809, "geo_exact": 4, "geo_held": 0, "center_option_rows": 424,
       "physical_center_crosswalk": "5 TREP codes -> 4 physical centers; 594->001, 595->002, 596->003, 597+598->004.",
       "elections": {
-        "PRESIDENTE": {"counted": "33/33", "valid": 6148, "leader": "UNE", "leader_votes": 852, "runner_up": "VIVA", "runner_up_votes": 754, "options": 22, "dense_rows": 88, "raw_valid_diff": 12, "raw_emitted_diff": -238},
-        "DIP_NAC": {"counted": "33/33", "valid": 6101, "leader": "PPN", "leader_votes": 854, "runner_up": "VAMOS", "runner_up_votes": 815, "options": 26, "dense_rows": 104, "raw_valid_diff": 13, "raw_emitted_diff": 16},
-        "DIP_DIST": {"counted": "33/33", "valid": 6363, "leader": "PPN", "leader_votes": 942, "runner_up": "VAMOS", "runner_up_votes": 904, "options": 24, "dense_rows": 96, "raw_valid_diff": -25, "raw_emitted_diff": -21},
-        "CORPORACION_MUNICIPAL": {"counted": "33/33", "valid": 7382, "leader": "PPN", "leader_votes": 1637, "runner_up": "UNE", "runner_up_votes": 1258, "options": 11, "dense_rows": 44, "raw_valid_diff": -1, "raw_emitted_diff": -272},
-        "DIP_PAR": {"counted": "33/33", "valid": 5619, "leader": "PPN", "leader_votes": 889, "runner_up": "VAMOS", "runner_up_votes": 887, "options": 23, "dense_rows": 92, "raw_valid_diff": -58, "raw_emitted_diff": 2}
+        "PRESIDENTE": {"counted": "33/33", "valid": 6148, "leader": "UNE", "leader_votes": 852, "runner_up": "VIVA", "runner_up_votes": 754, "raw_valid_diff": 12, "raw_emitted_diff": -238},
+        "DIP_NAC": {"counted": "33/33", "valid": 6101, "leader": "PPN", "leader_votes": 854, "runner_up": "VAMOS", "runner_up_votes": 815, "raw_valid_diff": 13, "raw_emitted_diff": 16},
+        "DIP_DIST": {"counted": "33/33", "valid": 6363, "leader": "PPN", "leader_votes": 942, "runner_up": "VAMOS", "runner_up_votes": 904, "raw_valid_diff": -25, "raw_emitted_diff": -21},
+        "CORPORACION_MUNICIPAL": {"counted": "33/33", "valid": 7382, "leader": "PPN", "leader_votes": 1637, "runner_up": "UNE", "runner_up_votes": 1258, "raw_valid_diff": -1, "raw_emitted_diff": -272},
+        "DIP_PAR": {"counted": "33/33", "valid": 5619, "leader": "PPN", "leader_votes": 889, "runner_up": "VAMOS", "runner_up_votes": 887, "raw_valid_diff": -58, "raw_emitted_diff": 2}
+      },
+      "vote_identity": "PASS_ALL_FIVE_VALIDOS_CALCULADO_EQUALS_OPTIONS_EQUALS_MATRIX; EMITIDOS_CALCULADO_EQUALS_VALID_PLUS_NULL_PLUS_BLANK"
+    },
+    "0312_prevalidation": {
+      "municipality_name": "Ciudad Vieja",
+      "status": "PASS_PREVALIDATED_QA_ONLY_NOT_PROMOTED",
+      "layer_state": "0_OF_6_NO_PARTIAL_WRITE",
+      "centers": 4, "jrv": 48, "registered_voters": 19012, "geo_exact": 4, "geo_held": 0, "center_option_rows": 420,
+      "physical_center_crosswalk": "5 TREP codes -> 4 physical centers; 599->001, 600->002, 601+603->003, 602->004.",
+      "elections": {
+        "PRESIDENTE": {"counted": "48/48", "valid": 9754, "leader": "SEMILLA", "leader_votes": 3187, "runner_up": "CABAL", "runner_up_votes": 899, "raw_valid_diff": 0, "raw_emitted_diff": 0},
+        "DIP_NAC": {"counted": "48/48", "valid": 8915, "leader": "SEMILLA", "leader_votes": 2199, "runner_up": "VAMOS", "runner_up_votes": 1002, "raw_valid_diff": 60, "raw_emitted_diff": 60},
+        "DIP_DIST": {"counted": "48/48", "valid": 9570, "leader": "SEMILLA", "leader_votes": 2163, "runner_up": "VAMOS", "runner_up_votes": 1227, "raw_valid_diff": 0, "raw_emitted_diff": 0},
+        "CORPORACION_MUNICIPAL": {"counted": "48/48", "valid": 11628, "leader": "LIBRE CIUDAD VIEJA", "leader_votes": 5678, "runner_up": "CABAL", "runner_up_votes": 1863, "raw_valid_diff": 0, "raw_emitted_diff": 0},
+        "DIP_PAR": {"counted": "48/48", "valid": 7722, "leader": "SEMILLA", "leader_votes": 2090, "runner_up": "VAMOS", "runner_up_votes": 1093, "raw_valid_diff": 0, "raw_emitted_diff": 1}
       },
       "vote_identity": "PASS_ALL_FIVE_VALIDOS_CALCULADO_EQUALS_OPTIONS_EQUALS_MATRIX; EMITIDOS_CALCULADO_EQUALS_VALID_PLUS_NULL_PLUS_BLANK",
-      "source_semantics": "Raw VÁLIDOS/EMITIDOS discrepancies remain source anomalies; no imputation. Dense V70 contract uses *_CALCULADO fields.",
-      "source_hashes": {
-        "PRESIDENTE": "a608018cf8d846ebf1304e39638a853f81b2e8b4e58bcd0a328021a4c26be928",
-        "DIP_NAC": "558f2d006d5f4aa3dac13b19be48ba0cca7f77ce5265d650fa2606b13e948cf7",
-        "DIP_DIST": "bbefc5648994fba36481494dc3c4d1e26bbd58c31d057aef6417788e0c39f3bf",
-        "CORPORACION_MUNICIPAL": "9404d7fb0ceb0d61a2a0f95f5096ed2902934e7a61821a50604ebcbe79c245e5",
-        "DIP_PAR": "356fd292d8d0f14e5ac1c1c36ad0fbee1c645d1be0d6fe6e48fd2d909c8d6b1e"
-      }
+      "source_semantics": "No imputation. DIP_NAC raw entered VÁLIDOS/EMITIDOS are +60 vs calculated; DIP_PAR raw EMITIDOS is +1."
     }
   },
   "security": {
@@ -122,8 +108,8 @@
     "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
     "crosswalk": "GT_TSE_2023_CENTROS_JRV_GEO_CLEAN_v2.xlsx",
     "geo_source": "GT-TSE-2023-CENTROS-VOTACION-COORD-340-001",
-    "corporacion_0310_sha256": "ca79cf53a2fbb00b3006d57da5633e70f8ea927aa095996cc9bf73a55d18ffe6",
-    "corporacion_0311_sha256": "9404d7fb0ceb0d61a2a0f95f5096ed2902934e7a61821a50604ebcbe79c245e5"
+    "corporacion_0311_sha256": "9404d7fb0ceb0d61a2a0f95f5096ed2902934e7a61821a50604ebcbe79c245e5",
+    "corporacion_0312_sha256": "46efe5ac9153f78208fa7efb9b21974ac5f65cba8a24f577f4678f6608bd9759"
   },
   "fail_closed": [
     "Keep 0104 semantic NO_PUBLICADO; do not fabricate election payloads.",
@@ -132,5 +118,5 @@
     "No merge/deploy/cutover to client-ready until authenticated Golden screenshot parity reaches zero unauthorized regressions.",
     "Use private.upsert_singleton_layer_batch for TREP promotion; no direct destructive Data Vault writes."
   ],
-  "next_checkpoint": "Promote 0311 Santa María de Jesús atomically 6/6 from this prevalidation, preserving raw entered-vs-calculated anomalies without imputation; post-QA all five dense matrices/geography/department code, then prevalidate 0312. Keep PR #28 QA-only."
+  "next_checkpoint": "Promote 0311 Santa María de Jesús atomically 6/6 from stored prevalidation and post-QA it; 0312 Ciudad Vieja is already prevalidated 0/6 and can follow immediately. Keep PR #28 QA-only."
 }
