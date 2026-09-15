@@ -265,23 +265,35 @@ try {
     if (!ok) throw new Error(`SPA screenshot too small for ${route}`);
   }
 
-  // Canonical V70 export surface: both visible export button and top PDF control must open ReportBuilder and Escape must close it.
+  // municipio-360 has its own canonical export panel. Both top PDF and floating export open that same panel.
   await navigate("/municipio/0509/inteligencia");
   await delay(1800);
   for (const selector of [".floating-export", ".print-top-action"]) {
     const clicked = await evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)}); if(!b)return false; b.click(); return true;})()`);
-    if (!clicked) throw new Error(`Report control missing: ${selector}`);
-    await waitFor(`Boolean(document.querySelector('.report-builder')) && (document.body?.innerText||'').includes('Crear reporte PDF')`, `ReportBuilder from ${selector}`);
+    if (!clicked) throw new Error(`Intelligence export control missing: ${selector}`);
+    await waitFor(`Boolean(document.querySelector('.export-panel')) && (document.body?.innerText||'').includes('Exportar esta lectura') && (document.body?.innerText||'').includes('Generar PDF')`, `canonical Intelligence export panel from ${selector}`);
     const screenshotBytes = await capture(`modal-${selector.includes("floating") ? "floating" : "top"}`);
-    diagnostics.modals.push({ selector, opened: true, screenshotBytes, ok: screenshotBytes > 10_000 });
+    diagnostics.modals.push({ selector, kind: "intelligence-export", opened: true, screenshotBytes, ok: screenshotBytes > 10_000 });
     save();
-    await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await waitFor(`!document.querySelector('.report-builder')`, `ReportBuilder Escape close for ${selector}`);
+    const closed = await evaluate(`(()=>{const b=document.querySelector('.export-head button[aria-label="Cerrar"]'); if(!b)return false; b.click(); return true;})()`);
+    if (!closed) throw new Error(`Intelligence export close control missing for ${selector}`);
+    await waitFor(`!document.querySelector('.export-panel')`, `Intelligence export close for ${selector}`);
   }
 
-  // Render and print the executive report route under the same authorized 0509 session.
-  const reportRoute = "/reporte/inteligencia?parts=summary,metrics,sections,records,trace";
+  // Normal PortalFrame routes use the canonical generic ReportBuilder and ModalEscape behavior.
+  await navigate("/municipio/0509");
+  await delay(1200);
+  const genericClicked = await evaluate(`(()=>{const b=document.querySelector('.print-top-action'); if(!b)return false; b.click(); return true;})()`);
+  if (!genericClicked) throw new Error("Generic Reporte PDF control missing on Inicio");
+  await waitFor(`Boolean(document.querySelector('.report-builder')) && (document.body?.innerText||'').includes('Crear reporte PDF')`, "canonical generic ReportBuilder on Inicio");
+  const genericScreenshotBytes = await capture("modal-generic-report-builder");
+  diagnostics.modals.push({ selector: ".print-top-action@inicio", kind: "report-builder", opened: true, screenshotBytes: genericScreenshotBytes, ok: genericScreenshotBytes > 10_000 });
+  await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await waitFor(`!document.querySelector('.report-builder')`, "generic ReportBuilder Escape close");
+
+  // Render and print the exact municipio-360 report route opened by the canonical Intelligence export panel.
+  const reportRoute = "/reporte/municipio-360?blocks=electoral,center,territory,indicators,finance";
   await navigate(reportRoute);
   await waitFor(`Boolean(document.querySelector('.executive-report'))`, "executive report DOM", 12000);
   await delay(900);
@@ -302,7 +314,7 @@ try {
 
   diagnostics.status = "PASS";
   save();
-  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/2 report controls · ${diagnostics.reports.length}/1 printable report`);
+  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/3 report controls · ${diagnostics.reports.length}/1 printable report`);
 } catch (error) {
   diagnostics.status = "FAIL";
   diagnostics.error = error instanceof Error ? error.stack ?? error.message : String(error);
