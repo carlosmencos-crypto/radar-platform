@@ -3,7 +3,7 @@ import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
 import { RadarAccessPage } from "./RadarAccessPage";
 import { MunicipalityAccessGate as MunicipalDashboard } from "../components/MunicipalityAccessGate";
-import { V70DirectReport0509 } from "../components/V70DirectReport0509";
+import { V70DirectReportAccessGate0509 } from "../components/V70DirectReportAccessGate0509";
 
 function AccessDeniedPage() {
   return (
@@ -23,7 +23,7 @@ export function App() {
   return (
     <Routes>
       <Route path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />} />
-      <Route path="reporte/:section" element={<V70DirectReport0509 />} />
+      <Route path="reporte/:section" element={<V70DirectReportAccessGate0509 />} />
       <Route element={<Layout />}>
         <Route index element={<MunicipalitiesPage />} />
         <Route path="municipios" element={<MunicipalitiesPage />} />
