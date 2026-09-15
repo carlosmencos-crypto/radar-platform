@@ -76,7 +76,7 @@ const mime = new Map([
 const index = fs.readFileSync(path.join(dist, "index.html"), "utf8").replace("</head>", `${injection}</head>`);
 const server = http.createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url ?? "/", `http://127.0.0.1:${port}`).pathname);
-  let file = path.join(dist, pathname.replace(/^\/+/, ""));
+  const file = path.join(dist, pathname.replace(/^\/+/, ""));
   if (pathname === "/" || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     response.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
     response.end(index);
@@ -96,6 +96,11 @@ function findChrome() {
 }
 
 const chrome = findChrome();
+const browserBaseArgs = [
+  "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--hide-scrollbars",
+  "--disable-background-networking", "--disable-component-update", "--disable-default-apps", "--disable-sync",
+  "--metrics-recording-only", "--no-first-run", "--window-size=1440,1100", "--virtual-time-budget=5000",
+];
 const routes = [
   ["inicio", "/municipio/0509", "Planilla Municipal"],
   ["inteligencia", "/municipio/0509/inteligencia", "Inteligencia Municipal"],
@@ -114,22 +119,36 @@ try {
   for (const [slug, route, marker] of routes) {
     const screenshot = path.join(out, `${slug}.png`);
     const url = `http://127.0.0.1:${port}${route}`;
-    const run = spawnSync(chrome, [
-      "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--hide-scrollbars",
-      "--window-size=1440,1100", "--virtual-time-budget=6000", `--screenshot=${screenshot}`, "--dump-dom", url,
-    ], { encoding: "utf8", timeout: 45000, maxBuffer: 20 * 1024 * 1024 });
-    const dom = run.stdout ?? "";
-    const ok = run.status === 0
+    const domRun = spawnSync(chrome, [...browserBaseArgs, "--dump-dom", url], {
+      encoding: "utf8", timeout: 20000, maxBuffer: 20 * 1024 * 1024,
+    });
+    const dom = domRun.stdout ?? "";
+    fs.writeFileSync(path.join(out, `${slug}.html`), dom || "<!-- no DOM output -->");
+    fs.writeFileSync(path.join(out, `${slug}.stderr.txt`), domRun.stderr ?? "");
+    const domOk = domRun.status === 0
       && dom.includes("portal-shell")
       && dom.includes(marker)
       && !dom.includes("No pudimos actualizar este municipio.")
       && !dom.includes("RADAR_AUTH_NOT_CONFIGURED")
       && !dom.includes("RADAR_AUTH_REQUIRED");
-    results.push({ slug, route, marker, status: run.status, screenshot: fs.existsSync(screenshot), ok });
-    if (!ok) {
-      fs.writeFileSync(path.join(out, `${slug}.html`), dom || run.stderr || "no output");
-      throw new Error(`Rendered route failed: ${route}`);
+
+    let screenshotStatus = null;
+    if (domOk) {
+      const shotRun = spawnSync(chrome, [...browserBaseArgs, `--screenshot=${screenshot}`, url], {
+        encoding: "utf8", timeout: 20000, maxBuffer: 4 * 1024 * 1024,
+      });
+      screenshotStatus = shotRun.status;
+      fs.writeFileSync(path.join(out, `${slug}.screenshot.stderr.txt`), shotRun.stderr ?? "");
     }
+    const screenshotOk = domOk && screenshotStatus === 0 && fs.existsSync(screenshot) && fs.statSync(screenshot).size > 10_000;
+    const ok = domOk && screenshotOk;
+    results.push({
+      slug, route, marker, ok, domOk, screenshotOk,
+      domStatus: domRun.status, domSignal: domRun.signal, domError: domRun.error?.message ?? null,
+      screenshotStatus, screenshot: fs.existsSync(screenshot) ? fs.statSync(screenshot).size : 0,
+    });
+    fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results }, null, 2));
+    if (!ok) throw new Error(`Rendered route failed: ${route}; see .render-smoke-0509 diagnostics.`);
   }
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${results.filter((item) => item.ok).length}/11 routes rendered without auth/runtime/white-screen failure`);
