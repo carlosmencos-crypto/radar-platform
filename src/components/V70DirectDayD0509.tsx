@@ -350,34 +350,36 @@ function DayDContent() {
     </section>
   );
   const rtd = (
-    <section className="day-d-workspace">
+    <section className="day-d-workspace rtd-workspace">
       <header>
         <div>
-          <small>RESULTADOS TRANSMITIDOS DESDE MESA</small>
-          <h2>RTD</h2>
+          <small>RESULTADOS PARCIALES PROPIOS</small>
+          <h2>Recepción Temprana de Datos</h2>
           <p>
-            Folios, actas y control de recepción separados entre demostración y
-            resultados reales.
+            Un folio vigente por municipio + campaña + JRV + elección.
+            Fotografía, digitación y correcciones viven en el mismo expediente.
           </p>
         </div>
+        <span className="rtd-live">CONTROL PROPIO · RESULTADOS PRELIMINARES NO OFICIALES</span>
       </header>
-      <div className="day-d-operations-strip" aria-label="Cobertura RTD">
-        <span>
-          <small>JRV con RTD recibido</small>
-          <b>0/{totalJrv}</b>
-        </span>
-        <span>
-          <small>JRV pendientes</small>
-          <b>{totalJrv}</b>
-        </span>
-        <span>
-          <small>Centros transmitiendo</small>
-          <b>0/{centers.length}</b>
-        </span>
-        <span>
-          <small>Duplicados o incidencias</small>
-          <b>0</b>
-        </span>
+      <aside className="rtd-catalog-note"><b>Participantes oficiales precargados</b><span>RADAR utilizará el catálogo electoral oficial validado para que cada fiscal vea únicamente las opciones que corresponden a su tipo de elección.</span></aside>
+      <div className="rtd-controlbar">
+        <label><span>Datos mostrados</span><select defaultValue="REAL"><option value="REAL">Resultados reales Día D</option><option value="DEMO">Validación demostrativa</option></select></label>
+        <label><span>Tipo de elección</span><select defaultValue="CORPORACION_MUNICIPAL"><option value="PRESIDENTE">Presidente y Vicepresidente</option><option value="CORPORACION_MUNICIPAL">Corporación Municipal</option><option value="DIPUTADOS_DISTRITO">Diputados por distrito</option><option value="DIPUTADOS_NACIONAL">Listado nacional</option><option value="PARLACEN">Parlamento Centroamericano</option></select></label>
+        <span><small>Lectura permitida</small><b>Mayoría relativa; concejalías sujetas a regla legal</b></span>
+      </div>
+      <div className="rtd-progress-card">
+        <header><span><small>JRV con RTD recibido · JRV reales recibidas</small><b>0 de {totalJrv}</b></span><strong>0%</strong></header>
+        <div><i style={{ width: "0%" }} /></div>
+      </div>
+      <div className="rtd-results">
+        <section><header><small>GRÁFICA DE RESULTADOS · RESULTADO PARCIAL REAL</small><h3>Corporación Municipal</h3></header><p>No hay folios enviados para esta elección en el modo seleccionado.</p></section>
+        <aside><small>CONTROL DE RECEPCIÓN</small><span><b>0</b> folios reales enviados</span><span><b>0</b> folios demostrativos</span><span><b>0</b> borradores en servidor</span><span><b>0</b> con acta</span><span><b>0</b> observados</span><span><b>0</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
+      </div>
+      <div className="day-d-filters">
+        <label><span>Centro</span><select><option>Todos</option>{centers.map((center) => <option key={center.id}>{center.name}</option>)}</select></label>
+        <label><span>Estado</span><select><option>Todos</option><option>BORRADOR</option><option>PENDIENTE REVISION</option><option>OBSERVADO</option><option>VALIDADO</option><option>CORREGIDO</option></select></label>
+        <label><span>JRV</span><input inputMode="numeric" placeholder="Buscar JRV" /></label>
       </div>
       <div className="day-d-rtd-list">
         <p>No hay folios para estos filtros.</p>

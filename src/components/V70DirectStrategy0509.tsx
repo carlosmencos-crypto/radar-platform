@@ -1,10 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
 } from "../context/MunicipalityContext";
 import { resolveRadarConsumer } from "../data/radarConsumer";
+import { ensureRadarAccessToken } from "../data/radarAuth";
+import {
+  loadStrategyScenarios,
+  saveStrategyScenarios,
+} from "../data/radarRuntime";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
 const preliminaryElectionDate = new Date("2027-06-27T00:00:00-06:00");
@@ -55,25 +60,25 @@ const areas = [
   {
     name: "Plan de campaña",
     detail: "Diagnóstico, objetivos y decisiones vigentes",
-    section: "inteligencia",
+    section: "estrategia-plan",
     mark: "01",
   },
   {
     name: "Comunicación",
     detail: "Banco oficial de fotografías, logos y piezas",
-    section: "recursos",
+    section: "estrategia-comunicacion",
     mark: "02",
   },
   {
     name: "Control Financiero",
     detail: "Ingresos, egresos, comprobantes y presupuesto",
-    section: "recursos",
+    section: "estrategia-finanzas",
     mark: "03",
   },
   {
     name: "Legal",
     detail: "Expedientes de candidatos y documentos del partido",
-    section: "recursos",
+    section: "estrategia-legal",
     mark: "04",
   },
 ] as const;
@@ -81,13 +86,14 @@ function daysUntil(date: Date) {
   return Math.max(0, Math.ceil((date.getTime() - Date.now()) / 86_400_000));
 }
 function StrategyContent() {
-  const { municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code } = useMunicipalityContext();
   const [values, setValues] = useState({
     conservador: "",
     base: "",
     optimista: "",
   });
   const [saved, setSaved] = useState("");
+  const [saving, setSaving] = useState(false);
   const days = daysUntil(preliminaryElectionDate);
   const next = useMemo(
     () =>
@@ -105,6 +111,50 @@ function StrategyContent() {
   const nextDays = next
     ? Math.max(0, Math.ceil((next.time - Date.now()) / 86_400_000))
     : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!campaign_id) return;
+    void ensureRadarAccessToken()
+      .then((token) => loadStrategyScenarios(campaign_id, token))
+      .then((scenarios) => {
+        if (cancelled || !scenarios) return;
+        setValues({
+          conservador: Number(scenarios.conservador) ? String(scenarios.conservador) : "",
+          base: Number(scenarios.base) ? String(scenarios.base) : "",
+          optimista: Number(scenarios.optimista) ? String(scenarios.optimista) : "",
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setSaved("No se pudieron cargar los escenarios guardados.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [campaign_id]);
+
+  async function persistScenarios() {
+    if (!campaign_id) {
+      setSaved("Esta sesión no tiene una campaña autorizada.");
+      return;
+    }
+    setSaving(true);
+    setSaved("");
+    try {
+      const token = await ensureRadarAccessToken();
+      const scenarios = await saveStrategyScenarios(campaign_id, values, token);
+      setValues({
+        conservador: Number(scenarios.conservador) ? String(scenarios.conservador) : "",
+        base: Number(scenarios.base) ? String(scenarios.base) : "",
+        optimista: Number(scenarios.optimista) ? String(scenarios.optimista) : "",
+      });
+      setSaved("Escenarios guardados en Campaign Vault.");
+    } catch (error) {
+      setSaved(error instanceof Error ? error.message : "No se pudieron guardar los escenarios.");
+    } finally {
+      setSaving(false);
+    }
+  }
   return (
     <>
       <section className="section-banner">
@@ -234,9 +284,10 @@ function StrategyContent() {
             </span>
             <button
               type="button"
-              onClick={() => setSaved("Escenarios guardados.")}
+              disabled={saving}
+              onClick={() => void persistScenarios()}
             >
-              Guardar escenarios
+              {saving ? "Guardando…" : "Guardar escenarios"}
             </button>
           </footer>
           {saved ? <p className="strategy-goals-message">{saved}</p> : null}

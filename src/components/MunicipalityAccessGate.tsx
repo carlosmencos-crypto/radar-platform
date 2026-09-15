@@ -37,6 +37,7 @@ import { V70DirectMap0509 } from "./V70DirectMap0509";
 import { V70DirectPulse0509 } from "./V70DirectPulse0509";
 import { V70DirectResources0509 } from "./V70DirectResources0509";
 import { V70DirectStrategy0509 } from "./V70DirectStrategy0509";
+import { V70DirectStrategyArea0509 } from "./V70DirectStrategyArea0509";
 
 type GateState =
   | { status: "loading" }
@@ -78,6 +79,13 @@ function direct0509(section: string | undefined): ReactNode | null {
   if (!section || section === "inicio") return <V70DirectHome0509 />;
   if (section === "inteligencia") return <V70DirectIntelligence0509 />;
   if (section === "estrategia") return <V70DirectStrategy0509 />;
+  if (
+    section === "estrategia-plan" ||
+    section === "estrategia-comunicacion" ||
+    section === "estrategia-finanzas" ||
+    section === "estrategia-legal"
+  )
+    return <V70DirectStrategyArea0509 />;
   if (section === "directorio") return <V70DirectDirectory0509 />;
   if (section === "agenda") return <V70DirectAgenda0509 />;
   if (section === "mapa") return <V70DirectMap0509 />;

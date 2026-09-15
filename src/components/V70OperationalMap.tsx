@@ -65,6 +65,16 @@ type LeafletNamespace = {
     options: { maxZoom: number; attribution: string },
   ): LeafletLayer & { addTo(map: LeafletMap): LeafletLayer };
   latLngBounds(points: LatLng[]): LeafletBounds;
+  divIcon(options: {
+    className: string;
+    html: string;
+    iconSize: [number, number];
+    iconAnchor: [number, number];
+  }): unknown;
+  marker(
+    point: LatLng,
+    options: { icon: unknown },
+  ): LeafletMarker;
   circleMarker(
     point: LatLng,
     options: {
@@ -584,15 +594,21 @@ export function V70OperationalMap() {
           drawnRef.current.push(marker);
         });
       }
-      if (activityPoint) {
-        const marker = L.circleMarker([activityPoint.lat, activityPoint.lon], {
-          radius: 10,
-          color: "#ffffff",
-          weight: 3,
-          fillColor: "#552676",
-          fillOpacity: 1,
+      const exactPoint = activityPoint ?? selectedPlace;
+      if (exactPoint) {
+        const marker = L.marker([exactPoint.lat, exactPoint.lon], {
+          icon: L.divIcon({
+            className: "free-point-shell",
+            html: '<span class="free-point-marker">＋</span>',
+            iconSize: [42, 42],
+            iconAnchor: [21, 38],
+          }),
         })
-          .bindTooltip("Punto exacto para la nueva actividad")
+          .bindTooltip(
+            activityPoint
+              ? "Punto exacto para la nueva actividad"
+              : `<b>${clean(selectedPlace?.name ?? "Lugar encontrado")}</b><br>Lugar encontrado`,
+          )
           .addTo(map);
         drawnRef.current.push(marker);
       }
@@ -606,6 +622,7 @@ export function V70OperationalMap() {
     layers.prioridades,
     mapReady,
     priorityCenters,
+    selectedPlace,
     topCommunities,
   ]);
 

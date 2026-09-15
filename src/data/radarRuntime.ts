@@ -146,6 +146,7 @@ export interface CampaignActivityRecord {
   longitude: number | null;
   status: string;
   notes: string | null;
+  details: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -179,6 +180,68 @@ export interface AuthorizedVoterDirectoryRow {
   campaign_role: string | null;
   party_affiliation: string | null;
   total_count: number;
+}
+
+export interface StrategyScenarios {
+  conservador: number | string;
+  base: number | string;
+  optimista: number | string;
+}
+
+export interface CampaignContactRecord {
+  id: string;
+  campaign_id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  community: string | null;
+  address_text: string | null;
+  role: string | null;
+  contact_type: string;
+  status: string;
+  notes: string | null;
+  active: boolean;
+  photo_url: string | null;
+  identification: string | null;
+  social_url: string | null;
+  file_code: string | null;
+  is_in_crm: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthorizedVoterSuggestion {
+  id: number;
+  full_name: string;
+  community: string | null;
+  estimated_age_2026: number | null;
+}
+
+export interface AuthorizedVoterDetail {
+  elector: {
+    id: number;
+    full_name: string;
+    community: string | null;
+    estimated_age_2026: number | null;
+    municipality_code: string;
+    municipality_name: string;
+    masked_identification: string | null;
+  };
+  profile: Record<string, unknown>;
+  interactions: Array<Record<string, unknown>>;
+}
+
+export interface CampaignModuleRecord {
+  id: string;
+  campaign_id: string;
+  module_key: string;
+  category: string;
+  title: string;
+  details: string | null;
+  status: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VoterDirectoryFilters {
@@ -440,6 +503,180 @@ export async function saveCampaignActivity(
       p_activity_id: activityId,
       p_activity: activity,
     },
+    accessToken,
+  );
+}
+
+export async function deleteCampaignActivity(
+  campaignId: string,
+  activityId: string,
+  accessToken: string,
+) {
+  return rpc<boolean>(
+    "radar_delete_activity_v1",
+    { p_campaign_id: campaignId, p_activity_id: activityId },
+    accessToken,
+  );
+}
+
+export async function loadStrategyScenarios(
+  campaignId: string,
+  accessToken: string,
+) {
+  return rpc<StrategyScenarios>(
+    "radar_strategy_scenarios_v1",
+    { p_campaign_id: campaignId },
+    accessToken,
+  );
+}
+
+export async function saveStrategyScenarios(
+  campaignId: string,
+  scenarios: StrategyScenarios,
+  accessToken: string,
+) {
+  return rpc<StrategyScenarios>(
+    "radar_save_strategy_scenarios_v1",
+    { p_campaign_id: campaignId, p_scenarios: scenarios },
+    accessToken,
+  );
+}
+
+export async function loadCampaignContacts(
+  campaignId: string,
+  accessToken: string,
+) {
+  return rpc<CampaignContactRecord[]>(
+    "radar_campaign_contacts_v1",
+    { p_campaign_id: campaignId },
+    accessToken,
+  );
+}
+
+export async function saveCampaignContact(
+  campaignId: string,
+  contact: Partial<CampaignContactRecord>,
+  accessToken: string,
+  contactId: string | null = null,
+) {
+  return rpc<CampaignContactRecord>(
+    "radar_save_campaign_contact_v1",
+    { p_campaign_id: campaignId, p_contact_id: contactId, p_contact: contact },
+    accessToken,
+  );
+}
+
+export async function loadAuthorizedVoterSuggestions(
+  municipalityCode: string,
+  query: string,
+  accessToken: string,
+  limit = 8,
+) {
+  assertMunicipalityCode(municipalityCode);
+  return rpc<AuthorizedVoterSuggestion[]>(
+    "radar_authorized_voter_suggestions_v1",
+    { p_municipality_code: municipalityCode, p_query: query, p_limit: limit },
+    accessToken,
+  );
+}
+
+export async function loadAuthorizedVoterDetail(
+  municipalityCode: string,
+  voterId: number,
+  accessToken: string,
+) {
+  assertMunicipalityCode(municipalityCode);
+  return rpc<AuthorizedVoterDetail | null>(
+    "radar_authorized_voter_detail_v1",
+    { p_municipality_code: municipalityCode, p_voter_id: voterId },
+    accessToken,
+  );
+}
+
+export async function revealAuthorizedVoterIdentification(
+  municipalityCode: string,
+  voterId: number,
+  accessToken: string,
+) {
+  assertMunicipalityCode(municipalityCode);
+  return rpc<string | null>(
+    "radar_reveal_voter_identification_v1",
+    { p_municipality_code: municipalityCode, p_voter_id: voterId },
+    accessToken,
+  );
+}
+
+export async function saveAuthorizedVoterProfile(
+  campaignId: string,
+  voterId: number,
+  profile: Record<string, unknown>,
+  accessToken: string,
+) {
+  return rpc<Record<string, unknown>>(
+    "radar_save_voter_profile_v1",
+    { p_campaign_id: campaignId, p_voter_id: voterId, p_profile: profile },
+    accessToken,
+  );
+}
+
+export async function createManualVoter(
+  campaignId: string,
+  voter: Record<string, unknown>,
+  accessToken: string,
+) {
+  return rpc<number>(
+    "radar_create_manual_voter_v1",
+    { p_campaign_id: campaignId, p_voter: voter },
+    accessToken,
+  );
+}
+
+export async function addVoterInteraction(
+  campaignId: string,
+  voterId: number,
+  interaction: Record<string, unknown>,
+  accessToken: string,
+) {
+  return rpc<Record<string, unknown>>(
+    "radar_add_voter_interaction_v1",
+    { p_campaign_id: campaignId, p_voter_id: voterId, p_interaction: interaction },
+    accessToken,
+  );
+}
+
+export async function loadCampaignRecords(
+  campaignId: string,
+  moduleKey: string,
+  accessToken: string,
+) {
+  return rpc<CampaignModuleRecord[]>(
+    "radar_campaign_records_v1",
+    { p_campaign_id: campaignId, p_module_key: moduleKey },
+    accessToken,
+  );
+}
+
+export async function saveCampaignRecord(
+  campaignId: string,
+  record: Partial<CampaignModuleRecord>,
+  accessToken: string,
+  recordId: string | null = null,
+) {
+  return rpc<CampaignModuleRecord>(
+    "radar_save_campaign_record_v1",
+    { p_campaign_id: campaignId, p_record_id: recordId, p_record: record },
+    accessToken,
+  );
+}
+
+export async function deleteCampaignRecord(
+  campaignId: string,
+  recordId: string,
+  accessToken: string,
+) {
+  return rpc<boolean>(
+    "radar_delete_campaign_record_v1",
+    { p_campaign_id: campaignId, p_record_id: recordId },
     accessToken,
   );
 }
