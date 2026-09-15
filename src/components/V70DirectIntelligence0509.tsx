@@ -17,6 +17,7 @@ type ExportSelection = { electionCode?: V70ElectionCode; centerId?: string };
 const AGE_BANDS = [["18_25","18–25"],["26_30","26–30"],["31_35","31–35"],["36_40","36–40"],["41_45","41–45"],["46_50","46–50"],["51_55","51–55"],["56_60","56–60"],["61_65","61–65"],["66_70","66–70"],["70_plus","70+"]] as const;
 
 function numberFromText(value?: string) { if (!value) return undefined; const parsed = Number(value.replace(/[^0-9.-]/g, "")); return Number.isFinite(parsed) ? parsed : undefined; }
+function canonicalAsset(path: string) { const base = import.meta.env.BASE_URL || "/"; return `${base}${path.replace(/^\//, "")}`; }
 function resolveViewModel(): V70ElectoralViewModel | null { const layers = getInstalledRadarElectoralLayers("0509") ?? []; if (!layers.some((layer) => layer.layer_id === "TREP_2023_CENTER_INDEX")) return null; try { return adaptAuthorizedElectoralTerritoryLayers(layers); } catch (error) { console.error("RADAR_V70_ELECTORAL_ADAPTER_FAIL_CLOSED", "0509", error); return null; } }
 
 function IntelligenceContent({ onSelectionChange }: { onSelectionChange: (selection: { electionCode: V70ElectionCode; centerId: string }) => void }) {
@@ -38,6 +39,7 @@ function IntelligenceContent({ onSelectionChange }: { onSelectionChange: (select
   if (!intelligence) return <section className="section"><div className="canonical-vault-notice"><span>NO_PUBLICADO</span><h3>Expediente municipal no disponible</h3><p>RADAR mantiene el vacío sin imputar datos.</p></div></section>;
 
   return <>
+    <div className="print-cover"><div className="radar-brand compact"><img src={canonicalAsset("/brand/radar-electoral-logo-reducido-horizontal-claro.svg")} alt="RADAR Electoral" /></div><div><b>San José / Puerto San José · 0509</b><span>Reporte generado: </span></div></div>
     <section className="section-banner"><div className="section-banner-copy"><p>EXPEDIENTE MUNICIPAL 360 · ESCUINTLA — PUERTO SAN JOSÉ</p><h1>Inteligencia Municipal</h1><span>Fotografía estratégica del municipio para definir mensajes y prioridades</span></div></section>
     <section className="kpis" aria-label="Indicadores principales">
       <article><small>Población proyectada 2026</small><b>{intelligence.populationProjection || "—"}</b><em>INE · proyección oficial</em></article>
