@@ -102,13 +102,16 @@ function pointFromFeature(feature: GeoFeatureRecord | undefined) {
 function communityPoint(community: AuthorizedVoterCommunity, features: GeoFeatureRecord[], centers: V70ElectoralCenter[]) {
   const target = normalize(community.community_label);
   const exact = features.find((feature) => feature.latitude !== null && feature.longitude !== null && normalize(feature.feature_name ?? "") === target);
-  const partial = exact ?? features.find((feature) => {
+  const cabecera = !exact && target === "cabecera municipal"
+    ? features.find((feature) => feature.feature_type === "populated_place" && feature.latitude !== null && feature.longitude !== null && feature.source_key.endsWith("001"))
+    : undefined;
+  const partial = exact ?? cabecera ?? features.find((feature) => {
     if (feature.latitude === null || feature.longitude === null) return false;
     const name = normalize(feature.feature_name ?? "");
     return target.length >= 5 && name.length >= 5 && (name.includes(target) || target.includes(name));
   });
   const featurePoint = pointFromFeature(partial);
-  if (featurePoint) return { ...community, ...featurePoint, precision: exact ? "Comunidad georreferenciada" : "Referencia oficial relacionada" };
+  if (featurePoint) return { ...community, ...featurePoint, precision: exact ? "Comunidad georreferenciada" : cabecera ? "Cabecera municipal georreferenciada" : "Referencia oficial relacionada" };
   const center = centers.find((item) => {
     const haystack = normalize(`${item.community} ${item.name}`);
     return target.length >= 5 && (haystack.includes(target) || target.includes(normalize(item.community)));
@@ -216,8 +219,8 @@ export function V70OperationalMap() {
       drawnRef.current = [];
       if (layers.concentracion) {
         topCommunities.forEach((community) => {
-          const radius = Math.max(180, Math.min(1150, 150 + community.elector_count * .18));
-          const circle = L.circle([community.lat, community.lon], { radius, color: "#5A2973", weight: 2, fillColor: "#7d49a2", fillOpacity: .20 })
+          const radius = Math.max(340, Math.min(1500, 300 + community.elector_count / 4));
+          const circle = L.circle([community.lat, community.lon], { radius, color: "#552676", weight: 1, fillColor: "#552676", fillOpacity: .14 })
             .bindTooltip(`<b>${clean(community.community_label)}</b><br>${fmt.format(community.elector_count)} empadronados<br><small>${clean(community.precision)} · agregado comunitario</small>`)
             .on("click", () => setSelectedCommunity(community)).addTo(map);
           drawnRef.current.push(circle);
