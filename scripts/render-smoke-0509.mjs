@@ -1,12 +1,14 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import os from "node:os";
+import { spawn, spawnSync } from "node:child_process";
 
 const root = path.resolve(import.meta.dirname, "..");
 const dist = path.join(root, "dist-render");
 const out = path.join(root, "render-smoke-0509");
 const port = 4179;
+const debugPort = 9223;
 const contract = JSON.parse(fs.readFileSync(path.join(root, "src/data/radarContract.generated.json"), "utf8"));
 const layerIds = contract.layers.map((layer) => layer.layer_id);
 const actions = contract.route_states["0509"];
@@ -94,43 +96,136 @@ function findChrome() {
   }
   throw new Error("Chrome/Chromium not available on the QA runner.");
 }
+function delay(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+async function json(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+  return response.json();
+}
+async function waitForDebugTarget(timeoutMs = 15000) {
+  const started = Date.now();
+  let lastError = null;
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const targets = await json(`http://127.0.0.1:${debugPort}/json/list`);
+      const page = targets.find((target) => target.type === "page" && target.webSocketDebuggerUrl);
+      if (page) return page;
+    } catch (error) { lastError = error; }
+    await delay(150);
+  }
+  throw new Error(`Chrome DevTools target unavailable: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+}
+function createCdp(wsUrl) {
+  const socket = new WebSocket(wsUrl);
+  let nextId = 1;
+  const pending = new Map();
+  const listeners = new Map();
+  const open = new Promise((resolve, reject) => {
+    socket.addEventListener("open", resolve, { once: true });
+    socket.addEventListener("error", reject, { once: true });
+  });
+  socket.addEventListener("message", (event) => {
+    const message = JSON.parse(String(event.data));
+    if (message.id && pending.has(message.id)) {
+      const { resolve, reject } = pending.get(message.id);
+      pending.delete(message.id);
+      if (message.error) reject(new Error(message.error.message)); else resolve(message.result ?? {});
+      return;
+    }
+    if (message.method && listeners.has(message.method)) {
+      for (const listener of [...listeners.get(message.method)]) listener(message.params ?? {});
+    }
+  });
+  async function send(method, params = {}) {
+    await open;
+    const id = nextId++;
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+  function once(method, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+      const set = listeners.get(method) ?? new Set();
+      const timer = setTimeout(() => { set.delete(handler); reject(new Error(`Timed out waiting for ${method}`)); }, timeoutMs);
+      const handler = (params) => { clearTimeout(timer); set.delete(handler); resolve(params); };
+      set.add(handler);
+      listeners.set(method, set);
+    });
+  }
+  return { send, once, close: () => socket.close(), open };
+}
 
 const chrome = findChrome();
-const browserBaseArgs = [
+const chromeProfile = fs.mkdtempSync(path.join(os.tmpdir(), "radar-v70-chrome-"));
+const chromeLog = path.join(out, "chrome.stderr.txt");
+const chromeErr = fs.openSync(chromeLog, "w");
+const browser = spawn(chrome, [
   "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--hide-scrollbars",
   "--disable-background-networking", "--disable-component-update", "--disable-default-apps", "--disable-sync",
-  "--metrics-recording-only", "--no-first-run", "--window-size=1440,1100", "--virtual-time-budget=5000",
-];
+  "--metrics-recording-only", "--no-first-run", "--window-size=1440,1100",
+  `--remote-debugging-port=${debugPort}`, `--user-data-dir=${chromeProfile}`, "about:blank",
+], { stdio: ["ignore", "ignore", chromeErr] });
+
 const routes = [
-  ["inicio", "/municipio/0509"],
-  ["inteligencia", "/municipio/0509/inteligencia"],
-  ["estrategia", "/municipio/0509/estrategia"],
-  ["directorio", "/municipio/0509/directorio"],
-  ["agenda", "/municipio/0509/agenda"],
-  ["mapa", "/municipio/0509/mapa"],
-  ["dia-d", "/municipio/0509/dia-d"],
-  ["recursos", "/municipio/0509/recursos"],
-  ["pulso", "/municipio/0509/pulso"],
-  ["ia-radar", "/municipio/0509/ia-radar"],
-  ["configuracion", "/municipio/0509/configuracion"],
+  ["inicio", "/municipio/0509", "Planilla Municipal"],
+  ["inteligencia", "/municipio/0509/inteligencia", "Inteligencia Municipal"],
+  ["estrategia", "/municipio/0509/estrategia", "Estrategia"],
+  ["directorio", "/municipio/0509/directorio", "Directorio"],
+  ["agenda", "/municipio/0509/agenda", "Agenda"],
+  ["mapa", "/municipio/0509/mapa", "Mapa Inteligente"],
+  ["dia-d", "/municipio/0509/dia-d", "Día D"],
+  ["recursos", "/municipio/0509/recursos", "Recursos"],
+  ["pulso", "/municipio/0509/pulso", "Pulso Electoral"],
+  ["ia-radar", "/municipio/0509/ia-radar", "IA RADAR"],
+  ["configuracion", "/municipio/0509/configuracion", "Configuración"],
 ];
 const results = [];
+let cdp = null;
 try {
-  for (const [slug, route] of routes) {
-    const screenshot = path.join(out, `${slug}.png`);
+  const target = await waitForDebugTarget();
+  cdp = createCdp(target.webSocketDebuggerUrl);
+  await cdp.open;
+  await cdp.send("Page.enable");
+  await cdp.send("Runtime.enable");
+  await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+
+  for (const [slug, route, marker] of routes) {
     const url = `http://127.0.0.1:${port}${route}`;
-    const run = spawnSync(chrome, [...browserBaseArgs, `--screenshot=${screenshot}`, url], {
-      encoding: "utf8", timeout: 20000, maxBuffer: 4 * 1024 * 1024,
+    const loaded = cdp.once("Page.loadEventFired", 15000);
+    await cdp.send("Page.navigate", { url });
+    await loaded;
+    await delay(1800);
+    const evaluated = await cdp.send("Runtime.evaluate", {
+      expression: `JSON.stringify({text:document.body?.innerText||"",html:document.documentElement?.outerHTML||"",href:location.href})`,
+      returnByValue: true,
     });
-    fs.writeFileSync(path.join(out, `${slug}.stderr.txt`), run.stderr ?? "");
-    const screenshotBytes = fs.existsSync(screenshot) ? fs.statSync(screenshot).size : 0;
-    const ok = run.status === 0 && screenshotBytes > 10_000;
-    results.push({ slug, route, ok, status: run.status, signal: run.signal, error: run.error?.message ?? null, screenshotBytes });
+    const snapshot = JSON.parse(evaluated.result?.value ?? "{}");
+    const text = snapshot.text ?? "";
+    const html = snapshot.html ?? "";
+    const domOk = html.includes("portal-shell")
+      && text.includes(marker)
+      && !text.includes("No pudimos actualizar este municipio.")
+      && !text.includes("No tenés acceso a este municipio.")
+      && !text.includes("Iniciar sesión");
+    fs.writeFileSync(path.join(out, `${slug}.html`), html);
+    const capture = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, fromSurface: true });
+    const screenshot = path.join(out, `${slug}.png`);
+    fs.writeFileSync(screenshot, Buffer.from(capture.data, "base64"));
+    const screenshotBytes = fs.statSync(screenshot).size;
+    const ok = domOk && screenshotBytes > 10_000;
+    results.push({ slug, route, marker, ok, domOk, screenshotBytes, href: snapshot.href ?? null });
     fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results }, null, 2));
-    if (!ok) throw new Error(`Rendered screenshot failed: ${route}; see render-smoke-0509 diagnostics.`);
+    if (!ok) throw new Error(`Rendered route failed: ${route}; see render-smoke-0509 diagnostics.`);
   }
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results }, null, 2));
-  console.log(`V70_RENDER_SMOKE_OK ${results.filter((item) => item.ok).length}/11 route screenshots rendered`);
+  console.log(`V70_RENDER_SMOKE_OK ${results.filter((item) => item.ok).length}/11 routes rendered without auth/runtime/white-screen failure`);
 } finally {
+  cdp?.close();
   server.close();
+  browser.kill("SIGTERM");
+  await delay(200);
+  if (!browser.killed) browser.kill("SIGKILL");
+  fs.closeSync(chromeErr);
+  fs.rmSync(chromeProfile, { recursive: true, force: true });
 }
