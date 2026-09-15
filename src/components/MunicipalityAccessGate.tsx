@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthorizedRuntimeProvider } from "../context/AuthorizedRuntimeContext";
 import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
@@ -8,19 +8,32 @@ import {
   clearInstalledRadarElectoralLayers,
   clearInstalledRadarGeoBundle,
   clearInstalledRadarRuntime,
+  clearInstalledRadarVoterCommunities,
   installRadarElectoralLayers,
   installRadarGeoBundle,
   installRadarRuntime,
+  installRadarVoterCommunities,
 } from "../data/radarRuntimeCache";
 import {
   loadAuthorizedElectoralTerritoryLayers,
   loadAuthorizedGeoBundle,
+  loadAuthorizedVoterCommunities,
   type AuthorizedLayerRecord,
+  type AuthorizedVoterCommunity,
   type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
-import { V70ElectoralParityBridge } from "./V70ElectoralParityBridge";
-import { V70ProductParityBridge } from "./V70ProductParityBridge";
+import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
+import { V70DirectAi0509 } from "./V70DirectAi0509";
+import { V70DirectConfiguration0509 } from "./V70DirectConfiguration0509";
+import { V70DirectDayD0509 } from "./V70DirectDayD0509";
+import { V70DirectDirectory0509 } from "./V70DirectDirectory0509";
+import { V70DirectHome0509 } from "./V70DirectHome0509";
+import { V70DirectIntelligence0509 } from "./V70DirectIntelligence0509";
+import { V70DirectMap0509 } from "./V70DirectMap0509";
+import { V70DirectPulse0509 } from "./V70DirectPulse0509";
+import { V70DirectResources0509 } from "./V70DirectResources0509";
+import { V70DirectStrategy0509 } from "./V70DirectStrategy0509";
 
 type GateState =
   | { status: "loading" }
@@ -40,8 +53,9 @@ function delay(ms: number) {
 
 async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
   const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const needsElectoralTerritory = section === "inteligencia";
-  const [consumer, geoBundle, electoralLayers] = await Promise.all([
+  const needsElectoralTerritory = section === "inteligencia" || section === "mapa" || section === "dia-d";
+  const needsVoterCommunities = section === "mapa";
+  const [consumer, geoBundle, electoralLayers, voterCommunities] = await Promise.all([
     resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
     needsTerritorialDetail
       ? loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
@@ -49,8 +63,26 @@ async function loadMunicipalityRuntime(municipalityCode: string, section: string
     needsElectoralTerritory
       ? loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken)
       : Promise.resolve<AuthorizedLayerRecord[]>([]),
+    needsVoterCommunities
+      ? loadAuthorizedVoterCommunities(municipalityCode, accessToken)
+      : Promise.resolve<AuthorizedVoterCommunity[]>([]),
   ]);
-  return { consumer, geoBundle, electoralLayers };
+  return { consumer, geoBundle, electoralLayers, voterCommunities };
+}
+
+function direct0509(section: string | undefined): ReactNode | null {
+  if (!section || section === "inicio") return <V70DirectHome0509 />;
+  if (section === "inteligencia") return <V70DirectIntelligence0509 />;
+  if (section === "estrategia") return <V70DirectStrategy0509 />;
+  if (section === "directorio") return <V70DirectDirectory0509 />;
+  if (section === "agenda") return <V70DirectAgenda0509 />;
+  if (section === "mapa") return <V70DirectMap0509 />;
+  if (section === "dia-d") return <V70DirectDayD0509 />;
+  if (section === "recursos") return <V70DirectResources0509 />;
+  if (section === "pulso") return <V70DirectPulse0509 />;
+  if (section === "ia-radar") return <V70DirectAi0509 />;
+  if (section === "configuracion") return <V70DirectConfiguration0509 />;
+  return null;
 }
 
 export function MunicipalityAccessGate() {
@@ -68,6 +100,7 @@ export function MunicipalityAccessGate() {
     clearInstalledRadarRuntime(municipalityCode);
     clearInstalledRadarGeoBundle(municipalityCode);
     clearInstalledRadarElectoralLayers(municipalityCode);
+    clearInstalledRadarVoterCommunities(municipalityCode);
     setState({ status: "loading" });
 
     ensureRadarAccessToken()
@@ -80,16 +113,15 @@ export function MunicipalityAccessGate() {
           return loadMunicipalityRuntime(municipalityCode, section, accessToken);
         }
       })
-      .then(({ consumer, geoBundle, electoralLayers }) => {
+      .then(({ consumer, geoBundle, electoralLayers, voterCommunities }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
         if (geoBundle) {
           assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
           installRadarGeoBundle(geoBundle);
         }
-        if (section === "inteligencia") {
-          installRadarElectoralLayers(municipalityCode, electoralLayers);
-        }
+        if (needsElectoralSection(section)) installRadarElectoralLayers(municipalityCode, electoralLayers);
+        if (section === "mapa") installRadarVoterCommunities(municipalityCode, voterCommunities);
         setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
@@ -97,6 +129,7 @@ export function MunicipalityAccessGate() {
         clearInstalledRadarRuntime(municipalityCode);
         clearInstalledRadarGeoBundle(municipalityCode);
         clearInstalledRadarElectoralLayers(municipalityCode);
+        clearInstalledRadarVoterCommunities(municipalityCode);
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -111,6 +144,7 @@ export function MunicipalityAccessGate() {
       clearInstalledRadarRuntime(municipalityCode);
       clearInstalledRadarGeoBundle(municipalityCode);
       clearInstalledRadarElectoralLayers(municipalityCode);
+      clearInstalledRadarVoterCommunities(municipalityCode);
     };
   }, [municipalityCode, section]);
 
@@ -131,9 +165,14 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}>
-    <MunicipalDashboardV70Runtime />
-    <V70ProductParityBridge />
-    {section === "inteligencia" ? <V70ElectoralParityBridge /> : null}
-  </AuthorizedRuntimeProvider>;
+  if (municipalityCode === "0509") {
+    const direct = direct0509(section);
+    if (direct) return <AuthorizedRuntimeProvider consumer={state.consumer}>{direct}</AuthorizedRuntimeProvider>;
+  }
+
+  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
+}
+
+function needsElectoralSection(section: string | undefined) {
+  return section === "inteligencia" || section === "mapa" || section === "dia-d";
 }

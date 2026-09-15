@@ -66,6 +66,19 @@ export interface MunicipalityGeoBundle {
   features: GeoFeatureRecord[];
 }
 
+export interface AuthorizedVoterCommunity {
+  municipality_code: string;
+  community_label: string;
+  community_normalized: string;
+  elector_count: number;
+  average_age_base: number | null;
+  age_18_29: number | null;
+  age_30_44: number | null;
+  age_45_59: number | null;
+  age_60_plus: number | null;
+  coverage_band: string | null;
+}
+
 export interface VoterRollAggregate {
   source_year: number;
   elector_count: number;
@@ -183,6 +196,17 @@ export async function loadAuthorizedElectoralTerritoryLayers(municipalityCode: s
     throw new Error("El runtime electoral autorizado devolvió capas duplicadas.");
   }
   return electoralTerritory;
+}
+
+export async function loadAuthorizedVoterCommunities(municipalityCode: string, accessToken: string) {
+  assertMunicipalityCode(municipalityCode);
+  const communities = await rpc<AuthorizedVoterCommunity[]>("radar_authorized_voter_communities", {
+    p_municipality_code: municipalityCode,
+  }, accessToken);
+  if (communities.some((item) => item.municipality_code !== municipalityCode)) {
+    throw new Error("El runtime comunitario devolvió registros fuera del municipio autorizado.");
+  }
+  return communities;
 }
 
 export async function loadAuthorizedGeoSummary(

@@ -19,6 +19,39 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run smoke:340
+      - run: node scripts/smoke-v70-parity.mjs
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
+      - name: Build isolated 0509 browser render bundle
+        run: npm run build -- --outDir dist-render
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:4179/mock
+          VITE_SUPABASE_PUBLISHABLE_KEY: qa-render-publishable
+      - name: Render all 0509 routes without white-screen regressions
+        run: node scripts/render-smoke-0509.mjs
+      - name: Exercise 0509 SPA navigation, report modal and printable report
+        run: node scripts/render-interaction-0509.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-render-smoke-0509
+          path: render-smoke-0509
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-interaction-smoke-0509
+          path: render-interaction-0509
+          if-no-files-found: error
+          retention-days: 1
+      - run: rm -rf dist-render
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-parity-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
