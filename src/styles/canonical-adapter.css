@@ -571,3 +571,52 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
   .catalog-municipality-grid { grid-template-columns: 1fr; }
   .catalog-municipality-card { min-height: 220px; }
 }
+
+/* Functional overlays live outside the byte-locked V70 stylesheet. */
+.campaign-identity-backdrop { z-index: 5000; }
+.agenda-map-point {
+  margin: 0;
+  border-left: 3px solid var(--radar-electoral);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: var(--radar-marfil);
+  color: var(--radar-municipal);
+  font-size: 8px;
+}
+
+.elector-name-filter { position: relative; min-width: 0; }
+.elector-name-filter > label { display: grid; gap: 5px; }
+.elector-name-suggestions {
+  position: absolute;
+  z-index: 1200;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  box-shadow: 0 14px 35px color-mix(in srgb, var(--radar-grafito) 18%, transparent);
+}
+.elector-name-suggestions button {
+  display: grid;
+  gap: 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 9px 11px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.elector-name-suggestions button:last-child { border-bottom: 0; }
+.elector-name-suggestions button:hover { background: var(--radar-marfil); }
+.elector-name-suggestions b { font-size: 10px; font-weight: 650; }
+.elector-name-suggestions span { color: var(--radar-municipal); font-size: 8px; }
+.elector-interaction-form { margin: 0 20px 22px; border-top: 1px solid var(--line); padding-top: 16px; }
+.elector-interaction-form > header h3 { margin: 4px 0 12px; }
+.elector-interaction-list { display: grid; gap: 7px; margin-top: 12px; }
+.elector-interaction-list article { display: grid; gap: 3px; border-radius: 8px; padding: 9px 11px; background: var(--radar-marfil); }
+.elector-interaction-list b { font-size: 9px; font-weight: 650; }
+.elector-interaction-list span { color: var(--radar-municipal); font-size: 9px; }
+.crm-controlbar > button.primary { align-self: end; border: 0; border-radius: 9px; padding: 10px 13px; background: var(--radar-grafito); color: var(--radar-blanco); font-size: 9px; }
