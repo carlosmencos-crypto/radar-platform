@@ -23,6 +23,20 @@ jobs:
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
+      - name: Build isolated 0509 browser render bundle
+        run: npm run build -- --outDir dist-render
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:4179/mock
+          VITE_SUPABASE_PUBLISHABLE_KEY: qa-render-publishable
+      - name: Render all 0509 routes without white-screen regressions
+        run: node scripts/render-smoke-0509.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v70-render-smoke-0509
+          path: .render-smoke-0509
+          if-no-files-found: error
+          retention-days: 1
+      - run: rm -rf dist-render
       - uses: actions/upload-artifact@v4
         with:
           name: v70-parity-dist
