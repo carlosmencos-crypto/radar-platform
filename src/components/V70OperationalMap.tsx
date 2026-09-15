@@ -37,6 +37,27 @@ type LayerKey = "concentracion" | "prioridades" | "centros" | "agenda";
 type CommunityPoint = AuthorizedVoterCommunity & { lat: number; lon: number; precision: string };
 
 const fmt = new Intl.NumberFormat("es-GT");
+const mapActivityTypes = ["VISITA", "REUNION", "MITIN", "CAMINATA", "EVENTO", "RECORRIDO", "CAPACITACION", "OTRA"] as const;
+const mapActivityLabels: Record<string, string> = {
+  VISITA: "Visitas",
+  REUNION: "Reuniones",
+  MITIN: "Mitines",
+  CAMINATA: "Caminatas / caravanas",
+  EVENTO: "Eventos",
+  RECORRIDO: "Recorridos",
+  CAPACITACION: "Capacitaciones",
+  OTRA: "Otras",
+};
+const mapActivityColors: Record<string, string> = {
+  VISITA: "#D69070",
+  REUNION: "#5A2973",
+  MITIN: "#b84e3e",
+  CAMINATA: "#20a286",
+  EVENTO: "#09566C",
+  RECORRIDO: "#8b5cf6",
+  CAPACITACION: "#7f8c83",
+  OTRA: "#2F343A",
+};
 
 function normalize(value: string) {
   return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("es").replace(/[^a-z0-9]+/g, " ").trim();
@@ -115,7 +136,10 @@ export function V70OperationalMap() {
   const [mapReady, setMapReady] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({ concentracion: true, prioridades: false, centros: false, agenda: true });
+  const [activityTypes, setActivityTypes] = useState<string[]>([...mapActivityTypes]);
+  const [showRoutes, setShowRoutes] = useState(true);
   const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [dateWindow, setDateWindow] = useState("mes");
   const [createMode, setCreateMode] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<CommunityPoint | null>(null);
@@ -125,6 +149,11 @@ export function V70OperationalMap() {
     .map((item) => communityPoint(item, geoBundle?.features ?? [], centers))
     .filter((item): item is CommunityPoint => Boolean(item)), [voterCommunities, geoBundle, centers]);
   const topCommunities = useMemo(() => mappedCommunities.slice(0, 13), [mappedCommunities]);
+  const searchSuggestions = useMemo(() => {
+    const term = normalize(query);
+    if (term.length < 2) return [];
+    return mappedCommunities.filter((item) => normalize(item.community_label).includes(term)).slice(0, 7);
+  }, [mappedCommunities, query]);
   const visibleCommunityList = useMemo(() => {
     const term = normalize(query);
     if (!term) return topCommunities.slice(0, 7);
@@ -161,7 +190,7 @@ export function V70OperationalMap() {
       mapRef.current = null;
       setMapReady(false);
     };
-  }, [runtime?.geo.bbox]);
+  }, [runtime?.geo.bbox, createMode]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
@@ -225,30 +254,43 @@ export function V70OperationalMap() {
     if (community) mapRef.current?.flyTo([community.lat, community.lon], 15, { duration: .65 });
   }, [query, mappedCommunities, mapReady]);
 
+  const selectCommunity = (community: CommunityPoint) => {
+    setSelectedCommunity(community);
+    setSelectedCenter(null);
+    setQuery(community.community_label);
+    setSearchOpen(false);
+    mapRef.current?.flyTo([community.lat, community.lon], 15, { duration: .65 });
+  };
   const toggleLayer = (key: LayerKey) => setLayers((current) => ({ ...current, [key]: !current[key] }));
-  const layerButton = (key: LayerKey, label: string, color: string) => <button type="button" className={layers[key] ? "on" : ""} onClick={() => toggleLayer(key)}><i style={{ background: color }} /><span>{label}</span>{layers[key] ? <em>✓</em> : null}</button>;
+  const layerButton = (key: LayerKey, label: string, color: string) => <button type="button" key={key} className={`map-layer-${key} ${layers[key] ? "on" : ""}`} onClick={() => toggleLayer(key)}><i style={{ background: color }} /><span>{label}</span><em>{layers[key] ? "✓" : "—"}</em></button>;
   const zonesWithoutCoverage = Math.max(centers.length || topCommunities.length, 0);
 
   return <>
-    <section className="section-banner"><div className="section-banner-copy"><p>OPERACIÓN TERRITORIAL</p><h1>Mapa Inteligente</h1><span>Actividades, electores y comunidades prioritarias en una sola vista</span></div><div className="section-banner-actions"><span className="map-stat-chip"><b>0</b> actividades</span><span className="map-stat-chip"><b>{zonesWithoutCoverage}</b> zonas sin cobertura</span></div></section>
+    <section className="section-banner"><div className="section-banner-copy"><p>OPERACIÓN TERRITORIAL</p><h1>Mapa Inteligente</h1><span>Actividades, electores y comunidades prioritarias en una sola vista</span></div><div className="section-banner-actions"><div className="map-head-stats"><span><b>0</b> actividades</span><span><b>{zonesWithoutCoverage}</b> zonas sin cobertura</span></div></div></section>
 
-    <section className="operational-map-toolbar">
-      <label className="map-toolbar-search"><span className="map-search"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Buscar comunidad, estadio, municipalidad, finca…" aria-label="Buscar territorio" /></span></label>
+    <section className="operational-map-toolbar" aria-label="Controles del Mapa Inteligente">
+      <div className="map-search-wrap map-toolbar-search">
+        <label className="map-search"><span aria-hidden="true">⌕</span><input value={query} onFocus={() => { setSearchOpen(true); setCreateMode(false); }} onChange={(event) => { setQuery(event.target.value); setSearchOpen(true); }} type="search" placeholder="Buscar comunidad, estadio, municipalidad, finca…" autoComplete="off" /></label>
+        {searchOpen && query.trim().length >= 2 ? <div className="map-search-suggestions">
+          {searchSuggestions.length > 0 ? <small className="suggestion-group-title">COMUNIDADES DEL PADRÓN</small> : null}
+          {searchSuggestions.map((community) => <button key={community.community_normalized} type="button" onClick={() => selectCommunity(community)}><b>{community.community_label}</b><span>{fmt.format(community.elector_count)} empadronados · 0% cobertura</span><small>{community.precision}</small></button>)}
+          {!searchSuggestions.length ? <span className="search-loading">No encontramos coincidencias dentro del municipio.</span> : null}
+        </div> : null}
+      </div>
       <label className="toolbar-select"><span>Actividades programadas</span><select value={dateWindow} onChange={(event) => setDateWindow(event.target.value)}><option value="hoy">Hoy</option><option value="semana">7 días</option><option value="mes">30 días</option><option value="todos">Todas</option></select></label>
-      <details className="map-more-filters"><summary>Filtros <span>⌄</span></summary><div className="map-more-panel"><div className="map-filter-grid horizontal"><label><span>Estado</span><select defaultValue="TODOS"><option value="TODOS">Todos</option><option>PLANIFICADA</option><option>CONFIRMADA</option><option>EN CURSO</option><option>CONCLUIDAS</option></select></label><label><span>Responsable</span><select defaultValue="TODOS"><option value="TODOS">Todos</option></select></label></div><div className="toolbar-layer-block"><small>CAPAS VISIBLES</small><div className="smart-layers toolbar-layers">{layerButton("concentracion", "Electores", "#8b5cf6")}{layerButton("prioridades", "Prioritarias", "#b84e3e")}{layerButton("centros", "Centros de votación", "#09566C")}{layerButton("agenda", "Actividades", "#D69070")}</div></div><details className="activity-filter toolbar-activity-filter"><summary>Tipos de actividad</summary><div><b>Visibles</b><button type="button">Mostrar todo</button></div><section><label><input type="checkbox" defaultChecked /><i style={{ background: "#D69070" }} /><span>Visitas</span></label><label><input type="checkbox" defaultChecked /><i style={{ background: "#5A2973" }} /><span>Reuniones</span></label><label><input type="checkbox" defaultChecked /><i style={{ background: "#09566C" }} /><span>Eventos</span></label></section></details></div></details>
-      <button type="button" className={`map-new-activity ${createMode ? "active" : ""}`} onClick={() => setCreateMode((value) => !value)}>{createMode ? "Toca el punto…" : "+ Nueva actividad"}</button>
+      <details className="map-more-filters"><summary>Filtros <span>⌄</span></summary><div className="map-more-panel"><div className="map-filter-grid horizontal"><label><span>Estado</span><select defaultValue="TODOS"><option value="TODOS">Todos</option><option>PLANIFICADA</option><option>CONFIRMADA</option><option>EN CURSO</option><option>Concluidas</option><option>CANCELADA</option></select></label><label><span>Responsable</span><select defaultValue="TODOS"><option value="TODOS">Todos</option></select></label></div><div className="toolbar-layer-block"><small>CAPAS VISIBLES</small><div className="smart-layers toolbar-layers">{layerButton("concentracion", "Electores", "#8b5cf6")}{layerButton("prioridades", "Prioritarias", "#b84e3e")}{layerButton("centros", "Centros de votación", "#09566C")}{layerButton("agenda", "Actividades", "#D69070")}</div></div><details className="activity-filter toolbar-activity-filter"><summary>Tipos de actividad</summary><div><b>Visibles</b><button type="button" onClick={() => setActivityTypes(activityTypes.length ? [] : [...mapActivityTypes])}>{activityTypes.length ? "Ocultar todo" : "Mostrar todo"}</button></div><section>{mapActivityTypes.map((type) => <label key={type}><input type="checkbox" checked={activityTypes.includes(type)} onChange={() => setActivityTypes((current) => current.includes(type) ? current.filter((item) => item !== type) : [...current, type])} /><i style={{ background: mapActivityColors[type] }} /><span>{mapActivityLabels[type]}</span></label>)}</section><label className="route-visibility"><input type="checkbox" checked={showRoutes} onChange={() => setShowRoutes((value) => !value)} /><span>Mostrar rutas dibujadas</span></label></details></div></details>
+      <button type="button" className={`map-new-activity ${createMode ? "active" : ""}`} onClick={() => { setCreateMode((value) => !value); setSearchOpen(false); }}>{createMode ? "Toca el punto…" : "+ Nueva actividad"}</button>
       <button type="button" className="map-satellite-toggle" onClick={() => setSatellite((value) => !value)}>{satellite ? "Vista mapa" : "Vista satelital"}</button>
     </section>
 
-    {(selectedCommunity || selectedCenter) ? <div className="map-selection-strip"><span><small>{selectedCommunity ? "PADRÓN INDIVIDUAL 2023" : "CENTRO DE VOTACIÓN"}</small><b>{selectedCommunity ? `${selectedCommunity.community_label} · ${fmt.format(selectedCommunity.elector_count)}` : `${selectedCenter?.name} · ${fmt.format(selectedCenter?.voters ?? 0)}`}</b></span><Link to={`/municipio/${municipality_code}/directorio`}>Abrir Directorio filtrado</Link><Link to={`/municipio/${municipality_code}/agenda`}>+ Crear actividad aquí</Link><button type="button" className="clear-selection" onClick={() => { setSelectedCommunity(null); setSelectedCenter(null); }}>×</button></div> : null}
+    {selectedCommunity ? <div className="map-selection-strip"><span><small>PADRÓN INDIVIDUAL 2023</small><b>{selectedCommunity.community_label} · {fmt.format(selectedCommunity.elector_count)}</b></span><Link to={`/municipio/${municipality_code}/directorio`}>Abrir Directorio filtrado</Link><Link to={`/municipio/${municipality_code}/agenda`}>+ Crear actividad aquí</Link><button type="button" className="clear-selection" onClick={() => { setSelectedCommunity(null); setQuery(""); }}>×</button></div> : null}
 
     <section className="smart-map-shell map-v3"><div className={`map-stage ${createMode ? "picking-activity" : ""}`}>
-      {layers.concentracion && topCommunities.length > 0 ? <aside className="map-electoral-priorities"><header><small>COBERTURA COMUNITARIA</small><div><b>Electores</b><button type="button" onClick={() => setQuery("")}>Mostrar todos</button></div></header>{visibleCommunityList.map((community) => <button key={community.community_normalized} onClick={() => { setSelectedCommunity(community); mapRef.current?.flyTo([community.lat, community.lon], 15, { duration: .65 }); }}><span><b>{community.community_label}</b><small>Comunidad grande con baja cobertura</small></span><em>{fmt.format(community.elector_count)} · 0%</em></button>)}</aside> : null}
+      {layers.concentracion && topCommunities.length > 0 ? <aside className="map-electoral-priorities"><header><small>COBERTURA COMUNITARIA</small><div><b>Electores</b><button type="button" onClick={() => { setQuery(""); setSelectedCommunity(null); }}>Mostrar todos</button></div></header>{visibleCommunityList.map((community) => <button key={community.community_normalized} onClick={() => selectCommunity(community)}><span><b>{community.community_label}</b><small>Comunidad grande con baja cobertura</small></span><em>{fmt.format(community.elector_count)} · 0%</em></button>)}</aside> : null}
       {createMode ? <div className="map-pick-instruction"><b>Nueva actividad</b><span>Toca cualquier punto exacto del mapa. Puede ser una casa, finca o lugar sin registro previo.</span><button type="button" onClick={() => setCreateMode(false)}>Cancelar</button></div> : null}
-      <div ref={mapNode} className="smart-map-canvas" aria-label={`Mapa operativo limitado al municipio ${municipality_code}`} />
+      <div ref={mapNode} className="smart-map-canvas" aria-label={`Mapa operativo limitado al municipio de ${municipality_name}`} />
       <div className="map-boundary-note">Municipio {municipality_code} · navegación limitada</div>
       {selectedCommunity ? <article className="territory-card"><button className="territory-card-close" aria-label="Cerrar ficha" onClick={() => setSelectedCommunity(null)}>×</button><header><small>TARJETA TERRITORIAL · {municipality_code}</small><h2>{selectedCommunity.community_label}</h2><p>{selectedCommunity.precision}</p></header><div className="territory-card-kpis"><span><b>{fmt.format(selectedCommunity.elector_count)}</b><small>Electores agregados 2023</small></span><span><b>0</b><small>Actividades registradas</small></span><span><b>—</b><small>Responsable vinculado</small></span><span><b>0</b><small>Compromisos pendientes</small></span></div><div className="territory-card-grid"><section><b>Historial reciente</b><em>Sin actividades registradas.</em></section><section><b>Responsables del territorio</b><em>Sin responsable asignado.</em></section><section><b>Acuerdos y compromisos</b><em>Sin compromisos vinculados.</em></section><section><b>Lectura territorial</b><span>Zona sin actividad registrada en este período.<small>{selectedCommunity.precision}; RADAR no inventa coordenadas.</small></span></section></div><footer><Link to={`/municipio/${municipality_code}/agenda`}>+ Crear actividad aquí</Link><Link to={`/municipio/${municipality_code}/directorio`}>Asignar responsable</Link></footer></article> : null}
-      <div className="map-privacy"><b>RADAR · {municipality_name}</b><span>Padrones y operación protegidos por sesión autorizada.</span></div>
     </div></section>
   </>;
 }
