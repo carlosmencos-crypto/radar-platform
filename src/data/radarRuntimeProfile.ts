@@ -281,14 +281,14 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
   const activeAggregate = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026");
   const detailed = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023");
 
-  const active = asNumber(activeAggregate?.elector_count ?? municipality?.active_voters_2026) ?? 0;
+  const active = asNumber(activeAggregate?.elector_count ?? municipality?.active_voters_2026);
   const women = asNumber(municipality?.women_2026);
-  const men = women === undefined ? undefined : Math.max(active - women, 0);
+  const men = active === undefined || women === undefined ? undefined : Math.max(active - women, 0);
   const registered2023 = asNumber(municipality?.registered_voters_2023);
-  const growth = registered2023 === undefined ? undefined : active - registered2023;
+  const growth = active === undefined || registered2023 === undefined ? undefined : active - registered2023;
   const literacyShare = asNumber(municipality?.literacy_share_2026);
-  const literate = literacyShare === undefined ? undefined : Math.round(active * literacyShare);
-  const unregisteredLiteracy = literate === undefined ? undefined : Math.max(active - literate, 0);
+  const literate = active === undefined || literacyShare === undefined ? undefined : Math.round(active * literacyShare);
+  const unregisteredLiteracy = active === undefined || literate === undefined ? undefined : Math.max(active - literate, 0);
   const detailedTotal = asNumber(detailed?.elector_count) ?? 0;
   const ageRows: Array<[string, number | undefined]> = [
     ["18–29", asNumber(detailed?.age_18_29)],
