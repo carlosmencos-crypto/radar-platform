@@ -36,7 +36,7 @@ test("0509 report actions resolve to an authorized V70 executive-report surface"
   ]) assert.ok(report.includes(phrase), `Missing canonical report surface/copy: ${phrase}`);
 
   assert.ok(report.includes('dark?"radar-electoral-logo-horizontal-oscuro-transparente.svg":"radar-electoral-logo-horizontal-claro.svg"'), "Canonical light/dark report logo selection drifted.");
-  assert.equal(sha256("public/brand/radar-electoral-logo-horizontal-claro.svg"), "9b40108347693adce301a58173a4ee1625b8e7190e81c97ac3ad293d1338dd2", "Canonical light report logo asset drifted.");
+  assert.equal(sha256("public/brand/radar-electoral-logo-horizontal-claro.svg"), "9b40108347693adce301a58173a4ee1625b8e7190e81c97ac3ad293d1338dd2a", "Canonical light report logo asset drifted.");
   assert.ok(report.includes('window.print()'), "Canonical browser print/PDF action is missing.");
   assert.ok(!report.includes("createPortal"));
   assert.ok(!report.includes("querySelector"));
