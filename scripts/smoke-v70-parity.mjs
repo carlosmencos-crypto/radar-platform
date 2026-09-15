@@ -69,7 +69,7 @@ for (const mapToken of [
   'className="map-electoral-priorities"',
   'className="smart-map-shell map-v3"',
 ]) assert(operationalMap.includes(mapToken), `Canonical operational map token missing: ${mapToken}`);
-for (const layerClass of ["map-layer-concentracion", "map-layer-prioridades", "map-layer-centros", "map-layer-agenda"]) assert(operationalMap.includes(layerClass), `Canonical operational map layer class missing: ${layerClass}`);
+assert(operationalMap.includes("map-layer-${key}"), "Canonical operational map dynamic layer class vocabulary is missing.");
 assert(operationalMap.includes("getInstalledRadarVoterCommunities"), "Authorized aggregate community runtime is missing from operational map.");
 assert(!operationalMap.includes("map-stat-chip") && !operationalMap.includes('className="map-privacy"'), "Non-canonical operational map chrome returned.");
 assert(directIntelligence.includes("<V70ElectoralTerritory") && directIntelligence.includes("<V70CanonicalRich0509") && directIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing canonical V70 depth components.");
