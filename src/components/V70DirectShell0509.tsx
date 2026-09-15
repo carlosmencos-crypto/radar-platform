@@ -84,13 +84,13 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
         <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
         <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
         <nav aria-label="Navegación principal">{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
-        <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
+        <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>CM</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
       </aside>
       <div className="portal-main">
         <header className="portal-topbar"><button className="mobile-menu" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div><small>{eyebrow}</small><b>{topbarTitle}</b></div>{controls}</header>
         {children}
+        {intelligenceExport}
       </div>
-      {intelligenceExport}
     </main>;
   }
 
