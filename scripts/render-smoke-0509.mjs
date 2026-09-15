@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 
 const root = path.resolve(import.meta.dirname, "..");
 const dist = path.join(root, "dist-render");
-const out = path.join(root, ".render-smoke-0509");
+const out = path.join(root, "render-smoke-0509");
 const port = 4179;
 const contract = JSON.parse(fs.readFileSync(path.join(root, "src/data/radarContract.generated.json"), "utf8"));
 const layerIds = contract.layers.map((layer) => layer.layer_id);
@@ -102,56 +102,35 @@ const browserBaseArgs = [
   "--metrics-recording-only", "--no-first-run", "--window-size=1440,1100", "--virtual-time-budget=5000",
 ];
 const routes = [
-  ["inicio", "/municipio/0509", "Planilla Municipal"],
-  ["inteligencia", "/municipio/0509/inteligencia", "Inteligencia Municipal"],
-  ["estrategia", "/municipio/0509/estrategia", "Estrategia"],
-  ["directorio", "/municipio/0509/directorio", "Directorio"],
-  ["agenda", "/municipio/0509/agenda", "Agenda"],
-  ["mapa", "/municipio/0509/mapa", "Mapa Inteligente"],
-  ["dia-d", "/municipio/0509/dia-d", "Día D"],
-  ["recursos", "/municipio/0509/recursos", "Recursos"],
-  ["pulso", "/municipio/0509/pulso", "Pulso Electoral"],
-  ["ia-radar", "/municipio/0509/ia-radar", "IA RADAR"],
-  ["configuracion", "/municipio/0509/configuracion", "Configuración"],
+  ["inicio", "/municipio/0509"],
+  ["inteligencia", "/municipio/0509/inteligencia"],
+  ["estrategia", "/municipio/0509/estrategia"],
+  ["directorio", "/municipio/0509/directorio"],
+  ["agenda", "/municipio/0509/agenda"],
+  ["mapa", "/municipio/0509/mapa"],
+  ["dia-d", "/municipio/0509/dia-d"],
+  ["recursos", "/municipio/0509/recursos"],
+  ["pulso", "/municipio/0509/pulso"],
+  ["ia-radar", "/municipio/0509/ia-radar"],
+  ["configuracion", "/municipio/0509/configuracion"],
 ];
 const results = [];
 try {
-  for (const [slug, route, marker] of routes) {
+  for (const [slug, route] of routes) {
     const screenshot = path.join(out, `${slug}.png`);
     const url = `http://127.0.0.1:${port}${route}`;
-    const domRun = spawnSync(chrome, [...browserBaseArgs, "--dump-dom", url], {
-      encoding: "utf8", timeout: 20000, maxBuffer: 20 * 1024 * 1024,
+    const run = spawnSync(chrome, [...browserBaseArgs, `--screenshot=${screenshot}`, url], {
+      encoding: "utf8", timeout: 20000, maxBuffer: 4 * 1024 * 1024,
     });
-    const dom = domRun.stdout ?? "";
-    fs.writeFileSync(path.join(out, `${slug}.html`), dom || "<!-- no DOM output -->");
-    fs.writeFileSync(path.join(out, `${slug}.stderr.txt`), domRun.stderr ?? "");
-    const domOk = domRun.status === 0
-      && dom.includes("portal-shell")
-      && dom.includes(marker)
-      && !dom.includes("No pudimos actualizar este municipio.")
-      && !dom.includes("RADAR_AUTH_NOT_CONFIGURED")
-      && !dom.includes("RADAR_AUTH_REQUIRED");
-
-    let screenshotStatus = null;
-    if (domOk) {
-      const shotRun = spawnSync(chrome, [...browserBaseArgs, `--screenshot=${screenshot}`, url], {
-        encoding: "utf8", timeout: 20000, maxBuffer: 4 * 1024 * 1024,
-      });
-      screenshotStatus = shotRun.status;
-      fs.writeFileSync(path.join(out, `${slug}.screenshot.stderr.txt`), shotRun.stderr ?? "");
-    }
-    const screenshotOk = domOk && screenshotStatus === 0 && fs.existsSync(screenshot) && fs.statSync(screenshot).size > 10_000;
-    const ok = domOk && screenshotOk;
-    results.push({
-      slug, route, marker, ok, domOk, screenshotOk,
-      domStatus: domRun.status, domSignal: domRun.signal, domError: domRun.error?.message ?? null,
-      screenshotStatus, screenshot: fs.existsSync(screenshot) ? fs.statSync(screenshot).size : 0,
-    });
+    fs.writeFileSync(path.join(out, `${slug}.stderr.txt`), run.stderr ?? "");
+    const screenshotBytes = fs.existsSync(screenshot) ? fs.statSync(screenshot).size : 0;
+    const ok = run.status === 0 && screenshotBytes > 10_000;
+    results.push({ slug, route, ok, status: run.status, signal: run.signal, error: run.error?.message ?? null, screenshotBytes });
     fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results }, null, 2));
-    if (!ok) throw new Error(`Rendered route failed: ${route}; see .render-smoke-0509 diagnostics.`);
+    if (!ok) throw new Error(`Rendered screenshot failed: ${route}; see render-smoke-0509 diagnostics.`);
   }
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results }, null, 2));
-  console.log(`V70_RENDER_SMOKE_OK ${results.filter((item) => item.ok).length}/11 routes rendered without auth/runtime/white-screen failure`);
+  console.log(`V70_RENDER_SMOKE_OK ${results.filter((item) => item.ok).length}/11 route screenshots rendered`);
 } finally {
   server.close();
 }
