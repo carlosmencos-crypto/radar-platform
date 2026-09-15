@@ -1,0 +1,47 @@
+{
+  "provenance": {
+    "purpose": "QA-only rendered parity fixture; contains only municipal aggregate voter counts and public geospatial references, never individual voter data.",
+    "municipality_code": "0509",
+    "sources": [
+      "data_vault.voter_roll_community_aggregates (2023 aggregates)",
+      "data_vault.geo_features / GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1"
+    ],
+    "captured_for_qa": "2026-09-14"
+  },
+  "bbox": {
+    "south": 13.913336,
+    "north": 13.99972358,
+    "west": -90.96447584,
+    "east": -90.72656859
+  },
+  "communities": [
+    {"municipality_code":"0509","community_label":"BARRIO PEÑATE","community_normalized":"BARRIO PENATE","elector_count":4248,"average_age_base":39.4,"age_18_29":1327,"age_30_44":1552,"age_45_59":842,"age_60_plus":527,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"PUEBLO SAN JOSE","community_normalized":"PUEBLO SAN JOSE","elector_count":3623,"average_age_base":41.87,"age_18_29":868,"age_30_44":1350,"age_45_59":913,"age_60_plus":492,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"PARCELAMIENTO LOS ANGELES","community_normalized":"PARCELAMIENTO LOS ANGELES","elector_count":2432,"average_age_base":40.45,"age_18_29":770,"age_30_44":793,"age_45_59":496,"age_60_plus":373,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"ZONA DE DESARROLLO AGRARIO SANTA ISABEL","community_normalized":"ZONA DE DESARROLLO AGRARIO SANTA ISABEL","elector_count":2246,"average_age_base":39.72,"age_18_29":693,"age_30_44":826,"age_45_59":452,"age_60_plus":275,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"CASERIO PUERTA DE HIERRO","community_normalized":"CASERIO PUERTA DE HIERRO","elector_count":1669,"average_age_base":40.47,"age_18_29":471,"age_30_44":611,"age_45_59":359,"age_60_plus":228,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"ZONA DE DESARROLLO AGRARIO ARIZONA","community_normalized":"ZONA DE DESARROLLO AGRARIO ARIZONA","elector_count":1602,"average_age_base":40.4,"age_18_29":443,"age_30_44":603,"age_45_59":350,"age_60_plus":206,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"CASERIO EL MANGLAR","community_normalized":"CASERIO EL MANGLAR","elector_count":1468,"average_age_base":40.97,"age_18_29":389,"age_30_44":558,"age_45_59":319,"age_60_plus":202,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"BARRIO EL CERRITO","community_normalized":"BARRIO EL CERRITO","elector_count":1447,"average_age_base":40.89,"age_18_29":411,"age_30_44":510,"age_45_59":327,"age_60_plus":199,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"BARRIO MIRAMAR","community_normalized":"BARRIO MIRAMAR","elector_count":1208,"average_age_base":40.67,"age_18_29":329,"age_30_44":449,"age_45_59":271,"age_60_plus":159,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"COLONIA LA LIBERTAD","community_normalized":"COLONIA LA LIBERTAD","elector_count":975,"average_age_base":39.75,"age_18_29":280,"age_30_44":376,"age_45_59":198,"age_60_plus":121,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"LOTIFICACION SANTA ISABEL I CENTRO URBANO","community_normalized":"LOTIFICACION SANTA ISABEL I CENTRO URBANO","elector_count":816,"average_age_base":39.0,"age_18_29":265,"age_30_44":305,"age_45_59":147,"age_60_plus":99,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"CASERIO LOS ENCUENTROS","community_normalized":"CASERIO LOS ENCUENTROS","elector_count":798,"average_age_base":39.61,"age_18_29":260,"age_30_44":257,"age_45_59":192,"age_60_plus":89,"coverage_band":null},
+    {"municipality_code":"0509","community_label":"FINCA LINARES","community_normalized":"FINCA LINARES","elector_count":675,"average_age_base":38.86,"age_18_29":222,"age_30_44":244,"age_45_59":133,"age_60_plus":76,"coverage_band":null}
+  ],
+  "features": [
+    {"feature_type":"populated_place","source_key":"0509129","feature_name":"Peñate","latitude":13.934707,"longitude":-90.81726,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509001","feature_name":"San Jose","latitude":13.925249,"longitude":-90.81912,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509099","feature_name":"Los Angeles","latitude":13.956977,"longitude":-90.9546,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509169","feature_name":"Santa Isabel","latitude":13.965695,"longitude":-90.84418,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509132","feature_name":"Puerta De Hierro","latitude":13.932292,"longitude":-90.77675,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509010","feature_name":"Arizona","latitude":13.961928,"longitude":-90.80457,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509106","feature_name":"Manglar","latitude":13.926903,"longitude":-90.8236,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509023","feature_name":"Cerrito","latitude":13.92114,"longitude":-90.82332,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509111","feature_name":"Miramar","latitude":13.917942,"longitude":-90.82431,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509071","feature_name":"La Libertad","latitude":13.96952,"longitude":-90.85543,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509170","feature_name":"Centro Urbano Santa Isabel","latitude":13.976284,"longitude":-90.83332,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509102","feature_name":"Los Encuentros","latitude":13.926766,"longitude":-90.8129,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"},
+    {"feature_type":"populated_place","source_key":"0509091","feature_name":"Linares","latitude":13.982966,"longitude":-90.82465,"geometry_json":null,"properties":{},"source_id":"GT-INE-CENSO2018-LUGARES-POBLADOS-001","source_label":"GT_INE_CENSO2018_LUGARES_POBLADOS_DASHBOARD_READY_v1","period":"2018","updated_at":"2026-09-14T00:00:00Z"}
+  ]
+}
