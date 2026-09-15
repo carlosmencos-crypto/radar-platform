@@ -280,7 +280,9 @@ try {
       await evaluate(`document.querySelector('.agenda-modal form>header button')?.click()`);
     }
     if (slug === "mapa") {
-      await evaluate(`(()=>{const input=document.querySelector('.map-search input'); if(!input)return false; const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; setter.call(input,'municipalidad'); input.dispatchEvent(new Event('input',{bubbles:true})); input.focus(); return true;})()`);
+      const focused = await evaluate(`(()=>{const input=document.querySelector('.map-search input'); if(!input)return false; input.focus(); return true;})()`);
+      if (!focused) throw new Error("Map search input is missing.");
+      await cdp.send("Input.insertText", { text: "municipalidad" });
       await waitFor(`(document.body?.innerText||"").includes("Municipalidad de San José")`, "territorial place suggestion");
     }
     const snap = await snapshot();
