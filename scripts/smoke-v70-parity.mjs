@@ -56,7 +56,22 @@ assert(directAi.includes("https://js.puter.com/v2/") && directAi.includes("Conec
 assert(directConfiguration.includes("radar-user-photo-v2") && directConfiguration.includes("/signout-with-chatgpt?return_to=%2Flogin") && directConfiguration.includes("El alcance está protegido por la sesión."), "Canonical Configuración session/profile behavior drifted.");
 
 assert(directMap.includes("<V70OperationalMap />") && directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"'), "Direct 0509 map does not render canonical operational map chrome.");
-assert(operationalMap.includes('className="operational-map-toolbar"') && operationalMap.includes('className="map-satellite-toggle"') && operationalMap.includes("getInstalledRadarVoterCommunities"), "Canonical operational map controls/runtime are incomplete.");
+for (const mapToken of [
+  'className="operational-map-toolbar"',
+  'className="map-head-stats"',
+  'className="map-search-wrap map-toolbar-search"',
+  'className="map-search"',
+  'className="map-search-suggestions"',
+  'className="smart-layers toolbar-layers"',
+  'className="activity-filter toolbar-activity-filter"',
+  'className="route-visibility"',
+  'className="map-satellite-toggle"',
+  'className="map-electoral-priorities"',
+  'className="smart-map-shell map-v3"',
+]) assert(operationalMap.includes(mapToken), `Canonical operational map token missing: ${mapToken}`);
+for (const layerClass of ["map-layer-concentracion", "map-layer-prioridades", "map-layer-centros", "map-layer-agenda"]) assert(operationalMap.includes(layerClass), `Canonical operational map layer class missing: ${layerClass}`);
+assert(operationalMap.includes("getInstalledRadarVoterCommunities"), "Authorized aggregate community runtime is missing from operational map.");
+assert(!operationalMap.includes("map-stat-chip") && !operationalMap.includes('className="map-privacy"'), "Non-canonical operational map chrome returned.");
 assert(directIntelligence.includes("<V70ElectoralTerritory") && directIntelligence.includes("<V70CanonicalRich0509") && directIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing canonical V70 depth components.");
 assert(directIntelligence.includes('eyebrow="EXPEDIENTE MUNICIPAL 360"') && directIntelligence.includes('topbarTitle="San José / Puerto San José"') && directIntelligence.includes('accountRole="Cuenta del municipio"') && directIntelligence.includes("dayDNext"), "Intelligence chrome drifted from canonical V70 0509.");
 assert(directIntelligence.includes("EXPEDIENTE MUNICIPAL 360 · ESCUINTLA — PUERTO SAN JOSÉ") && !directIntelligence.includes("FUENTES Y TRAZABILIDAD") && !directIntelligence.includes("canonical-coverage-secondary"), "Canonical Intelligence copy/tail guardrail failed.");
