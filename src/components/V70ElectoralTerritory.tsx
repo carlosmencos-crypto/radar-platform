@@ -39,6 +39,7 @@ type LeafletNamespace = {
   layerGroup(layers: LeafletMarker[]): LeafletLayerGroup;
 };
 type LeafletWindow = Window & { L?: LeafletNamespace; __radarLeafletPromise?: Promise<LeafletNamespace> };
+type SelectionChange = { electionCode: V70ElectionCode; centerId: string };
 
 const fmt = new Intl.NumberFormat("es-GT");
 const partyColors: Record<string, string> = {
@@ -128,7 +129,7 @@ function MetricLegend({ metric }: { metric: Metric }) {
   return <div className="map-legend"><b>{metricNames[metric]}</b><div>{items.map(([color, label]) => <span key={label}><i style={{ background: color }} />{label}</span>)}</div></div>;
 }
 
-export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70ElectoralViewModel; geoBundle?: MunicipalityGeoBundle }) {
+export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange }: { viewModel: V70ElectoralViewModel; geoBundle?: MunicipalityGeoBundle; onSelectionChange?: (selection: SelectionChange) => void }) {
   const initialElection: V70ElectionCode = viewModel.elections.some((item) => item.code === "CORPORACION_MUNICIPAL") ? "CORPORACION_MUNICIPAL" : viewModel.elections[0]?.code ?? "CORPORACION_MUNICIPAL";
   const mapNode = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -158,6 +159,12 @@ export function V70ElectoralTerritory({ viewModel, geoBundle }: { viewModel: V70
     setSelectedId(viewModel.centers[0]?.id ?? "");
     setElectionCode(viewModel.elections.some((item) => item.code === "CORPORACION_MUNICIPAL") ? "CORPORACION_MUNICIPAL" : viewModel.elections[0]?.code ?? "CORPORACION_MUNICIPAL");
   }, [viewModel.municipalityCode, viewModel.centers, viewModel.elections]);
+
+  useEffect(() => {
+    const centerId = selected?.id ?? selectedId;
+    if (!centerId) return;
+    onSelectionChange?.({ electionCode, centerId });
+  }, [electionCode, onSelectionChange, selected?.id, selectedId]);
 
   useEffect(() => {
     if (!mapNode.current || mapRef.current) return;
