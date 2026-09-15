@@ -9,8 +9,8 @@ const original = fs.readFileSync(sourcePath, "utf8");
 
 // V70 Golden renders RTD progress as "0 de N". Keep the product DOM/copy untouched
 // and align only the QA assertion that previously expected the obsolete "0 / N" form.
-const obsoleteAssertion = String.raw`/0\s*\/\s*\d+/`;
-const canonicalAssertion = String.raw`/0\s+de\s+\d+/i`;
+const obsoleteAssertion = String.raw`/0\\s*\\/\\s*\\d+/`;
+const canonicalAssertion = String.raw`/0\\s+de\\s+\\d+/i`;
 if (!original.includes(obsoleteAssertion)) {
   throw new Error("Expected obsolete RTD progress assertion was not found; inspect the canonical interaction smoke before changing QA behavior.");
 }
