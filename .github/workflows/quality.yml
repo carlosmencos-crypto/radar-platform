@@ -31,13 +31,16 @@ jobs:
       - name: Render all 0509 routes without white-screen regressions
         run: node scripts/render-smoke-0509.mjs
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: v70-render-smoke-0509
           path: .render-smoke-0509
           if-no-files-found: error
           retention-days: 1
       - run: rm -rf dist-render
+        if: always()
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: v70-parity-dist
           path: dist
