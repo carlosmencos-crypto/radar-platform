@@ -10,6 +10,7 @@ const out = path.join(root, "render-smoke-0509");
 const port = 4179;
 const debugPort = 9223;
 const contract = JSON.parse(fs.readFileSync(path.join(root, "src/data/radarContract.generated.json"), "utf8"));
+const mapFixture = JSON.parse(fs.readFileSync(path.join(root, "scripts/fixtures/v70-0509-map-render.json"), "utf8"));
 const layerIds = contract.layers.map((layer) => layer.layer_id);
 const actions = contract.route_states["0509"];
 const visibleLayers = layerIds.filter((_, index) => actions[index] !== "HIDE_POST_LAUNCH").map((layer_id) => ({
@@ -34,6 +35,12 @@ const municipality = {
   municipality_name: "San José",
   slug: "san-jose-escuintla",
 };
+const geoFeatureCounts = {
+  populated_place: mapFixture.features.filter((feature) => feature.feature_type === "populated_place").length,
+  tse_voting_center: 0,
+  school: 0,
+  health_facility: 0,
+};
 const runtime = {
   context: {
     country_code: "GT",
@@ -49,24 +56,36 @@ const runtime = {
     is_demo: true,
   },
   layers: visibleLayers,
-  geo: { municipality, feature_counts: { populated_place: 0, tse_voting_center: 0, school: 0, health_facility: 0 }, feature_total: 0, bbox: null, updated_at: null },
-  voter_roll: { municipality_code: "0509", aggregates: [], coverage: { detailed_2023: false, active_2026: true, community_detail_2023: false } },
+  geo: {
+    municipality,
+    feature_counts: geoFeatureCounts,
+    feature_total: mapFixture.features.length,
+    bbox: mapFixture.bbox,
+    updated_at: mapFixture.provenance.captured_for_qa,
+  },
+  voter_roll: {
+    municipality_code: "0509",
+    aggregates: [],
+    coverage: { detailed_2023: true, active_2026: true, community_detail_2023: true },
+  },
   demographics: null,
 };
-const geoBundle = { municipality, feature_counts: { populated_place: 0, tse_voting_center: 0, school: 0, health_facility: 0 }, features: [] };
+const geoBundle = { municipality, feature_counts: geoFeatureCounts, features: mapFixture.features };
+const voterCommunities = mapFixture.communities;
 
 const injection = `<script>(function(){
   const now=Date.now();
   localStorage.setItem("radar-supabase-session-v1",JSON.stringify({access_token:"qa-render-token",refresh_token:"qa-render-refresh",expires_at:now+3600000,token_type:"bearer"}));
   const runtime=${JSON.stringify(runtime)};
   const geoBundle=${JSON.stringify(geoBundle)};
+  const voterCommunities=${JSON.stringify(voterCommunities)};
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const url=String(typeof input==="string"?input:input?.url||"");
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_runtime_v6")) return new Response(JSON.stringify(runtime),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
-    if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
     return nativeFetch(input,init);
   };
 })();</script>`;
@@ -195,7 +214,7 @@ try {
     const loaded = cdp.once("Page.loadEventFired", 15000);
     await cdp.send("Page.navigate", { url });
     await loaded;
-    await delay(1800);
+    await delay(slug === "mapa" ? 3500 : 1800);
     const evaluated = await cdp.send("Runtime.evaluate", {
       expression: `JSON.stringify({text:document.body?.innerText||"",html:document.documentElement?.outerHTML||"",href:location.href})`,
       returnByValue: true,
@@ -203,8 +222,15 @@ try {
     const snapshot = JSON.parse(evaluated.result?.value ?? "{}");
     const text = snapshot.text ?? "";
     const html = snapshot.html ?? "";
+    const routeSpecificOk = slug !== "mapa" || (
+      html.includes("map-electoral-priorities")
+      && html.includes("leaflet-container")
+      && text.includes("BARRIO PEÑATE")
+      && text.includes("13 zonas sin cobertura")
+    );
     const domOk = html.includes("portal-shell")
       && text.includes(marker)
+      && routeSpecificOk
       && !text.includes("No pudimos actualizar este municipio.")
       && !text.includes("No tenés acceso a este municipio.")
       && !text.includes("Iniciar sesión");
@@ -214,7 +240,7 @@ try {
     fs.writeFileSync(screenshot, Buffer.from(capture.data, "base64"));
     const screenshotBytes = fs.statSync(screenshot).size;
     const ok = domOk && screenshotBytes > 10_000;
-    results.push({ slug, route, marker, ok, domOk, screenshotBytes, href: snapshot.href ?? null });
+    results.push({ slug, route, marker, ok, domOk, routeSpecificOk, screenshotBytes, href: snapshot.href ?? null });
     fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results }, null, 2));
     if (!ok) throw new Error(`Rendered route failed: ${route}; see render-smoke-0509 diagnostics.`);
   }
