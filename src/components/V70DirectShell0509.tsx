@@ -8,7 +8,7 @@ import { V70DirectReportBuilder } from "./V70DirectReportBuilder";
 type RadarTheme = "light" | "dark";
 type RadarTextSize = "normal" | "large";
 type SectionSlug = "inicio" | "inteligencia" | "estrategia" | "directorio" | "agenda" | "mapa" | "dia-d" | "recursos" | "pulso" | "ia-radar" | "configuracion";
-type Props = { active: SectionSlug; eyebrow: string; topbarTitle: string; accountRole?: string; children: ReactNode; dayDNext?: boolean };
+type Props = { active: SectionSlug; eyebrow: string; topbarTitle: string; accountRole?: string; children: ReactNode; dayDNext?: boolean; intelligenceExportSelection?: { electionCode?: string; centerId?: string } };
 
 const sections: ReadonlyArray<readonly [string, string, SectionSlug]> = [
   ["⌂", "Inicio", "inicio"], ["◎", "Inteligencia Municipal", "inteligencia"], ["◇", "Estrategia", "estrategia"],
@@ -39,7 +39,7 @@ function useRadarPreferences() {
   return { theme, textSize, toggleTheme, increaseTextSize };
 }
 
-export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false }: Props) {
+export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false, intelligenceExportSelection }: Props) {
   const { municipality_code, campaign_id, user_role, permissions } = useMunicipalityContext();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -68,7 +68,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   const userLabel = "Carlos Mencos";
   const avatar = userPhoto ? <img src={userPhoto} alt="" /> : "CM";
   const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
-  const intelligenceExport = active === "inteligencia" ? <V70DirectIntelligenceExport0509 open={reportOpen} onOpen={() => setReportOpen(true)} onClose={() => setReportOpen(false)} /> : null;
+  const intelligenceExport = active === "inteligencia" ? <V70DirectIntelligenceExport0509 open={reportOpen} onOpen={() => setReportOpen(true)} onClose={() => setReportOpen(false)} electionCode={intelligenceExportSelection?.electionCode} centerId={intelligenceExportSelection?.centerId} /> : null;
 
   const controls = <div className="top-actions">
     <button className="print-top-action" type="button" onClick={() => setReportOpen(true)}><span className="control-icon" aria-hidden="true">⇩</span><span className="control-label">Reporte PDF</span></button>
