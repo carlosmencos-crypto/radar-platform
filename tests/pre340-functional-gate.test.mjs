@@ -12,6 +12,8 @@ const refinementMigration = read("supabase/migrations/20260915065105_restore_map
 const directoryStatsMigration = read("supabase/migrations/20260915065757_cache_authorized_voter_directory_totals.sql");
 const workflowMigration = read("supabase/migrations/20260915134500_restore_v70_campaign_workflows.sql");
 const recordsMigration = read("supabase/migrations/20260915143000_add_v70_campaign_module_records.sql");
+const indexedSearchMigration = read("supabase/migrations/20260915194630_optimize_voter_directory_name_search.sql");
+const materializedSearchMigration = read("supabase/migrations/20260915195200_materialize_voter_directory_search.sql");
 
 test("municipal navigation retains one authorized runtime across section changes", () => {
   assert.match(gate, /useEffect\([\s\S]*?\}, \[municipalityCode\]\);/);
@@ -81,6 +83,13 @@ test("voter directory uses indexed page order and an in-memory revisit cache", (
   assert.match(refinementMigration, /filtered as not materialized/);
   assert.match(directoryStatsMigration, /campaign_vault\.voter_directory_stats/);
   assert.match(directoryStatsMigration, /where not i\.has_filters/);
+});
+
+test("voter directory name search remains indexed and materializes the authorized result once", () => {
+  assert.match(indexedSearchMigration, /lower\(v\.full_name\) like/);
+  assert.match(indexedSearchMigration, /operator\(extensions\.%\)/);
+  assert.match(materializedSearchMigration, /filtered as materialized/);
+  assert.doesNotMatch(materializedSearchMigration, /service_role/);
 });
 
 test("reported V70 campaign actions persist through authorized Campaign Vault RPCs", () => {
