@@ -30,11 +30,20 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: qa-render-publishable
       - name: Render all 0509 routes without white-screen regressions
         run: node scripts/render-smoke-0509.mjs
+      - name: Exercise 0509 SPA navigation, report modal and printable report
+        run: node scripts/render-interaction-0509.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v70-render-smoke-0509
           path: render-smoke-0509
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-interaction-smoke-0509
+          path: render-interaction-0509
           if-no-files-found: error
           retention-days: 1
       - run: rm -rf dist-render
