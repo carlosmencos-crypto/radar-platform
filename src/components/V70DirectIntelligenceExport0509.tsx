@@ -3,7 +3,7 @@ import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 
 type ExportSection = "electoral" | "center" | "territory" | "indicators" | "finance";
-type Props = { open: boolean; onOpen: () => void; onClose: () => void };
+type Props = { open: boolean; onOpen: () => void; onClose: () => void; electionCode?: string; centerId?: string };
 
 function resolveViewModel(): V70ElectoralViewModel | null {
   const layers = getInstalledRadarElectoralLayers("0509") ?? [];
@@ -12,11 +12,14 @@ function resolveViewModel(): V70ElectoralViewModel | null {
   catch (error) { console.error("RADAR_V70_EXPORT_ADAPTER_FAIL_CLOSED", "0509", error); return null; }
 }
 
-export function V70DirectIntelligenceExport0509({ open, onOpen, onClose }: Props) {
+export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electionCode, centerId }: Props) {
   const view = useMemo(() => resolveViewModel(), []);
   const [exportSections, setExportSections] = useState<Record<ExportSection, boolean>>({ electoral: true, center: true, territory: true, indicators: true, finance: true });
-  const election = view?.elections.find((item) => item.code === "CORPORACION_MUNICIPAL") ?? view?.elections[0] ?? null;
-  const selected = view?.centers[0] ?? null;
+  const election = view?.elections.find((item) => item.code === electionCode)
+    ?? view?.elections.find((item) => item.code === "CORPORACION_MUNICIPAL")
+    ?? view?.elections[0]
+    ?? null;
+  const selected = view?.centers.find((item) => item.id === centerId) ?? view?.centers[0] ?? null;
 
   function exportPdf() {
     const blocks = Object.entries(exportSections).filter(([, enabled]) => enabled).map(([key]) => key).join(",");
