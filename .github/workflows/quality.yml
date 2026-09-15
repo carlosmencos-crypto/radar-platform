@@ -34,7 +34,7 @@ jobs:
         if: always()
         with:
           name: v70-render-smoke-0509
-          path: .render-smoke-0509
+          path: render-smoke-0509
           if-no-files-found: error
           retention-days: 1
       - run: rm -rf dist-render
