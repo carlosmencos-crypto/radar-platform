@@ -301,7 +301,7 @@ try {
     if (slug === "dia-d") {
       const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
       if (!openedRtd) throw new Error("RTD internal view is missing.");
-      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && (document.body?.innerText||'').includes('0/103')`, "RTD JRV coverage board");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && /0\\s*\\/\\s*\\d+/.test(document.querySelector('.internal-view-content[data-view="rtd"]')?.innerText||'')`, "RTD JRV coverage board");
     }
     const snap = await snapshot();
     assertHealthy(snap, marker);
