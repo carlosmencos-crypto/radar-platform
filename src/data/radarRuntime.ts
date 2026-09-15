@@ -142,6 +142,8 @@ export interface CampaignActivityRecord {
   activity_type: string | null;
   starts_at: string | null;
   community: string | null;
+  latitude: number | null;
+  longitude: number | null;
   status: string;
   notes: string | null;
   created_at: string;

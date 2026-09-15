@@ -30,6 +30,10 @@ const contactTypes = [
   "Contacto",
 ] as const;
 const fmt = new Intl.NumberFormat("es-GT");
+const directoryCache = new Map<
+  string,
+  { items: AuthorizedVoterDirectoryRow[]; total: number }
+>();
 
 function initials(name: string) {
   return name
@@ -73,6 +77,28 @@ function ElectorsDirectoryCanonical() {
 
   useEffect(() => {
     let cancelled = false;
+    const cacheKey = JSON.stringify({
+      municipality_code,
+      query,
+      dpi,
+      community,
+      age,
+      status,
+      affiliation,
+      role,
+      page,
+      pageSize,
+    });
+    const cached = directoryCache.get(cacheKey);
+    if (cached) {
+      setItems(cached.items);
+      setTotal(cached.total);
+      setLoading(false);
+      return;
+    }
+    const hasFilters = Boolean(
+      query || dpi || community || ageRange || status || affiliation || role,
+    );
     const timer = window.setTimeout(() => {
       setLoading(true);
       setError("");
@@ -97,7 +123,10 @@ function ElectorsDirectoryCanonical() {
         .then((rows) => {
           if (cancelled) return;
           setItems(rows);
-          setTotal(rows[0]?.total_count ?? 0);
+          const nextTotal = rows[0]?.total_count ?? 0;
+          setTotal(nextTotal);
+          if (directoryCache.size >= 50) directoryCache.clear();
+          directoryCache.set(cacheKey, { items: rows, total: nextTotal });
         })
         .catch((loadError: unknown) => {
           if (!cancelled)
@@ -110,7 +139,7 @@ function ElectorsDirectoryCanonical() {
         .finally(() => {
           if (!cancelled) setLoading(false);
         });
-    }, 250);
+    }, hasFilters ? 250 : 0);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
@@ -118,6 +147,7 @@ function ElectorsDirectoryCanonical() {
   }, [
     affiliation,
     age,
+    ageRange,
     community,
     dpi,
     municipality_code,

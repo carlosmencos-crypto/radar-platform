@@ -49,7 +49,7 @@ assert(directDirectory.includes("36_878") && directDirectory.includes("148") && 
 assert(directDirectory.includes("CAMPAIGN VAULT · PRIVADO") && directDirectory.includes("El Directorio está listo para recibir tu base."), "Canonical empty team-directory state is missing.");
 assert(!directStrategy.includes("sesión QA") && !directAgenda.includes("Campaign Vault QA"), "QA-only copy leaked into direct V70 client surfaces.");
 
-assert(directDayD.includes("window.location.hash") && directDayD.includes("23-${id.padStart(3") && directDayD.includes("CEM ·") && directDayD.includes("radar-portal-fiscal.carlos-mencos.chatgpt.site"), "Canonical Día D navigation/reference controls drifted.");
+assert(directDayD.includes("window.location.hash") && directDayD.includes("23-${id.padStart(3") && directDayD.includes("CEM ·") && directDayD.includes("radar-portal-fiscal.carlos-mencos.chatgpt.site") && directDayD.includes("JRV con RTD recibido"), "Canonical Día D navigation/reference controls drifted.");
 for (const label of ["Manuales","Checklists","Plantillas","Tutoriales y Capacitación","Fotografías oficiales","Logotipos","Piezas de campaña","Material para medios"]) assert(directResources.includes(label), `Canonical Recursos label missing: ${label}`);
 assert(directResources.includes("BIBLIOTECA · DOCUMENTOS PRECARGADOS") && directResources.includes("BANCO OFICIAL") && directResources.includes("Banco oficial listo para recibir piezas."), "Canonical Recursos initial modal/empty states are incomplete.");
 assert(directPulse.includes("SIMULACIÓN VISUAL") && directPulse.includes("No es una encuesta ni un resultado electoral."), "Canonical Pulso demonstration guardrail drifted.");

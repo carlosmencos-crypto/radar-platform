@@ -115,6 +115,7 @@ type ExternalPlace = {
   addresstype?: string;
   name?: string;
 };
+type ActivityPoint = { lat: number; lon: number; label: string };
 
 const fmt = new Intl.NumberFormat("es-GT");
 const mapActivityTypes = [
@@ -324,6 +325,7 @@ export function V70OperationalMap() {
     useState<TerritorySuggestion | null>(null);
   const [externalPlaces, setExternalPlaces] = useState<ExternalPlace[]>([]);
   const [externalLoading, setExternalLoading] = useState(false);
+  const [activityPoint, setActivityPoint] = useState<ActivityPoint | null>(null);
 
   useEffect(() => {
     createModeRef.current = createMode;
@@ -471,6 +473,12 @@ export function V70OperationalMap() {
           if (!createModeRef.current) return;
           setSelectedCommunity(null);
           setSelectedPlace(null);
+          setActivityPoint({
+            lat: event.latlng.lat,
+            lon: event.latlng.lng,
+            label: "Punto exacto en el mapa",
+          });
+          setCreateMode(false);
           map.flyTo([event.latlng.lat, event.latlng.lng], 16, {
             duration: 0.65,
           });
@@ -516,7 +524,7 @@ export function V70OperationalMap() {
       if (!map) return;
       drawnRef.current.forEach((layer) => layer.remove());
       drawnRef.current = [];
-      if (layers.concentracion) {
+      if (layers.concentracion && !createMode) {
         topCommunities.forEach((community) => {
           const radius = Math.max(
             340,
@@ -537,7 +545,7 @@ export function V70OperationalMap() {
           drawnRef.current.push(circle);
         });
       }
-      if (layers.prioridades) {
+      if (layers.prioridades && !createMode) {
         priorityCenters.forEach((center) => {
           const lat = center.lat;
           const lon = center.lon;
@@ -557,7 +565,7 @@ export function V70OperationalMap() {
           drawnRef.current.push(circle);
         });
       }
-      if (layers.centros) {
+      if (layers.centros && !createMode) {
         centers.forEach((center) => {
           const lat = center.lat;
           const lon = center.lon;
@@ -576,9 +584,23 @@ export function V70OperationalMap() {
           drawnRef.current.push(marker);
         });
       }
+      if (activityPoint) {
+        const marker = L.circleMarker([activityPoint.lat, activityPoint.lon], {
+          radius: 10,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#552676",
+          fillOpacity: 1,
+        })
+          .bindTooltip("Punto exacto para la nueva actividad")
+          .addTo(map);
+        drawnRef.current.push(marker);
+      }
     });
   }, [
+    activityPoint,
     centers,
+    createMode,
     layers.centros,
     layers.concentracion,
     layers.prioridades,
@@ -586,18 +608,6 @@ export function V70OperationalMap() {
     priorityCenters,
     topCommunities,
   ]);
-
-  useEffect(() => {
-    if (!mapReady || !query.trim()) return;
-    const normalized = normalize(query);
-    const community = mappedCommunities.find((item) =>
-      normalize(item.community_label).includes(normalized),
-    );
-    if (community)
-      mapRef.current?.flyTo([community.lat, community.lon], 15, {
-        duration: 0.65,
-      });
-  }, [query, mappedCommunities, mapReady]);
 
   const selectCommunity = (community: CommunityPoint) => {
     setSelectedCommunity(community);
@@ -856,7 +866,15 @@ export function V70OperationalMap() {
           type="button"
           className={`map-new-activity ${createMode ? "active" : ""}`}
           onClick={() => {
-            setCreateMode((value) => !value);
+            setCreateMode((value) => {
+              const next = !value;
+              if (next) {
+                setSelectedCommunity(null);
+                setSelectedPlace(null);
+                setActivityPoint(null);
+              }
+              return next;
+            });
             setSearchOpen(false);
           }}
         >
@@ -886,7 +904,7 @@ export function V70OperationalMap() {
             Abrir Directorio filtrado
           </Link>
           <Link
-            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedCommunity.community_label)}`}
+            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedCommunity.community_label)}&lat=${selectedCommunity.lat}&lon=${selectedCommunity.lon}`}
           >
             + Crear actividad aquí
           </Link>
@@ -908,7 +926,7 @@ export function V70OperationalMap() {
             <b>{selectedPlace.name}</b>
           </span>
           <Link
-            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedPlace.name)}`}
+            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedPlace.name)}&lat=${selectedPlace.lat}&lon=${selectedPlace.lon}`}
           >
             + Crear actividad aquí
           </Link>
@@ -927,7 +945,7 @@ export function V70OperationalMap() {
 
       <section className="smart-map-shell map-v3">
         <div className={`map-stage ${createMode ? "picking-activity" : ""}`}>
-          {layers.concentracion && topCommunities.length > 0 ? (
+          {layers.concentracion && !createMode && topCommunities.length > 0 ? (
             <aside className="map-electoral-priorities">
               <header>
                 <small>COBERTURA COMUNITARIA</small>
@@ -970,6 +988,34 @@ export function V70OperationalMap() {
                 Cancelar
               </button>
             </div>
+          ) : null}
+          {activityPoint ? (
+            <article className="free-place-card">
+              <button
+                type="button"
+                aria-label="Descartar punto"
+                onClick={() => setActivityPoint(null)}
+              >
+                ×
+              </button>
+              <small>PUNTO EXACTO SELECCIONADO</small>
+              <input
+                value={activityPoint.label}
+                onChange={(event) =>
+                  setActivityPoint({ ...activityPoint, label: event.target.value })
+                }
+                aria-label="Nombre del punto"
+              />
+              <p>
+                <b>{activityPoint.lat.toFixed(6)}</b>, {activityPoint.lon.toFixed(6)}
+              </p>
+              <span>Podés volver a activar “Nueva actividad” para mover el punto.</span>
+              <Link
+                to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(activityPoint.label || "Punto exacto en el mapa")}&lat=${activityPoint.lat}&lon=${activityPoint.lon}`}
+              >
+                Crear actividad aquí
+              </Link>
+            </article>
           ) : null}
           <div
             ref={mapNode}

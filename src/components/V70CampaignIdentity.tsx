@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import {
@@ -161,9 +162,9 @@ export function V70CampaignIdentity() {
           ) : null}
         </div>
       </aside>
-      {open ? (
+      {open && typeof document !== "undefined" ? createPortal((
         <div
-          className="agenda-modal"
+          className="agenda-modal campaign-identity-backdrop"
           role="dialog"
           aria-modal="true"
           aria-labelledby="campaign-party-modal-title"
@@ -228,7 +229,7 @@ export function V70CampaignIdentity() {
             </footer>
           </form>
         </div>
-      ) : null}
+      ), document.body) : null}
     </>
   );
 }

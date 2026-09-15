@@ -263,6 +263,11 @@ try {
   const partyOpened = await evaluate(`(()=>{const button=document.querySelector('.party-signature-trigger'); if(!button)return false; button.click(); return true;})()`);
   if (!partyOpened) throw new Error("Campaign identity trigger is missing.");
   await waitFor(`Boolean(document.querySelector('.campaign-identity-modal'))`, "campaign identity modal");
+  const partyModalLayout = await evaluate(`(()=>{const modal=document.querySelector('.campaign-identity-modal'); const backdrop=document.querySelector('.campaign-identity-backdrop'); if(!modal||!backdrop)return null; const rect=modal.getBoundingClientRect(); return {portal:backdrop.parentElement===document.body,top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,width:innerWidth,height:innerHeight};})()`);
+  if (!partyModalLayout?.portal || partyModalLayout.top < 0 || partyModalLayout.left < 0 || partyModalLayout.bottom > partyModalLayout.height || partyModalLayout.right > partyModalLayout.width) {
+    throw new Error(`Campaign identity modal is clipped or is not rendered through the body portal: ${JSON.stringify(partyModalLayout)}`);
+  }
+  diagnostics.modals.push({ selector: ".party-signature-trigger", kind: "campaign-identity", opened: true, fullyVisible: true, portal: true, ok: true });
   await evaluate(`document.querySelector('.campaign-identity-modal [data-modal-close]')?.click()`);
   await waitFor(`!document.querySelector('.campaign-identity-modal')`, "campaign identity close");
   for (const [slug, route, marker] of routes.slice(1)) {
@@ -284,6 +289,19 @@ try {
       if (!focused) throw new Error("Map search input is missing.");
       await cdp.send("Input.insertText", { text: "municipalidad" });
       await waitFor(`(document.body?.innerText||"").includes("Municipalidad de San José")`, "territorial place suggestion");
+      if (await evaluate(`Boolean(document.querySelector('.territory-card'))`)) throw new Error("Map search moved to a community before the user selected a suggestion.");
+      await evaluate(`(()=>{const input=document.querySelector('.map-search input'); if(input){input.value=''; input.dispatchEvent(new Event('input',{bubbles:true}));} const button=document.querySelector('.map-new-activity'); button?.click();})()`);
+      await waitFor(`Boolean(document.querySelector('.map-stage.picking-activity'))`, "exact map point mode");
+      const mapPoint = await evaluate(`(()=>{const map=document.querySelector('.leaflet-container'); if(!map)return null; const r=map.getBoundingClientRect(); return {x:r.left+r.width*.67,y:r.top+r.height*.62};})()`);
+      if (!mapPoint) throw new Error("Interactive map canvas is missing.");
+      await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: mapPoint.x, y: mapPoint.y, button: "left", clickCount: 1 });
+      await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: mapPoint.x, y: mapPoint.y, button: "left", clickCount: 1 });
+      await waitFor(`Boolean(document.querySelector('.free-place-card a[href*="lat="][href*="lon="]'))`, "exact map point handoff to Agenda");
+    }
+    if (slug === "dia-d") {
+      const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
+      if (!openedRtd) throw new Error("RTD internal view is missing.");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && (document.body?.innerText||'').includes('0/103')`, "RTD JRV coverage board");
     }
     const snap = await snapshot();
     assertHealthy(snap, marker);

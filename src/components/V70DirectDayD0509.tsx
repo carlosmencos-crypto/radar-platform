@@ -361,6 +361,24 @@ function DayDContent() {
           </p>
         </div>
       </header>
+      <div className="day-d-operations-strip" aria-label="Cobertura RTD">
+        <span>
+          <small>JRV con RTD recibido</small>
+          <b>0/{totalJrv}</b>
+        </span>
+        <span>
+          <small>JRV pendientes</small>
+          <b>{totalJrv}</b>
+        </span>
+        <span>
+          <small>Centros transmitiendo</small>
+          <b>0/{centers.length}</b>
+        </span>
+        <span>
+          <small>Duplicados o incidencias</small>
+          <b>0</b>
+        </span>
+      </div>
       <div className="day-d-rtd-list">
         <p>No hay folios para estos filtros.</p>
       </div>

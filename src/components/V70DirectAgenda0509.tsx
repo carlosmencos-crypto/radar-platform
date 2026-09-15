@@ -74,10 +74,21 @@ const emptyActivity = {
   community: "",
   notes: "",
   status: "planned",
+  latitude: null as number | null,
+  longitude: null as number | null,
 };
 function initialActivity() {
   const params = new URLSearchParams(window.location.search);
-  return { ...emptyActivity, community: params.get("community") ?? "" };
+  const latitudeParam = params.get("lat");
+  const longitudeParam = params.get("lon");
+  const latitude = latitudeParam === null ? Number.NaN : Number(latitudeParam);
+  const longitude = longitudeParam === null ? Number.NaN : Number(longitudeParam);
+  return {
+    ...emptyActivity,
+    community: params.get("community") ?? "",
+    latitude: Number.isFinite(latitude) ? latitude : null,
+    longitude: Number.isFinite(longitude) ? longitude : null,
+  };
 }
 
 function monthCells(month: Date) {
@@ -528,6 +539,11 @@ function AgendaContent() {
                   ))}
                 </datalist>
               </label>
+              {form.latitude !== null && form.longitude !== null ? (
+                <p className="agenda-map-point wide">
+                  Punto exacto del mapa · {form.latitude.toFixed(6)}, {form.longitude.toFixed(6)}
+                </p>
+              ) : null}
               <label className="wide">
                 <span>Notas</span>
                 <textarea
