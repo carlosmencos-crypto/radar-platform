@@ -571,3 +571,15 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
   .catalog-municipality-grid { grid-template-columns: 1fr; }
   .catalog-municipality-card { min-height: 220px; }
 }
+
+/* Functional overlays live outside the byte-locked V70 stylesheet. */
+.campaign-identity-backdrop { z-index: 5000; }
+.agenda-map-point {
+  margin: 0;
+  border-left: 3px solid var(--radar-electoral);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: var(--radar-marfil);
+  color: var(--radar-municipal);
+  font-size: 8px;
+}

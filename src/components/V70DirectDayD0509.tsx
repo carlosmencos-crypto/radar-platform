@@ -1,0 +1,432 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
+import {
+  MunicipalityProvider,
+  useMunicipalityContext,
+} from "../context/MunicipalityContext";
+import { resolveRadarConsumer } from "../data/radarConsumer";
+import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
+import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
+import { V70DirectShell0509 } from "./V70DirectShell0509";
+
+function InternalViews({
+  views,
+}: {
+  views: Array<{ key: string; label: string; content: ReactNode }>;
+}) {
+  const initial = () => {
+    const hash = window.location.hash.replace(/^#/, "");
+    return views.some((view) => view.key === hash)
+      ? hash
+      : (views[0]?.key ?? "");
+  };
+  const [active, setActive] = useState(initial);
+  useEffect(() => {
+    const sync = () => {
+      const hash = window.location.hash.replace(/^#/, "");
+      if (views.some((view) => view.key === hash)) setActive(hash);
+    };
+    window.addEventListener("hashchange", sync);
+    sync();
+    return () => window.removeEventListener("hashchange", sync);
+  }, [views]);
+  const select = (key: string) => {
+    setActive(key);
+    window.location.hash = key;
+  };
+  const selected = views.find((view) => view.key === active) ?? views[0];
+  if (!selected) return null;
+  return (
+    <section className="internal-view-shell">
+      <span className="internal-view-mobile-hint" aria-hidden="true">
+        Desliza para ver más opciones →
+      </span>
+      <nav
+        className="internal-view-tabs"
+        aria-label="Centro de operaciones Día D"
+      >
+        {views.map((view) => (
+          <button
+            key={view.key}
+            className={view.key === selected.key ? "active" : ""}
+            onClick={() => select(view.key)}
+            type="button"
+          >
+            <span>{view.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="internal-view-content" data-view={selected.key}>
+        {selected.content}
+      </div>
+    </section>
+  );
+}
+function openDayDView(key: string) {
+  window.location.hash = key;
+}
+function centerReference(id: string) {
+  return `23-${id.padStart(3, "0")}`;
+}
+function centerCem(value: string) {
+  return `CEM · ${value.replace(/^cem\s*-\s*/i, "").trim()}`;
+}
+
+function DayDContent() {
+  const { municipality_code } = useMunicipalityContext();
+  const layers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
+  const electoral = useMemo(() => {
+    try {
+      return layers.length
+        ? adaptAuthorizedElectoralTerritoryLayers(layers)
+        : null;
+    } catch {
+      return null;
+    }
+  }, [layers]);
+  const centers = electoral?.centers ?? [];
+  const totalJrv = centers.reduce((sum, center) => sum + center.jrv, 0);
+  const mando = (
+    <section className="day-d-command">
+      <header>
+        <small>JORNADA ELECTORAL</small>
+        <h2>Centro de mando</h2>
+      </header>
+      <div className="day-d-summary">
+        <button type="button" onClick={() => openDayDView("centros")}>
+          <small>Centros de votación</small>
+          <b>{centers.length}</b>
+          <span>Abrir organización →</span>
+        </button>
+        <button type="button" onClick={() => openDayDView("centros")}>
+          <small>JRV de referencia</small>
+          <b>{totalJrv}</b>
+          <span>Revisar cobertura →</span>
+        </button>
+        <button type="button" onClick={() => openDayDView("fiscales")}>
+          <small>Fiscales en CRM</small>
+          <b>0</b>
+          <span>Ver supervisión →</span>
+        </button>
+        <button type="button" onClick={() => openDayDView("incidencias")}>
+          <small>Incidencias abiertas</small>
+          <b>0</b>
+          <span>Abrir incidencias →</span>
+        </button>
+      </div>
+    </section>
+  );
+  const centerView = (
+    <section className="day-d-workspace">
+      <header>
+        <div>
+          <small>COBERTURA TSE</small>
+          <h2>Centros de votación y JRV</h2>
+          <p>
+            Organización territorial y asignación de responsables y fiscales.
+          </p>
+        </div>
+      </header>
+      <form className="day-d-assignment-form">
+        <header>
+          <div>
+            <small>ASIGNACIÓN OPERATIVA</small>
+            <h3>Asignar centro, responsable y JRV</h3>
+          </div>
+        </header>
+        <p className="day-d-form-warning">
+          Primero marca a una persona como Fiscal en el CRM.
+        </p>
+        <div>
+          <label>
+            <span>Centro de votación</span>
+            <select>
+              {centers.map((center) => (
+                <option value={center.id} key={center.id}>
+                  {center.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Responsable del centro</span>
+            <select>
+              <option>Fiscal del CRM…</option>
+            </select>
+          </label>
+          <label>
+            <span>JRV del centro</span>
+            <select>
+              <option>Seleccionar…</option>
+            </select>
+          </label>
+          <label>
+            <span>Fiscal de la JRV</span>
+            <select>
+              <option>Fiscal del CRM…</option>
+            </select>
+          </label>
+          <button disabled>Guardar asignación</button>
+        </div>
+      </form>
+      <div className="day-d-center-list">
+        {centers.map((center) => (
+          <article key={center.id}>
+            <span>
+              <small>REFERENCIA RADAR · {centerReference(center.id)}</small>
+              <button>{center.name}</button>
+              <em>{centerCem(center.community)}</em>
+            </span>
+            <strong>
+              0/{center.jrv} JRV con fiscal ·{" "}
+              {(center.voters ?? 0).toLocaleString("es-GT")} electores
+            </strong>
+            <small>JRV {center.jrvRange}</small>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+  const fiscales = (
+    <section className="day-d-workspace">
+      <header>
+        <div>
+          <small>SUPERVISIÓN CASI EN TIEMPO REAL</small>
+          <h2>Fiscales</h2>
+          <p>
+            Estados enviados desde el portal ligero. El alcance se deriva de la
+            sesión fiscal, nunca de IDs escritos en el navegador.
+          </p>
+        </div>
+        <a
+          className="day-d-open-fiscal"
+          href="https://radar-portal-fiscal.carlos-mencos.chatgpt.site"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Abrir portal fiscal público
+        </a>
+      </header>
+      <div className="day-d-operations-strip">
+        <span>
+          <small>JRV con fiscal</small>
+          <b>0/{totalJrv}</b>
+        </span>
+        <span>
+          <small>Check-in completados</small>
+          <b>0</b>
+        </span>
+        <span>
+          <small>Necesitan apoyo</small>
+          <b>0</b>
+        </span>
+        <span>
+          <small>RTD ingresado</small>
+          <b>0</b>
+        </span>
+      </div>
+      <div className="day-d-filters">
+        <label>
+          <span>Centro</span>
+          <select>
+            <option>Todos</option>
+            {centers.map((center) => (
+              <option key={center.id}>{center.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Mostrar pendientes</span>
+          <select>
+            <option>Todos</option>
+            <option>Sin check-in</option>
+            <option>Sin cierre</option>
+            <option>Sin transporte</option>
+            <option>Sin comida</option>
+            <option>Sin datos</option>
+            <option>Necesita apoyo</option>
+            <option>Sin RTD</option>
+          </select>
+        </label>
+      </div>
+      <div className="day-d-fiscal-table extended">
+        <div className="head">
+          <span>Fiscal / asignación</span>
+          <span>Check-in</span>
+          <span>Transporte</span>
+          <span>Comida</span>
+          <span>Datos</span>
+          <span>Cierre</span>
+          <span>RTD</span>
+          <span>Acceso / sincronización</span>
+        </div>
+        <p>No hay fiscales con este filtro.</p>
+      </div>
+    </section>
+  );
+  const incidencias = (
+    <section className="day-d-workspace">
+      <header>
+        <div>
+          <small>ALERTA, EVIDENCIA Y RESPUESTA</small>
+          <h2>Incidencias</h2>
+          <p>
+            Registros normalizados con folio, archivos privados, acciones e
+            historial. La evidencia del fiscal no se elimina.
+          </p>
+        </div>
+      </header>
+      <div className="day-d-filters">
+        <label>
+          <span>Estado</span>
+          <select>
+            <option>ABIERTAS</option>
+            <option>RESUELTAS</option>
+            <option>TODAS</option>
+          </select>
+        </label>
+      </div>
+      <div className="day-d-incident-list">
+        <p>No hay incidencias con este filtro.</p>
+      </div>
+    </section>
+  );
+  const logistica = (
+    <section className="day-d-workspace day-d-logistics-workspace">
+      <header>
+        <div>
+          <small>PREPARACIÓN Y RESPUESTA DÍA D</small>
+          <h2>Logística</h2>
+          <p>
+            Rutas, transporte, alimentación, datos y kits coordinados desde una
+            sola orden operativa.
+          </p>
+        </div>
+        <nav className="day-d-logistics-links">
+          <Link to={`/municipio/${municipality_code}/recursos`}>
+            Vehículos y recursos
+          </Link>
+          <button>+ Nueva previsión</button>
+        </nav>
+      </header>
+      <div className="logistics-summary">
+        <span>
+          <small>Rutas / traslados</small>
+          <b>0</b>
+        </span>
+        <span>
+          <small>Personas o porciones previstas</small>
+          <b>0</b>
+        </span>
+        <span>
+          <small>Recargas planificadas</small>
+          <b>0</b>
+        </span>
+        <span className="ready">
+          <small>Pendientes o incidencias</small>
+          <b>0</b>
+        </span>
+        <span>
+          <small>Costo estimado</small>
+          <b>Q 0.00</b>
+        </span>
+      </div>
+      <div className="logistics-start-grid">
+        {[
+          "Transporte electores",
+          "Traslado fiscales",
+          "Alimentación",
+          "Datos móviles",
+          "Kit electoral",
+          "Equipo respaldo",
+        ].map((item) => (
+          <button key={item}>
+            <b>+</b>
+            <span>{item}</span>
+            <small>Preparar operación</small>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+  const rtd = (
+    <section className="day-d-workspace">
+      <header>
+        <div>
+          <small>RESULTADOS TRANSMITIDOS DESDE MESA</small>
+          <h2>RTD</h2>
+          <p>
+            Folios, actas y control de recepción separados entre demostración y
+            resultados reales.
+          </p>
+        </div>
+      </header>
+      <div className="day-d-operations-strip" aria-label="Cobertura RTD">
+        <span>
+          <small>JRV con RTD recibido</small>
+          <b>0/{totalJrv}</b>
+        </span>
+        <span>
+          <small>JRV pendientes</small>
+          <b>{totalJrv}</b>
+        </span>
+        <span>
+          <small>Centros transmitiendo</small>
+          <b>0/{centers.length}</b>
+        </span>
+        <span>
+          <small>Duplicados o incidencias</small>
+          <b>0</b>
+        </span>
+      </div>
+      <div className="day-d-rtd-list">
+        <p>No hay folios para estos filtros.</p>
+      </div>
+    </section>
+  );
+  return (
+    <>
+      <section className="section-banner">
+        <div className="section-banner-copy">
+          <p>COORDINACIÓN</p>
+          <h1>Día D</h1>
+          <span>
+            Centro de mando, fiscales, movilización, incidencias y reportes
+          </span>
+        </div>
+      </section>
+      <InternalViews
+        views={[
+          { key: "mando", label: "Centro de mando", content: mando },
+          {
+            key: "centros",
+            label: "Centros de votación y JRV",
+            content: centerView,
+          },
+          { key: "fiscales", label: "Fiscales", content: fiscales },
+          { key: "incidencias", label: "Incidencias", content: incidencias },
+          { key: "logistica", label: "Logística", content: logistica },
+          { key: "rtd", label: "RTD", content: rtd },
+        ]}
+      />
+    </>
+  );
+}
+
+export function V70DirectDayD0509() {
+  const { municipalityCode } = useParams();
+  const consumer = resolveRadarConsumer(municipalityCode);
+  if (!consumer || municipalityCode !== "0509")
+    return <Navigate to="/" replace />;
+  return (
+    <MunicipalityProvider consumer={consumer}>
+      <V70DirectShell0509
+        active="dia-d"
+        eyebrow="OPERACIÓN ELECTORAL"
+        topbarTitle="San José / Puerto San José · Escuintla"
+      >
+        <DayDContent />
+      </V70DirectShell0509>
+    </MunicipalityProvider>
+  );
+}
