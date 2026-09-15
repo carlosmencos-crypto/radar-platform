@@ -78,7 +78,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   </div>;
 
   if (active === "inteligencia") {
-    return <main id="inicio" className={`portal-shell ${collapsed ? "sidebar-is-collapsed" : ""}`}>
+    return <main id="inicio" className={`portal-shell antialiased ${collapsed ? "sidebar-is-collapsed" : ""}`}>
       <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />
       <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
@@ -94,7 +94,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     </main>;
   }
 
-  return <div className={`portal-shell ${collapsed ? "sidebar-is-collapsed" : ""}`} data-municipality-code={municipality_code} data-campaign-id={campaign_id ?? ""} data-user-role={user_role} data-permissions={permissions.join(",")}>
+  return <div className={`portal-shell antialiased ${collapsed ? "sidebar-is-collapsed" : ""}`} data-municipality-code={municipality_code} data-campaign-id={campaign_id ?? ""} data-user-role={user_role} data-permissions={permissions.join(",")}>
     <V70DirectModalEscape />
     <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>

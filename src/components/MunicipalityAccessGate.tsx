@@ -1,9 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthorizedRuntimeProvider } from "../context/AuthorizedRuntimeContext";
-import { resolveAuthorizedRadarConsumer, type AuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
+import {
+  resolveAuthorizedRadarConsumer,
+  type AuthorizedRadarConsumer,
+} from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
-import { assertGeoBundleMatchesRuntime, RADAR_PUBLIC_MAP_FEATURE_TYPES } from "../data/radarGeoRuntime";
+import {
+  assertGeoBundleMatchesRuntime,
+  RADAR_PUBLIC_MAP_FEATURE_TYPES,
+} from "../data/radarGeoRuntime";
 import {
   clearInstalledRadarElectoralLayers,
   clearInstalledRadarGeoBundle,
@@ -18,9 +24,6 @@ import {
   loadAuthorizedElectoralTerritoryLayers,
   loadAuthorizedGeoBundle,
   loadAuthorizedVoterCommunities,
-  type AuthorizedLayerRecord,
-  type AuthorizedVoterCommunity,
-  type MunicipalityGeoBundle,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
@@ -44,29 +47,30 @@ type GateState =
 
 function isAuthenticationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes("RADAR_AUTH_REQUIRED") || message.includes("RADAR_AUTH_401") || message.includes("(401)");
+  return (
+    message.includes("RADAR_AUTH_REQUIRED") ||
+    message.includes("RADAR_AUTH_401") ||
+    message.includes("(401)")
+  );
 }
 
 function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-async function loadMunicipalityRuntime(municipalityCode: string, section: string | undefined, accessToken: string) {
-  const needsTerritorialDetail = section === "mapa" || section === "inteligencia";
-  const needsElectoralTerritory = section === "inteligencia" || section === "mapa" || section === "dia-d";
-  const needsVoterCommunities = section === "mapa";
-  const [consumer, geoBundle, electoralLayers, voterCommunities] = await Promise.all([
-    resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
-    needsTerritorialDetail
-      ? loadAuthorizedGeoBundle(municipalityCode, accessToken, [...RADAR_PUBLIC_MAP_FEATURE_TYPES])
-      : Promise.resolve<MunicipalityGeoBundle | null>(null),
-    needsElectoralTerritory
-      ? loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken)
-      : Promise.resolve<AuthorizedLayerRecord[]>([]),
-    needsVoterCommunities
-      ? loadAuthorizedVoterCommunities(municipalityCode, accessToken)
-      : Promise.resolve<AuthorizedVoterCommunity[]>([]),
-  ]);
+async function loadMunicipalityRuntime(
+  municipalityCode: string,
+  accessToken: string,
+) {
+  const [consumer, geoBundle, electoralLayers, voterCommunities] =
+    await Promise.all([
+      resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
+      loadAuthorizedGeoBundle(municipalityCode, accessToken, [
+        ...RADAR_PUBLIC_MAP_FEATURE_TYPES,
+      ]),
+      loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken),
+      loadAuthorizedVoterCommunities(municipalityCode, accessToken),
+    ]);
   return { consumer, geoBundle, electoralLayers, voterCommunities };
 }
 
@@ -94,7 +98,9 @@ export function MunicipalityAccessGate() {
     let cancelled = false;
     if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) {
       setState({ status: "forbidden" });
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }
 
     clearInstalledRadarRuntime(municipalityCode);
@@ -106,22 +112,20 @@ export function MunicipalityAccessGate() {
     ensureRadarAccessToken()
       .then(async (accessToken) => {
         try {
-          return await loadMunicipalityRuntime(municipalityCode, section, accessToken);
+          return await loadMunicipalityRuntime(municipalityCode, accessToken);
         } catch (error) {
           if (isAuthenticationFailure(error)) throw error;
           await delay(250);
-          return loadMunicipalityRuntime(municipalityCode, section, accessToken);
+          return loadMunicipalityRuntime(municipalityCode, accessToken);
         }
       })
       .then(({ consumer, geoBundle, electoralLayers, voterCommunities }) => {
         if (cancelled) return;
         installRadarRuntime(consumer.runtime);
-        if (geoBundle) {
-          assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
-          installRadarGeoBundle(geoBundle);
-        }
-        if (needsElectoralSection(section)) installRadarElectoralLayers(municipalityCode, electoralLayers);
-        if (section === "mapa") installRadarVoterCommunities(municipalityCode, voterCommunities);
+        assertGeoBundleMatchesRuntime(consumer.runtime, geoBundle);
+        installRadarGeoBundle(geoBundle);
+        installRadarElectoralLayers(municipalityCode, electoralLayers);
+        installRadarVoterCommunities(municipalityCode, voterCommunities);
         setState({ status: "authorized", consumer });
       })
       .catch((error: unknown) => {
@@ -135,7 +139,12 @@ export function MunicipalityAccessGate() {
           setState({ status: "auth_required" });
           return;
         }
-        console.error("RADAR_MUNICIPAL_RUNTIME_LOAD_FAILED", municipalityCode, section ?? "inicio", error);
+        console.error(
+          "RADAR_MUNICIPAL_RUNTIME_LOAD_FAILED",
+          municipalityCode,
+          section ?? "inicio",
+          error,
+        );
         setState({ status: "runtime_error" });
       });
 
@@ -146,10 +155,15 @@ export function MunicipalityAccessGate() {
       clearInstalledRadarElectoralLayers(municipalityCode);
       clearInstalledRadarVoterCommunities(municipalityCode);
     };
-  }, [municipalityCode, section]);
+  }, [municipalityCode]);
 
   if (state.status === "loading") {
-    return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Actualizando municipio…</h1></div>;
+    return (
+      <div className="page page--compact">
+        <span className="eyebrow">RADAR</span>
+        <h1>Actualizando municipio…</h1>
+      </div>
+    );
   }
 
   if (state.status === "auth_required") {
@@ -158,7 +172,19 @@ export function MunicipalityAccessGate() {
   }
 
   if (state.status === "runtime_error") {
-    return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>No pudimos actualizar este municipio.</h1><p>Tu acceso sigue activo. Reintentá la carga para recuperar la información municipal.</p><button type="button" onClick={() => window.location.reload()}>Reintentar</button></div>;
+    return (
+      <div className="page page--compact">
+        <span className="eyebrow">RADAR</span>
+        <h1>No pudimos actualizar este municipio.</h1>
+        <p>
+          Tu acceso sigue activo. Reintentá la carga para recuperar la
+          información municipal.
+        </p>
+        <button type="button" onClick={() => window.location.reload()}>
+          Reintentar
+        </button>
+      </div>
+    );
   }
 
   if (state.status === "forbidden") {
@@ -167,12 +193,17 @@ export function MunicipalityAccessGate() {
 
   if (municipalityCode === "0509") {
     const direct = direct0509(section);
-    if (direct) return <AuthorizedRuntimeProvider consumer={state.consumer}>{direct}</AuthorizedRuntimeProvider>;
+    if (direct)
+      return (
+        <AuthorizedRuntimeProvider consumer={state.consumer}>
+          {direct}
+        </AuthorizedRuntimeProvider>
+      );
   }
 
-  return <AuthorizedRuntimeProvider consumer={state.consumer}><MunicipalDashboardV70Runtime /></AuthorizedRuntimeProvider>;
-}
-
-function needsElectoralSection(section: string | undefined) {
-  return section === "inteligencia" || section === "mapa" || section === "dia-d";
+  return (
+    <AuthorizedRuntimeProvider consumer={state.consumer}>
+      <MunicipalDashboardV70Runtime />
+    </AuthorizedRuntimeProvider>
+  );
 }

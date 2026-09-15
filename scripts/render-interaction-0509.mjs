@@ -79,6 +79,8 @@ const injection = `<script>(function(){
   const runtime=${JSON.stringify(runtime)};
   const geoBundle=${JSON.stringify(geoBundle)};
   const voterCommunities=${JSON.stringify(voterCommunities)};
+  const campaignBundle={identity:{candidate_name:"Nombre Apellido",party_name:"",party_logo_data_url:null},activities:[],commitments:[]};
+  const voterRows=[{id:1,full_name:"Registro autorizado QA",community:"Cabecera Municipal",estimated_age_2026:40,masked_identification:"0000••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:36878}];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const url=String(typeof input==="string"?input:input?.url||"");
@@ -86,6 +88,11 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_campaign_bundle_v1")) return new Response(JSON.stringify(campaignBundle),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
+    if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
+    if(url.includes("nominatim.openstreetmap.org/search")) return new Response(JSON.stringify([{place_id:1,name:"Municipalidad de San José",display_name:"Municipalidad de San José, Escuintla, Guatemala",lat:"13.939",lon:"-90.821",addresstype:"townhall"}]),{status:200,headers:{"Content-Type":"application/json"}});
     return nativeFetch(input,init);
   };
 })();</script>`;
@@ -152,7 +159,7 @@ function createCdp(wsUrl) {
       return;
     }
     if (message.method && listeners.has(message.method)) {
-      for (const listener of [...listeners.get(message.method)]) listener(message.params ?? {});
+      for (const listener of listeners.get(message.method)) listener(message.params ?? {});
     }
   });
   async function send(method, params = {}) {
@@ -251,11 +258,31 @@ try {
   // Prove the actual SPA sidebar path, not only direct browser navigation.
   await navigate("/municipio/0509");
   await delay(1800);
+  const candidateRoutes = await evaluate(`(()=>Array.from(document.querySelectorAll('.slate-member nav a')).slice(0,2).map((item)=>item.getAttribute('href')))()`);
+  if (candidateRoutes?.[0] !== "/municipio/0509/agenda" || candidateRoutes?.[1] !== "/municipio/0509/recursos") throw new Error("Candidate controls escaped the municipal route.");
+  const partyOpened = await evaluate(`(()=>{const button=document.querySelector('.party-signature-trigger'); if(!button)return false; button.click(); return true;})()`);
+  if (!partyOpened) throw new Error("Campaign identity trigger is missing.");
+  await waitFor(`Boolean(document.querySelector('.campaign-identity-modal'))`, "campaign identity modal");
+  await evaluate(`document.querySelector('.campaign-identity-modal [data-modal-close]')?.click()`);
+  await waitFor(`!document.querySelector('.campaign-identity-modal')`, "campaign identity close");
   for (const [slug, route, marker] of routes.slice(1)) {
     const clicked = await evaluate(`(()=>{const a=document.querySelector('.portal-sidebar nav a[href="${route}"]'); if(!a)return false; a.click(); return true;})()`);
     if (!clicked) throw new Error(`Sidebar link missing: ${route}`);
+    await delay(50);
+    if (await evaluate(`(document.body?.innerText||"").includes("Actualizando municipio…")`)) throw new Error(`Municipality reloaded during SPA transition to ${route}`);
     await waitFor(`location.pathname===${JSON.stringify(route)} && (document.body?.innerText||"").includes(${JSON.stringify(marker)})`, `SPA route ${route}`);
     await delay(slug === "mapa" ? 2800 : 700);
+    if (slug === "directorio") await waitFor(`(document.body?.innerText||"").includes("Registro autorizado QA")`, "authorized voter directory rows");
+    if (slug === "agenda") {
+      const opened = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.section-banner-actions button')).find((item)=>item.textContent.includes('Nueva actividad')); if(!button)return false; button.click(); return true;})()`);
+      if (!opened) throw new Error("Agenda new-activity action is missing.");
+      await waitFor(`Boolean(document.querySelector('.agenda-modal #new-activity-title'))`, "new activity modal");
+      await evaluate(`document.querySelector('.agenda-modal form>header button')?.click()`);
+    }
+    if (slug === "mapa") {
+      await evaluate(`(()=>{const input=document.querySelector('.map-search input'); if(!input)return false; const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; setter.call(input,'municipalidad'); input.dispatchEvent(new Event('input',{bubbles:true})); input.focus(); return true;})()`);
+      await waitFor(`(document.body?.innerText||"").includes("Municipalidad de San José")`, "territorial place suggestion");
+    }
     const snap = await snapshot();
     assertHealthy(snap, marker);
     const screenshotBytes = await capture(`nav-${slug}`);

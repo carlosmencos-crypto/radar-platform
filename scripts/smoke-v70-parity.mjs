@@ -27,6 +27,7 @@ assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>0509</b>"),
 assert(shell.includes('slug==="dia-d"&&dayDNext') && shell.includes("PRÓXIMO"), "Canonical Intelligence-only Día D próximo marker support is missing.");
 
 const directHome = read("src/components/V70DirectHome0509.tsx");
+const campaignIdentity = read("src/components/V70CampaignIdentity.tsx");
 const directMap = read("src/components/V70DirectMap0509.tsx");
 const directIntelligence = read("src/components/V70DirectIntelligence0509.tsx");
 const directDirectory = read("src/components/V70DirectDirectory0509.tsx");
@@ -39,12 +40,12 @@ const directAi = read("src/components/V70DirectAi0509.tsx");
 const directConfiguration = read("src/components/V70DirectConfiguration0509.tsx");
 
 assert(directHome.includes("BUENOS DÍAS") && directHome.includes("BUENAS TARDES") && directHome.includes("BUENAS NOCHES") && directHome.includes("CARLOS"), "Canonical time-aware Carlos greeting is missing from Inicio.");
-assert(directHome.includes('aria-label="Perfil de Nombre Apellido">NA</i>') && directHome.includes("Candidato a alcalde · San José / Puerto San José"), "Canonical 0509 campaign identity copy drifted on Inicio.");
-assert(directHome.includes('className="party-signature party-signature-trigger"') && directHome.includes("TERRITORIO CUBIERTO") && directHome.includes("Planilla Municipal"), "Canonical Inicio structure is incomplete.");
+assert(campaignIdentity.includes("Perfil de ${candidateName}") && campaignIdentity.includes("Candidato a alcalde · {municipality_name}"), "Canonical 0509 campaign identity copy drifted on Inicio.");
+assert(campaignIdentity.includes('className="party-signature party-signature-trigger"') && campaignIdentity.includes("saveCampaignIdentity") && directHome.includes("TERRITORIO CUBIERTO") && directHome.includes("Planilla Municipal"), "Canonical Inicio structure or persisted identity action is incomplete.");
 assert(!directHome.includes("Campaign Vault listo para asociar"), "Non-canonical Campaign Vault placeholder returned to Inicio.");
 
 for (const forbidden of ["QA-000", "Persona de prueba", "5555 000", "QA PRIVADO", "PRIVADO · QA"]) assert(!directDirectory.includes(forbidden), `Invented private directory fixture leaked into V70 parity: ${forbidden}`);
-assert(directDirectory.includes("36,878") && directDirectory.includes("148") && directDirectory.includes("RESULTADOS"), "Canonical V70 elector-directory baseline drifted.");
+assert(directDirectory.includes("36_878") && directDirectory.includes("148") && directDirectory.includes("RESULTADOS") && directDirectory.includes("loadAuthorizedVoterDirectory"), "Canonical V70 elector-directory baseline/runtime drifted.");
 assert(directDirectory.includes("CAMPAIGN VAULT · PRIVADO") && directDirectory.includes("El Directorio está listo para recibir tu base."), "Canonical empty team-directory state is missing.");
 assert(!directStrategy.includes("sesión QA") && !directAgenda.includes("Campaign Vault QA"), "QA-only copy leaked into direct V70 client surfaces.");
 
@@ -56,6 +57,9 @@ assert(directAi.includes("https://js.puter.com/v2/") && directAi.includes("Conec
 assert(directConfiguration.includes("radar-user-photo-v2") && directConfiguration.includes("/signout-with-chatgpt?return_to=%2Flogin") && directConfiguration.includes("El alcance está protegido por la sesión."), "Canonical Configuración session/profile behavior drifted.");
 
 assert(directMap.includes("<V70OperationalMap />") && directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"'), "Direct 0509 map does not render canonical operational map chrome.");
+assert(operationalMap.includes("TERRITORIOS DE RADAR") && operationalMap.includes("LUGARES Y DIRECCIONES") && operationalMap.includes("nominatim.openstreetmap.org/search"), "Canonical territorial map search is incomplete.");
+assert(directAgenda.includes("saveCampaignActivity") && directAgenda.includes("Nueva actividad"), "Agenda activity creation is not connected to Campaign Vault.");
+for (const source of [directHome, directStrategy, directAgenda, directDayD, directConfiguration]) assert(!source.includes('to="../'), "A direct V70 control can still escape its municipal route.");
 for (const mapToken of [
   'className="operational-map-toolbar"',
   'className="map-head-stats"',
