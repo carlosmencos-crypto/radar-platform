@@ -295,14 +295,14 @@ try {
   // Render and print the exact municipio-360 report route opened by the canonical Intelligence export panel.
   const reportRoute = "/reporte/municipio-360?blocks=electoral,center,territory,indicators,finance";
   await navigate(reportRoute);
-  await waitFor(`Boolean(document.querySelector('.executive-report'))`, "executive report DOM", 12000);
+  await waitFor(`Boolean(document.querySelector('.report-shell'))`, "report shell DOM", 12000);
   await delay(900);
   const report = await snapshot();
-  const reportHealthy = report.html.includes("executive-report")
+  const reportHealthy = report.html.includes("report-shell") && report.html.includes("report-document")
     && report.html.includes("radar-electoral-logo-horizontal")
     && !report.text.includes("No tenés acceso a este municipio.")
     && !report.text.includes("Iniciar sesión");
-  if (!reportHealthy) throw new Error("Executive report rendered without canonical shell/branding or hit auth failure.");
+  if (!reportHealthy) throw new Error("Report rendered without canonical shell/branding or hit auth failure.");
   const screenshotBytes = await capture("report-inteligencia");
   const pdf = await cdp.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true });
   const pdfPath = path.join(out, "report-inteligencia.pdf");
@@ -310,7 +310,7 @@ try {
   const pdfBytes = fs.statSync(pdfPath).size;
   const reportOk = screenshotBytes > 10_000 && pdfBytes > 10_000;
   diagnostics.reports.push({ route: reportRoute, screenshotBytes, pdfBytes, canonicalBranding: true, ok: reportOk });
-  if (!reportOk) throw new Error("Executive report screenshot/PDF output is unexpectedly empty.");
+  if (!reportOk) throw new Error("Report screenshot/PDF output is unexpectedly empty.");
 
   diagnostics.status = "PASS";
   save();
