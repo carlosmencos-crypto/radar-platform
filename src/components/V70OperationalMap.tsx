@@ -133,6 +133,7 @@ export function V70OperationalMap() {
   const mapRef = useRef<LeafletMap | null>(null);
   const baseLayerRef = useRef<LeafletLayer | null>(null);
   const drawnRef = useRef<LeafletLayer[]>([]);
+  const createModeRef = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({ concentracion: true, prioridades: false, centros: false, agenda: true });
@@ -143,7 +144,8 @@ export function V70OperationalMap() {
   const [dateWindow, setDateWindow] = useState("mes");
   const [createMode, setCreateMode] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<CommunityPoint | null>(null);
-  const [selectedCenter, setSelectedCenter] = useState<V70ElectoralCenter | null>(null);
+
+  useEffect(() => { createModeRef.current = createMode; }, [createMode]);
 
   const mappedCommunities = useMemo(() => voterCommunities
     .map((item) => communityPoint(item, geoBundle?.features ?? [], centers))
@@ -171,9 +173,8 @@ export function V70OperationalMap() {
       const bounds = L.latLngBounds([[runtime.geo.bbox.south, runtime.geo.bbox.west], [runtime.geo.bbox.north, runtime.geo.bbox.east]]);
       map.fitBounds(bounds, { padding: [18, 18], maxZoom: 14 });
       map.on("click", (event) => {
-        if (!createMode) return;
+        if (!createModeRef.current) return;
         setSelectedCommunity(null);
-        setSelectedCenter(null);
         map.flyTo([event.latlng.lat, event.latlng.lng], 16, { duration: .65 });
       });
       mapRef.current = map;
@@ -190,7 +191,7 @@ export function V70OperationalMap() {
       mapRef.current = null;
       setMapReady(false);
     };
-  }, [runtime?.geo.bbox, createMode]);
+  }, [runtime?.geo.bbox]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
@@ -228,8 +229,7 @@ export function V70OperationalMap() {
           const lon = center.lon;
           if (lat === null || lon === null) return;
           const circle = L.circle([lat, lon], { radius: 650, color: "#b84e3e", weight: 2, dashArray: "5 7", fillColor: "#d69070", fillOpacity: .10 })
-            .bindTooltip(`<b>${clean(center.name)}</b><br>${fmt.format(center.voters ?? 0)} empadronados · prioridad territorial`)
-            .on("click", () => setSelectedCenter(center)).addTo(map);
+            .bindTooltip(`<b>${clean(center.name)}</b><br>${fmt.format(center.voters ?? 0)} empadronados · prioridad territorial`).addTo(map);
           drawnRef.current.push(circle);
         });
       }
@@ -239,8 +239,7 @@ export function V70OperationalMap() {
           const lon = center.lon;
           if (lat === null || lon === null) return;
           const marker = L.circleMarker([lat, lon], { radius: 7, color: "#fff", weight: 2, fillColor: "#09566C", fillOpacity: 1 })
-            .bindTooltip(`<b>${clean(center.name)}</b><br>${clean(center.community)} · ${fmt.format(center.voters ?? 0)} empadronados`)
-            .on("click", () => setSelectedCenter(center)).addTo(map);
+            .bindTooltip(`<b>${clean(center.name)}</b><br>${clean(center.community)} · ${fmt.format(center.voters ?? 0)} empadronados`).addTo(map);
           drawnRef.current.push(marker);
         });
       }
@@ -256,7 +255,6 @@ export function V70OperationalMap() {
 
   const selectCommunity = (community: CommunityPoint) => {
     setSelectedCommunity(community);
-    setSelectedCenter(null);
     setQuery(community.community_label);
     setSearchOpen(false);
     mapRef.current?.flyTo([community.lat, community.lon], 15, { duration: .65 });
