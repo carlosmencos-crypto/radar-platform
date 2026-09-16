@@ -1,10 +1,19 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
 } from "../context/MunicipalityContext";
 import { resolveRadarConsumer } from "../data/radarConsumer";
+import { ensureRadarAccessToken } from "../data/radarAuth";
+import {
+  deleteCampaignRecord,
+  loadCampaignContacts,
+  loadCampaignRecords,
+  saveCampaignRecord,
+  type CampaignContactRecord,
+  type CampaignModuleRecord,
+} from "../data/radarRuntime";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
@@ -71,9 +80,20 @@ function centerReference(id: string) {
 function centerCem(value: string) {
   return `CEM · ${value.replace(/^cem\s*-\s*/i, "").trim()}`;
 }
+function jrvNumbers(range: string, expected: number) {
+  const parsed = range.split(/[;,]+/).flatMap((segment) => {
+    const values = (segment.match(/\d+/g) ?? []).map(Number).filter(Number.isFinite);
+    if (values.length >= 2) return Array.from({ length: Math.max(0, values[1] - values[0] + 1) }, (_, index) => values[0] + index);
+    return values;
+  });
+  const unique = [...new Set(parsed)];
+  if (unique.length === expected || !expected) return unique;
+  if (unique.length === 1 && expected > 1) return Array.from({ length: expected }, (_, index) => unique[0] + index);
+  return unique.length ? unique : Array.from({ length: expected }, (_, index) => index + 1);
+}
 
 function DayDContent() {
-  const { municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code } = useMunicipalityContext();
   const layers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
   const electoral = useMemo(() => {
     try {
@@ -86,6 +106,51 @@ function DayDContent() {
   }, [layers]);
   const centers = electoral?.centers ?? [];
   const totalJrv = centers.reduce((sum, center) => sum + center.jrv, 0);
+  const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
+  const [assignments, setAssignments] = useState<CampaignModuleRecord[]>([]);
+  const [selectedCenterId, setSelectedCenterId] = useState("");
+  const [centerResponsibleId, setCenterResponsibleId] = useState("");
+  const [selectedJrv, setSelectedJrv] = useState("");
+  const [fiscalId, setFiscalId] = useState("");
+  const [centerOpen, setCenterOpen] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => { if (!selectedCenterId && centers[0]) setSelectedCenterId(centers[0].id); }, [centers, selectedCenterId]);
+  useEffect(() => {
+    let cancelled = false; if (!campaign_id) return;
+    void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignContacts(campaign_id, token), loadCampaignRecords(campaign_id, "dia-d", token)]))
+      .then(([people, records]) => { if (!cancelled) { setContacts(people ?? []); setAssignments(records ?? []); } })
+      .catch((error: unknown) => { if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo cargar la operación Día D."); });
+    return () => { cancelled = true; };
+  }, [campaign_id]);
+  const fiscalContacts = useMemo(() => contacts.filter((person) => /fiscal/i.test(`${person.contact_type} ${person.role ?? ""}`)), [contacts]);
+  const selectedCenter = centers.find((center) => center.id === selectedCenterId) ?? centers[0];
+  const selectedCenterJrvs = selectedCenter ? jrvNumbers(selectedCenter.jrvRange, selectedCenter.jrv) : [];
+  const assignmentRows = assignments.filter((record) => record.category === "ASIGNACION_JRV");
+  const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
+  const assignmentsForCenter = (centerId: string) => assignmentRows.filter((record) => String(record.payload.center_id) === centerId);
+  const centerResponsible = (centerId: string) => {
+    const assignment = assignmentsForCenter(centerId).find((record) => record.payload.center_responsible_name || record.payload.center_responsible_id);
+    return assignment ? String(assignment.payload.center_responsible_name || "Responsable asignado") : "";
+  };
+  async function saveAssignment(event: FormEvent) {
+    event.preventDefault(); if (!campaign_id || !selectedCenter || !selectedJrv || !fiscalId) return;
+    setSaving(true); setMessage("");
+    try {
+      const token = await ensureRadarAccessToken();
+      const fiscal = fiscalContacts.find((person) => person.id === fiscalId);
+      const responsible = contacts.find((person) => person.id === centerResponsibleId);
+      const current = assignmentFor(selectedCenter.id, selectedJrv);
+      const saved = await saveCampaignRecord(campaign_id, { module_key: "dia-d", category: "ASIGNACION_JRV", title: `${selectedCenter.name} · JRV ${selectedJrv}`, details: fiscal?.full_name || null, status: "ASIGNADO", payload: { center_id: selectedCenter.id, center_name: selectedCenter.name, center_reference: centerReference(selectedCenter.id), jrv: Number(selectedJrv), fiscal_id: fiscalId, fiscal_name: fiscal?.full_name || "", center_responsible_id: centerResponsibleId || null, center_responsible_name: responsible?.full_name || null } }, token, current?.id ?? null);
+      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]); setMessage(`JRV ${selectedJrv} asignada a ${fiscal?.full_name || "fiscal"}.`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar la asignación."); } finally { setSaving(false); }
+  }
+  async function removeAssignment(record: CampaignModuleRecord) {
+    if (!campaign_id) return;
+    try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setAssignments((rows) => rows.filter((item) => item.id !== record.id)); setMessage("Asignación eliminada."); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar la asignación."); }
+  }
+  const openCenter = centers.find((center) => center.id === centerOpen) ?? null;
   const mando = (
     <section className="day-d-command">
       <header>
@@ -105,7 +170,7 @@ function DayDContent() {
         </button>
         <button type="button" onClick={() => openDayDView("fiscales")}>
           <small>Fiscales en CRM</small>
-          <b>0</b>
+          <b>{fiscalContacts.length}</b>
           <span>Ver supervisión →</span>
         </button>
         <button type="button" onClick={() => openDayDView("incidencias")}>
@@ -127,20 +192,19 @@ function DayDContent() {
           </p>
         </div>
       </header>
-      <form className="day-d-assignment-form">
+      <form className="day-d-assignment-form" onSubmit={saveAssignment}>
         <header>
           <div>
             <small>ASIGNACIÓN OPERATIVA</small>
             <h3>Asignar centro, responsable y JRV</h3>
           </div>
         </header>
-        <p className="day-d-form-warning">
-          Primero marca a una persona como Fiscal en el CRM.
-        </p>
+        {!fiscalContacts.length ? <p className="day-d-form-warning">Primero marca a una persona como Fiscal en el CRM.</p> : null}
+        {message ? <p className="agenda-message" role="status">{message}</p> : null}
         <div>
           <label>
             <span>Centro de votación</span>
-            <select>
+            <select value={selectedCenterId} onChange={(event) => { setSelectedCenterId(event.target.value); setSelectedJrv(""); }}>
               {centers.map((center) => (
                 <option value={center.id} key={center.id}>
                   {center.name}
@@ -150,23 +214,26 @@ function DayDContent() {
           </label>
           <label>
             <span>Responsable del centro</span>
-            <select>
-              <option>Fiscal del CRM…</option>
+            <select value={centerResponsibleId} onChange={(event) => setCenterResponsibleId(event.target.value)}>
+              <option value="">Responsable del CRM…</option>
+              {contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.role ? ` · ${person.role}` : ""}</option>)}
             </select>
           </label>
           <label>
             <span>JRV del centro</span>
-            <select>
-              <option>Seleccionar…</option>
+            <select value={selectedJrv} onChange={(event) => { setSelectedJrv(event.target.value); const current = selectedCenter ? assignmentFor(selectedCenter.id, event.target.value) : undefined; setFiscalId(current ? String(current.payload.fiscal_id || "") : ""); }}>
+              <option value="">Seleccionar…</option>
+              {selectedCenterJrvs.map((jrv) => <option key={jrv} value={jrv}>JRV {jrv}</option>)}
             </select>
           </label>
           <label>
             <span>Fiscal de la JRV</span>
-            <select>
-              <option>Fiscal del CRM…</option>
+            <select value={fiscalId} onChange={(event) => setFiscalId(event.target.value)}>
+              <option value="">Fiscal del CRM…</option>
+              {fiscalContacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.community ? ` · ${person.community}` : ""}</option>)}
             </select>
           </label>
-          <button disabled>Guardar asignación</button>
+          <button disabled={saving || !selectedCenterId || !selectedJrv || !fiscalId}>{saving ? "Guardando…" : "Guardar asignación"}</button>
         </div>
       </form>
       <div className="day-d-center-list">
@@ -174,17 +241,25 @@ function DayDContent() {
           <article key={center.id}>
             <span>
               <small>REFERENCIA RADAR · {centerReference(center.id)}</small>
-              <button>{center.name}</button>
+              <button type="button" onClick={() => setCenterOpen(center.id)}>{center.name}</button>
               <em>{centerCem(center.community)}</em>
             </span>
             <strong>
-              0/{center.jrv} JRV con fiscal ·{" "}
+              {assignmentsForCenter(center.id).length}/{center.jrv} JRV con fiscal ·{" "}
               {(center.voters ?? 0).toLocaleString("es-GT")} electores
             </strong>
             <small>JRV {center.jrvRange}</small>
           </article>
         ))}
       </div>
+      {openCenter ? <div className="agenda-modal" role="dialog" aria-modal="true">
+        <section className="day-d-center-modal">
+          <header><div><small>CENTRO DE VOTACIÓN · {centerReference(openCenter.id)}</small><h2>{openCenter.name}</h2><p>{centerCem(openCenter.community)} · JRV {openCenter.jrvRange}</p></div><button type="button" onClick={() => setCenterOpen(null)}>×</button></header>
+          <div className="day-d-center-modal-summary"><span><small>Responsable</small><b>{centerResponsible(openCenter.id) || "Sin asignar"}</b></span><span><small>JRV con fiscal</small><b>{assignmentsForCenter(openCenter.id).length} de {openCenter.jrv}</b></span><span><small>Pendientes</small><b>{Math.max(openCenter.jrv - assignmentsForCenter(openCenter.id).length, 0)}</b></span><span><small>Electores 2023</small><b>{(openCenter.voters ?? 0).toLocaleString("es-GT")}</b></span></div>
+          <div className="day-d-center-jrv-list"><div className="head"><span>JRV</span><span>Fiscal asignado</span><span>Estado</span><span>Acciones</span></div>{jrvNumbers(openCenter.jrvRange, openCenter.jrv).map((jrv) => { const assignment = assignmentFor(openCenter.id, jrv); return <article key={jrv}><b>{jrv}</b><span>{assignment ? String(assignment.payload.fiscal_name || assignment.details || "Fiscal") : "Sin fiscal asignado"}</span><em className={assignment ? "assigned" : "pending"}>{assignment ? "ASIGNADA" : "PENDIENTE"}</em><nav><button type="button" onClick={() => { setSelectedCenterId(openCenter.id); setSelectedJrv(String(jrv)); setFiscalId(assignment ? String(assignment.payload.fiscal_id || "") : ""); setCenterOpen(null); }}>Asignar</button>{assignment ? <button className="danger" type="button" onClick={() => void removeAssignment(assignment)}>Quitar</button> : null}</nav></article>; })}</div>
+          <footer><span>Las asignaciones también aparecen en el carnet del fiscal.</span><Link to={`/municipio/${municipality_code}/mapa`}>Ver centro en el mapa</Link></footer>
+        </section>
+      </div> : null}
     </section>
   );
   const fiscales = (
@@ -210,7 +285,7 @@ function DayDContent() {
       <div className="day-d-operations-strip">
         <span>
           <small>JRV con fiscal</small>
-          <b>0/{totalJrv}</b>
+          <b>{assignmentRows.length}/{totalJrv}</b>
         </span>
         <span>
           <small>Check-in completados</small>
@@ -260,7 +335,7 @@ function DayDContent() {
           <span>RTD</span>
           <span>Acceso / sincronización</span>
         </div>
-        <p>No hay fiscales con este filtro.</p>
+        {assignmentRows.length ? assignmentRows.map((record) => <article key={record.id}><span><b>{String(record.payload.fiscal_name || record.details || "Fiscal")}</b><small>{String(record.payload.center_name || "Centro")} · JRV {String(record.payload.jrv || "—")}</small></span><em>PENDIENTE</em><em>—</em><em>—</em><em>—</em><em>—</em><em>—</em><button type="button" onClick={() => { setCenterOpen(String(record.payload.center_id || "")); openDayDView("centros"); }}>Abrir</button></article>) : <p>No hay fiscales con este filtro.</p>}
       </div>
     </section>
   );
@@ -306,7 +381,7 @@ function DayDContent() {
           <Link to={`/municipio/${municipality_code}/recursos`}>
             Vehículos y recursos
           </Link>
-          <button>+ Nueva previsión</button>
+          <Link to={`/municipio/${municipality_code}/recursos`}>+ Nueva previsión</Link>
         </nav>
       </header>
       <div className="logistics-summary">
@@ -340,11 +415,11 @@ function DayDContent() {
           "Kit electoral",
           "Equipo respaldo",
         ].map((item) => (
-          <button key={item}>
+          <Link key={item} to={`/municipio/${municipality_code}/recursos`}>
             <b>+</b>
             <span>{item}</span>
             <small>Preparar operación</small>
-          </button>
+          </Link>
         ))}
       </div>
     </section>

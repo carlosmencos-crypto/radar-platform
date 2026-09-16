@@ -11,14 +11,20 @@ import {
   loadAuthorizedVoterSuggestions,
   loadCampaignBundle,
   loadCampaignContacts,
+  loadCampaignRecords,
+  saveCampaignRecord,
+  deleteCampaignRecord,
   saveCampaignActivity,
   type AuthorizedVoterSuggestion,
   type CampaignActivityRecord,
   type CampaignCommitmentRecord,
   type CampaignContactRecord,
+  type CampaignIdentityRecord,
+  type CampaignModuleRecord,
 } from "../data/radarRuntime";
 import { getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
+import { downloadActivityPng, V70RouteSnapshot } from "./V70ActivityVisual";
 import { V70LocationPicker, type V70RoutePoint } from "./V70LocationPicker";
 
 const electoralMilestones = [
@@ -108,11 +114,14 @@ function initialActivity() {
   const params = new URLSearchParams(window.location.search);
   const latitudeParam = params.get("lat");
   const longitudeParam = params.get("lon");
+  const electorId = Number(params.get("elector"));
   const latitude = latitudeParam === null ? Number.NaN : Number(latitudeParam);
   const longitude = longitudeParam === null ? Number.NaN : Number(longitudeParam);
   return {
     ...emptyActivity,
     community: params.get("community") ?? "",
+    responsible_person_id: params.get("responsiblePersonId") ?? "",
+    elector_ids: Number.isFinite(electorId) ? [electorId] : [],
     latitude: Number.isFinite(latitude) ? latitude : null,
     longitude: Number.isFinite(longitude) ? longitude : null,
   };
@@ -147,6 +156,7 @@ function AgendaContent() {
   const [month, setMonth] = useState(() => new Date());
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [people, setPeople] = useState<CampaignContactRecord[]>([]);
+  const [identity, setIdentity] = useState<CampaignIdentityRecord>({});
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>(
     [],
   );
@@ -159,9 +169,19 @@ function AgendaContent() {
   const [teamQuery, setTeamQuery] = useState("");
   const [electorQuery, setElectorQuery] = useState("");
   const [electorResults, setElectorResults] = useState<AuthorizedVoterSuggestion[]>([]);
-  const [selectedElectors, setSelectedElectors] = useState<AuthorizedVoterSuggestion[]>([]);
+  const [selectedElectors, setSelectedElectors] = useState<AuthorizedVoterSuggestion[]>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = Number(params.get("elector"));
+    const fullName = params.get("electorName");
+    return Number.isFinite(id) && fullName
+      ? [{ id, full_name: fullName, community: params.get("community"), estimated_age_2026: null }]
+      : [];
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [commitmentRecords, setCommitmentRecords] = useState<CampaignModuleRecord[]>([]);
+  const [commitmentOpen, setCommitmentOpen] = useState(false);
+  const [commitmentForm, setCommitmentForm] = useState({ title: "", responsible: "", due_date: "", priority: "MEDIA", notes: "" });
   const days = useMemo(() => monthCells(month), [month]);
   const now = new Date();
 
@@ -177,7 +197,11 @@ function AgendaContent() {
         if (cancelled) return;
         setActivities(bundle.activities);
         setCommitments(bundle.commitments);
+        setIdentity(bundle.identity ?? {});
         setPeople(loadedPeople ?? []);
+        const requested = new URLSearchParams(window.location.search).get("activity");
+        const target = requested ? bundle.activities.find((item) => item.id === requested) : null;
+        if (target) editActivity(target);
       })
       .catch((error: unknown) => {
         if (!cancelled)
@@ -190,6 +214,12 @@ function AgendaContent() {
     return () => {
       cancelled = true;
     };
+  }, [campaign_id]);
+
+  useEffect(() => {
+    let cancelled = false; if (!campaign_id) return;
+    void ensureRadarAccessToken().then((token) => loadCampaignRecords(campaign_id, "agenda", token)).then((records) => { if (!cancelled) setCommitmentRecords((records ?? []).filter((item) => item.category === "COMPROMISO")); }).catch(() => undefined);
+    return () => { cancelled = true; };
   }, [campaign_id]);
 
   useEffect(() => {
@@ -275,6 +305,21 @@ function AgendaContent() {
       item.due_date &&
       new Date(`${item.due_date}T23:59:59`).getTime() < Date.now(),
   );
+  const formPreview: CampaignActivityRecord = {
+    id: editing ?? "preview",
+    campaign_id,
+    title: form.title || "Nueva caminata",
+    activity_type: form.activity_type,
+    starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
+    community: form.community || null,
+    latitude: form.latitude,
+    longitude: form.longitude,
+    status: form.status,
+    notes: form.notes || null,
+    details: { route_points: form.route_points, route_color: form.route_color, responsible: people.find((person) => person.id === form.responsible_person_id)?.full_name || "", participants: selectedTeam, electors: selectedElectors, manual_participants: form.manual_participants },
+    created_at: "",
+    updated_at: "",
+  };
 
   async function createActivity(event: FormEvent) {
     event.preventDefault();
@@ -420,6 +465,21 @@ function AgendaContent() {
     setElectorQuery("");
     setElectorResults([]);
   }
+  async function createCommitment(event: FormEvent) {
+    event.preventDefault(); if (!campaign_id) return; setSaving(true); setMessage("");
+    try { const token = await ensureRadarAccessToken(); const responsible = people.find((item) => item.id === commitmentForm.responsible); const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: "COMPROMISO", title: commitmentForm.title, details: commitmentForm.notes || null, status: "ABIERTO", payload: { responsible_id: commitmentForm.responsible || null, responsible: responsible?.full_name || null, due_date: commitmentForm.due_date || null, priority: commitmentForm.priority } }, token); setCommitmentRecords((rows) => [saved, ...rows]); setCommitmentOpen(false); setCommitmentForm({ title: "", responsible: "", due_date: "", priority: "MEDIA", notes: "" }); setMessage("Compromiso guardado y vinculado con Agenda."); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar el compromiso."); } finally { setSaving(false); }
+  }
+  async function completeCommitment(record: CampaignModuleRecord) {
+    if (!campaign_id) return;
+    try { const token = await ensureRadarAccessToken(); const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: record.category, title: record.title, details: record.details, status: record.status === "CUMPLIDO" ? "ABIERTO" : "CUMPLIDO", payload: record.payload }, token, record.id); setCommitmentRecords((rows) => rows.map((item) => item.id === saved.id ? saved : item)); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo actualizar el compromiso."); }
+  }
+  async function removeCommitment(record: CampaignModuleRecord) {
+    if (!campaign_id || !window.confirm(`¿Eliminar “${record.title}”?`)) return;
+    try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setCommitmentRecords((rows) => rows.filter((item) => item.id !== record.id)); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar el compromiso."); }
+  }
 
   return (
     <>
@@ -443,6 +503,10 @@ function AgendaContent() {
       <section className="agenda-next">
         {upcoming[0] ? (
           <article>
+            <time>
+              <b>{new Date(upcoming[0].starts_at ?? 0).getDate()}</b>
+              <span>{new Date(upcoming[0].starts_at ?? 0).toLocaleDateString("es-GT", { month: "short" }).replace(".", "")}</span>
+            </time>
             <div>
               <small>PRÓXIMA ACTIVIDAD EN LA AGENDA</small>
               <h2>{upcoming[0].title}</h2>
@@ -457,6 +521,7 @@ function AgendaContent() {
           </article>
         ) : (
           <article className="empty">
+            <time><b>—</b><span>PRÓXIMA</span></time>
             <div>
               <small>PRÓXIMA ACTIVIDAD EN LA AGENDA</small>
               <h2>No hay actividades programadas</h2>
@@ -635,25 +700,24 @@ function AgendaContent() {
           </div>
           <button
             type="button"
-            disabled
-            title="Disponible en el siguiente bloque funcional"
+            onClick={() => setCommitmentOpen(true)}
           >
             + Nuevo compromiso
           </button>
         </header>
         <div className="commitment-kpis">
           <span>
-            <b>{openCommitments.length}</b> abiertos
+            <b>{openCommitments.length + commitmentRecords.filter((item) => item.status !== "CUMPLIDO").length}</b> abiertos
           </span>
           <span>
             <b>{overdueCommitments.length}</b> vencidos
           </span>
           <span>
-            <b>{commitments.length - openCommitments.length}</b> cumplidos
+            <b>{commitments.length - openCommitments.length + commitmentRecords.filter((item) => item.status === "CUMPLIDO").length}</b> cumplidos
           </span>
         </div>
         <div className="commitment-list">
-          <div className="agenda-empty">
+          {commitmentRecords.length ? commitmentRecords.map((record) => <article className="commitment-record" key={record.id}><span><small>{String(record.payload?.priority || "MEDIA")}</small><b>{record.title}</b><em>{String(record.payload?.responsible || "Sin responsable")} · {String(record.payload?.due_date || "Sin fecha límite")}</em></span><p>{record.details || "Sin notas"}</p><nav><button type="button" onClick={() => void completeCommitment(record)}>{record.status === "CUMPLIDO" ? "Reabrir" : "Marcar cumplido"}</button><button className="record-delete-action" type="button" onClick={() => void removeCommitment(record)}>Eliminar</button></nav></article>) : <div className="agenda-empty">
             <b>
               {commitments.length
                 ? "Compromisos cargados en Campaign Vault."
@@ -664,9 +728,10 @@ function AgendaContent() {
                 ? "El detalle se habilitará en el bloque de seguimiento."
                 : "Créalos al terminar una reunión o directamente desde este panel."}
             </span>
-          </div>
+          </div>}
         </div>
       </section>
+      {commitmentOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form onSubmit={createCommitment}><header><div><small>SEGUIMIENTO DE ACUERDOS</small><h2>Nuevo compromiso</h2></div><button type="button" onClick={() => setCommitmentOpen(false)}>×</button></header><div className="agenda-form-grid"><label className="wide"><span>Compromiso *</span><input autoFocus required value={commitmentForm.title} onChange={(event) => setCommitmentForm({ ...commitmentForm, title: event.target.value })} /></label><label><span>Responsable</span><select value={commitmentForm.responsible} onChange={(event) => setCommitmentForm({ ...commitmentForm, responsible: event.target.value })}><option value="">Seleccionar…</option>{people.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label><label><span>Fecha límite</span><input type="date" value={commitmentForm.due_date} onChange={(event) => setCommitmentForm({ ...commitmentForm, due_date: event.target.value })} /></label><label><span>Prioridad</span><select value={commitmentForm.priority} onChange={(event) => setCommitmentForm({ ...commitmentForm, priority: event.target.value })}><option>ALTA</option><option>MEDIA</option><option>BAJA</option></select></label><label className="wide"><span>Notas</span><textarea rows={3} value={commitmentForm.notes} onChange={(event) => setCommitmentForm({ ...commitmentForm, notes: event.target.value })} /></label></div><footer><button type="button" onClick={() => setCommitmentOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar compromiso"}</button></footer></form></div> : null}
       {open ? (
         <div
           className="agenda-modal"
@@ -750,7 +815,7 @@ function AgendaContent() {
               </label>
               <label>
                 <span>Responsable *</span>
-                <select required value={form.responsible_person_id} onChange={(event) => setForm({ ...form, responsible_person_id: event.target.value })}>
+                <select value={form.responsible_person_id} onChange={(event) => setForm({ ...form, responsible_person_id: event.target.value })}>
                   <option value="">Seleccionar del CRM…</option>
                   {people.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.role ? ` · ${person.role}` : ""}</option>)}
                 </select>
@@ -783,14 +848,16 @@ function AgendaContent() {
                 />
               </label>
             </div>
+            <V70RouteSnapshot activity={formPreview} />
             {message ? <p className="form-error">{message}</p> : null}
             <footer className="agenda-form-footer">
               {editing ? <button className="record-delete-action" type="button" onClick={() => void removeActivity(editing)}>Eliminar actividad</button> : null}
+              {editing ? <button className="agenda-print-action" type="button" onClick={() => void downloadActivityPng(formPreview, { campaignName: identity.candidate_name || "Campaña municipal", partyName: identity.party_name || "Partido político", partyLogoUrl: identity.party_logo_data_url || undefined, municipality: "San José / Puerto San José · Escuintla" }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "No se pudo generar el PNG."))}>Imprimir PNG</button> : null}
               {editing ? <span className="agenda-footer-spacer" /> : null}
               <button type="button" onClick={() => setOpen(false)}>
                 Cancelar
               </button>
-              <button disabled={saving || !people.length}>
+              <button disabled={saving}>
                 {saving ? "Guardando…" : editing ? "Guardar cambios" : "Guardar en Agenda"}
               </button>
             </footer>

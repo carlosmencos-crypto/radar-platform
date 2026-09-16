@@ -1,26 +1,28 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
 } from "../context/MunicipalityContext";
 import { resolveRadarConsumer } from "../data/radarConsumer";
+import { ensureRadarAccessToken } from "../data/radarAuth";
+import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
 import { V70CampaignIdentity } from "./V70CampaignIdentity";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
 const campaignSlate = [
-  ["Nombre Apellido", "Candidato a alcalde", "ALCALDE"],
-  ["Nombre Apellido", "Síndico I", "SÍNDICOS"],
-  ["Nombre Apellido", "Síndico II", "SÍNDICOS"],
-  ["Nombre Apellido", "Síndico III", "SÍNDICOS"],
-  ["Nombre Apellido", "Concejal I", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal II", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal III", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal IV", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal V", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal VI", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal VII", "CONCEJALES"],
-  ["Nombre Apellido", "Concejal VIII", "CONCEJALES"],
+  ["Nombre Apellido", "Candidato a alcalde", "ALCALDE", "EC01"],
+  ["Nombre Apellido", "Síndico I", "SÍNDICOS", "EC02"],
+  ["Nombre Apellido", "Síndico II", "SÍNDICOS", "EC03"],
+  ["Nombre Apellido", "Síndico III", "SÍNDICOS", "EC04"],
+  ["Nombre Apellido", "Concejal I", "CONCEJALES", "EC05"],
+  ["Nombre Apellido", "Concejal II", "CONCEJALES", "EC06"],
+  ["Nombre Apellido", "Concejal III", "CONCEJALES", "EC07"],
+  ["Nombre Apellido", "Concejal IV", "CONCEJALES", "EC08"],
+  ["Nombre Apellido", "Concejal V", "CONCEJALES", "EC09"],
+  ["Nombre Apellido", "Concejal VI", "CONCEJALES", "EC10"],
+  ["Nombre Apellido", "Concejal VII", "CONCEJALES", "EC11"],
+  ["Nombre Apellido", "Concejal VIII", "CONCEJALES", "EC12"],
 ] as const;
 const priorityThemes = [
   [
@@ -94,7 +96,7 @@ function initials(name: string) {
 function SlateMember({
   member,
 }: {
-  member: readonly [string, string, string];
+  member: readonly [string, string, string, string];
 }) {
   const { municipality_code } = useMunicipalityContext();
   return (
@@ -110,7 +112,7 @@ function SlateMember({
       </span>
       <nav>
         <Link to={`/municipio/${municipality_code}/agenda`}>Agenda</Link>
-        <Link to={`/municipio/${municipality_code}/recursos`}>Documentos</Link>
+        <Link to={`/municipio/${municipality_code}/estrategia-legal?candidate=${member[3]}`}>Documentos</Link>
       </nav>
     </article>
   );
@@ -128,7 +130,15 @@ function greetingForGuatemala() {
   return "BUENAS NOCHES";
 }
 function HomeContent() {
-  const { municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
+  const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);
+  const [commitmentRecords, setCommitmentRecords] = useState<CampaignModuleRecord[]>([]);
+  useEffect(() => {
+    let cancelled = false; if (!campaign_id) return;
+    void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignBundle(campaign_id, token), loadCampaignRecords(campaign_id, "agenda", token)])).then(([bundle, records]) => { if (!cancelled) { setActivities(bundle.activities); setCommitments(bundle.commitments); setCommitmentRecords((records ?? []).filter((item) => item.category === "COMPROMISO")); } }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [campaign_id]);
   const today = new Intl.DateTimeFormat("es-GT", {
     timeZone: "America/Guatemala",
     weekday: "long",
@@ -149,6 +159,11 @@ function HomeContent() {
   const mayor = campaignSlate.filter((item) => item[2] === "ALCALDE");
   const syndics = campaignSlate.filter((item) => item[2] === "SÍNDICOS");
   const councilors = campaignSlate.filter((item) => item[2] === "CONCEJALES");
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guatemala", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const activitiesToday = activities.filter((item) => item.starts_at && new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guatemala", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(item.starts_at)) === todayKey).length;
+  const openCommitments = commitments.filter((item) => item.status !== "cumplido").length + commitmentRecords.filter((item) => item.status !== "CUMPLIDO").length;
+  const coveredTerritories = new Set(activities.map((item) => item.community?.trim()).filter(Boolean)).size;
+  const territoryCoverage = Math.min(100, Math.round((coveredTerritories / 13) * 100));
   return (
     <>
       <section className="command-hero home-welcome">
@@ -169,7 +184,7 @@ function HomeContent() {
         </div>
         <div className="territory-coverage">
           <small>TERRITORIO CUBIERTO</small>
-          <b>0%</b>
+          <b>{territoryCoverage}%</b>
           <i aria-label="Calculado con actividades geolocalizadas">RADAR</i>
         </div>
         <Link to={`/municipio/${municipality_code}/agenda`}>
@@ -182,15 +197,15 @@ function HomeContent() {
       >
         <article>
           <small>Actividades de hoy</small>
-          <b>0</b>
+          <b>{activitiesToday}</b>
         </article>
         <article>
           <small>Compromisos abiertos</small>
-          <b>0</b>
+          <b>{openCommitments}</b>
         </article>
         <article>
           <small>Territorios con actividades</small>
-          <b>0</b>
+          <b>{coveredTerritories}</b>
         </article>
       </section>
       <section className="slate-overview" aria-labelledby="slate-title">

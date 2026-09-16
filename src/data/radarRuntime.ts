@@ -193,11 +193,13 @@ export interface CampaignContactRecord {
   campaign_id: string;
   full_name: string;
   phone: string | null;
+  phone_secondary: string | null;
   email: string | null;
   community: string | null;
   address_text: string | null;
   role: string | null;
   contact_type: string;
+  candidate_position: string | null;
   status: string;
   notes: string | null;
   active: boolean;
@@ -244,6 +246,14 @@ export interface CampaignModuleRecord {
   updated_at: string;
 }
 
+export interface CampaignVaultFileRef {
+  bucket: "radar-campaign-vault";
+  path: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+}
+
 export interface VoterDirectoryFilters {
   query?: string;
   dpi?: string;
@@ -259,6 +269,7 @@ export interface VoterDirectoryFilters {
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
+const campaignVaultBucket = "radar-campaign-vault" as const;
 
 export const radarRuntimeConfigured = Boolean(supabaseUrl && publishableKey);
 
@@ -679,6 +690,100 @@ export async function deleteCampaignRecord(
     { p_campaign_id: campaignId, p_record_id: recordId },
     accessToken,
   );
+}
+
+function assertStorageConfigured(accessToken: string) {
+  assertAccessToken(accessToken);
+  if (!supabaseUrl || !publishableKey)
+    throw new Error("Campaign Vault no está configurado.");
+}
+
+function safeStoragePart(value: string, fallback: string) {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+  return normalized || fallback;
+}
+
+function encodedStoragePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+export async function uploadCampaignVaultFile(
+  campaignId: string,
+  moduleKey: string,
+  file: File,
+  accessToken: string,
+): Promise<CampaignVaultFileRef> {
+  assertStorageConfigured(accessToken);
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(campaignId))
+    throw new Error("Campaña autorizada requerida.");
+  const module = safeStoragePart(moduleKey, "documentos");
+  const fileName = safeStoragePart(file.name, "archivo");
+  const path = `${campaignId}/${module}/${crypto.randomUUID()}-${fileName}`;
+  const response = await fetch(
+    `${supabaseUrl}/storage/v1/object/${campaignVaultBucket}/${encodedStoragePath(path)}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: publishableKey!,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": file.type || "application/octet-stream",
+        "x-upsert": "false",
+      },
+      body: file,
+    },
+  );
+  if (!response.ok)
+    throw new Error(`No se pudo guardar el archivo privado (${response.status}).`);
+  return {
+    bucket: campaignVaultBucket,
+    path,
+    file_name: file.name,
+    mime_type: file.type || "application/octet-stream",
+    file_size: file.size,
+  };
+}
+
+export async function downloadCampaignVaultFile(
+  path: string,
+  accessToken: string,
+) {
+  assertStorageConfigured(accessToken);
+  const response = await fetch(
+    `${supabaseUrl}/storage/v1/object/authenticated/${campaignVaultBucket}/${encodedStoragePath(path)}`,
+    {
+      headers: {
+        apikey: publishableKey!,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+  if (!response.ok)
+    throw new Error(`No se pudo abrir el archivo privado (${response.status}).`);
+  return response.blob();
+}
+
+export async function deleteCampaignVaultFile(
+  path: string,
+  accessToken: string,
+) {
+  assertStorageConfigured(accessToken);
+  const response = await fetch(
+    `${supabaseUrl}/storage/v1/object/${campaignVaultBucket}/${encodedStoragePath(path)}`,
+    {
+      method: "DELETE",
+      headers: {
+        apikey: publishableKey!,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+  if (!response.ok && response.status !== 404)
+    throw new Error(`No se pudo borrar el archivo privado (${response.status}).`);
 }
 
 export async function loadAuthorizedVoterDirectory(

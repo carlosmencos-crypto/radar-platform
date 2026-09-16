@@ -72,7 +72,8 @@ test("map search waits for an explicit choice and exact activity points persist"
 test("RTD restores JRV coverage and the canonical fiscal portal", () => {
   const dayD = read("src/components/V70DirectDayD0509.tsx");
   assert.match(dayD, /JRV con RTD recibido/);
-  assert.match(dayD, /0\/\{totalJrv\}/);
+  assert.match(dayD, /0 de \{totalJrv\}/);
+  assert.match(dayD, /assignmentRows\.length\}\/\{totalJrv\}/);
   assert.match(dayD, /radar-portal-fiscal\.carlos-mencos\.chatgpt\.site/);
 });
 
@@ -97,7 +98,8 @@ test("reported V70 campaign actions persist through authorized Campaign Vault RP
   const directory = read("src/components/V70DirectDirectory0509.tsx");
   const agenda = read("src/components/V70DirectAgenda0509.tsx");
   assert.match(strategy, /saveStrategyScenarios/);
-  assert.match(directory, /loadAuthorizedVoterSuggestions/);
+  assert.doesNotMatch(directory, /elector-name-suggestions/);
+  assert.match(agenda, /loadAuthorizedVoterSuggestions/);
   assert.match(directory, /saveAuthorizedVoterProfile/);
   assert.match(directory, /createManualVoter/);
   assert.match(directory, /saveCampaignContact/);

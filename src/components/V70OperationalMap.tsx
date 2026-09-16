@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
+import { ensureRadarAccessToken } from "../data/radarAuth";
 import {
   getInstalledRadarElectoralLayers,
   getInstalledRadarGeoBundle,
@@ -13,8 +14,10 @@ import {
 } from "../data/v70ElectoralAdapter";
 import type {
   AuthorizedVoterCommunity,
+  CampaignActivityRecord,
   GeoFeatureRecord,
 } from "../data/radarRuntime";
+import { loadCampaignBundle } from "../data/radarRuntime";
 
 type LatLng = [number, number];
 type LeafletLayer = { remove(): void };
@@ -22,6 +25,11 @@ type LeafletMarker = LeafletLayer & {
   addTo(map: LeafletMap): LeafletMarker;
   bindTooltip(html: string): LeafletMarker;
   on(event: "click", handler: () => void): LeafletMarker;
+};
+type LeafletPolyline = LeafletLayer & {
+  addTo(map: LeafletMap): LeafletPolyline;
+  bindTooltip(html: string): LeafletPolyline;
+  on(event: "click", handler: () => void): LeafletPolyline;
 };
 type LeafletCircle = LeafletLayer & {
   addTo(map: LeafletMap): LeafletCircle;
@@ -96,6 +104,10 @@ type LeafletNamespace = {
       dashArray?: string;
     },
   ): LeafletCircle;
+  polyline(
+    points: LatLng[],
+    options: { color: string; weight: number; opacity: number; dashArray?: string },
+  ): LeafletPolyline;
 };
 type LeafletWindow = Window & {
   L?: LeafletNamespace;
@@ -231,6 +243,7 @@ function communityPoint(
   community: AuthorizedVoterCommunity,
   features: GeoFeatureRecord[],
   centers: V70ElectoralCenter[],
+  fallback: LatLng | null,
 ) {
   const target = normalize(community.community_label);
   const exact = features.find(
@@ -286,11 +299,17 @@ function communityPoint(
       lon: center.lon,
       precision: `Referencia territorial TSE · ${center.community}`,
     };
-  return null;
+  if (!fallback) return null;
+  return {
+    ...community,
+    lat: fallback[0],
+    lon: fallback[1],
+    precision: "Referencia territorial aproximada dentro del municipio",
+  };
 }
 
 export function V70OperationalMap() {
-  const { municipality_code, municipality_name } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
   const runtime = getInstalledRadarRuntime(municipality_code);
   const geoBundle = getInstalledRadarGeoBundle(municipality_code);
   const voterCommunities =
@@ -336,6 +355,18 @@ export function V70OperationalMap() {
   const [externalPlaces, setExternalPlaces] = useState<ExternalPlace[]>([]);
   const [externalLoading, setExternalLoading] = useState(false);
   const [activityPoint, setActivityPoint] = useState<ActivityPoint | null>(null);
+  const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<CampaignActivityRecord | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!campaign_id) return;
+    void ensureRadarAccessToken()
+      .then((token) => loadCampaignBundle(campaign_id, token))
+      .then((bundle) => { if (!cancelled) setActivities(bundle.activities); })
+      .catch(() => { if (!cancelled) setActivities([]); });
+    return () => { cancelled = true; };
+  }, [campaign_id]);
 
   useEffect(() => {
     createModeRef.current = createMode;
@@ -344,9 +375,18 @@ export function V70OperationalMap() {
   const mappedCommunities = useMemo(
     () =>
       voterCommunities
-        .map((item) => communityPoint(item, geoBundle?.features ?? [], centers))
+        .map((item, index) => {
+          const bbox = runtime?.geo.bbox;
+          const fallback = bbox
+            ? ([
+                bbox.south + (bbox.north - bbox.south) * (0.18 + ((index * 37) % 61) / 100),
+                bbox.west + (bbox.east - bbox.west) * (0.16 + ((index * 53) % 67) / 100),
+              ] as LatLng)
+            : null;
+          return communityPoint(item, geoBundle?.features ?? [], centers, fallback);
+        })
         .filter((item): item is CommunityPoint => Boolean(item)),
-    [voterCommunities, geoBundle, centers],
+    [voterCommunities, geoBundle, centers, runtime?.geo.bbox],
   );
   const topCommunities = useMemo(
     () => mappedCommunities.slice(0, 13),
@@ -428,6 +468,18 @@ export function V70OperationalMap() {
         .slice(0, 5),
     [centers],
   );
+  const visibleActivities = useMemo(() => {
+    const now = Date.now();
+    const horizon = dateWindow === "hoy" ? 1 : dateWindow === "semana" ? 7 : dateWindow === "mes" ? 30 : null;
+    return activities.filter((activity) => {
+      if (activity.latitude === null || activity.longitude === null) return false;
+      if (!activityTypes.includes(activity.activity_type || "OTRA")) return false;
+      if (!horizon || !activity.starts_at) return true;
+      const when = new Date(activity.starts_at).getTime();
+      if (dateWindow === "hoy") return when >= new Date().setHours(0, 0, 0, 0) && when < new Date().setHours(24, 0, 0, 0);
+      return when >= now - horizon * 86400000 && when <= now + horizon * 86400000;
+    });
+  }, [activities, activityTypes, dateWindow]);
 
   useEffect(() => {
     const term = query.trim();
@@ -594,6 +646,37 @@ export function V70OperationalMap() {
           drawnRef.current.push(marker);
         });
       }
+      if (layers.agenda && !createMode) {
+        visibleActivities.forEach((activity) => {
+          if (activity.latitude === null || activity.longitude === null) return;
+          const type = activity.activity_type || "OTRA";
+          const color = mapActivityColors[type] || mapActivityColors.OTRA;
+          const points = Array.isArray(activity.details?.route_points)
+            ? (activity.details.route_points as unknown[]).filter(
+                (point): point is LatLng => Array.isArray(point) && point.length === 2 && Number.isFinite(point[0]) && Number.isFinite(point[1]),
+              )
+            : [];
+          if (showRoutes && points.length > 1) {
+            const route = L.polyline(points, { color, weight: 6, opacity: 0.9 })
+              .bindTooltip(`<b>${clean(activity.title)}</b><br>Ruta de ${clean(mapActivityLabels[type] || type)}`)
+              .on("click", () => setSelectedActivity(activity))
+              .addTo(map);
+            drawnRef.current.push(route);
+          }
+          const marker = L.marker([activity.latitude, activity.longitude], {
+            icon: L.divIcon({
+              className: "agenda-map-marker-shell",
+              html: `<span class="agenda-map-marker" style="--activity-color:${color}">●</span>`,
+              iconSize: [34, 42],
+              iconAnchor: [17, 38],
+            }),
+          })
+            .bindTooltip(`<b>${clean(activity.title)}</b><br>${clean(activity.community || "Actividad geolocalizada")}`)
+            .on("click", () => setSelectedActivity(activity))
+            .addTo(map);
+          drawnRef.current.push(marker);
+        });
+      }
       const exactPoint = activityPoint ?? selectedPlace;
       if (exactPoint) {
         const marker = L.marker([exactPoint.lat, exactPoint.lon], {
@@ -619,11 +702,14 @@ export function V70OperationalMap() {
     createMode,
     layers.centros,
     layers.concentracion,
+    layers.agenda,
     layers.prioridades,
     mapReady,
     priorityCenters,
     selectedPlace,
     topCommunities,
+    visibleActivities,
+    showRoutes,
   ]);
 
   const selectCommunity = (community: CommunityPoint) => {
@@ -669,10 +755,8 @@ export function V70OperationalMap() {
       <em>{layers[key] ? "✓" : "—"}</em>
     </button>
   );
-  const zonesWithoutCoverage = Math.max(
-    centers.length || topCommunities.length,
-    0,
-  );
+  const coveredCommunities = new Set(activities.map((item) => normalize(item.community || "")).filter(Boolean));
+  const zonesWithoutCoverage = Math.max(topCommunities.length - coveredCommunities.size, 0);
 
   return (
     <>
@@ -687,7 +771,7 @@ export function V70OperationalMap() {
         <div className="section-banner-actions">
           <div className="map-head-stats">
             <span>
-              <b>0</b> actividades
+              <b>{visibleActivities.length}</b> actividades
             </span>
             <span>
               <b>{zonesWithoutCoverage}</b> zonas sin cobertura
@@ -1034,6 +1118,16 @@ export function V70OperationalMap() {
               </Link>
             </article>
           ) : null}
+          {selectedActivity ? (
+            <article className="map-activity-card">
+              <button type="button" aria-label="Cerrar actividad" onClick={() => setSelectedActivity(null)}>×</button>
+              <small>{selectedActivity.activity_type || "ACTIVIDAD"}</small>
+              <h3>{selectedActivity.title}</h3>
+              <p>{selectedActivity.community || "Punto geolocalizado"}</p>
+              <span>{selectedActivity.starts_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(selectedActivity.starts_at)) : "Sin fecha"}</span>
+              <Link to={`/municipio/${municipality_code}/agenda?activity=${selectedActivity.id}`}>Abrir en Agenda →</Link>
+            </article>
+          ) : null}
           <div
             ref={mapNode}
             className="smart-map-canvas"
@@ -1062,7 +1156,7 @@ export function V70OperationalMap() {
                   <small>Electores agregados 2023</small>
                 </span>
                 <span>
-                  <b>0</b>
+                  <b>{activities.filter((item) => normalize(item.community || "") === normalize(selectedCommunity.community_label)).length}</b>
                   <small>Actividades registradas</small>
                 </span>
                 <span>
@@ -1077,7 +1171,7 @@ export function V70OperationalMap() {
               <div className="territory-card-grid">
                 <section>
                   <b>Historial reciente</b>
-                  <em>Sin actividades registradas.</em>
+                  <em>{activities.some((item) => normalize(item.community || "") === normalize(selectedCommunity.community_label)) ? "La actividad más reciente está disponible en Agenda." : "Sin actividades registradas."}</em>
                 </section>
                 <section>
                   <b>Responsables del territorio</b>
