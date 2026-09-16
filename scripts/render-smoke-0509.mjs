@@ -79,7 +79,7 @@ const injection = `<script>(function(){
   const runtime=${JSON.stringify(runtime)};
   const geoBundle=${JSON.stringify(geoBundle)};
   const voterCommunities=${JSON.stringify(voterCommunities)};
-  const campaignBundle={identity:{candidate_name:"Nombre Apellido",party_name:"",party_logo_data_url:null},activities:[],commitments:[]};
+  const campaignBundle={identity:{candidate_name:"Nombre Apellido",party_name:"",party_logo_data_url:null},activities:[{id:"qa-map-activity",campaign_id:"qa-render-0509",title:"Actividad territorial QA",activity_type:"REUNION",starts_at:"2027-02-20T16:10:00.000Z",community:"Cabecera Municipal",latitude:13.939,longitude:-90.821,status:"PLANIFICADA",notes:null,details:{},created_at:"2026-09-16T00:00:00.000Z",updated_at:"2026-09-16T00:00:00.000Z"}],commitments:[]};
   const voterRows=[{id:1,full_name:"Registro autorizado QA",community:"Cabecera Municipal",estimated_age_2026:40,masked_identification:"0000••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:36878}];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
@@ -230,10 +230,13 @@ try {
     const text = snapshot.text ?? "";
     const html = snapshot.html ?? "";
     const routeSpecificOk = slug !== "mapa" || (
-      html.includes("map-electoral-priorities")
-      && html.includes("leaflet-container")
-      && text.includes("BARRIO PEÑATE")
-      && text.includes("13 zonas sin cobertura")
+      html.includes("leaflet-container")
+      && html.includes("agenda-map-marker")
+      && html.includes("activity-coverage-zone")
+      && html.includes("map-layer-agenda on")
+      && !html.includes("map-layer-concentracion on")
+      && text.includes("Todas")
+      && text.includes("1 actividades")
     );
     const domOk = html.includes("portal-shell")
       && text.includes(marker)
