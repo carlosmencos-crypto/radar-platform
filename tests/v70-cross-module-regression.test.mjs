@@ -75,6 +75,8 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /setStatusFilter/);
   assert.match(map, /setResponsibleFilter/);
   assert.match(map, /useState\("todos"\)/);
+  assert.match(map, /concentracion: false/);
+  assert.match(map, /agenda: true/);
   assert.match(map, /viewBox="0 0 36 42"/);
   assert.doesNotMatch(styles, /\.agenda-map-marker\{[^}]*rotate\(-45deg\)/);
 });

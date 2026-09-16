@@ -340,7 +340,7 @@ export function V70OperationalMap() {
   const [mapReady, setMapReady] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
-    concentracion: true,
+    concentracion: false,
     prioridades: false,
     centros: false,
     agenda: true,
