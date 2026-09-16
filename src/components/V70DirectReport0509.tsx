@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useMunicipalityContext } from "../context/MunicipalityContext";
+import { ensureRadarAccessToken } from "../data/radarAuth";
+import {
+  loadCampaignBundle,
+  loadCampaignContacts,
+  loadCampaignRecords,
+  type CampaignBundle,
+  type CampaignContactRecord,
+  type CampaignModuleRecord,
+} from "../data/radarRuntime";
 import { useV70CampaignBrand } from "./useV70CampaignBrand";
 
 type ReportMetric = { label: string; value: string; note: string };
@@ -14,7 +24,7 @@ const definitions: Record<string, ReportDefinition> = {
   estrategia: { key:"estrategia", eyebrow:"CAMPAÑA MUNICIPAL 2027", title:"Plan de campaña", subtitle:"San José / Puerto San José · Documento ejecutivo de uso interno", summary:"Concentra la ruta definida por la campaña, su FODA y los datos oficiales mínimos utilizados para orientar las decisiones.", vault:"CAMPAIGN VAULT", backHref:`${base}/estrategia`, metrics:[{label:"Padrón activo 2026",value:"40,890",note:"TSE · dato oficial"},{label:"Crecimiento desde 2023",value:"+5.02%",note:"+1,956 electores"},{label:"Centros electorales",value:"13",note:"103 JRV enlazadas"},{label:"Población proyectada",value:"72,156",note:"INE · 2026"}], sections:[{eyebrow:"USO DEL DOCUMENTO",title:"Versión oficial de trabajo",items:["Cada cambio conserva el usuario que lo registró y su fecha.","La campaña puede modificar el contenido y aprobar una nueva versión.","Los datos públicos y las decisiones privadas permanecen diferenciados."]},{eyebrow:"LÍMITE DE INTERPRETACIÓN",title:"Problemas municipales",items:["Las líneas base orientan preguntas y talking points.","Una cifra histórica debe validarse antes de presentarse como situación actual.","RADAR no convierte vacíos de información en cero ni inventa conclusiones."]}], sources:"Campaign Vault · Plan de campaña; TSE, INE y PDM-OT para el punto de partida." },
   directorio: { key:"directorio", eyebrow:"RELACIONES", title:"Directorio de campaña", subtitle:"Personas, responsables y contactos de la campaña", summary:"Directorio oficial para evitar nombres duplicados y mantener responsables consistentes entre Agenda, Mapa y Campaña.", vault:"CAMPAIGN VAULT", backHref:`${base}/directorio`, metrics:[{label:"Municipio",value:"0509",note:"San José · Escuintla"},{label:"Fuente",value:"CRM",note:"Directorio único"},{label:"Uso",value:"Interno",note:"Información privada"},{label:"Estado",value:"Vivo",note:"Datos al momento de generar"}], sections:[{eyebrow:"ORGANIZACIÓN",title:"Uso del directorio",items:["Asignar responsables en actividades y compromisos.","Relacionar líderes, equipo, planilla y contactos externos.","Conservar historial aunque una persona sea desactivada."]}], sources:"Campaign Vault · Directorio de campaña." },
   agenda: { key:"agenda", eyebrow:"OPERACIÓN", title:"Agenda de campaña", subtitle:"Actividades, responsables, participantes y compromisos", summary:"Documento operativo para compartir el calendario oficial del equipo y mantener una sola versión de cada actividad.", vault:"CAMPAIGN VAULT", backHref:`${base}/agenda`, metrics:[{label:"Municipio",value:"0509",note:"San José · Escuintla"},{label:"Elección",value:"2027",note:"Cronograma preliminar"},{label:"Integración",value:"Mapa",note:"Actividades geolocalizadas"},{label:"Responsables",value:"CRM",note:"Directorio oficial"}], sections:[{eyebrow:"CONTROL OPERATIVO",title:"Información incluida",items:["Fecha, hora y ubicación.","Responsable y participantes.","Estado, notas, ruta y compromisos relacionados."]}], sources:"Campaign Vault · Agenda y Directorio." },
-  mapa: { key:"mapa", eyebrow:"OPERACIÓN TERRITORIAL", title:"Mapa Inteligente", subtitle:"Actividades, electores y comunidades prioritarias en una sola vista", summary:"Resumen ejecutivo de la operación territorial registrada en RADAR. El documento utiliza actividades y responsables vivos, no una captura cruda del mapa.", vault:"CAMPAIGN VAULT", backHref:`${base}/mapa`, landscape:true, metrics:[{label:"Territorio",value:"0509",note:"San José · Escuintla"},{label:"Centros electorales",value:"13",note:"Base territorial validada"},{label:"Lugares INE",value:"82",note:"81 georreferenciados"},{label:"Capas operativas",value:"3",note:"Electores, prioritarias y actividades"}], sections:[{eyebrow:"LECTURA TERRITORIAL",title:"Capas operativas",items:["Concentración de electores por sector.","Comunidades prioritarias y zonas sin cobertura.","Actividades registradas en Agenda.","Responsables y rutas de campaña."]},{eyebrow:"PRIVACIDAD",title:"Uso del documento",items:["No incluye información privada ajena al municipio.","Las coordenadas libres provienen de registros creados por la campaña.","Los lugares externos se diferencian de territorios oficiales RADAR."]}], sources:"Campaign Vault · Agenda y Mapa Inteligente; base territorial RADAR." },
+  mapa: { key:"mapa", eyebrow:"OPERACIÓN TERRITORIAL", title:"Mapa Inteligente", subtitle:"Actividades, electores y comunidades prioritarias en una sola vista", summary:"Resumen ejecutivo de la operación territorial registrada en RADAR. El documento utiliza actividades y responsables vivos, no una captura cruda del mapa.", vault:"CAMPAIGN VAULT", backHref:`${base}/mapa`, landscape:true, metrics:[{label:"Territorio",value:"0509",note:"San José · Escuintla"},{label:"Centros electorales",value:"13",note:"Base territorial validada"},{label:"Lugares INE",value:"82",note:"81 georreferenciados"},{label:"Capas operativas",value:"3",note:"Electores, prioritarias y actividades"}], sections:[{eyebrow:"LECTURA TERRITORIAL",title:"Capas operativas",items:["Concentración de electores por sector.","Comunidades prioritarias y comunidades con actividades.","Actividades registradas en Agenda.","Responsables y rutas de campaña."]},{eyebrow:"PRIVACIDAD",title:"Uso del documento",items:["No incluye información privada ajena al municipio.","Las coordenadas libres provienen de registros creados por la campaña.","Los lugares externos se diferencian de territorios oficiales RADAR."]}], sources:"Campaign Vault · Agenda y Mapa Inteligente; base territorial RADAR." },
   "dia-d": { key:"dia-d", eyebrow:"DÍA DE ELECCIÓN", title:"Día D", subtitle:"Centro de mando, fiscales, movilización, incidencias y reportes", summary:"Plantilla ejecutiva preparada para activarse cuando la candidatura y las reglas oficiales estén confirmadas.", vault:"CAMPAIGN VAULT", backHref:`${base}/dia-d`, metrics:[{label:"Centros",value:"13",note:"Cobertura objetivo"},{label:"JRV",value:"103",note:"Asignación pendiente"},{label:"Estado",value:"Plantilla",note:"Pendiente de activación"},{label:"Fuente",value:"TSE",note:"Reglas oficiales"}], sections:[{eyebrow:"COBERTURA",title:"Control previsto",items:["Asignación por centro y JRV.","Contacto, acreditación y asistencia.","Captura de actas, validación doble e incidencias."]}], sources:"TSE y Campaign Vault · sujeto a convocatoria y reglas oficiales." },
   recursos: { key:"recursos", eyebrow:"DOCUMENTOS", title:"Centro de recursos", subtitle:"Documentos, plantillas y archivos oficiales", summary:"Índice ejecutivo de recursos autorizados para que el equipo trabaje siempre con la versión correcta.", vault:"CAMPAIGN VAULT", backHref:`${base}/recursos`, metrics:[{label:"Control",value:"Único",note:"Una versión oficial"},{label:"Archivos",value:"Privados",note:"Por campaña"},{label:"Trazabilidad",value:"Activa",note:"Autor y fecha"},{label:"Exportación",value:"RADAR",note:"Formato institucional"}], sections:[{eyebrow:"BIBLIOTECA",title:"Tipos de recursos",items:["Actas y evidencias.","Plantillas rellenables.","Fotografías y materiales oficiales.","Informes ejecutivos RADAR."]}], sources:"Campaign Vault · Centro de recursos." },
   pulso: { key:"pulso", eyebrow:"INVESTIGACIÓN", title:"Pulso Electoral", subtitle:"Encuestas comparables, metodología visible y tendencias sin inventar certeza", summary:"Documento de lectura metodológica. Ninguna simulación visual se presenta como encuesta o resultado electoral.", vault:"CAMPAIGN VAULT", backHref:`${base}/pulso`, metrics:[{label:"Municipio",value:"0509",note:"San José · Escuintla"},{label:"Estado",value:"Plantilla",note:"Sin encuesta cargada"},{label:"Método",value:"Visible",note:"Toda medición debe documentarse"},{label:"Uso",value:"Interno",note:"Interpretación separada de datos"}], sections:[{eyebrow:"GUARDRAIL",title:"Lectura responsable",items:["No es una encuesta ni un resultado electoral.","Toda medición debe mostrar metodología, fecha y universo.","RADAR separa evidencia, interpretación y recomendación."]}], sources:"Campaign Vault · encuestas y registros autorizados." },
@@ -33,28 +43,99 @@ function SectionCard({section}:{section:ReportSection}){return <article classNam
 export function V70DirectReport0509(){
   const {section="inicio"}=useParams();
   const [searchParams]=useSearchParams();
+  const { campaign_id } = useMunicipalityContext();
   const { candidateName } = useV70CampaignBrand();
+  const [bundle,setBundle]=useState<CampaignBundle|null>(null);
+  const [contacts,setContacts]=useState<CampaignContactRecord[]>([]);
+  const [records,setRecords]=useState<Record<string,CampaignModuleRecord[]>>({});
+  const [runtimeMessage,setRuntimeMessage]=useState("");
+  useEffect(()=>{
+    let cancelled=false;
+    if(!campaign_id)return;
+    void ensureRadarAccessToken().then(async(token)=>{
+      const modules=["estrategia","legal","finanzas","medios","agenda","dia-d","recursos"];
+      const [campaignBundle,campaignContacts,...moduleRows]=await Promise.all([
+        loadCampaignBundle(campaign_id,token),
+        loadCampaignContacts(campaign_id,token),
+        ...modules.map((moduleKey)=>loadCampaignRecords(campaign_id,moduleKey,token)),
+      ]);
+      if(cancelled)return;
+      setBundle(campaignBundle);
+      setContacts((campaignContacts??[]).filter((contact)=>contact.active));
+      setRecords(Object.fromEntries(modules.map((moduleKey,index)=>[moduleKey,moduleRows[index]??[]])));
+      setRuntimeMessage("");
+    }).catch((error:unknown)=>{if(!cancelled)setRuntimeMessage(error instanceof Error?error.message:"No se pudo cargar el resumen operativo.");});
+    return()=>{cancelled=true;};
+  },[campaign_id]);
   const definition=useMemo(() => {
     const source = definitions[section] ?? definitions.inicio;
-    if (source.key !== "inicio") return source;
-    return {
-      ...source,
-      sections: source.sections.map((item, index) => index === 0 ? {
-        ...item,
-        items: [
-          `Candidato a alcalde: ${candidateName} · PENDIENTE`,
-          ...item.items.slice(1),
-        ],
-      } : item),
-    };
-  }, [candidateName, section]);
+    const activities=bundle?.activities??[];
+    const commitments=bundle?.commitments??[];
+    const candidates=contacts.filter((contact)=>contact.contact_type==="Candidato");
+    const fiscales=contacts.filter((contact)=>/fiscal/i.test(`${contact.contact_type} ${contact.role??""}`));
+    const now=Date.now();
+    const upcoming=activities.filter((activity)=>activity.starts_at&&new Date(activity.starts_at).getTime()>=now&&activity.status!=="CANCELADA");
+    const geolocated=activities.filter((activity)=>activity.latitude!==null&&activity.longitude!==null);
+    const currentStrategy=(records.estrategia??[]).filter((record)=>record.status!=="ARCHIVADO");
+    const legal=records.legal??[];
+    const finances=records.finanzas??[];
+    const dayD=records["dia-d"]??[];
+    const assignments=dayD.filter((record)=>record.category==="ASIGNACION_JRV");
+    const logistics=dayD.filter((record)=>record.category==="LOGISTICA");
+    const access=dayD.filter((record)=>record.category==="ACCESO_FISCAL"&&record.status==="ACTIVO");
+    const money=(value:number)=>new Intl.NumberFormat("es-GT",{style:"currency",currency:"GTQ"}).format(value);
+    const amount=(record:CampaignModuleRecord)=>Number(record.payload?.amount||0);
+    const income=finances.filter((record)=>record.category==="Ingreso").reduce((sum,record)=>sum+amount(record),0);
+    const expense=finances.filter((record)=>record.category==="Egreso").reduce((sum,record)=>sum+amount(record),0);
+    const dynamic:Partial<ReportDefinition>={};
+    if(source.key==="inicio"){
+      dynamic.summary=`Estado consolidado de ${candidateName} en Puerto San José: planilla, operación territorial, compromisos y controles activos al momento de generar el documento.`;
+      dynamic.metrics=[
+        {label:"Planilla registrada",value:String(candidates.length),note:"Candidaturas activas en CRM"},
+        {label:"Actividades",value:String(activities.length),note:`${upcoming.length} próximas`},
+        {label:"Compromisos abiertos",value:String(commitments.filter((item)=>item.status!=="CUMPLIDO").length),note:"Seguimiento operativo"},
+        {label:"Expedientes",value:String(legal.length),note:"Documentos vinculados"},
+      ];
+      dynamic.sections=[
+        {eyebrow:"PLANILLA MUNICIPAL",title:"Integración de la candidatura",items:[`Candidato a alcalde: ${candidateName}`,...candidates.filter((person)=>person.candidate_position!=="Alcalde").slice(0,11).map((person)=>`${person.candidate_position||"Candidatura"}: ${person.full_name}`)]},
+        {eyebrow:"CONTROL EJECUTIVO",title:"Situación operativa",items:[`${upcoming.length} actividades próximas y ${geolocated.length} actividades geolocalizadas.`,`${commitments.filter((item)=>item.status!=="CUMPLIDO").length} compromisos abiertos.`,`${fiscales.length} fiscales en CRM y ${assignments.length} JRV con asignación.`]},
+      ];
+    }
+    if(source.key==="estrategia"){
+      dynamic.summary="Versión ejecutiva del plan guardado por la campaña, con sus campos vigentes, historial y estado de aprobación.";
+      dynamic.metrics=[{label:"Campos definidos",value:String(new Set(currentStrategy.map((item)=>item.category)).size),note:"Plan vigente"},{label:"Versiones guardadas",value:String((records.estrategia??[]).length),note:"Incluye historial"},{label:"Campos aprobados",value:String(currentStrategy.filter((item)=>item.status==="COMPLETADO").length),note:"Estado vigente"},{label:"Balance registrado",value:money(income-expense),note:"Control financiero"}];
+      dynamic.sections=[...source.sections,{eyebrow:"PLAN VIGENTE",title:"Decisiones registradas",items:currentStrategy.length?currentStrategy.slice(0,12).map((record)=>`${record.category}: ${record.title}${record.details?` — ${record.details}`:""}`):["El plan aún no tiene campos guardados."]}];
+    }
+    if(source.key==="directorio"){
+      dynamic.summary="Directorio vivo de la campaña, conectado con responsables de Agenda, expedientes, Mapa y operación Día D.";
+      dynamic.metrics=[{label:"Contactos activos",value:String(contacts.length),note:"Campaign Vault"},{label:"Candidatos",value:String(candidates.length),note:"Planilla municipal"},{label:"Fiscales",value:String(fiscales.length),note:"Disponibles para Día D"},{label:"Con fotografía",value:String(contacts.filter((item)=>item.photo_url).length),note:"Perfiles identificados"}];
+      dynamic.sections=[{eyebrow:"ORGANIZACIÓN",title:"Composición del directorio",items:[`${contacts.filter((item)=>item.contact_type==="Equipo de campaña").length} integrantes de equipo.`,`${contacts.filter((item)=>item.contact_type==="Liderazgo comunitario").length} liderazgos comunitarios.`,`${contacts.filter((item)=>item.contact_type==="Proveedor").length} proveedores.`,`${fiscales.length} fiscales.`]}];
+    }
+    if(source.key==="agenda"||source.key==="mapa"){
+      dynamic.summary=source.key==="agenda"?"Calendario operativo real de la campaña, con actividades, ubicación, responsables y compromisos registrados.":"Lectura territorial real construida con las actividades geolocalizadas y comunidades atendidas por la campaña.";
+      dynamic.metrics=[{label:"Actividades",value:String(activities.length),note:"Total registrado"},{label:"Próximas",value:String(upcoming.length),note:"No canceladas"},{label:"Geolocalizadas",value:String(geolocated.length),note:"Visibles en Mapa"},{label:"Comunidades cubiertas",value:String(new Set(geolocated.map((item)=>item.community).filter(Boolean)).size),note:"Con actividad registrada"}];
+      dynamic.sections=[...source.sections,{eyebrow:"AGENDA REGISTRADA",title:"Actividades y cobertura",items:activities.length?activities.slice(0,14).map((activity)=>`${activity.starts_at?new Intl.DateTimeFormat("es-GT",{dateStyle:"medium"}).format(new Date(activity.starts_at)):"Sin fecha"} · ${activity.title} · ${activity.community||"Sin ubicación"} · ${activity.status}`):["Aún no hay actividades registradas."]}];
+    }
+    if(source.key==="dia-d"){
+      dynamic.summary="Estado operativo real de centros, JRV, fiscales, accesos y previsiones logísticas registrados para la campaña.";
+      dynamic.metrics=[{label:"Centros",value:"13",note:"Cobertura TSE validada"},{label:"JRV asignadas",value:`${assignments.length} / 103`,note:"Con fiscal"},{label:"Accesos activos",value:String(access.length),note:"Portal fiscal"},{label:"Previsiones",value:String(logistics.length),note:"Logística Día D"}];
+      dynamic.sections=[{eyebrow:"COBERTURA",title:"Asignaciones registradas",items:assignments.length?assignments.slice(0,14).map((record)=>`${String(record.payload.center_name||"Centro")} · JRV ${String(record.payload.jrv||"—")} · ${String(record.payload.fiscal_name||"Fiscal pendiente")}`):["Aún no hay JRV asignadas a fiscales."]},{eyebrow:"LOGÍSTICA",title:"Previsiones activas",items:logistics.length?logistics.slice(0,12).map((record)=>`${record.title} · ${record.status.replaceAll("_"," ")}`):["Aún no hay previsiones logísticas registradas."]}];
+    }
+    if(source.key==="recursos"){
+      const resources=records.recursos??[];
+      dynamic.summary="Inventario real de recursos físicos, materiales y archivos registrados por la campaña.";
+      dynamic.metrics=[{label:"Recursos",value:String(resources.length),note:"Campaign Vault"},{label:"Disponibles",value:String(resources.filter((item)=>item.status==="COMPLETADO"||item.status==="DISPONIBLE").length),note:"Estado actual"},{label:"Materiales",value:String((records.medios??[]).filter((item)=>item.category!=="Carpeta").length),note:"Banco de comunicación"},{label:"Carpetas",value:String((records.medios??[]).filter((item)=>item.category==="Carpeta").length),note:"Organización documental"}];
+      dynamic.sections=[...source.sections,{eyebrow:"INVENTARIO",title:"Recursos registrados",items:resources.length?resources.slice(0,15).map((record)=>`${record.title} · ${record.category} · ${record.status}`):["Aún no hay recursos físicos registrados."]}];
+    }
+    return {...source,...dynamic,sections:dynamic.sections??source.sections};
+  }, [bundle, candidateName, contacts, records, section]);
   const [generatedAt,setGeneratedAt]=useState("");
   const [copyLabel,setCopyLabel]=useState("Copiar enlace");
   useEffect(()=>{setGeneratedAt(new Intl.DateTimeFormat("es-GT",{dateStyle:"long",timeStyle:"short"}).format(new Date()));},[]);
   const blocks=useMemo(()=>searchParams.get("blocks")?.split(",").filter(Boolean)??[],[searchParams]);
   const parts=useMemo(()=>{const value=searchParams.get("parts")?.split(",").filter(Boolean)??[];return value.length?value:["summary","metrics","sections","records","trace"]},[searchParams]);
   const selectionContext=definition.key==="municipio-360"?[searchParams.get("election")?`Elección: ${searchParams.get("election")!.replaceAll("_"," ")}`:"",searchParams.get("center")?`Centro: CV ${searchParams.get("center")}`:""].filter(Boolean).join(" · "):"";
-  const visibleSections=definition.sections.filter((item)=>parts.includes("sections")&&(!item.key||definition.key!=="municipio-360"||!blocks.length||blocks.includes(item.key)));
+  const visibleSections=definition.sections.filter((item)=>(parts.includes("sections")||parts.includes("records"))&&(!item.key||definition.key!=="municipio-360"||!blocks.length||blocks.includes(item.key)));
   const sectionPages=chunks(visibleSections,definition.landscape?4:3);
   const summaryIncluded=parts.includes("summary")||parts.includes("metrics")||parts.includes("trace");
   const total=1+(summaryIncluded?1:0)+sectionPages.length;
@@ -64,7 +145,7 @@ export function V70DirectReport0509(){
     <nav className="report-actions" aria-label="Acciones del informe"><Link to={definition.backHref}>← Volver al módulo</Link><div><button onClick={copy}>{copyLabel}</button><button className="primary" onClick={print}>Guardar / Imprimir PDF</button></div></nav>
     <div className="report-document">
       <Sheet definition={definition} page={1} total={total} cover><div className="report-cover-top"><Brand dark/><span>{definition.vault}</span></div><div className="report-cover-main"><small>{definition.eyebrow}</small><h1>{definition.title}</h1><p>{definition.subtitle}</p><div className="report-cover-rule"/><div className="report-cover-project"><i/><div><small>{common.campaignType.toUpperCase()}</small><b>{candidateName}</b><span>{common.municipality} · {common.department}</span></div><i/></div></div><div className="report-cover-meta"><div><span>Documento</span><b>{reportCode(definition)}</b></div><div><span>Generado</span><b>{generatedAt||"Preparando fecha…"}</b></div><div><span>Clasificación</span><b>{definition.vault==="CAMPAIGN VAULT"?"USO INTERNO Y CONFIDENCIAL":"FUENTES PÚBLICAS TRAZABLES"}</b></div></div></Sheet>
-      {summaryIncluded?<Sheet definition={definition} page={2} total={total}><div className="report-title-block"><small>RESUMEN EJECUTIVO</small><h2>{definition.title}</h2>{parts.includes("summary")?<p>{definition.summary}</p>:null}{selectionContext?<em>{selectionContext}</em>:null}</div>{parts.includes("metrics")?<div className="report-metrics">{definition.metrics.map((metric)=><article key={metric.label}><small>{metric.label}</small><b>{metric.value}</b><span>{metric.note}</span></article>)}</div>:null}{parts.includes("trace")?<div className="report-trace"><span>FUENTES Y TRAZABILIDAD</span><p>{definition.sources}</p></div>:null}</Sheet>:null}
+      {summaryIncluded?<Sheet definition={definition} page={2} total={total}><div className="report-title-block"><small>RESUMEN EJECUTIVO</small><h2>{definition.title}</h2>{parts.includes("summary")?<p>{definition.summary}</p>:null}{selectionContext?<em>{selectionContext}</em>:null}{runtimeMessage?<em>Advertencia de datos: {runtimeMessage}</em>:null}</div>{parts.includes("metrics")?<div className="report-metrics">{definition.metrics.map((metric)=><article key={metric.label}><small>{metric.label}</small><b>{metric.value}</b><span>{metric.note}</span></article>)}</div>:null}{parts.includes("trace")?<div className="report-trace"><span>FUENTES Y TRAZABILIDAD</span><p>{definition.sources}</p></div>:null}</Sheet>:null}
       {sectionPages.map((page,index)=><Sheet key={index} definition={definition} page={2+(summaryIncluded?1:0)+index} total={total}><div className="report-section-grid">{page.map((item)=><SectionCard key={`${item.eyebrow}-${item.title}`} section={item}/>)}</div></Sheet>)}
     </div>
   </main>;

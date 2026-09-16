@@ -7,14 +7,18 @@ import {
   deleteCampaignVaultFile,
   deleteCampaignRecord,
   downloadCampaignVaultFile,
+  loadCampaignBundle,
   loadCampaignRecords,
   saveCampaignRecord,
+  saveCampaignContact,
   uploadCampaignVaultFile,
+  type CampaignActivityRecord,
   type CampaignModuleRecord,
 } from "../data/radarRuntime";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { RadarAssistant } from "./V70DirectAi0509";
-import { useV70CampaignBrand } from "./useV70CampaignBrand";
+import { V70PhotoEditor } from "./V70PhotoEditor";
+import { announceV70CampaignUpdate, useV70CampaignBrand } from "./useV70CampaignBrand";
 
 const planFields = [
   ["Situación del candidato", "¿Es conocido, nuevo, oficialista u oposición? ¿Cuál es su principal ventaja y qué debe cuidar?"],
@@ -31,6 +35,32 @@ const municipalIssues = [
   ["Problema municipal · Residuos", "Recolección, disposición final, quema y puntos críticos."],
   ["Problema municipal · Educación media", "Acceso a básico y diversificado, distancia y deserción."],
   ["Problema municipal · Prevención", "Inundaciones, drenajes, seguridad y rutas vulnerables."],
+] as const;
+const municipalDiagnostic = [
+  {
+    title: "Agua y saneamiento",
+    source: "PDM-OT · diagnóstico municipal",
+    evidence: "Persisten brechas de continuidad, calidad y cobertura que deben validarse por comunidad antes de formular compromisos.",
+    prompt: "Agua y saneamiento: validar continuidad, calidad, cobertura y comunidades afectadas.",
+  },
+  {
+    title: "Residuos y ambiente",
+    source: "PDM-OT · gestión municipal",
+    evidence: "La recolección, disposición final, quema y puntos críticos requieren una lectura territorial diferenciada.",
+    prompt: "Residuos y ambiente: identificar recolección, disposición final, quema y puntos críticos.",
+  },
+  {
+    title: "Educación media",
+    source: "MINEDUC · establecimientos georreferenciados",
+    evidence: "El acceso a básico y diversificado debe evaluarse según distancia, movilidad y permanencia escolar.",
+    prompt: "Educación media: analizar acceso a básico y diversificado, distancia, movilidad y deserción.",
+  },
+  {
+    title: "Prevención y movilidad",
+    source: "PDM-OT · vulnerabilidad territorial",
+    evidence: "Inundaciones, drenajes, seguridad y rutas vulnerables condicionan la operación comunitaria.",
+    prompt: "Prevención y movilidad: priorizar inundaciones, drenajes, seguridad y rutas vulnerables.",
+  },
 ] as const;
 const allPlanFields = [...planFields.slice(0, 4), ...municipalIssues, ...planFields.slice(4)] as const;
 
@@ -90,19 +120,32 @@ function PlanWorkspace() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [aiField, setAiField] = useState<string | null>(null);
-  useEffect(() => {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [deletingVersionId, setDeletingVersionId] = useState<string | null>(null);
+  const latestByCategory = useMemo(() => {
     const latest = new Map<string, CampaignModuleRecord>();
-    store.records.forEach((record) => { if (!latest.has(record.category)) latest.set(record.category, record); });
+    for (const record of store.records) {
+      if (record.status !== "ARCHIVADO" && !latest.has(record.category)) latest.set(record.category, record);
+    }
+    return latest;
+  }, [store.records]);
+  useEffect(() => {
     setDrafts(Object.fromEntries(allPlanFields.map(([field]) => {
-      const record = latest.get(field);
+      const record = latestByCategory.get(field);
       return [field, [record?.title, record?.details].filter(Boolean).join("\n")];
     })));
-  }, [store.records]);
-  const latestByCategory = useMemo(() => new Map(store.records.map((record) => [record.category, record])), [store.records]);
+  }, [latestByCategory]);
   const changed = allPlanFields.filter(([field]) => {
     const record = latestByCategory.get(field);
     return (drafts[field] ?? "").trim() !== [record?.title, record?.details].filter(Boolean).join("\n").trim();
   });
+  const currentRecords = allPlanFields.map(([field]) => latestByCategory.get(field)).filter((record): record is CampaignModuleRecord => Boolean(record));
+  const defined = currentRecords.length;
+  const hasDraft = currentRecords.some((record) => record.status !== "COMPLETADO");
+  const planStatus = currentRecords.length && !hasDraft ? "PLAN VIGENTE" : "BORRADOR";
+  const lastUpdated = currentRecords.map((record) => record.updated_at || record.created_at).sort().at(-1) ?? "";
+  const displayDate = (value: string) => value ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "sin guardar";
   async function save() {
     if (!store.campaign_id || !changed.length) return;
     setSaving(true);
@@ -110,9 +153,16 @@ function PlanWorkspace() {
     try {
       const token = await ensureRadarAccessToken();
       await Promise.all(changed.map(async ([category]) => {
-        const lines = (drafts[category] ?? "").trim().split("\n");
-        const title = lines.shift()?.trim() || category;
-        return saveCampaignRecord(store.campaign_id!, { module_key: "estrategia", category, title, details: lines.join("\n").trim() || null, status: "EN_PROCESO", payload: {} }, token, latestByCategory.get(category)?.id ?? null);
+        const current = latestByCategory.get(category);
+        const text = (drafts[category] ?? "").trim();
+        if (text) {
+          const lines = text.split("\n");
+          const title = lines.shift()?.trim() || category;
+          await saveCampaignRecord(store.campaign_id!, { module_key: "estrategia", category, title, details: lines.join("\n").trim() || null, status: "EN_PROCESO", payload: {} }, token);
+        }
+        if (current) {
+          await saveCampaignRecord(store.campaign_id!, { module_key: current.module_key, category: current.category, title: current.title, details: current.details, status: "ARCHIVADO", payload: current.payload }, token, current.id);
+        }
       }));
       store.setMessage(`${changed.length} ${changed.length === 1 ? "cambio guardado" : "cambios guardados"} con tu usuario y fecha.`);
       await store.load();
@@ -121,13 +171,59 @@ function PlanWorkspace() {
     } finally { setSaving(false); }
   }
   function help(field: string) { setAiField((current) => current === field ? null : field); store.setMessage(""); }
+  function addTalkingPoint(prompt: string) {
+    setDrafts((current) => ({ ...current, "Mensaje central": [current["Mensaje central"]?.trim(), prompt].filter(Boolean).join("\n") }));
+    store.setMessage("Tema agregado a mensajes. Revísalo antes de guardar.");
+    document.getElementById("strategy-field-mensaje-central")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function clearPlan() {
+    setDrafts(Object.fromEntries(allPlanFields.map(([field]) => [field, ""])));
+    store.setMessage("El plan quedó listo para limpiarse. Presiona Guardar cambios para confirmar.");
+  }
+  function openHistory() {
+    setHistoryOpen((current) => {
+      const next = !current;
+      if (next) window.requestAnimationFrame(() => document.getElementById("strategy-history")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      return next;
+    });
+  }
+  async function approvePlan() {
+    if (!store.campaign_id) return;
+    const pending = currentRecords.filter((record) => record.status !== "COMPLETADO");
+    if (!pending.length) return;
+    setApproving(true);
+    store.setMessage("");
+    try {
+      const token = await ensureRadarAccessToken();
+      await Promise.all(pending.map((record) => saveCampaignRecord(store.campaign_id!, { module_key: record.module_key, category: record.category, title: record.title, details: record.details, status: "COMPLETADO", payload: record.payload }, token, record.id)));
+      store.setMessage("La versión vigente del plan fue aprobada.");
+      await store.load();
+    } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo aprobar la versión."); }
+    finally { setApproving(false); }
+  }
+  async function deleteVersion(record: CampaignModuleRecord) {
+    if (!store.campaign_id || !window.confirm(`¿Borrar esta versión de “${record.category}”?`)) return;
+    setDeletingVersionId(record.id);
+    try {
+      const token = await ensureRadarAccessToken();
+      await deleteCampaignRecord(store.campaign_id, record.id, token);
+      store.setMessage("Versión eliminada del historial.");
+      await store.load();
+    } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo borrar la versión."); }
+    finally { setDeletingVersionId(null); }
+  }
+  function exportPlan() {
+    window.open(`${import.meta.env.BASE_URL}reporte/estrategia?parts=summary%2Cmetrics%2Crecords`, "_blank", "noopener,noreferrer");
+  }
   return <>
     <section className="section-banner"><div className="section-banner-copy"><p>PLAN DE CAMPAÑA</p><h1>Estrategia electoral</h1><span>Diagnóstico, objetivos y decisiones vigentes</span></div></section>
     <section className="strategy-workspace">
       {store.message ? <div className="agenda-message strategy-message">{store.message}</div> : null}
       <div className="strategy-opening-grid"><article className="strategy-radar-reading"><h2>Lectura inicial</h2><ul><li>El padrón aumentó en <b>1,956 electores</b> frente al universo enlazado de 2023.</li><li>La cobertura electoral se organiza alrededor de <b>13 centros y 103 JRV</b>.</li><li>La campaña debe definir su posición, meta de votos y mensaje central.</li></ul><Link to={`/municipio/${municipality_code}/mapa`}>Revisar territorio en el mapa →</Link></article></div>
-      <header className="strategy-command-bar"><div className="strategy-plan-state"><b>Plan 0509</b><span>BORRADOR · {store.records.length}/{allPlanFields.length} campos</span></div><div><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : `Guardar cambios${changed.length ? ` (${changed.length})` : ""}`}</button></div></header>
-      <article className="strategy-direct-form"><div className="strategy-form-heading"><div><h2>Campaña electoral</h2><p>Escribe directamente o usa IA RADAR para preparar un borrador editable.</p></div></div><div className="strategy-form-grid">{planFields.slice(0, 4).map(([field, prompt]) => <label key={field}><span>{field}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={field === "Mensaje central" ? 7 : 5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? "Guardado en Campaign Vault" : "Pendiente"}</small></label>)}</div><div className="strategy-form-divider"><span>PROBLEMAS MUNICIPALES</span></div><div className="strategy-form-grid municipal-issues">{municipalIssues.map(([field, prompt]) => <label key={field}><span>{field.replace("Problema municipal · ", "")}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? "Guardado en Campaign Vault" : "Pendiente"}</small></label>)}</div><div className="strategy-form-divider"><span>FODA</span></div><div className="strategy-form-grid foda">{planFields.slice(4).map(([field, prompt]) => <label key={field}><span>{field === "Fortaleza" ? "Fortalezas" : field === "Debilidad" ? "Debilidades" : field === "Oportunidad" ? "Oportunidades" : "Amenazas"}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? "Guardado en Campaign Vault" : "Pendiente"}</small></label>)}</div>{aiField ? <div className="strategy-inline-ai"><RadarAssistant compact initialPrompt={drafts[aiField]?.trim() || `Ayúdame a redactar ${aiField.toLocaleLowerCase("es")} para una campaña municipal en Puerto San José, con lenguaje verificable y sin inventar datos.`} onApply={(value) => { setDrafts((current) => ({ ...current, [aiField]: value })); setAiField(null); store.setMessage("Propuesta agregada al campo. Revísala antes de guardar."); }} /></div> : null}<footer className="strategy-form-footer"><span>Al guardar se registra tu usuario y la fecha.</span><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : "Guardar cambios"}</button></footer></article>
+      <article className="strategy-issues"><header><h2>Problemas municipales</h2><Link to={`/municipio/${municipality_code}/inteligencia`}>Ver diagnóstico →</Link></header><div>{municipalDiagnostic.map((issue) => <section key={issue.title}><div><b>{issue.title}</b><small>{issue.source}</small></div><p>{issue.evidence}</p><button type="button" onClick={() => addTalkingPoint(issue.prompt)}>Agregar a mensajes</button></section>)}</div><p>Son líneas base para orientar preguntas. Deben validarse antes de convertirse en promesas o afirmaciones actuales.</p></article>
+      <header className="strategy-command-bar"><div className="strategy-plan-state"><b>Plan 0509</b><span>{planStatus} · {defined}/{allPlanFields.length} campos · {displayDate(lastUpdated)}</span></div><div><button className="secondary" type="button" aria-expanded={historyOpen} onClick={openHistory}>{historyOpen ? "Cerrar historial" : `Historial (${store.records.length})`}</button><button className="secondary" type="button" disabled={defined !== allPlanFields.length} onClick={exportPlan}>Exportar plan</button><button type="button" disabled={!hasDraft || approving || changed.length > 0} onClick={() => void approvePlan()}>{approving ? "Aprobando…" : "Aprobar versión"}</button></div></header>
+      <article className="strategy-direct-form"><div className="strategy-form-heading"><div><h2>Campaña electoral</h2><p>Escribe directamente o usa IA RADAR para preparar un borrador editable.</p></div><div className="strategy-form-actions"><button className="secondary" type="button" disabled={saving} onClick={clearPlan}>Limpiar plan</button><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : `Guardar cambios${changed.length ? ` (${changed.length})` : ""}`}</button></div></div><div className="strategy-form-grid">{planFields.slice(0, 4).map(([field, prompt]) => <label id={`strategy-field-${field.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}`} key={field}><span>{field}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={field === "Mensaje central" ? 7 : 5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small></label>)}</div><div className="strategy-form-divider"><span>PROBLEMAS MUNICIPALES</span></div><div className="strategy-form-grid municipal-issues">{municipalIssues.map(([field, prompt]) => <label key={field}><span>{field.replace("Problema municipal · ", "")}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small></label>)}</div><div className="strategy-form-divider"><span>FODA</span></div><div className="strategy-form-grid foda">{planFields.slice(4).map(([field, prompt]) => <label key={field}><span>{field === "Fortaleza" ? "Fortalezas" : field === "Debilidad" ? "Debilidades" : field === "Oportunidad" ? "Oportunidades" : "Amenazas"}<button type="button" className="strategy-ai-help" onClick={() => help(field)}>Ayuda con IA</button></span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small></label>)}</div>{aiField ? <div className="strategy-inline-ai"><RadarAssistant compact initialPrompt={drafts[aiField]?.trim() || `Ayúdame a redactar ${aiField.toLocaleLowerCase("es")} para una campaña municipal en Puerto San José, con lenguaje verificable y sin inventar datos.`} onApply={(value) => { setDrafts((current) => ({ ...current, [aiField]: value })); setAiField(null); store.setMessage("Propuesta agregada al campo. Revísala antes de guardar."); }} /></div> : null}<footer className="strategy-form-footer"><span>Al guardar se registra tu usuario y la fecha.</span><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : "Guardar cambios"}</button></footer></article>
+      {historyOpen ? <article id="strategy-history" className="strategy-history"><header><div><h2>Historial de versiones</h2><p>Puedes eliminar individualmente cualquier versión guardada.</p></div></header>{store.records.length ? store.records.map((record) => <div key={record.id}><span>{record.category}</span><b>{record.title}</b><small>{record.status === "COMPLETADO" ? "Vigente" : record.status === "ARCHIVADO" ? "Archivado" : "Borrador"} · {displayDate(record.updated_at || record.created_at)}</small><button className="record-delete-action" type="button" disabled={deletingVersionId === record.id} onClick={() => void deleteVersion(record)}>{deletingVersionId === record.id ? "Eliminando…" : "Eliminar versión"}</button></div>) : <p>Todavía no hay cambios guardados.</p>}</article> : null}
     </section>
   </>;
 }
@@ -224,17 +320,72 @@ function RecordsWorkspace({ config }: { config: (typeof areaConfig)[keyof typeof
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [folder, setFolder] = useState("Todos");
+  const [folderOpen, setFolderOpen] = useState(false);
+  const [folderName, setFolderName] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [form, setForm] = useState({ category: config.categories[0] as string, title: "", details: "", status: "COMPLETADO", amount: "", source: "", responsible: "", fileName: "", mimeType: "" });
-  const openForm = (category = config.categories[0] as string) => { setFile(null); setForm({ category, title: "", details: "", status: "COMPLETADO", amount: "", source: "", responsible: "", fileName: "", mimeType: "" }); setOpen(true); };
+  const [photoEditing, setPhotoEditing] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [budgetQuery, setBudgetQuery] = useState("");
+  const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
+  const [budgetForm, setBudgetForm] = useState({ scope: "Actividad", name: "", amount: "", relatedActivityId: "", affectsGeneral: true });
+  const [form, setForm] = useState({ category: config.categories[0] as string, title: "", details: "", status: "COMPLETADO", amount: "", source: "", responsible: "", relatedActivityId: "", fileName: "", mimeType: "" });
+  const openForm = (category = config.categories[0] as string) => { setFile(null); setForm({ category, title: "", details: "", status: "COMPLETADO", amount: "", source: "", responsible: "", relatedActivityId: "", fileName: "", mimeType: "" }); setOpen(true); };
+  useEffect(() => {
+    if (config.moduleKey !== "finanzas" || !store.campaign_id) return;
+    let alive = true;
+    void ensureRadarAccessToken().then((token) => loadCampaignBundle(store.campaign_id!, token)).then((bundle) => {
+      if (alive) setActivities(bundle.activities);
+    }).catch(() => {
+      if (alive) setActivities([]);
+    });
+    return () => { alive = false; };
+  }, [config.moduleKey, store.campaign_id]);
   async function submit(event: FormEvent) {
     event.preventDefault(); if (!store.campaign_id) return; setSaving(true); store.setMessage("");
     try {
       const token = await ensureRadarAccessToken();
       const storedFile = file ? await uploadCampaignVaultFile(store.campaign_id, `${config.moduleKey}-${form.category}`, file, token) : null;
-      const saved = await saveCampaignRecord(store.campaign_id, { module_key: config.moduleKey, category: form.category, title: form.title.trim() || form.category.replace(/^EC\d+:/, ""), details: form.details || null, status: form.status, payload: { amount: form.amount ? Number(form.amount) : null, source: form.source || null, responsible: form.responsible || null, file_name: storedFile?.file_name || null, file_path: storedFile?.path || null, file_size: storedFile?.file_size || null, mime_type: storedFile?.mime_type || null, candidate_code: candidate?.[0] || null } }, token);
+      const saved = await saveCampaignRecord(store.campaign_id, { module_key: config.moduleKey, category: form.category, title: form.title.trim() || form.category.replace(/^EC\d+:/, ""), details: form.details || null, status: form.status, payload: { amount: form.amount ? Number(form.amount) : null, source: form.source || null, responsible: form.responsible || null, related_activity_id: form.relatedActivityId || null, file_name: storedFile?.file_name || null, file_path: storedFile?.path || null, file_size: storedFile?.file_size || null, mime_type: storedFile?.mime_type || null, candidate_code: candidate?.[0] || null } }, token);
       store.setRecords((current) => [saved, ...current]); setOpen(false); store.setMessage("Registro guardado en Campaign Vault.");
     } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo guardar el registro."); } finally { setSaving(false); }
+  }
+  async function submitBudget(event: FormEvent) {
+    event.preventDefault();
+    if (!store.campaign_id) return;
+    setSaving(true); store.setMessage("");
+    try {
+      const token = await ensureRadarAccessToken();
+      const saved = await saveCampaignRecord(store.campaign_id, {
+        module_key: "finanzas",
+        category: "Presupuesto",
+        title: budgetForm.name.trim(),
+        details: budgetForm.scope,
+        status: "COMPLETADO",
+        payload: {
+          amount: Number(budgetForm.amount),
+          related_activity_id: budgetForm.scope === "Actividad" ? budgetForm.relatedActivityId || null : null,
+          affects_general: budgetForm.affectsGeneral,
+        },
+      }, token);
+      store.setRecords((current) => [saved, ...current]);
+      setBudgetOpen(false);
+      setBudgetForm({ scope: "Actividad", name: "", amount: "", relatedActivityId: "", affectsGeneral: true });
+      store.setMessage("Presupuesto creado. Ya forma parte del control financiero.");
+    } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo crear el presupuesto."); }
+    finally { setSaving(false); }
+  }
+  async function createFolder(event: FormEvent) {
+    event.preventDefault();
+    if (!store.campaign_id || !folderName.trim()) return;
+    setSaving(true); store.setMessage("");
+    try {
+      const token = await ensureRadarAccessToken();
+      const saved = await saveCampaignRecord(store.campaign_id, { module_key: "medios", category: "Carpeta", title: folderName.trim(), status: "COMPLETADO", payload: {} }, token);
+      store.setRecords((current) => [saved, ...current]);
+      setFolder(saved.title); setFolderName(""); setFolderOpen(false);
+      store.setMessage("Carpeta creada en el banco de comunicación.");
+    } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo crear la carpeta."); }
+    finally { setSaving(false); }
   }
   async function chooseFile(file?: File) {
     if (!file) return;
@@ -261,6 +412,20 @@ function RecordsWorkspace({ config }: { config: (typeof areaConfig)[keyof typeof
     } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo abrir el archivo."); }
   }
   const hasFile = (record: CampaignModuleRecord) => Boolean(recordFilePath(record) || legacyFileData(record));
+  async function saveCandidatePhoto(photo_url: string) {
+    if (!store.campaign_id || !candidateMember?.contact) {
+      store.setMessage("Primero agrega a este candidato en Directorio → Equipo y responsables.");
+      return;
+    }
+    try {
+      const token = await ensureRadarAccessToken();
+      await saveCampaignContact(store.campaign_id, { ...candidateMember.contact, photo_url }, token, candidateMember.contact.id);
+      announceV70CampaignUpdate();
+      await brand.load();
+      setPhotoEditing(false);
+      store.setMessage("Fotografía actualizada en Inicio, Legal, CRM y Comunicación.");
+    } catch (error) { store.setMessage(error instanceof Error ? error.message : "No se pudo actualizar la fotografía."); }
+  }
   function downloadDataUrl(dataUrl: string, fileName: string) {
     const anchor = document.createElement("a");
     anchor.href = dataUrl;
@@ -269,30 +434,45 @@ function RecordsWorkspace({ config }: { config: (typeof areaConfig)[keyof typeof
     anchor.click();
     anchor.remove();
   }
-  const modal = open ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="simple-campaign-modal finance-modal" onSubmit={submit}><header><div><small>{config.eyebrow}</small><h2>{config.moduleKey === "finanzas" ? "Nuevo movimiento" : candidate ? `${candidate[0]} · ${form.category.replace(`${candidate[0]}:`, "")}` : config.add.replace(/^\+\s*/, "")}</h2></div><button type="button" onClick={() => setOpen(false)}>×</button></header><div>
-    {config.moduleKey === "finanzas" ? <><label><span>Movimiento</span><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}><option>Ingreso</option><option>Egreso</option><option>Presupuesto</option></select></label><label><span>Monto en quetzales</span><input required min="0" step="0.01" type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label></> : candidate ? null : <label><span>Categoría</span><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{config.categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
+  const modal = open ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="simple-campaign-modal finance-modal" onSubmit={submit}><header><div><small>{config.moduleKey === "finanzas" ? "CONTROL FINANCIERO GENERAL" : config.eyebrow}</small><h2>{config.moduleKey === "finanzas" ? "Nuevo movimiento" : candidate ? `${candidate[0]} · ${form.category.replace(`${candidate[0]}:`, "")}` : config.add.replace(/^\+\s*/, "")}</h2></div><button type="button" onClick={() => setOpen(false)}>×</button></header><div>
+    {config.moduleKey === "finanzas" ? <><label><span>Movimiento</span><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}><option>Ingreso</option><option>Egreso</option></select></label><label><span>Monto en quetzales</span><input required min="0" step="0.01" type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label></> : candidate ? null : <label><span>Categoría</span><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{config.categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
     <label className="wide"><span>Nombre *</span><input autoFocus required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
-    {config.moduleKey === "finanzas" ? <><label><span>Categoría / rubro</span><input value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></label><label><span>Fuente</span><input value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value })} /></label><label><span>Responsable</span><input value={form.responsible} onChange={(event) => setForm({ ...form, responsible: event.target.value })} /></label></> : <label className="wide"><span>Detalle</span><textarea rows={4} value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></label>}
+    {config.moduleKey === "finanzas" ? <><label><span>Categoría / rubro</span><input value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></label><label><span>Fuente</span><input value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value })} /></label><label><span>Responsable</span><select value={form.responsible} onChange={(event) => setForm({ ...form, responsible: event.target.value })}><option value="">Seleccionar…</option>{brand.contacts.map((person) => <option key={person.id}>{person.full_name}</option>)}</select></label><label><span>Actividad vinculada</span><select value={form.relatedActivityId} onChange={(event) => setForm({ ...form, relatedActivityId: event.target.value })}><option value="">Sin vincular</option>{activities.map((activity) => <option value={activity.id} key={activity.id}>{activity.title}</option>)}</select></label></> : <label className="wide"><span>Detalle</span><textarea rows={4} value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></label>}
     <label className="wide"><span>{config.moduleKey === "finanzas" ? "Factura o recibo" : "Archivo"}</span><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => void chooseFile(event.target.files?.[0])} /><small>{form.fileName ? `${form.fileName} listo para guardar` : "PDF, imagen u Office"}</small></label>
   </div><footer><button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar"}</button></footer></form></div> : null;
 
   if (config.moduleKey === "medios") {
+    const folderOptions = [...new Set([...communicationFolders, ...store.records.filter((record) => record.category === "Carpeta").map((record) => record.title)])];
     const assets = store.records.filter((record) => record.category !== "Carpeta" && (folder === "Todos" || record.category === folder));
     const syncedAssets = [
       ...brand.candidates.filter((person) => person.photo_url).map((person) => ({ key: `crm-${person.id}`, category: "Fotografías oficiales", title: `Fotografía oficial · ${person.full_name}`, description: `${person.candidate_position || "Candidato"} · sincronizada con su tarjeta CRM`, url: person.photo_url || "", fileName: `fotografia-${person.full_name.toLocaleLowerCase("es").replace(/[^a-z0-9]+/g, "-")}.jpg` })),
       ...(brand.partyLogoUrl ? [{ key: "party-logo", category: "Logotipos", title: `Logotipo oficial · ${brand.partyName || "Partido político"}`, description: "Sincronizado con la identidad definida en Inicio", url: brand.partyLogoUrl, fileName: "logotipo-partido.png" }] : []),
     ].filter((asset) => folder === "Todos" || asset.category === folder);
-    return <><section className="section-banner"><div className="section-banner-copy"><p>{config.eyebrow}</p><h1>{config.title}</h1><span>{config.description}</span></div></section><section className="communication-library"><header><nav><button className={folder === "Todos" ? "active" : ""} onClick={() => setFolder("Todos")}>Todo</button>{communicationFolders.map((item) => <button className={folder === item ? "active" : ""} key={item} onClick={() => setFolder(item)}>{item}</button>)}</nav><div><button onClick={() => openForm(folder === "Todos" ? communicationFolders[0] : folder)}>+ Nueva carga</button></div></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<div className="communication-album">{syncedAssets.map((asset) => <article className="communication-asset communication-synced" key={asset.key}><a className="communication-preview" href={asset.url} target="_blank" rel="noreferrer"><div><img src={asset.url} alt={asset.title} /></div><span><b>{asset.title}</b><small>{asset.category}</small><em>{asset.description}</em></span></a><div className="communication-asset-actions"><button type="button" onClick={() => downloadDataUrl(asset.url, asset.fileName)}>Descargar</button><span className="communication-sync-label">VINCULADO AUTOMÁTICAMENTE</span></div></article>)}{assets.map((record) => <article className="communication-asset" key={record.id}><button type="button" className="communication-preview" onClick={() => void download(record, true)}><div>{String(record.payload?.mime_type || "").startsWith("image/") && hasFile(record) ? <PrivateCampaignImage record={record} /> : <i>ARCHIVO</i>}</div><span><b>{record.title}</b><small>{record.category}</small><em>{record.details}</em></span></button><div className="communication-asset-actions">{hasFile(record) ? <button type="button" onClick={() => void download(record)}>Descargar</button> : null}<button type="button" onClick={() => void remove(record)}>Borrar</button></div></article>)}{!syncedAssets.length && !assets.length ? <div className="communication-empty"><b>Banco oficial listo para recibir piezas.</b><span>Carga fotografías, logotipos y materiales aprobados de campaña.</span><button onClick={() => openForm(communicationFolders[0])}>Nueva carga</button></div> : null}</div></section>{modal}</>;
+    return <><section className="section-banner"><div className="section-banner-copy"><p>{config.eyebrow}</p><h1>{config.title}</h1><span>{config.description}</span></div></section><section className="communication-library"><header><nav><button className={folder === "Todos" ? "active" : ""} onClick={() => setFolder("Todos")}>Todo</button>{folderOptions.map((item) => <button className={folder === item ? "active" : ""} key={item} onClick={() => setFolder(item)}>{item}</button>)}</nav><div><button className="secondary" onClick={() => setFolderOpen(true)}>+ Carpeta</button><button onClick={() => openForm(folder === "Todos" ? folderOptions[0] : folder)}>+ Nueva carga</button></div></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<div className="communication-album">{syncedAssets.map((asset) => <article className="communication-asset communication-synced" key={asset.key}><a className="communication-preview" href={asset.url} target="_blank" rel="noreferrer"><div><img src={asset.url} alt={asset.title} /></div><span><b>{asset.title}</b><small>{asset.category}</small><em>{asset.description}</em></span></a><div className="communication-asset-actions"><button type="button" onClick={() => downloadDataUrl(asset.url, asset.fileName)}>Descargar</button><span className="communication-sync-label">VINCULADO AUTOMÁTICAMENTE</span></div></article>)}{assets.map((record) => <article className="communication-asset" key={record.id}><button type="button" className="communication-preview" onClick={() => void download(record, true)}><div>{String(record.payload?.mime_type || "").startsWith("image/") && hasFile(record) ? <PrivateCampaignImage record={record} /> : <i>ARCHIVO</i>}</div><span><b>{record.title}</b><small>{record.category}</small><em>{record.details}</em></span></button><div className="communication-asset-actions">{hasFile(record) ? <button type="button" onClick={() => void download(record)}>Descargar</button> : null}<button type="button" onClick={() => void remove(record)}>Borrar</button></div></article>)}{!syncedAssets.length && !assets.length ? <div className="communication-empty"><b>Banco oficial listo para recibir piezas.</b><span>Carga fotografías, logotipos y materiales aprobados de campaña.</span><button onClick={() => openForm(folderOptions[0])}>Nueva carga</button></div> : null}</div></section>{modal}{folderOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="simple-campaign-modal" onSubmit={createFolder}><header><div><small>COMUNICACIÓN</small><h2>Nueva carpeta</h2></div><button type="button" onClick={() => setFolderOpen(false)}>×</button></header><div><label className="wide"><span>Nombre de la carpeta *</span><input autoFocus required value={folderName} onChange={(event) => setFolderName(event.target.value)} /></label></div><footer><button type="button" onClick={() => setFolderOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Creando…" : "Crear carpeta"}</button></footer></form></div> : null}</>;
   }
   if (config.moduleKey === "finanzas") {
-    const income = store.records.filter((item) => item.category === "Ingreso").reduce((sum, item) => sum + amount(item), 0);
-    const expense = store.records.filter((item) => item.category === "Egreso").reduce((sum, item) => sum + amount(item), 0);
-    const budget = store.records.filter((item) => item.category === "Presupuesto").reduce((sum, item) => sum + amount(item), 0);
-    return <><section className="section-banner"><div className="section-banner-copy"><p>{config.eyebrow}</p><h1>{config.title}</h1><span>{config.description}</span></div></section><section className="finance-control"><header><div><span><small>PRESUPUESTO GENERAL</small><b>{money(budget)}</b></span><span><small>INGRESOS</small><b>{money(income)}</b></span><span><small>EGRESOS</small><b>{money(expense)}</b></span><span><small>DISPONIBLE</small><b>{money(income - expense)}</b></span></div><aside className="finance-general-explainer"><b>Control financiero integrado</b><p>Los movimientos y comprobantes quedan guardados en Campaign Vault y el balance se recalcula automáticamente.</p></aside><nav><button onClick={() => openForm("Egreso")}>+ Registrar movimiento</button></nav></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<div className="finance-sheet"><div className="finance-row head"><span>Tipo</span><span>Concepto</span><span>Categoría</span><span>Fuente</span><span>Responsable</span><span>Archivo</span><span>Monto</span><span>Acciones</span></div>{store.records.map((record) => <article className="finance-row" key={record.id}><span><em className={record.category === "Ingreso" ? "income" : record.category === "Egreso" ? "expense" : "budget"}>{record.category}</em></span><span><b>{record.title}</b></span><span>{record.details || "—"}</span><span>{String(record.payload?.source || "—")}</span><span>{String(record.payload?.responsible || "—")}</span><span>{hasFile(record) ? <button type="button" onClick={() => void download(record)}>Descargar</button> : "—"}</span><span><b>{money(amount(record))}</b></span><span className="finance-actions"><button className="record-delete-action" onClick={() => void remove(record)}>Eliminar</button></span></article>)}</div></section>{modal}</>;
+    const budgets = store.records.filter((item) => item.category === "Presupuesto" && item.status !== "ARCHIVADO");
+    const movements = store.records.filter((item) => (item.category === "Ingreso" || item.category === "Egreso") && item.status !== "ARCHIVADO");
+    const income = movements.filter((item) => item.category === "Ingreso").reduce((sum, item) => sum + amount(item), 0);
+    const expense = movements.filter((item) => item.category === "Egreso").reduce((sum, item) => sum + amount(item), 0);
+    const budget = budgets.filter((item) => item.payload?.affects_general !== false).reduce((sum, item) => sum + amount(item), 0);
+    const activityName = (id: unknown) => activities.find((activity) => activity.id === String(id || ""))?.title || "—";
+    const visibleBudgets = budgets.filter((record) => {
+      const term = budgetQuery.trim().toLocaleLowerCase("es");
+      return !term || [record.title, record.details, activityName(record.payload?.related_activity_id)].join(" ").toLocaleLowerCase("es").includes(term);
+    });
+    const exportExcel = () => {
+      const escape = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+      const rows = store.records.map((record) => `<tr><td>${escape(record.category)}</td><td>${escape(record.title)}</td><td>${escape(record.details)}</td><td>${escape(record.payload?.source)}</td><td>${escape(record.payload?.responsible)}</td><td>${amount(record)}</td><td>${escape(record.status)}</td><td>${escape(record.created_at)}</td></tr>`).join("");
+      const summary = `<tr><td>Presupuesto general</td><td>${budget}</td></tr><tr><td>Ingresos</td><td>${income}</td></tr><tr><td>Egresos</td><td>${expense}</td></tr><tr><td>Disponible</td><td>${income - expense}</td></tr>`;
+      const workbook = `<!doctype html><html><head><meta charset="UTF-8"></head><body><h2>RADAR · Control financiero</h2><table>${summary}</table><br><table><thead><tr><th>Tipo</th><th>Concepto</th><th>Categoría</th><th>Fuente</th><th>Responsable</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+      saveBlob(new Blob(["\ufeff", workbook], { type: "application/vnd.ms-excel;charset=utf-8" }), `RADAR_Control_Financiero_${new Date().toISOString().slice(0, 10)}.xls`);
+    };
+    return <><section className="section-banner"><div className="section-banner-copy"><p>{config.eyebrow}</p><h1>{config.title}</h1><span>{config.description}</span></div></section><section className="finance-control"><header><div><span><small>PRESUPUESTO GENERAL</small><b>{money(budget)}</b></span><span><small>INGRESOS</small><b>{money(income)}</b></span><span><small>EGRESOS</small><b>{money(expense)}</b></span><span><small>DISPONIBLE</small><b>{money(income - expense)}</b></span></div><aside className="finance-general-explainer"><b>¿Qué significa Presupuesto general?</b><p>Es el total planificado: suma únicamente los presupuestos específicos que marcaste como “Afectar el presupuesto general”. No representa dinero gastado. El disponible se calcula por separado como ingresos menos egresos.</p></aside><nav><button className="secondary" onClick={exportExcel}>↓ Descargar Excel</button><button className="secondary" onClick={() => setBudgetOpen(true)}>+ Nuevo presupuesto</button><button onClick={() => openForm("Egreso")}>+ Registrar movimiento</button></nav></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<section className="finance-budgets"><header><div><small>PRESUPUESTOS POR ACTIVIDAD O RUBRO</small><h2>Presupuestos creados</h2></div><label><span>⌕</span><input value={budgetQuery} onChange={(event) => setBudgetQuery(event.target.value)} placeholder="Buscar presupuesto" /></label></header><div>{visibleBudgets.length ? visibleBudgets.map((record) => <article key={record.id}><span className="finance-budget-link"><small>{record.details || "Presupuesto"}</small><b>{record.title}</b><em><span>{record.payload?.related_activity_id ? activityName(record.payload.related_activity_id) : "Rubro independiente"}</span><span className={record.payload?.affects_general !== false ? "included" : "independent"}>{record.payload?.affects_general !== false ? "Incluido en el general" : "Independiente"}</span></em></span><strong>{money(amount(record))}</strong><button type="button" onClick={() => void remove(record)}>Eliminar</button></article>) : <p>No hay presupuestos con esta búsqueda.</p>}</div></section><div className="finance-sheet"><div className="finance-row head"><span>Tipo</span><span>Concepto</span><span>Categoría</span><span>Fuente</span><span>Responsable</span><span>Actividad</span><span>Monto</span><span>Acciones</span></div>{movements.map((record) => <article className="finance-row" key={record.id}><span><em className={record.category === "Ingreso" ? "income" : "expense"}>{record.category}</em></span><span><b>{record.title}</b></span><span>{record.details || "—"}</span><span>{String(record.payload?.source || "—")}</span><span>{String(record.payload?.responsible || "—")}</span><span>{activityName(record.payload?.related_activity_id)}</span><span><b>{money(amount(record))}</b></span><span className="finance-actions">{hasFile(record) ? <button type="button" onClick={() => void download(record)}>Archivo</button> : null}<button className="record-delete-action" onClick={() => void remove(record)}>Eliminar</button></span></article>)}</div></section>{budgetOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="simple-campaign-modal finance-modal" onSubmit={submitBudget}><header><div><small>CONTROL FINANCIERO</small><h2>Nuevo presupuesto</h2></div><button type="button" onClick={() => setBudgetOpen(false)}>×</button></header><div><label><span>Tipo</span><select value={budgetForm.scope} onChange={(event) => setBudgetForm({ ...budgetForm, scope: event.target.value, relatedActivityId: "" })}><option>Actividad</option><option>Rubro</option></select></label><label><span>Monto inicial en quetzales</span><input required min="0" step="0.01" type="number" value={budgetForm.amount} onChange={(event) => setBudgetForm({ ...budgetForm, amount: event.target.value })} /></label><label className="wide"><span>Nombre del presupuesto</span><input required value={budgetForm.name} onChange={(event) => setBudgetForm({ ...budgetForm, name: event.target.value })} placeholder="Ej. Mitin de apertura o comunicación" /></label>{budgetForm.scope === "Actividad" ? <label className="wide"><span>Actividad vinculada</span><select value={budgetForm.relatedActivityId} onChange={(event) => setBudgetForm({ ...budgetForm, relatedActivityId: event.target.value })}><option value="">Seleccionar actividad…</option>{activities.map((activity) => <option value={activity.id} key={activity.id}>{activity.title}</option>)}</select></label> : null}<label className="wide finance-switch"><input type="checkbox" checked={budgetForm.affectsGeneral} onChange={(event) => setBudgetForm({ ...budgetForm, affectsGeneral: event.target.checked })} /><span><b>Afectar el presupuesto general</b><small>Su monto y movimientos se consolidarán automáticamente en el balance general.</small></span></label></div><footer><button type="button" onClick={() => setBudgetOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Crear presupuesto"}</button></footer></form></div> : null}{modal}</>;
   }
   if (candidate) {
     const records = store.records.filter((record) => record.category.startsWith(`${candidate[0]}:`));
-    return <><section className="section-banner"><div className="candidate-files-live-identity">{candidateMember?.photoUrl ? <img src={candidateMember.photoUrl} alt={`Fotografía de ${candidate[1]}`} /> : <i>{candidate[0].slice(-2)}</i>}<span><small>EXPEDIENTE LEGAL · {candidate[0]}</small><h2>{candidate[1]}</h2><p>{candidate[2]} · archivos vinculados individualmente</p></span></div><div className="section-banner-actions"><Link to={`/municipio/${municipality_code}/estrategia-legal`}>← Todos los candidatos</Link></div></section>{store.message ? <p className="agenda-message">{store.message}</p> : null}<section className="candidate-files candidate-file-categories"><div className="candidate-upload-grid">{candidateCategories.map(([key, eyebrow, detail]) => { const category = `${candidate[0]}:${key}`; const files = records.filter((record) => record.category === category); const isPhoto = key === "Fotografía oficial"; return <article className="candidate-upload-card" key={key}>{isPhoto && candidateMember?.photoUrl ? <img src={candidateMember.photoUrl} alt={`Fotografía de ${candidate[1]}`} /> : null}<small>{eyebrow}</small><b>{key}</b><span>{detail}</span><mark className="candidate-record-owner">Vinculado a {candidate[1]}</mark><em>{isPhoto && candidateMember?.photoUrl ? "Fotografía activa" : `${files.length} ${files.length === 1 ? "archivo" : "archivos"}`}</em>{isPhoto ? <Link to={`/municipio/${municipality_code}/directorio?view=team`}>{candidateMember?.photoUrl ? "Cambiar en CRM" : "Agregar en CRM"}</Link> : <button type="button" onClick={() => openForm(category)}>+ Cargar archivo</button>}{files.map((record) => <p key={record.id}>{hasFile(record) ? <button type="button" onClick={() => void download(record, true)}>{record.title}</button> : record.title}<button type="button" onClick={() => void remove(record)}>Borrar</button></p>)}</article>; })}</div></section>{modal}</>;
+    return <><section className="section-banner"><div className="section-banner-copy"><p>EXPEDIENTE INDIVIDUAL</p><h1>{candidate[1]}</h1><span>{candidate[0]} · {candidate[2]}</span></div></section><section className="candidate-dossier"><header>{candidateMember?.photoUrl ? <img src={candidateMember.photoUrl} alt={`Fotografía de ${candidate[1]}`} /> : <i>{candidate[0].slice(-2)}</i>}<div><small>EXPEDIENTE PRIVADO · DATOS DEL CRM</small><h2>{candidate[1]}</h2><p>{candidate[2]}</p></div><Link to={`/municipio/${municipality_code}/estrategia-legal`}>← Volver a Legal</Link></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<section className="candidate-files candidate-file-categories"><div className="candidate-upload-grid">{candidateCategories.map(([key, eyebrow, detail]) => { const category = `${candidate[0]}:${key}`; const files = records.filter((record) => record.category === category); const isPhoto = key === "Fotografía oficial"; return <article className="candidate-upload-card" key={key}>{isPhoto && candidateMember?.photoUrl ? <img src={candidateMember.photoUrl} alt={`Fotografía de ${candidate[1]}`} /> : null}<small>{eyebrow}</small><b>{key}</b><span>{detail}</span><mark className="candidate-record-owner">Vinculado a {candidate[1]}</mark><em>{isPhoto && candidateMember?.photoUrl ? "Fotografía activa" : `${files.length} ${files.length === 1 ? "archivo" : "archivos"}`}</em>{isPhoto ? <button type="button" onClick={() => setPhotoEditing((value) => !value)}>{candidateMember?.photoUrl ? "Cambiar fotografía" : "Agregar fotografía"}</button> : <button type="button" onClick={() => openForm(category)}>+ Cargar archivo</button>}{isPhoto && photoEditing ? <div className="candidate-photo-editor"><V70PhotoEditor currentSrc={candidateMember?.photoUrl || ""} onChange={(photo_url) => void saveCandidatePhoto(photo_url)} onError={store.setMessage} /><button type="button" onClick={() => setPhotoEditing(false)}>Cancelar</button></div> : null}{files.map((record) => <p key={record.id}>{hasFile(record) ? <button type="button" onClick={() => void download(record, true)}>{record.title}</button> : record.title}<button type="button" onClick={() => void remove(record)}>Borrar</button></p>)}</article>; })}</div></section></section>{modal}</>;
   }
   const partyDocuments = store.records.filter((record) => !record.category.match(/^EC\d+:/));
   return <><section className="section-banner"><div className="section-banner-copy"><p>{config.eyebrow}</p><h1>{config.title}</h1><span>{config.description}</span></div></section><section className="legal-hub"><article className="legal-candidates"><header><small>PLANILLA MUNICIPAL</small><h2>Candidatos</h2></header><div>{brand.slate.map((member) => <Link to={`/municipio/${municipality_code}/estrategia-legal?candidate=${member.code}`} key={member.code}><span className="legal-avatar">{member.photoUrl ? <img src={member.photoUrl} alt={`Fotografía de ${member.fullName}`} /> : <i>{member.code.slice(-2)}</i>}</span><span><small>{member.code}</small><b>{member.fullName}</b><em>{member.positionLabel}</em></span><strong>Expediente →</strong></Link>)}</div></article><article className="legal-party"><header><small>ORGANIZACIÓN POLÍTICA</small><h2>Documentos del partido</h2><p>Requisitos, actas, documentos y plantillas.</p><button onClick={() => openForm("Partido")}>+ Agregar documento</button></header>{store.message ? <p className="agenda-message">{store.message}</p> : null}<div className="resource-bank-grid">{partyDocuments.map((record) => <article key={record.id}><small>{record.category}</small><h3>{record.title}</h3><p>{record.details || "Sin notas"}</p><footer>{hasFile(record) ? <button type="button" onClick={() => void download(record)}>Descargar</button> : <span /> }<button onClick={() => void remove(record)}>Eliminar</button></footer></article>)}</div></article></section>{modal}</>;

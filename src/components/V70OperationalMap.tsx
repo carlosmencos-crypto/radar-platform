@@ -140,10 +140,6 @@ type ExternalPlace = {
 };
 type ActivityPoint = { lat: number; lon: number; label: string };
 
-function distanceKm(a: LatLng, b: LatLng) {
-  return Math.hypot((a[0] - b[0]) * 111, (a[1] - b[1]) * 108);
-}
-
 const fmt = new Intl.NumberFormat("es-GT");
 const mapActivityTypes = [
   "VISITA",
@@ -337,6 +333,7 @@ export function V70OperationalMap() {
   const baseLayerRef = useRef<LeafletLayer | null>(null);
   const drawnRef = useRef<LeafletLayer[]>([]);
   const createModeRef = useRef(false);
+  const linkedCommunityHandled = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
@@ -775,6 +772,22 @@ export function V70OperationalMap() {
       lon,
     });
   };
+  useEffect(() => {
+    if (!mapReady || linkedCommunityHandled.current || !mappedCommunities.length) return;
+    const requested = new URLSearchParams(window.location.search).get("community");
+    linkedCommunityHandled.current = true;
+    if (!requested) return;
+    const requestedKey = normalize(requested);
+    const community = mappedCommunities.find((item) => normalize(item.community_label) === requestedKey)
+      ?? mappedCommunities.find((item) => normalize(item.community_label).includes(requestedKey) || requestedKey.includes(normalize(item.community_label)));
+    if (!community) return;
+    setLayers((current) => ({ ...current, concentracion: true }));
+    setSelectedCommunity(community);
+    setSelectedPlace(null);
+    setQuery(community.community_label);
+    setSearchOpen(false);
+    mapRef.current?.flyTo([community.lat, community.lon], 15, { duration: 0.65 });
+  }, [mapReady, mappedCommunities]);
   const toggleLayer = (key: LayerKey) =>
     setLayers((current) => ({ ...current, [key]: !current[key] }));
   const layerButton = (key: LayerKey, label: string, color: string) => (
@@ -789,19 +802,6 @@ export function V70OperationalMap() {
       <em>{layers[key] ? "✓" : "—"}</em>
     </button>
   );
-  const coverageZones = topCommunities.slice(0, 13);
-  const zonesWithoutCoverage = coverageZones.filter((community) => {
-    return !visibleActivities.some(
-      (activity) =>
-        activity.latitude !== null &&
-        activity.longitude !== null &&
-        distanceKm(
-          [community.lat, community.lon],
-          [activity.latitude, activity.longitude],
-        ) < 1.5,
-    );
-  }).length;
-
   return (
     <>
       <section className="section-banner">
@@ -816,9 +816,6 @@ export function V70OperationalMap() {
           <div className="map-head-stats">
             <span>
               <b>{visibleActivities.length}</b> actividades
-            </span>
-            <span>
-              <b>{zonesWithoutCoverage}</b> zonas sin cobertura
             </span>
           </div>
         </div>
@@ -1049,6 +1046,12 @@ export function V70OperationalMap() {
           >
             Abrir Directorio filtrado
           </Link>
+          <button
+            type="button"
+            onClick={() => setLayers((current) => ({ ...current, concentracion: true }))}
+          >
+            Ver electores
+          </button>
           <Link
             to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedCommunity.community_label)}&lat=${selectedCommunity.lat}&lon=${selectedCommunity.lon}`}
           >

@@ -52,6 +52,9 @@ test("agenda routes, exports and commitments persist", () => {
   assert.match(agenda, /downloadActivityPng/);
   assert.match(agenda, /saveCampaignRecord/);
   assert.match(agenda, /COMPROMISO/);
+  assert.match(agenda, /Persona, comunidad o grupo beneficiario/);
+  assert.match(agenda, /origin_activity_id/);
+  assert.match(agenda, /uploadCampaignVaultFile/);
   assert.match(visual, /canvas\.toBlob/);
 });
 
@@ -92,6 +95,28 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /ACCESO_FISCAL/);
   assert.match(dayD, /LOGISTICA/);
   assert.match(dayD, /saveLogistics/);
+  assert.match(dayD, /Movilización de electores/);
+  assert.match(dayD, /Equipo de centros de votación/);
+  assert.match(dayD, /rtdElectionTypes/);
+  assert.match(dayD, /day-d-actas-progress/);
+});
+
+test("responsible voter filtering stays server-side and campaign-scoped", () => {
+  const directory = read("src/components/V70DirectDirectory0509.tsx");
+  const runtime = read("src/data/radarRuntime.ts");
+  const migration = read("supabase/migrations/20260916193139_filter_voter_directory_by_responsible.sql");
+  assert.match(directory, /responsible,/);
+  assert.match(runtime, /p_responsible: filters\.responsible/);
+  assert.match(migration, /p_responsible uuid/);
+  assert.match(migration, /v\.assigned_contact_id=p_responsible/);
+  assert.match(migration, /security invoker/);
+});
+
+test("V70 typography uses the canonical variable font without synthetic weight", () => {
+  const styles = read("src/styles/canonical-adapter.css");
+  const fonts = read("src/styles/v70/fonts.css");
+  assert.match(styles, /font-synthesis:\s*none/);
+  assert.match(fonts, /font-weight:\s*100 900/);
 });
 
 test("Inicio reflects Agenda and commitment state", () => {

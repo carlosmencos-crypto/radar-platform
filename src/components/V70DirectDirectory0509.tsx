@@ -41,13 +41,23 @@ const electorStatuses = [
   ["LIDER", "Líder"],
 ] as const;
 const contactTypes = [
+  "Equipo de campaña",
+  "Liderazgo comunitario",
+  "Proveedor",
+  "Medio de comunicación",
+  "Institución",
   "Candidato",
-  "Coordinador",
   "Fiscal",
-  "Líder",
-  "Voluntario",
-  "Contacto",
 ] as const;
+const contactTypePrefixes: Record<string, string> = {
+  "Equipo de campaña": "EC",
+  "Liderazgo comunitario": "LC",
+  Proveedor: "PR",
+  "Medio de comunicación": "MC",
+  Institución: "IN",
+  Candidato: "CA",
+  Fiscal: "FI",
+};
 const fmt = new Intl.NumberFormat("es-GT");
 const directoryCache = new Map<
   string,
@@ -55,6 +65,7 @@ const directoryCache = new Map<
 >();
 
 type VoterProfileForm = {
+  photo_url: string;
   contact_status: string;
   phone_primary: string;
   phone_secondary: string;
@@ -73,6 +84,7 @@ type VoterProfileForm = {
 };
 
 const emptyProfile: VoterProfileForm = {
+  photo_url: "",
   contact_status: "SIN_CONTACTO",
   phone_primary: "",
   phone_secondary: "",
@@ -95,6 +107,7 @@ function profileFromDetail(detail: AuthorizedVoterDetail): VoterProfileForm {
   const text = (key: string) => (typeof value[key] === "string" ? String(value[key]) : "");
   return {
     ...emptyProfile,
+    photo_url: text("photo_url"),
     contact_status: text("contact_status") || "SIN_CONTACTO",
     phone_primary: text("phone_primary"),
     phone_secondary: text("phone_secondary"),
@@ -198,6 +211,7 @@ function ElectorsDirectoryCanonical() {
       age,
       status,
       affiliation,
+      responsible,
       role,
       page,
       pageSize,
@@ -210,7 +224,7 @@ function ElectorsDirectoryCanonical() {
       return;
     }
     const hasFilters = Boolean(
-      query || dpi || community || ageRange || status || affiliation || role,
+      query || dpi || community || ageRange || status || affiliation || responsible || role,
     );
     const timer = window.setTimeout(() => {
       setLoading(true);
@@ -226,6 +240,7 @@ function ElectorsDirectoryCanonical() {
               ...age,
               status,
               affiliation,
+              responsible,
               role,
               offset: (page - 1) * pageSize,
               limit: pageSize,
@@ -267,6 +282,7 @@ function ElectorsDirectoryCanonical() {
     page,
     pageSize,
     query,
+    responsible,
     role,
     status,
     revision,
@@ -528,11 +544,6 @@ function ElectorsDirectoryCanonical() {
             onChange={(event) => setFilter(setStatus, event.target.value)}
           >
             <option value="">Todos</option>
-            {contacts.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.full_name}
-              </option>
-            ))}
             {electorStatuses.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -558,6 +569,11 @@ function ElectorsDirectoryCanonical() {
             onChange={(event) => setFilter(setResponsible, event.target.value)}
           >
             <option value="">Todos</option>
+            {contacts.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.full_name}
+              </option>
+            ))}
           </select>
         </label>
         <label>
@@ -701,7 +717,7 @@ function ElectorsDirectoryCanonical() {
         <div className="agenda-modal elector-modal" role="dialog" aria-modal="true">
           <section className="elector-sheet">
             <header>
-              <div className="elector-sheet-person"><i aria-hidden="true">{initials(detail.elector.full_name)}</i><span><small>FICHA DE CONTACTO · {detail.elector.id}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {detail.elector.municipality_name}</p></span></div>
+              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(detail.elector.id).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {detail.elector.municipality_name}</p></span></div>
               <button type="button" onClick={() => setDetail(null)}>×</button>
             </header>
             <div className="elector-base-data">
@@ -712,6 +728,7 @@ function ElectorsDirectoryCanonical() {
             <form className="elector-private-form" onSubmit={saveProfile}>
               <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
               <div className="agenda-form-grid">
+                <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={profile.photo_url} onChange={(photo_url) => setProfile({ ...profile, photo_url })} onError={setMessage} /></div>
                 <label><span>Estado</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
                 <label><span>Afiliado al partido</span><select value={profile.party_affiliation} onChange={(event) => setProfile({ ...profile, party_affiliation: event.target.value })}><option value="">—</option><option value="SI">Sí</option><option value="NO">No</option></select></label>
                 <label><span>Teléfono principal</span><input value={profile.phone_primary} onChange={(event) => setProfile({ ...profile, phone_primary: event.target.value })} /></label>
@@ -736,7 +753,7 @@ function ElectorsDirectoryCanonical() {
                 <input aria-label="Nota" required value={interaction.notes} onChange={(event) => setInteraction({ ...interaction, notes: event.target.value })} placeholder="Nota o resultado de la interacción" />
                 <button disabled={saving}>Agregar</button>
               </form>
-              <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Sin interacciones registradas.</p>}</div>
+              <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Aún no hay interacciones registradas.</p>}</div>
             </section>
           </section>
         </div>
@@ -977,6 +994,32 @@ function drawWrappedText(context: CanvasRenderingContext2D, text: string, x: num
 function fileSlug(value: string) {
   return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "contacto";
 }
+function normalizedContactType(value: string) {
+  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").trim();
+  const aliases: Record<string, string> = {
+    candidato: "Candidato",
+    fiscal: "Fiscal",
+    coordinador: "Equipo de campaña",
+    contacto: "Equipo de campaña",
+    voluntario: "Equipo de campaña",
+    lider: "Liderazgo comunitario",
+    "liderazgo comunitario": "Liderazgo comunitario",
+    proveedor: "Proveedor",
+    institucion: "Institución",
+    "medio de comunicacion": "Medio de comunicación",
+    "equipo de campana": "Equipo de campaña",
+  };
+  return aliases[normalized] || value;
+}
+function nextContactCode(typeValue: string, contacts: CampaignContactRecord[]) {
+  const canonicalType = normalizedContactType(typeValue);
+  const prefix = contactTypePrefixes[canonicalType] || "EC";
+  const maximum = contacts.reduce((max, contact) => {
+    const match = contact.file_code?.match(new RegExp(`^${prefix}(\\d+)$`, "i"));
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  return `${prefix}${String(maximum + 1).padStart(2, "0")}`;
+}
 function blobDownload(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -1047,6 +1090,24 @@ function TeamDirectoryCanonical() {
     const term = query.trim().toLocaleLowerCase("es");
     return contacts.filter((contact) => (contactFilter === "all" || contact.contact_type === contactFilter) && (!term || `${contact.full_name} ${contact.phone ?? ""} ${contact.phone_secondary ?? ""} ${contact.email ?? ""} ${contact.community ?? ""} ${contact.role ?? ""} ${contact.candidate_position ?? ""}`.toLocaleLowerCase("es").includes(term)));
   }, [contactFilter, contacts, query]);
+  const contactCodes = useMemo(() => {
+    const counters = new Map<string, number>();
+    const codes = new Map<string, string>();
+    [...contacts].sort((a, b) => a.created_at.localeCompare(b.created_at)).forEach((contact) => {
+      const canonicalType = normalizedContactType(contact.contact_type || "Equipo de campaña");
+      const prefix = contactTypePrefixes[canonicalType] || "EC";
+      const explicit = contact.file_code?.match(new RegExp(`^${prefix}(\\d+)$`, "i"));
+      if (explicit) {
+        counters.set(prefix, Math.max(counters.get(prefix) ?? 0, Number(explicit[1])));
+        codes.set(contact.id, contact.file_code as string);
+        return;
+      }
+      const next = (counters.get(prefix) ?? 0) + 1;
+      counters.set(prefix, next);
+      codes.set(contact.id, `${prefix}${String(next).padStart(2, "0")}`);
+    });
+    return codes;
+  }, [contacts]);
   const assignmentFor = (contactId: string) => assignments.find((record) => record.category === "ASIGNACION_JRV" && String(record.payload?.fiscal_id || "") === contactId);
   const openNew = () => { setEditing(null); setForm(emptyContact); setMessage(""); setOpen(true); };
   const openEdit = (contact: CampaignContactRecord) => {
@@ -1065,7 +1126,8 @@ function TeamDirectoryCanonical() {
     try {
       const token = await ensureRadarAccessToken();
       const full_name = `${form.first_names} ${form.last_names}`.trim();
-      const saved = await saveCampaignContact(campaign_id, { full_name, phone: form.phone, phone_secondary: form.phone_secondary, email: form.email, community: form.community, role: form.role, contact_type: form.contact_type || "Contacto", candidate_position: form.candidate_position, notes: form.notes, photo_url: form.photo_url, file_code: editing ? contacts.find((item) => item.id === editing)?.file_code : `CRM-${String(contacts.length + 1).padStart(4, "0")}`, active: true, is_in_crm: true }, token, editing);
+      const contactType = normalizedContactType(form.contact_type || "Equipo de campaña");
+      const saved = await saveCampaignContact(campaign_id, { full_name, phone: form.phone, phone_secondary: form.phone_secondary, email: form.email, community: form.community, role: form.role, contact_type: contactType, candidate_position: form.candidate_position, notes: form.notes, photo_url: form.photo_url, file_code: editing ? (contacts.find((item) => item.id === editing)?.file_code || contactCodes.get(editing) || nextContactCode(contactType, contacts)) : nextContactCode(contactType, contacts), active: true, is_in_crm: true }, token, editing);
       setContacts((current) => [...current.filter((item) => item.id !== saved.id), saved].sort((a, b) => a.full_name.localeCompare(b.full_name, "es")));
       announceV70CampaignUpdate();
       setOpen(false); setEditing(null); setForm(emptyContact); setMessage(editing ? "Contacto actualizado." : "Contacto agregado al Campaign Vault.");
@@ -1102,10 +1164,17 @@ function TeamDirectoryCanonical() {
     } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudieron generar los carnets."); }
     finally { setExporting(false); }
   }
+  function downloadDirectoryExcel() {
+    const escape = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    const rows = visible.map((contact) => `<tr><td>${escape(contactCodes.get(contact.id) || contact.file_code)}</td><td>${escape(contact.full_name)}</td><td>${escape(contact.contact_type)}</td><td>${escape(contact.candidate_position || contact.role)}</td><td>${escape(contact.community)}</td><td>${escape(contact.phone)}</td><td>${escape(contact.phone_secondary)}</td><td>${escape(contact.email)}</td></tr>`).join("");
+    const table = `<!doctype html><html><head><meta charset="UTF-8"></head><body><table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Cargo</th><th>Comunidad</th><th>Teléfono</th><th>Teléfono secundario</th><th>Correo</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    blobDownload(new Blob(["\ufeff", table], { type: "application/vnd.ms-excel;charset=utf-8" }), `RADAR_Directorio_${municipality_code}.xls`);
+  }
   return <>
     <section className="crm-controlbar">
       <label className="crm-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar nombre, teléfono, comunidad o cargo" /></label>
       <label><span>Tipo de contacto</span><select value={contactFilter} onChange={(event) => setContactFilter(event.target.value)}><option value="all">Todos</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <button className="secondary" type="button" disabled={!visible.length} onClick={downloadDirectoryExcel}>↓ Descargar Excel</button>
       <button className="crm-bulk-carnets" type="button" disabled={exporting || !visible.length} onClick={() => void downloadVisible()}>{exporting ? "Preparando…" : `↓ Carnets (${visible.length})`}</button>
       <button className="primary" type="button" onClick={openNew}>+ Agregar contacto</button>
       <div className="crm-view-switch" aria-label="Cambiar vista"><button className={view === "cards" ? "active" : ""} onClick={() => setView("cards")}>Tarjetas</button><button className={view === "table" ? "active" : ""} onClick={() => setView("table")}>Lista</button></div>
@@ -1114,7 +1183,7 @@ function TeamDirectoryCanonical() {
       <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h2>{fmt.format(visible.length)} contactos visibles</h2><p>Equipo, responsables, fiscales y credenciales vinculados a la operación.</p></div></header>
       {message ? <p className="agenda-message" role="status">{message}</p> : null}
       {visible.length ? <div className={view === "cards" ? "crm-card-grid" : "crm-table-list"}>{visible.map((contact) => { const assignment = assignmentFor(contact.id); const name = splitContactName(contact.full_name); return <article className="crm-contact-card" key={contact.id}>
-        <header>{contact.photo_url ? <img className="crm-avatar" src={contact.photo_url} alt={`Fotografía de ${contact.full_name}`} /> : <i aria-hidden="true">{initials(contact.full_name)}</i>}<div>{contact.file_code ? <span className="crm-contact-code">{contact.file_code}</span> : null}<h3 className="crm-person-name"><span>{name.first_names || "Sin nombre"}</span><b>{name.last_names || "\u00a0"}</b></h3></div></header>
+        <header>{contact.photo_url ? <img className="crm-avatar" src={contact.photo_url} alt={`Fotografía de ${contact.full_name}`} /> : <i aria-hidden="true">{initials(contact.full_name)}</i>}<div><span className="crm-contact-code">{contactCodes.get(contact.id) || contact.file_code || "PENDIENTE"}</span><h3 className="crm-person-name"><span>{name.first_names || "Sin nombre"}</span><b>{name.last_names || "\u00a0"}</b></h3></div></header>
         <div className="crm-contact-meta"><span><small>COMUNIDAD</small><b>{contact.community || "Sin asignar"}</b></span><span><small>{contact.contact_type === "Candidato" ? "CANDIDATURA" : "TIPO DE CONTACTO"}</small><b>{contact.contact_type === "Candidato" ? contact.candidate_position || "Cargo pendiente" : contact.contact_type || "Sin clasificar"}</b></span></div>
         {contact.contact_type === "Fiscal" ? <div className={`crm-dayd-status ${assignment ? "assigned" : "pending"}`}><small>DÍA D</small><b>{assignment ? `${String(assignment.payload.center_name || "Centro asignado")} · JRV ${String(assignment.payload.jrv || "—")}` : "JRV aún no asignada"}</b></div> : null}
         <div className="crm-contact-lines"><span><b>Teléfono principal</b>{contact.phone ? <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>{contact.phone}</a> : <em>Pendiente</em>}</span><span><b>Teléfono secundario</b>{contact.phone_secondary ? <a href={`tel:${contact.phone_secondary.replace(/[^\d+]/g, "")}`}>{contact.phone_secondary}</a> : <em>—</em>}</span><span><b>Correo</b>{contact.email ? <a href={`mailto:${contact.email}`}>{contact.email}</a> : <em>Pendiente</em>}</span></div>
@@ -1133,12 +1202,12 @@ function TeamDirectoryCanonical() {
         <label><span>Correo</span><input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="nombre@correo.com" /></label>
         <label><span>Comunidad</span><input value={form.community} onChange={(event) => setForm({ ...form, community: event.target.value })} placeholder="Aldea, colonia o sector" /></label>
         <label><span>Cargo o función</span><input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} placeholder="Ej. Coordinadora territorial" /></label>
-        <label><span>Tipo de contacto</span><select value={form.contact_type} onChange={(event) => setForm({ ...form, contact_type: event.target.value, candidate_position: event.target.value === "Candidato" ? form.candidate_position : "" })}><option value="">Seleccionar…</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label><span>Tipo de contacto *</span><select required value={form.contact_type} onChange={(event) => setForm({ ...form, contact_type: event.target.value, candidate_position: event.target.value === "Candidato" ? form.candidate_position : "" })}><option value="">Seleccionar…</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
         {form.contact_type === "Candidato" ? <label><span>Puesto al que se postula *</span><select required value={form.candidate_position} onChange={(event) => setForm({ ...form, candidate_position: event.target.value })}><option value="">Seleccionar candidatura…</option>{candidatePositions.map((position) => <option key={position} value={position}>{position}</option>)}</select></label> : null}
         {form.contact_type === "Fiscal" ? <aside className="crm-dayd-form-status wide"><small>ASIGNACIÓN DÍA D</small><b>{editing && assignmentFor(editing) ? `${String(assignmentFor(editing)?.payload.center_name || "Centro asignado")} · JRV ${String(assignmentFor(editing)?.payload.jrv || "—")}` : "JRV aún no asignada"}</b><span>La asignación se administra desde Día D → Centros de votación.</span></aside> : null}
         <label className="wide"><span>Notas</span><textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Información breve que ayude al equipo" /></label>
       </div>
-      {message ? <p className="form-error">{message}</p> : null}<footer><span /><button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar contacto"}</button></footer>
+      {message ? <p className="form-error">{message}</p> : null}<footer>{editing ? <Link className="crm-create-activity" to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${editing}&responsible=${encodeURIComponent(`${form.first_names} ${form.last_names}`.trim())}&community=${encodeURIComponent(form.community)}`}>Crear actividad</Link> : <span />}<button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar contacto"}</button></footer>
     </form></div> : null}
     {carnetPerson ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-label={`Carnet de ${carnetPerson.full_name}`}><section className="crm-carnet-modal"><header><div><small>CARNET IMPRIMIBLE</small><h2>Así se descargará</h2></div><button type="button" onClick={closeCarnet}>×</button></header><div className="crm-carnet-output">{carnetPreviewUrl ? <img src={carnetPreviewUrl} alt={`Vista final imprimible del carnet de ${carnetPerson.full_name}`} /> : <span>Preparando carnet…</span>}</div><footer><button type="button" onClick={closeCarnet}>Cerrar</button><button type="button" disabled={!carnetPreviewUrl} onClick={() => void downloadOne(carnetPerson)}>Descargar PNG</button></footer></section></div> : null}
   </>;

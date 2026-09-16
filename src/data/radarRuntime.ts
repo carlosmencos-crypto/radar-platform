@@ -263,6 +263,7 @@ export interface VoterDirectoryFilters {
   status?: string;
   affiliation?: string;
   role?: string;
+  responsible?: string;
   offset?: number;
   limit?: number;
 }
@@ -804,6 +805,7 @@ export async function loadAuthorizedVoterDirectory(
       p_status: filters.status || null,
       p_affiliation: filters.affiliation || null,
       p_role: filters.role?.trim() || null,
+      p_responsible: filters.responsible || null,
       p_offset: Math.max(filters.offset ?? 0, 0),
       p_limit: Math.min(Math.max(filters.limit ?? 25, 1), 50),
     },

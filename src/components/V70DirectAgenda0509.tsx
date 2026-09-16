@@ -8,6 +8,8 @@ import { ensureRadarAccessToken } from "../data/radarAuth";
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import {
   deleteCampaignActivity,
+  deleteCampaignVaultFile,
+  downloadCampaignVaultFile,
   loadAuthorizedVoterSuggestions,
   loadCampaignBundle,
   loadCampaignContacts,
@@ -15,6 +17,7 @@ import {
   saveCampaignRecord,
   deleteCampaignRecord,
   saveCampaignActivity,
+  uploadCampaignVaultFile,
   type AuthorizedVoterSuggestion,
   type CampaignActivityRecord,
   type CampaignCommitmentRecord,
@@ -181,7 +184,8 @@ function AgendaContent() {
   const [message, setMessage] = useState("");
   const [commitmentRecords, setCommitmentRecords] = useState<CampaignModuleRecord[]>([]);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
-  const [commitmentForm, setCommitmentForm] = useState({ title: "", responsible: "", due_date: "", priority: "MEDIA", notes: "" });
+  const [commitmentFile, setCommitmentFile] = useState<File | null>(null);
+  const [commitmentForm, setCommitmentForm] = useState({ title: "", responsible: "", due_date: "", priority: "MEDIA", status: "PENDIENTE", beneficiary: "", origin_activity_id: "", notes: "" });
   const days = useMemo(() => monthCells(month), [month]);
   const now = new Date();
 
@@ -451,6 +455,23 @@ function AgendaContent() {
       setMessage(deleteError instanceof Error ? deleteError.message : "No se pudo eliminar la actividad.");
     }
   }
+  function printActivity(activity: CampaignActivityRecord) {
+    void downloadActivityPng(activity, {
+      campaignName: identity.candidate_name || "Campaña municipal",
+      partyName: identity.party_name || "Partido político",
+      partyLogoUrl: identity.party_logo_data_url || undefined,
+      municipality: "San José / Puerto San José · Escuintla",
+    }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "No se pudo generar el PNG."));
+  }
+  function openActivityMonth(activity: CampaignActivityRecord) {
+    const date = new Date(activity.starts_at ?? Date.now());
+    setMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    setView("calendar");
+  }
+  function activityWhatsApp(activity: CampaignActivityRecord) {
+    const message = [activity.title, displayActivityDate(activity.starts_at), activity.community || "Ubicación por confirmar"].join(" · ");
+    return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }
 
   function addTeamParticipant(id: string) {
     if (form.participant_ids.includes(id)) return;
@@ -467,18 +488,34 @@ function AgendaContent() {
   }
   async function createCommitment(event: FormEvent) {
     event.preventDefault(); if (!campaign_id) return; setSaving(true); setMessage("");
-    try { const token = await ensureRadarAccessToken(); const responsible = people.find((item) => item.id === commitmentForm.responsible); const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: "COMPROMISO", title: commitmentForm.title, details: commitmentForm.notes || null, status: "ABIERTO", payload: { responsible_id: commitmentForm.responsible || null, responsible: responsible?.full_name || null, due_date: commitmentForm.due_date || null, priority: commitmentForm.priority } }, token); setCommitmentRecords((rows) => [saved, ...rows]); setCommitmentOpen(false); setCommitmentForm({ title: "", responsible: "", due_date: "", priority: "MEDIA", notes: "" }); setMessage("Compromiso guardado y vinculado con Agenda."); }
+    try { const token = await ensureRadarAccessToken(); const responsible = people.find((item) => item.id === commitmentForm.responsible); const storedFile = commitmentFile ? await uploadCampaignVaultFile(campaign_id, "agenda-compromisos", commitmentFile, token) : null; const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: "COMPROMISO", title: commitmentForm.title, details: commitmentForm.notes || null, status: commitmentForm.status, payload: { responsible_id: commitmentForm.responsible || null, responsible: responsible?.full_name || null, due_date: commitmentForm.due_date || null, priority: commitmentForm.priority, beneficiary: commitmentForm.beneficiary || null, origin_activity_id: commitmentForm.origin_activity_id || null, file_name: storedFile?.file_name || null, file_path: storedFile?.path || null, file_size: storedFile?.file_size || null, mime_type: storedFile?.mime_type || null } }, token); setCommitmentRecords((rows) => [saved, ...rows]); setCommitmentOpen(false); setCommitmentFile(null); setCommitmentForm({ title: "", responsible: "", due_date: "", priority: "MEDIA", status: "PENDIENTE", beneficiary: "", origin_activity_id: "", notes: "" }); setMessage("Compromiso guardado y vinculado con Agenda."); }
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar el compromiso."); } finally { setSaving(false); }
   }
   async function completeCommitment(record: CampaignModuleRecord) {
     if (!campaign_id) return;
-    try { const token = await ensureRadarAccessToken(); const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: record.category, title: record.title, details: record.details, status: record.status === "CUMPLIDO" ? "ABIERTO" : "CUMPLIDO", payload: record.payload }, token, record.id); setCommitmentRecords((rows) => rows.map((item) => item.id === saved.id ? saved : item)); }
+    try { const token = await ensureRadarAccessToken(); const saved = await saveCampaignRecord(campaign_id, { module_key: "agenda", category: record.category, title: record.title, details: record.details, status: record.status === "CUMPLIDO" ? "PENDIENTE" : "CUMPLIDO", payload: record.payload }, token, record.id); setCommitmentRecords((rows) => rows.map((item) => item.id === saved.id ? saved : item)); }
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo actualizar el compromiso."); }
   }
   async function removeCommitment(record: CampaignModuleRecord) {
     if (!campaign_id || !window.confirm(`¿Eliminar “${record.title}”?`)) return;
-    try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setCommitmentRecords((rows) => rows.filter((item) => item.id !== record.id)); }
+    try { const token = await ensureRadarAccessToken(); const filePath = typeof record.payload?.file_path === "string" ? record.payload.file_path : ""; if (filePath) await deleteCampaignVaultFile(filePath, token); await deleteCampaignRecord(campaign_id, record.id, token); setCommitmentRecords((rows) => rows.filter((item) => item.id !== record.id)); }
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar el compromiso."); }
+  }
+  async function downloadCommitmentFile(record: CampaignModuleRecord) {
+    const filePath = typeof record.payload?.file_path === "string" ? record.payload.file_path : "";
+    if (!filePath) return;
+    try {
+      const token = await ensureRadarAccessToken();
+      const blob = await downloadCampaignVaultFile(filePath, token);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = String(record.payload?.file_name || "evidencia-compromiso");
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo descargar la evidencia."); }
   }
 
   return (
@@ -633,7 +670,7 @@ function AgendaContent() {
             </div>
           ) : upcoming.length ? (
             upcoming.map((activity) => (
-              <article key={activity.id} onClick={() => editActivity(activity)}>
+              <article className="agenda-list-activity" key={activity.id}>
                 <time>
                   <b>{new Date(activity.starts_at ?? 0).getDate()}</b>
                   <span>
@@ -650,6 +687,13 @@ function AgendaContent() {
                   <p>{activity.community || "Sin comunidad"}</p>
                 </div>
                 <em>{displayActivityDate(activity.starts_at)}</em>
+                <nav className="agenda-list-actions" aria-label={`Acciones de ${activity.title}`}>
+                  <button type="button" onClick={() => printActivity(activity)}>Imprimir</button>
+                  <button type="button" onClick={() => editActivity(activity)}>Editar</button>
+                  <button type="button" onClick={() => openActivityMonth(activity)}>Calendario</button>
+                  <a href={activityWhatsApp(activity)} target="_blank" rel="noreferrer">WhatsApp</a>
+                  <button className="record-delete-action" type="button" onClick={() => void removeActivity(activity.id)}>Eliminar</button>
+                </nav>
               </article>
             ))
           ) : (
@@ -717,7 +761,7 @@ function AgendaContent() {
           </span>
         </div>
         <div className="commitment-list">
-          {commitmentRecords.length ? commitmentRecords.map((record) => <article className="commitment-record" key={record.id}><span><small>{String(record.payload?.priority || "MEDIA")}</small><b>{record.title}</b><em>{String(record.payload?.responsible || "Sin responsable")} · {String(record.payload?.due_date || "Sin fecha límite")}</em></span><p>{record.details || "Sin notas"}</p><nav><button type="button" onClick={() => void completeCommitment(record)}>{record.status === "CUMPLIDO" ? "Reabrir" : "Marcar cumplido"}</button><button className="record-delete-action" type="button" onClick={() => void removeCommitment(record)}>Eliminar</button></nav></article>) : <div className="agenda-empty">
+          {commitmentRecords.length ? commitmentRecords.map((record) => <article className="commitment-record" key={record.id}><span><small>{String(record.payload?.priority || "MEDIA")} · {record.status.replaceAll("_", " ")}</small><b>{record.title}</b><em>{String(record.payload?.responsible || "Sin responsable")} · {String(record.payload?.due_date || "Sin fecha límite")}{record.payload?.beneficiary ? ` · ${String(record.payload.beneficiary)}` : ""}</em></span><p>{record.details || "Sin notas"}{record.payload?.origin_activity_id ? <small>Actividad de origen: {activities.find((activity) => activity.id === String(record.payload.origin_activity_id))?.title || "Actividad vinculada"}</small> : null}</p><nav>{record.payload?.file_path ? <button type="button" onClick={() => void downloadCommitmentFile(record)}>Evidencia</button> : null}<button type="button" onClick={() => void completeCommitment(record)}>{record.status === "CUMPLIDO" ? "Reabrir" : "Marcar cumplido"}</button><button className="record-delete-action" type="button" onClick={() => void removeCommitment(record)}>Eliminar</button></nav></article>) : <div className="agenda-empty">
             <b>
               {commitments.length
                 ? "Compromisos cargados en Campaign Vault."
@@ -731,7 +775,7 @@ function AgendaContent() {
           </div>}
         </div>
       </section>
-      {commitmentOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form onSubmit={createCommitment}><header><div><small>SEGUIMIENTO DE ACUERDOS</small><h2>Nuevo compromiso</h2></div><button type="button" onClick={() => setCommitmentOpen(false)}>×</button></header><div className="agenda-form-grid"><label className="wide"><span>Compromiso *</span><input autoFocus required value={commitmentForm.title} onChange={(event) => setCommitmentForm({ ...commitmentForm, title: event.target.value })} /></label><label><span>Responsable</span><select value={commitmentForm.responsible} onChange={(event) => setCommitmentForm({ ...commitmentForm, responsible: event.target.value })}><option value="">Seleccionar…</option>{people.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label><label><span>Fecha límite</span><input type="date" value={commitmentForm.due_date} onChange={(event) => setCommitmentForm({ ...commitmentForm, due_date: event.target.value })} /></label><label><span>Prioridad</span><select value={commitmentForm.priority} onChange={(event) => setCommitmentForm({ ...commitmentForm, priority: event.target.value })}><option>ALTA</option><option>MEDIA</option><option>BAJA</option></select></label><label className="wide"><span>Notas</span><textarea rows={3} value={commitmentForm.notes} onChange={(event) => setCommitmentForm({ ...commitmentForm, notes: event.target.value })} /></label></div><footer><button type="button" onClick={() => setCommitmentOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar compromiso"}</button></footer></form></div> : null}
+      {commitmentOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form onSubmit={createCommitment}><header><div><small>SEGUIMIENTO</small><h2>Nuevo compromiso</h2></div><button type="button" onClick={() => setCommitmentOpen(false)}>×</button></header><div className="agenda-form-grid"><label className="wide"><span>Compromiso *</span><input autoFocus required value={commitmentForm.title} onChange={(event) => setCommitmentForm({ ...commitmentForm, title: event.target.value })} placeholder="Ej. Entregar propuesta de alumbrado comunitario" /></label><label><span>Responsable *</span><select required value={commitmentForm.responsible} onChange={(event) => setCommitmentForm({ ...commitmentForm, responsible: event.target.value })}><option value="">Seleccionar del Directorio…</option>{people.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label><label><span>Fecha límite *</span><input required type="date" value={commitmentForm.due_date} onChange={(event) => setCommitmentForm({ ...commitmentForm, due_date: event.target.value })} /></label><label><span>Prioridad</span><select value={commitmentForm.priority} onChange={(event) => setCommitmentForm({ ...commitmentForm, priority: event.target.value })}><option>ALTA</option><option>MEDIA</option><option>BAJA</option></select></label><label><span>Estado</span><select value={commitmentForm.status} onChange={(event) => setCommitmentForm({ ...commitmentForm, status: event.target.value })}><option>PENDIENTE</option><option>EN_PROCESO</option><option>CUMPLIDO</option></select></label><label className="wide"><span>Persona, comunidad o grupo beneficiario</span><input value={commitmentForm.beneficiary} onChange={(event) => setCommitmentForm({ ...commitmentForm, beneficiary: event.target.value })} /></label><label className="wide"><span>Actividad de origen (opcional)</span><select value={commitmentForm.origin_activity_id} onChange={(event) => setCommitmentForm({ ...commitmentForm, origin_activity_id: event.target.value })}><option value="">Compromiso independiente</option>{activities.map((activity) => <option value={activity.id} key={activity.id}>{activity.title}</option>)}</select></label><label className="wide"><span>Detalle y evidencia esperada</span><textarea rows={4} value={commitmentForm.notes} onChange={(event) => setCommitmentForm({ ...commitmentForm, notes: event.target.value })} /></label><label className="wide"><span>Documento, archivo o fotografía (opcional)</span><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx" onChange={(event) => { const next = event.target.files?.[0] || null; if (next && next.size > 10 * 1024 * 1024) { setMessage("La evidencia supera el máximo de 10 MB."); event.currentTarget.value = ""; setCommitmentFile(null); return; } setCommitmentFile(next); }} /><small>Puedes adjuntar evidencia al crear el compromiso. Máximo 10 MB.</small></label></div><footer><button type="button" onClick={() => { setCommitmentOpen(false); setCommitmentFile(null); }}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar compromiso"}</button></footer></form></div> : null}
       {open ? (
         <div
           className="agenda-modal"
@@ -852,7 +896,7 @@ function AgendaContent() {
             {message ? <p className="form-error">{message}</p> : null}
             <footer className="agenda-form-footer">
               {editing ? <button className="record-delete-action" type="button" onClick={() => void removeActivity(editing)}>Eliminar actividad</button> : null}
-              {editing ? <button className="agenda-print-action" type="button" onClick={() => void downloadActivityPng(formPreview, { campaignName: identity.candidate_name || "Campaña municipal", partyName: identity.party_name || "Partido político", partyLogoUrl: identity.party_logo_data_url || undefined, municipality: "San José / Puerto San José · Escuintla" }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "No se pudo generar el PNG."))}>Imprimir PNG</button> : null}
+              {editing ? <button className="agenda-print-action" type="button" onClick={() => printActivity(formPreview)}>Imprimir PNG</button> : null}
               {editing ? <span className="agenda-footer-spacer" /> : null}
               <button type="button" onClick={() => setOpen(false)}>
                 Cancelar
