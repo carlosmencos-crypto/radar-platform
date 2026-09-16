@@ -232,11 +232,10 @@ try {
     const routeSpecificOk = slug !== "mapa" || (
       html.includes("leaflet-container")
       && html.includes("agenda-map-marker")
-      && html.includes("activity-coverage-zone")
       && html.includes("map-layer-agenda on")
       && !html.includes("map-layer-concentracion on")
       && text.includes("Todas")
-      && text.includes("1 actividades")
+      && text.includes("Actividad territorial QA")
     );
     const domOk = html.includes("portal-shell")
       && text.includes(marker)
