@@ -1,3 +1,5 @@
+import { buildRuntimeMunicipalProfile } from "./radarRuntimeProfile";
+
 export interface ProfileMetric {
   label: string;
   value: string;
@@ -201,5 +203,7 @@ export const municipalProfiles: Record<string, MunicipalProfile> = {
   },
 };
 
-export const findMunicipalProfile = (municipalityCode?: string) =>
-  municipalityCode ? municipalProfiles[municipalityCode] : undefined;
+export const findMunicipalProfile = (municipalityCode?: string) => {
+  if (!municipalityCode) return undefined;
+  return buildRuntimeMunicipalProfile(municipalityCode, municipalProfiles[municipalityCode]);
+};
