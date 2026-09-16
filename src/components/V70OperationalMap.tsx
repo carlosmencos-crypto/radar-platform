@@ -102,6 +102,7 @@ type LeafletNamespace = {
       fillColor: string;
       fillOpacity: number;
       dashArray?: string;
+      className?: string;
     },
   ): LeafletCircle;
   polyline(
@@ -669,6 +670,21 @@ export function V70OperationalMap() {
           if (activity.latitude === null || activity.longitude === null) return;
           const type = activity.activity_type || "OTRA";
           const color = mapActivityColors[type] || mapActivityColors.OTRA;
+          const coverage = L.circle([activity.latitude, activity.longitude], {
+            radius: 1500,
+            color,
+            weight: 2,
+            fillColor: color,
+            fillOpacity: 0.08,
+            dashArray: "6 8",
+            className: "activity-coverage-zone",
+          })
+            .bindTooltip(
+              `<b>${clean(activity.title)}</b><br>Zona cubierta por actividad · radio operativo de 1.5 km`,
+            )
+            .on("click", () => setSelectedActivity(activity))
+            .addTo(map);
+          drawnRef.current.push(coverage);
           const points = Array.isArray(activity.details?.route_points)
             ? (activity.details.route_points as unknown[]).filter(
                 (point): point is LatLng => Array.isArray(point) && point.length === 2 && Number.isFinite(point[0]) && Number.isFinite(point[1]),

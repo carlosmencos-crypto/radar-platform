@@ -68,6 +68,8 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /visibleActivities/);
   assert.match(map, /L\.polyline/);
   assert.match(map, /agenda-map-marker/);
+  assert.match(map, /activity-coverage-zone/);
+  assert.match(map, /radius: 1500/);
   assert.match(map, /Referencia territorial aproximada dentro del municipio/);
   assert.match(map, /setStatusFilter/);
   assert.match(map, /setResponsibleFilter/);
