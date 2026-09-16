@@ -259,7 +259,7 @@ try {
   await navigate("/municipio/0509");
   await delay(1800);
   const candidateRoutes = await evaluate(`(()=>Array.from(document.querySelectorAll('.slate-member nav a')).slice(0,2).map((item)=>item.getAttribute('href')))()`);
-  if (candidateRoutes?.[0] !== "/municipio/0509/agenda" || !candidateRoutes?.[1]?.startsWith("/municipio/0509/estrategia-legal?candidate=")) throw new Error("Candidate controls escaped the municipal route or lost the individual legal dossier.");
+  if (!candidateRoutes?.[0]?.startsWith("/municipio/0509/agenda?new=1&responsiblePersonId=") || !candidateRoutes?.[0]?.includes("&responsible=") || !candidateRoutes?.[1]?.startsWith("/municipio/0509/estrategia-legal?candidate=")) throw new Error("Candidate controls escaped the municipal route or lost their candidate-specific context.");
   const partyOpened = await evaluate(`(()=>{const button=document.querySelector('.party-signature-trigger'); if(!button)return false; button.click(); return true;})()`);
   if (!partyOpened) throw new Error("Campaign identity trigger is missing.");
   await waitFor(`Boolean(document.querySelector('.campaign-identity-modal'))`, "campaign identity modal");
