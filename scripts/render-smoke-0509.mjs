@@ -234,8 +234,8 @@ try {
       && html.includes("agenda-map-marker")
       && html.includes("map-layer-agenda on")
       && !html.includes("map-layer-concentracion on")
-      && text.includes("Todas")
-      && text.includes("Actividad territorial QA")
+      && html.includes("Todas")
+      && html.includes("Actividad territorial QA")
     );
     const domOk = html.includes("portal-shell")
       && text.includes(marker)
