@@ -773,14 +773,14 @@ export function V70OperationalMap() {
       <em>{layers[key] ? "✓" : "—"}</em>
     </button>
   );
-  const zonesWithoutCoverage = centers.filter((center) => {
-    if (center.lat === null || center.lon === null) return true;
+  const coverageZones = topCommunities.slice(0, 13);
+  const zonesWithoutCoverage = coverageZones.filter((community) => {
     return !visibleActivities.some(
       (activity) =>
         activity.latitude !== null &&
         activity.longitude !== null &&
         distanceKm(
-          [center.lat as number, center.lon as number],
+          [community.lat, community.lon],
           [activity.latitude, activity.longitude],
         ) < 1.5,
     );
