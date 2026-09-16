@@ -73,6 +73,7 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /Referencia territorial aproximada dentro del municipio/);
   assert.match(map, /setStatusFilter/);
   assert.match(map, /setResponsibleFilter/);
+  assert.match(map, /useState\("todos"\)/);
 });
 
 test("Día D consumes CRM fiscales and persists JRV assignments", () => {

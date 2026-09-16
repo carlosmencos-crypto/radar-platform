@@ -351,7 +351,7 @@ export function V70OperationalMap() {
   const [showRoutes, setShowRoutes] = useState(true);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [dateWindow, setDateWindow] = useState("mes");
+  const [dateWindow, setDateWindow] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("TODOS");
   const [responsibleFilter, setResponsibleFilter] = useState("TODOS");
   const [createMode, setCreateMode] = useState(false);
