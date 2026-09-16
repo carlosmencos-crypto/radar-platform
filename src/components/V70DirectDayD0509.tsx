@@ -92,6 +92,31 @@ function jrvNumbers(range: string, expected: number) {
   return unique.length ? unique : Array.from({ length: expected }, (_, index) => index + 1);
 }
 
+const logisticsCategories = [
+  ["TRANSPORTE_ELECTORES", "Transporte electores", "Comunidades → centros"],
+  ["TRASLADO_FISCALES", "Traslado fiscales", "Pilotos, vehículos y horarios"],
+  ["ALIMENTACION", "Alimentación", "Tiempos, personas y entrega"],
+  ["DATOS_MOVILES", "Datos móviles", "Número, monto y responsable"],
+  ["KIT_ELECTORAL", "Kit electoral", "Material de cada fiscal"],
+  ["EQUIPO_CENTRO", "Equipo respaldo", "Equipo por centro de votación"],
+] as const;
+
+function accessCode() {
+  return crypto.randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
+}
+
+function dayDMark(value: unknown, label: string) {
+  return (
+    <span
+      className={value ? "day-d-check yes" : "day-d-check no"}
+      title={label}
+      aria-label={`${label}: ${value ? "sí" : "no"}`}
+    >
+      {value ? "✓" : "×"}
+    </span>
+  );
+}
+
 function DayDContent() {
   const { campaign_id, municipality_code } = useMunicipalityContext();
   const layers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
@@ -115,6 +140,31 @@ function DayDContent() {
   const [centerOpen, setCenterOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [centerFilter, setCenterFilter] = useState("all");
+  const [pendingFilter, setPendingFilter] = useState("all");
+  const [issuedAccess, setIssuedAccess] = useState<null | {
+    link: string;
+    code: string;
+    name: string;
+    jrv: string;
+  }>(null);
+  const [busyAccess, setBusyAccess] = useState("");
+  const [logisticsOpen, setLogisticsOpen] = useState(false);
+  const [editingLogistics, setEditingLogistics] = useState<string | null>(null);
+  const [logisticsFilter, setLogisticsFilter] = useState("all");
+  const [logisticsCenterFilter, setLogisticsCenterFilter] = useState("all");
+  const [logisticsStatusFilter, setLogisticsStatusFilter] = useState("all");
+  const [logisticsForm, setLogisticsForm] = useState({
+    category: "TRANSPORTE_ELECTORES",
+    title: "",
+    center_id: "",
+    responsible_id: "",
+    scheduled_at: "",
+    quantity: "",
+    estimated_cost: "",
+    status: "PLANIFICADO",
+    notes: "",
+  });
   useEffect(() => { if (!selectedCenterId && centers[0]) setSelectedCenterId(centers[0].id); }, [centers, selectedCenterId]);
   useEffect(() => {
     let cancelled = false; if (!campaign_id) return;
@@ -127,6 +177,8 @@ function DayDContent() {
   const selectedCenter = centers.find((center) => center.id === selectedCenterId) ?? centers[0];
   const selectedCenterJrvs = selectedCenter ? jrvNumbers(selectedCenter.jrvRange, selectedCenter.jrv) : [];
   const assignmentRows = assignments.filter((record) => record.category === "ASIGNACION_JRV");
+  const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
+  const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
   const assignmentsForCenter = (centerId: string) => assignmentRows.filter((record) => String(record.payload.center_id) === centerId);
   const centerResponsible = (centerId: string) => {
@@ -150,6 +202,133 @@ function DayDContent() {
     try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setAssignments((rows) => rows.filter((item) => item.id !== record.id)); setMessage("Asignación eliminada."); }
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar la asignación."); }
   }
+  const grantFor = (assignmentId: string) =>
+    accessRows.find(
+      (record) =>
+        String(record.payload.assignment_id || "") === assignmentId &&
+        record.status === "ACTIVO",
+    );
+  async function generateAccess(assignment: CampaignModuleRecord) {
+    if (!campaign_id) return;
+    setBusyAccess(assignment.id);
+    setMessage("");
+    try {
+      const code = accessCode();
+      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+      const token = await ensureRadarAccessToken();
+      const current = grantFor(assignment.id);
+      const saved = await saveCampaignRecord(
+        campaign_id,
+        {
+          module_key: "dia-d",
+          category: "ACCESO_FISCAL",
+          title: `Acceso · ${String(assignment.payload.fiscal_name || "Fiscal")} · JRV ${String(assignment.payload.jrv || "—")}`,
+          details: "Acceso individual al portal fiscal",
+          status: "ACTIVO",
+          payload: {
+            assignment_id: assignment.id,
+            fiscal_id: assignment.payload.fiscal_id,
+            center_id: assignment.payload.center_id,
+            jrv: assignment.payload.jrv,
+            code,
+            expires_at: expiresAt,
+            issued_at: new Date().toISOString(),
+          },
+        },
+        token,
+        current?.id ?? null,
+      );
+      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
+      const link = `https://radar-portal-fiscal.carlos-mencos.chatgpt.site/?code=${encodeURIComponent(code)}`;
+      setIssuedAccess({
+        link,
+        code,
+        name: String(assignment.payload.fiscal_name || "Fiscal"),
+        jrv: String(assignment.payload.jrv || "—"),
+      });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "No se pudo generar el acceso.");
+    } finally {
+      setBusyAccess("");
+    }
+  }
+  async function changeGrantStatus(grant: CampaignModuleRecord, status: "SUSPENDIDO" | "REVOCADO") {
+    if (!campaign_id) return;
+    try {
+      const token = await ensureRadarAccessToken();
+      const saved = await saveCampaignRecord(campaign_id, { module_key: "dia-d", category: grant.category, title: grant.title, details: grant.details, status, payload: { ...grant.payload, status_changed_at: new Date().toISOString() } }, token, grant.id);
+      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
+      setMessage(status === "SUSPENDIDO" ? "Acceso suspendido." : "Acceso revocado.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo actualizar el acceso."); }
+  }
+  function beginLogistics(category = "TRANSPORTE_ELECTORES") {
+    setEditingLogistics(null);
+    setLogisticsForm({ category, title: "", center_id: "", responsible_id: "", scheduled_at: "", quantity: "", estimated_cost: "", status: "PLANIFICADO", notes: "" });
+    setLogisticsOpen(true);
+  }
+  function editLogistics(record: CampaignModuleRecord) {
+    setEditingLogistics(record.id);
+    setLogisticsForm({
+      category: String(record.payload.category || "TRANSPORTE_ELECTORES"),
+      title: record.title,
+      center_id: String(record.payload.center_id || ""),
+      responsible_id: String(record.payload.responsible_id || ""),
+      scheduled_at: String(record.payload.scheduled_at || "").slice(0, 16),
+      quantity: String(record.payload.quantity || ""),
+      estimated_cost: String(record.payload.estimated_cost || ""),
+      status: record.status,
+      notes: record.details || "",
+    });
+    setLogisticsOpen(true);
+  }
+  async function saveLogistics(event: FormEvent) {
+    event.preventDefault();
+    if (!campaign_id) return;
+    setSaving(true); setMessage("");
+    try {
+      const token = await ensureRadarAccessToken();
+      const center = centers.find((item) => item.id === logisticsForm.center_id);
+      const responsible = contacts.find((item) => item.id === logisticsForm.responsible_id);
+      const saved = await saveCampaignRecord(campaign_id, {
+        module_key: "dia-d", category: "LOGISTICA",
+        title: logisticsForm.title.trim() || logisticsCategories.find(([key]) => key === logisticsForm.category)?.[1] || "Previsión logística",
+        details: logisticsForm.notes || null, status: logisticsForm.status,
+        payload: { ...logisticsForm, quantity: Number(logisticsForm.quantity || 0), estimated_cost: Number(logisticsForm.estimated_cost || 0), center_name: center?.name || null, responsible_name: responsible?.full_name || null },
+      }, token, editingLogistics);
+      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
+      setLogisticsOpen(false); setEditingLogistics(null); setMessage("Previsión logística guardada.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar la previsión."); }
+    finally { setSaving(false); }
+  }
+  async function removeLogistics(record: CampaignModuleRecord) {
+    if (!campaign_id || !window.confirm(`¿Eliminar “${record.title}”?`)) return;
+    try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setAssignments((rows) => rows.filter((item) => item.id !== record.id)); setMessage("Previsión eliminada."); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar la previsión."); }
+  }
+  const visibleFiscalRows = assignmentRows
+    .filter((record) => centerFilter === "all" || String(record.payload.center_id || "") === centerFilter)
+    .filter((record) => {
+      if (pendingFilter === "all") return true;
+      if (pendingFilter === "checkin") return !record.payload.checked_in;
+      if (pendingFilter === "cierre") return !record.payload.table_closed;
+      if (pendingFilter === "transporte") return !record.payload.transport_ready;
+      if (pendingFilter === "comida") return !record.payload.food_ready;
+      if (pendingFilter === "datos") return !record.payload.mobile_data_ready;
+      if (pendingFilter === "apoyo") return Boolean(record.payload.support_needed);
+      if (pendingFilter === "rtd") return !record.payload.rtd_submitted;
+      return true;
+    });
+  const visibleLogisticsRows = logisticsRows.filter((record) => {
+    const category = String(record.payload.category || "");
+    return (logisticsFilter === "all" || category === logisticsFilter) &&
+      (logisticsCenterFilter === "all" || String(record.payload.center_id || "") === logisticsCenterFilter) &&
+      (logisticsStatusFilter === "all" || record.status === logisticsStatusFilter);
+  });
+  const transportPlans = logisticsRows.filter((record) => ["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES"].includes(String(record.payload.category || "")));
+  const logisticsQuantity = logisticsRows.reduce((sum, record) => sum + Number(record.payload.quantity || 0), 0);
+  const plannedRecharges = logisticsRows.filter((record) => record.payload.category === "DATOS_MOVILES").length;
+  const logisticsPending = logisticsRows.filter((record) => ["PLANIFICADO", "INCIDENCIA"].includes(record.status)).length;
+  const logisticsCost = logisticsRows.reduce((sum, record) => sum + Number(record.payload.estimated_cost || 0), 0);
   const openCenter = centers.find((center) => center.id === centerOpen) ?? null;
   const mando = (
     <section className="day-d-command">
@@ -289,38 +468,38 @@ function DayDContent() {
         </span>
         <span>
           <small>Check-in completados</small>
-          <b>0</b>
+          <b>{assignmentRows.filter((record) => record.payload.checked_in).length}</b>
         </span>
         <span>
           <small>Necesitan apoyo</small>
-          <b>0</b>
+          <b>{assignmentRows.filter((record) => record.payload.support_needed).length}</b>
         </span>
         <span>
           <small>RTD ingresado</small>
-          <b>0</b>
+          <b>{assignmentRows.filter((record) => record.payload.rtd_submitted).length}</b>
         </span>
       </div>
       <div className="day-d-filters">
         <label>
           <span>Centro</span>
-          <select>
-            <option>Todos</option>
+          <select value={centerFilter} onChange={(event) => setCenterFilter(event.target.value)}>
+            <option value="all">Todos</option>
             {centers.map((center) => (
-              <option key={center.id}>{center.name}</option>
+              <option value={center.id} key={center.id}>{center.name}</option>
             ))}
           </select>
         </label>
         <label>
           <span>Mostrar pendientes</span>
-          <select>
-            <option>Todos</option>
-            <option>Sin check-in</option>
-            <option>Sin cierre</option>
-            <option>Sin transporte</option>
-            <option>Sin comida</option>
-            <option>Sin datos</option>
-            <option>Necesita apoyo</option>
-            <option>Sin RTD</option>
+          <select value={pendingFilter} onChange={(event) => setPendingFilter(event.target.value)}>
+            <option value="all">Todos</option>
+            <option value="checkin">Sin check-in</option>
+            <option value="cierre">Sin cierre</option>
+            <option value="transporte">Sin transporte</option>
+            <option value="comida">Sin comida</option>
+            <option value="datos">Sin datos</option>
+            <option value="apoyo">Necesita apoyo</option>
+            <option value="rtd">Sin RTD</option>
           </select>
         </label>
       </div>
@@ -335,8 +514,9 @@ function DayDContent() {
           <span>RTD</span>
           <span>Acceso / sincronización</span>
         </div>
-        {assignmentRows.length ? assignmentRows.map((record) => <article key={record.id}><span><b>{String(record.payload.fiscal_name || record.details || "Fiscal")}</b><small>{String(record.payload.center_name || "Centro")} · JRV {String(record.payload.jrv || "—")}</small></span><em>PENDIENTE</em><em>—</em><em>—</em><em>—</em><em>—</em><em>—</em><button type="button" onClick={() => { setCenterOpen(String(record.payload.center_id || "")); openDayDView("centros"); }}>Abrir</button></article>) : <p>No hay fiscales con este filtro.</p>}
+        {visibleFiscalRows.length ? visibleFiscalRows.map((record) => { const grant = grantFor(record.id); return <article key={record.id}><span><Link className="day-d-person-link" to={`/municipio/${municipality_code}/directorio?view=team&personId=${encodeURIComponent(String(record.payload.fiscal_id || ""))}`}>{String(record.payload.fiscal_name || record.details || "Fiscal")}</Link><small>{String(record.payload.center_name || "Centro")} · JRV {String(record.payload.jrv || "—")}</small>{record.payload.support_needed ? <em className="day-d-support-alert">Necesita apoyo</em> : null}</span>{dayDMark(record.payload.checked_in, "Check-in")}{dayDMark(record.payload.transport_ready, "Transporte")}{dayDMark(record.payload.food_ready, "Comida")}{dayDMark(record.payload.mobile_data_ready, "Datos")}{dayDMark(record.payload.table_closed, "Cierre")}{dayDMark(record.payload.rtd_submitted, "RTD")}<span className="day-d-access-actions"><small>{record.payload.last_fiscal_sync_at ? `Sincronizado ${new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(record.payload.last_fiscal_sync_at)))}` : "Sin actividad fiscal"}</small>{grant ? <><b>Acceso activo · vence {new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(grant.payload.expires_at)))}</b><nav><button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Regenerar"}</button><button type="button" onClick={() => void changeGrantStatus(grant, "SUSPENDIDO")}>Suspender</button><button className="danger" type="button" onClick={() => void changeGrantStatus(grant, "REVOCADO")}>Revocar</button></nav></> : <button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Generar acceso"}</button>}</span></article>; }) : <p>No hay fiscales con este filtro.</p>}
       </div>
+      {issuedAccess ? <div className="agenda-modal" role="dialog" aria-modal="true"><section className="day-d-access-modal"><header><div><small>ACCESO GENERADO · SE MUESTRA UNA VEZ</small><h2>{issuedAccess.name} · JRV {issuedAccess.jrv}</h2></div><button type="button" onClick={() => setIssuedAccess(null)}>×</button></header><label><span>Enlace individual</span><input readOnly value={issuedAccess.link} /></label><label><span>Código alterno</span><strong>{issuedAccess.code}</strong></label><p>Comparte este acceso únicamente con el fiscal asignado.</p><footer><button type="button" onClick={() => void navigator.clipboard.writeText(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}>Copiar acceso</button><a href={`https://wa.me/?text=${encodeURIComponent(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}`} target="_blank" rel="noreferrer">Compartir por WhatsApp</a></footer></section></div> : null}
     </section>
   );
   const incidencias = (
@@ -381,47 +561,45 @@ function DayDContent() {
           <Link to={`/municipio/${municipality_code}/recursos`}>
             Vehículos y recursos
           </Link>
-          <Link to={`/municipio/${municipality_code}/recursos`}>+ Nueva previsión</Link>
+          <Link to={`/municipio/${municipality_code}/estrategia-finanzas`}>Control financiero</Link>
+          <button type="button" onClick={() => beginLogistics()}>+ Nueva previsión</button>
         </nav>
       </header>
       <div className="logistics-summary">
         <span>
           <small>Rutas / traslados</small>
-          <b>0</b>
+          <b>{transportPlans.length}</b>
         </span>
         <span>
           <small>Personas o porciones previstas</small>
-          <b>0</b>
+          <b>{logisticsQuantity}</b>
         </span>
         <span>
           <small>Recargas planificadas</small>
-          <b>0</b>
+          <b>{plannedRecharges}</b>
         </span>
-        <span className="ready">
+        <span className={logisticsPending ? "alert" : "ready"}>
           <small>Pendientes o incidencias</small>
-          <b>0</b>
+          <b>{logisticsPending}</b>
         </span>
         <span>
           <small>Costo estimado</small>
-          <b>Q 0.00</b>
+          <b>{new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" }).format(logisticsCost)}</b>
         </span>
       </div>
       <div className="logistics-start-grid">
-        {[
-          "Transporte electores",
-          "Traslado fiscales",
-          "Alimentación",
-          "Datos móviles",
-          "Kit electoral",
-          "Equipo respaldo",
-        ].map((item) => (
-          <Link key={item} to={`/municipio/${municipality_code}/recursos`}>
+        {logisticsCategories.map(([category, label, detail]) => (
+          <button type="button" key={category} onClick={() => beginLogistics(category)}>
             <b>+</b>
-            <span>{item}</span>
-            <small>Preparar operación</small>
-          </Link>
+            <span>{label}</span>
+            <small>{detail}</small>
+          </button>
         ))}
       </div>
+      {message ? <p className="agenda-message" role="status">{message}</p> : null}
+      <div className="day-d-filters logistics-filters"><label><span>Tipo</span><select value={logisticsFilter} onChange={(event) => setLogisticsFilter(event.target.value)}><option value="all">Todos</option>{logisticsCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label><span>Centro</span><select value={logisticsCenterFilter} onChange={(event) => setLogisticsCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{center.name}</option>)}</select></label><label><span>Estado</span><select value={logisticsStatusFilter} onChange={(event) => setLogisticsStatusFilter(event.target.value)}><option value="all">Todos</option><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONFIRMADO</option><option>ENTREGADO</option><option>INCIDENCIA</option></select></label></div>
+      <div className="logistics-plan-list">{visibleLogisticsRows.length ? visibleLogisticsRows.map((record) => <article key={record.id}><header><span><small>{logisticsCategories.find(([key]) => key === record.payload.category)?.[1] || "PREVISIÓN"}</small><b>{record.title}</b><em>{String(record.payload.center_name || "Cobertura general")}</em></span><strong className={record.status.toLocaleLowerCase("es")}>{record.status.replaceAll("_", " ")}</strong></header><div className="logistics-plan-facts"><span><small>Responsable</small><b>{String(record.payload.responsible_name || "Sin asignar")}</b></span><span><small>Fecha</small><b>{record.payload.scheduled_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(record.payload.scheduled_at))) : "Sin programar"}</b></span><span><small>Cantidad</small><b>{String(record.payload.quantity || 0)}</b></span><span><small>Costo estimado</small><b>{new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" }).format(Number(record.payload.estimated_cost || 0))}</b></span></div>{record.details ? <p>{record.details}</p> : null}<footer><span /><button type="button" onClick={() => editLogistics(record)}>Editar</button><button className="danger" type="button" onClick={() => void removeLogistics(record)}>Eliminar</button></footer></article>) : <div className="agenda-empty"><b>No hay previsiones con estos filtros.</b><span>Crea la primera orden logística de Día D.</span><button type="button" onClick={() => beginLogistics()}>Crear previsión</button></div>}</div>
+      {logisticsOpen ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="logistics-modal" onSubmit={saveLogistics}><header><div><small>LOGÍSTICA</small><h2>{editingLogistics ? "Editar previsión" : "Nueva previsión"}</h2><p>Conecta responsables, centros, cantidades y presupuesto operativo.</p></div><button type="button" aria-label="Cerrar" onClick={() => setLogisticsOpen(false)}>×</button></header><div className="logistics-form-grid"><label><span>Tipo *</span><select value={logisticsForm.category} onChange={(event) => setLogisticsForm({ ...logisticsForm, category: event.target.value })}>{logisticsCategories.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label><label><span>Estado</span><select value={logisticsForm.status} onChange={(event) => setLogisticsForm({ ...logisticsForm, status: event.target.value })}><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONFIRMADO</option><option>ENTREGADO</option><option>INCIDENCIA</option></select></label><label className="wide"><span>Título *</span><input required value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} /></label><label><span>Centro de votación</span><select value={logisticsForm.center_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, center_id: event.target.value })}><option value="">Cobertura general</option>{centers.map((center) => <option key={center.id} value={center.id}>{center.name}</option>)}</select></label><label><span>Responsable (CRM)</span><select value={logisticsForm.responsible_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, responsible_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label><label><span>Fecha y hora</span><input type="datetime-local" value={logisticsForm.scheduled_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, scheduled_at: event.target.value })} /></label><label><span>Cantidad</span><input type="number" min="0" value={logisticsForm.quantity} onChange={(event) => setLogisticsForm({ ...logisticsForm, quantity: event.target.value })} /></label><label><span>Costo estimado (Q)</span><input type="number" min="0" step="0.01" value={logisticsForm.estimated_cost} onChange={(event) => setLogisticsForm({ ...logisticsForm, estimated_cost: event.target.value })} /></label><label className="wide"><span>Notas, rutas o instrucciones</span><textarea rows={4} value={logisticsForm.notes} onChange={(event) => setLogisticsForm({ ...logisticsForm, notes: event.target.value })} /></label></div><footer><button type="button" onClick={() => setLogisticsOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar previsión"}</button></footer></form></div> : null}
     </section>
   );
   const rtd = (

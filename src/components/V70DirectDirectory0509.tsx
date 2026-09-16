@@ -26,6 +26,11 @@ import {
 import { zipSync } from "fflate";
 import { getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
+import { V70PhotoEditor } from "./V70PhotoEditor";
+import {
+  announceV70CampaignUpdate,
+  candidatePositions,
+} from "./useV70CampaignBrand";
 
 const electorStatuses = [
   ["SIN_CONTACTO", "Sin contacto"],
@@ -928,14 +933,6 @@ function contactDisplayRole(person: CampaignContactRecord) {
   return person.contact_type === "Candidato" ? `Candidato a ${person.candidate_position || "cargo por definir"}.` : person.contact_type || "Contacto de campaña";
 }
 
-function dataUrlFromFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("No se pudo leer la fotografía."));
-    reader.readAsDataURL(file);
-  });
-}
 function imageFromUrl(url: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
@@ -1019,7 +1016,7 @@ async function carnetPng(
 }
 
 function TeamDirectoryCanonical() {
-  const { campaign_id } = useMunicipalityContext();
+  const { campaign_id, municipality_code } = useMunicipalityContext();
   const [query, setQuery] = useState("");
   const [contactFilter, setContactFilter] = useState("all");
   const [view, setView] = useState<"cards" | "table">("cards");
@@ -1034,6 +1031,7 @@ function TeamDirectoryCanonical() {
   const [form, setForm] = useState<ContactDraft>(emptyContact);
   const [carnetPerson, setCarnetPerson] = useState<CampaignContactRecord | null>(null);
   const [carnetPreviewUrl, setCarnetPreviewUrl] = useState("");
+  const [linkedPersonOpened, setLinkedPersonOpened] = useState(false);
 
   const load = async () => {
     if (!campaign_id) return;
@@ -1055,6 +1053,13 @@ function TeamDirectoryCanonical() {
     const name = splitContactName(contact.full_name);
     setEditing(contact.id); setForm({ ...name, phone: contact.phone || "", phone_secondary: contact.phone_secondary || "", email: contact.email || "", community: contact.community || "", role: contact.role || "", contact_type: contact.contact_type, candidate_position: contact.candidate_position || "", notes: contact.notes || "", photo_url: contact.photo_url || "" }); setOpen(true);
   };
+  useEffect(() => {
+    if (linkedPersonOpened || !contacts.length) return;
+    const personId = new URLSearchParams(window.location.search).get("personId");
+    const person = personId ? contacts.find((item) => item.id === personId) : null;
+    if (person) openEdit(person);
+    setLinkedPersonOpened(true);
+  }, [contacts, linkedPersonOpened]);
   async function save(event: FormEvent) {
     event.preventDefault(); if (!campaign_id) return; setSaving(true); setMessage("");
     try {
@@ -1062,6 +1067,7 @@ function TeamDirectoryCanonical() {
       const full_name = `${form.first_names} ${form.last_names}`.trim();
       const saved = await saveCampaignContact(campaign_id, { full_name, phone: form.phone, phone_secondary: form.phone_secondary, email: form.email, community: form.community, role: form.role, contact_type: form.contact_type || "Contacto", candidate_position: form.candidate_position, notes: form.notes, photo_url: form.photo_url, file_code: editing ? contacts.find((item) => item.id === editing)?.file_code : `CRM-${String(contacts.length + 1).padStart(4, "0")}`, active: true, is_in_crm: true }, token, editing);
       setContacts((current) => [...current.filter((item) => item.id !== saved.id), saved].sort((a, b) => a.full_name.localeCompare(b.full_name, "es")));
+      announceV70CampaignUpdate();
       setOpen(false); setEditing(null); setForm(emptyContact); setMessage(editing ? "Contacto actualizado." : "Contacto agregado al Campaign Vault.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar el contacto."); } finally { setSaving(false); }
   }
@@ -1113,13 +1119,13 @@ function TeamDirectoryCanonical() {
         {contact.contact_type === "Fiscal" ? <div className={`crm-dayd-status ${assignment ? "assigned" : "pending"}`}><small>DÍA D</small><b>{assignment ? `${String(assignment.payload.center_name || "Centro asignado")} · JRV ${String(assignment.payload.jrv || "—")}` : "JRV aún no asignada"}</b></div> : null}
         <div className="crm-contact-lines"><span><b>Teléfono principal</b>{contact.phone ? <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>{contact.phone}</a> : <em>Pendiente</em>}</span><span><b>Teléfono secundario</b>{contact.phone_secondary ? <a href={`tel:${contact.phone_secondary.replace(/[^\d+]/g, "")}`}>{contact.phone_secondary}</a> : <em>—</em>}</span><span><b>Correo</b>{contact.email ? <a href={`mailto:${contact.email}`}>{contact.email}</a> : <em>Pendiente</em>}</span></div>
         {contact.notes ? <p className="crm-notes">{contact.notes}</p> : null}
-        <footer><div className="crm-card-actions"><Link to={`/municipio/0509/agenda?new=1&responsiblePersonId=${contact.id}&responsible=${encodeURIComponent(contact.full_name)}&community=${encodeURIComponent(contact.community || "")}`}>Crear actividad</Link><div className="crm-card-secondary"><button className="print-action" type="button" onClick={() => void openCarnet(contact)}>Imprimir</button><button className="open-action" type="button" onClick={() => openEdit(contact)}>Abrir</button><button className="delete-action" type="button" onClick={() => void archive(contact)}>Borrar</button></div></div></footer>
+        <footer><div className="crm-card-actions"><Link to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${contact.id}&responsible=${encodeURIComponent(contact.full_name)}&community=${encodeURIComponent(contact.community || "")}`}>Crear actividad</Link><div className="crm-card-secondary"><button className="print-action" type="button" onClick={() => void openCarnet(contact)}>Imprimir</button><button className="open-action" type="button" onClick={() => openEdit(contact)}>Abrir</button><button className="delete-action" type="button" onClick={() => void archive(contact)}>Borrar</button></div></div></footer>
       </article>; })}</div> : <div className="crm-approved-empty"><span>CRM</span><h3>Agrega a tu equipo y responsables</h3><p>Centraliza contactos, asignaciones, fotografía y carnets de campaña.</p><button type="button" onClick={openNew}>+ Nuevo contacto</button></div>}
     </section>
     {open ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="crm-person-form" onSubmit={save}>
       <header><div><small>DIRECTORIO CRM</small><h2>{editing ? "Editar contacto" : "Nuevo contacto"}</h2><p>El nombre es obligatorio. En candidaturas puedes completar el teléfono después.</p></div><button type="button" onClick={() => setOpen(false)}>×</button></header>
       <div className="agenda-form-grid">
-        <div className="wide photo-editor-field"><span>Fotografía</span><div className="crm-photo-editor"><label>{form.photo_url ? <img src={form.photo_url} alt="Vista previa" /> : <span>FOTO</span>}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file && file.size <= 900000) void dataUrlFromFile(file).then((photo_url) => setForm({ ...form, photo_url })).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "No se pudo leer la foto.")); else if (file) setMessage("La fotografía debe pesar menos de 900 KB."); }} /></label><small>Opcional · JPG, PNG o WebP · se guardará ajustada al círculo</small></div></div>
+        <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={form.photo_url} onChange={(photo_url) => setForm((current) => ({ ...current, photo_url }))} onError={setMessage} /></div>
         <label><span>Nombres *</span><input autoFocus required value={form.first_names} onChange={(event) => setForm({ ...form, first_names: event.target.value })} placeholder="Primer y segundo nombre" /></label>
         <label><span>Apellidos *</span><input required value={form.last_names} onChange={(event) => setForm({ ...form, last_names: event.target.value })} placeholder="Apellidos" /></label>
         <label><span>Teléfono / WhatsApp {form.contact_type === "Candidato" ? "" : "*"}</span><input required={form.contact_type !== "Candidato"} inputMode="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="Ej. 5555 5555" /></label>
@@ -1128,7 +1134,7 @@ function TeamDirectoryCanonical() {
         <label><span>Comunidad</span><input value={form.community} onChange={(event) => setForm({ ...form, community: event.target.value })} placeholder="Aldea, colonia o sector" /></label>
         <label><span>Cargo o función</span><input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} placeholder="Ej. Coordinadora territorial" /></label>
         <label><span>Tipo de contacto</span><select value={form.contact_type} onChange={(event) => setForm({ ...form, contact_type: event.target.value, candidate_position: event.target.value === "Candidato" ? form.candidate_position : "" })}><option value="">Seleccionar…</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
-        {form.contact_type === "Candidato" ? <label><span>Puesto al que se postula *</span><input required value={form.candidate_position} onChange={(event) => setForm({ ...form, candidate_position: event.target.value })} placeholder="Alcalde, síndico o concejal" /></label> : null}
+        {form.contact_type === "Candidato" ? <label><span>Puesto al que se postula *</span><select required value={form.candidate_position} onChange={(event) => setForm({ ...form, candidate_position: event.target.value })}><option value="">Seleccionar candidatura…</option>{candidatePositions.map((position) => <option key={position} value={position}>{position}</option>)}</select></label> : null}
         {form.contact_type === "Fiscal" ? <aside className="crm-dayd-form-status wide"><small>ASIGNACIÓN DÍA D</small><b>{editing && assignmentFor(editing) ? `${String(assignmentFor(editing)?.payload.center_name || "Centro asignado")} · JRV ${String(assignmentFor(editing)?.payload.jrv || "—")}` : "JRV aún no asignada"}</b><span>La asignación se administra desde Día D → Centros de votación.</span></aside> : null}
         <label className="wide"><span>Notas</span><textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Información breve que ayude al equipo" /></label>
       </div>

@@ -9,21 +9,10 @@ import { ensureRadarAccessToken } from "../data/radarAuth";
 import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
 import { V70CampaignIdentity } from "./V70CampaignIdentity";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
-
-const campaignSlate = [
-  ["Nombre Apellido", "Candidato a alcalde", "ALCALDE", "EC01"],
-  ["Nombre Apellido", "Síndico I", "SÍNDICOS", "EC02"],
-  ["Nombre Apellido", "Síndico II", "SÍNDICOS", "EC03"],
-  ["Nombre Apellido", "Síndico III", "SÍNDICOS", "EC04"],
-  ["Nombre Apellido", "Concejal I", "CONCEJALES", "EC05"],
-  ["Nombre Apellido", "Concejal II", "CONCEJALES", "EC06"],
-  ["Nombre Apellido", "Concejal III", "CONCEJALES", "EC07"],
-  ["Nombre Apellido", "Concejal IV", "CONCEJALES", "EC08"],
-  ["Nombre Apellido", "Concejal V", "CONCEJALES", "EC09"],
-  ["Nombre Apellido", "Concejal VI", "CONCEJALES", "EC10"],
-  ["Nombre Apellido", "Concejal VII", "CONCEJALES", "EC11"],
-  ["Nombre Apellido", "Concejal VIII", "CONCEJALES", "EC12"],
-] as const;
+import {
+  useV70CampaignBrand,
+  type V70SlateMember,
+} from "./useV70CampaignBrand";
 const priorityThemes = [
   [
     {
@@ -96,23 +85,27 @@ function initials(name: string) {
 function SlateMember({
   member,
 }: {
-  member: readonly [string, string, string, string];
+  member: V70SlateMember;
 }) {
   const { municipality_code } = useMunicipalityContext();
   return (
     <article className="slate-member">
       <span className="slate-member-avatar">
-        <i>{initials(member[0])}</i>
+        {member.photoUrl ? (
+          <img src={member.photoUrl} alt={`Fotografía de ${member.fullName}`} />
+        ) : (
+          <i>{initials(member.fullName)}</i>
+        )}
       </span>
       <span className="slate-member-identity">
         <b className="slate-member-name slate-member-name-static">
-          {member[0]}
+          {member.fullName}
         </b>
-        <em>{member[1]}</em>
+        <em>{member.positionLabel}</em>
       </span>
       <nav>
-        <Link to={`/municipio/${municipality_code}/agenda`}>Agenda</Link>
-        <Link to={`/municipio/${municipality_code}/estrategia-legal?candidate=${member[3]}`}>Documentos</Link>
+        <Link to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${member.contact?.id ?? ""}&responsible=${encodeURIComponent(member.fullName)}`}>Agenda</Link>
+        <Link to={`/municipio/${municipality_code}/estrategia-legal?candidate=${member.code}`}>Documentos</Link>
       </nav>
     </article>
   );
@@ -131,6 +124,7 @@ function greetingForGuatemala() {
 }
 function HomeContent() {
   const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { slate } = useV70CampaignBrand();
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);
   const [commitmentRecords, setCommitmentRecords] = useState<CampaignModuleRecord[]>([]);
@@ -156,14 +150,14 @@ function HomeContent() {
       ) % priorityThemes.length,
     [],
   );
-  const mayor = campaignSlate.filter((item) => item[2] === "ALCALDE");
-  const syndics = campaignSlate.filter((item) => item[2] === "SÍNDICOS");
-  const councilors = campaignSlate.filter((item) => item[2] === "CONCEJALES");
+  const mayor = slate.filter((item) => item.group === "ALCALDE");
+  const syndics = slate.filter((item) => item.group === "SÍNDICOS");
+  const councilors = slate.filter((item) => item.group === "CONCEJALES");
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guatemala", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const activitiesToday = activities.filter((item) => item.starts_at && new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guatemala", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(item.starts_at)) === todayKey).length;
   const openCommitments = commitments.filter((item) => item.status !== "cumplido").length + commitmentRecords.filter((item) => item.status !== "CUMPLIDO").length;
-  const coveredTerritories = new Set(activities.map((item) => item.community?.trim()).filter(Boolean)).size;
-  const territoryCoverage = Math.min(100, Math.round((coveredTerritories / 13) * 100));
+  const coveredTerritories = new Set(activities.filter((item) => item.status.toUpperCase() !== "CANCELADA" && Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).map((item) => item.community?.trim()).filter(Boolean)).size;
+  const territoryCoverage = Math.min(100, Math.round((coveredTerritories / 81) * 100));
   return (
     <>
       <section className="command-hero home-welcome">

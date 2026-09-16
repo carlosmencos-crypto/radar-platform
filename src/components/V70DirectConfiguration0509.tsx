@@ -6,9 +6,11 @@ import {
 } from "../context/MunicipalityContext";
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
+import { useV70CampaignBrand } from "./useV70CampaignBrand";
 
 function ConfigurationContent() {
   const { municipality_code } = useMunicipalityContext();
+  const { candidateName, candidatePhotoUrl, partyName } = useV70CampaignBrand();
   const [photo, setPhoto] = useState(() => {
     window.localStorage.removeItem("radar-user-photo");
     return window.localStorage.getItem("radar-user-photo-v2") || "";
@@ -46,8 +48,13 @@ function ConfigurationContent() {
         <section className="config-overview">
           <article>
             <small>CAMPAÑA</small>
-            <b>Nombre Apellido</b>
-            <span></span>
+            <div className="config-campaign-identity">
+              {candidatePhotoUrl ? <img src={candidatePhotoUrl} alt="Fotografía del candidato" /> : null}
+              <div>
+                <b>{candidateName}</b>
+                <span>{partyName || "Organización política pendiente"}</span>
+              </div>
+            </div>
             <Link to={`/municipio/${municipality_code}/directorio?view=team`}>
               Administrar identidad desde el CRM →
             </Link>

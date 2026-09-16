@@ -3,16 +3,12 @@ import { createPortal } from "react-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import {
-  loadCampaignBundle,
   saveCampaignIdentity,
-  type CampaignIdentityRecord,
 } from "../data/radarRuntime";
-
-const defaultIdentity: CampaignIdentityRecord = {
-  candidate_name: "Nombre Apellido",
-  party_name: "",
-  party_logo_data_url: "",
-};
+import {
+  announceV70CampaignUpdate,
+  useV70CampaignBrand,
+} from "./useV70CampaignBrand";
 
 function fileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -33,8 +29,12 @@ function fileAsDataUrl(file: File) {
 
 export function V70CampaignIdentity() {
   const { campaign_id, municipality_name } = useMunicipalityContext();
-  const [identity, setIdentity] =
-    useState<CampaignIdentityRecord>(defaultIdentity);
+  const {
+    identity,
+    candidateName,
+    candidatePhotoUrl,
+    load,
+  } = useV70CampaignBrand();
   const [open, setOpen] = useState(false);
   const [partyName, setPartyName] = useState("");
   const [partyLogo, setPartyLogo] = useState<File | null>(null);
@@ -52,23 +52,6 @@ export function V70CampaignIdentity() {
     },
     [logoPreview],
   );
-  useEffect(() => {
-    let cancelled = false;
-    if (!campaign_id) return;
-    void ensureRadarAccessToken()
-      .then((token) => loadCampaignBundle(campaign_id, token))
-      .then((bundle) => {
-        if (!cancelled) setIdentity({ ...defaultIdentity, ...bundle.identity });
-      })
-      .catch(() => {
-        if (!cancelled)
-          setMessage("No pudimos cargar la identidad de campaña.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [campaign_id]);
-
   async function save(event: FormEvent) {
     event.preventDefault();
     const normalizedName = partyName.trim();
@@ -91,17 +74,19 @@ export function V70CampaignIdentity() {
         campaign_id,
         {
           candidate_name:
-            identity.candidate_name || defaultIdentity.candidate_name,
+            candidateName || "Nombre Apellido",
           party_name: normalizedName || identity.party_name,
           party_logo_data_url: logo || null,
         },
         token,
       );
-      setIdentity({ ...defaultIdentity, ...saved });
+      void saved;
       setPartyName("");
       setPartyLogo(null);
       setOpen(false);
       setSavedMessage("Identidad actualizada correctamente.");
+      announceV70CampaignUpdate();
+      await load();
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -113,10 +98,6 @@ export function V70CampaignIdentity() {
     }
   }
 
-  const candidateName =
-    identity.candidate_name ||
-    defaultIdentity.candidate_name ||
-    "Nombre Apellido";
   const logo = logoPreview || identity.party_logo_data_url || "";
   return (
     <>
@@ -125,7 +106,11 @@ export function V70CampaignIdentity() {
         aria-label="Identidad del proyecto político"
       >
         <div className="candidate-photo-wrap">
-          <i aria-label={`Perfil de ${candidateName}`}>NA</i>
+          {candidatePhotoUrl ? (
+            <img src={candidatePhotoUrl} alt={`Fotografía de ${candidateName}`} />
+          ) : (
+            <i aria-label={`Perfil de ${candidateName}`}>NA</i>
+          )}
           <span>PERFIL DE CAMPAÑA</span>
         </div>
         <div className="candidate-copy">

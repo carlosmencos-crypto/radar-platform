@@ -49,7 +49,7 @@ test("0509 Inteligencia restores the canonical municipio-360 shell and export su
     "Guardar como PDF",
   ]) assert.ok(exporter.includes(phrase), `Missing canonical municipio-360 export copy: ${phrase}`);
 
-  assert.ok(exporter.includes("/reporte/municipio-360?"), "Canonical municipio-360 report route is missing.");
+  assert.ok(exporter.includes("import.meta.env.BASE_URL") && exporter.includes("reporte/municipio-360?"), "Canonical municipio-360 report route must retain the deployed base path.");
   assert.ok(exporter.includes('"CORPORACION_MUNICIPAL"'), "Canonical default Alcaldía election context is missing.");
   assert.ok(!exporter.includes("createPortal"));
   assert.ok(!exporter.includes("querySelector"));

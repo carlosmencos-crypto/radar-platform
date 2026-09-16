@@ -139,6 +139,10 @@ type ExternalPlace = {
 };
 type ActivityPoint = { lat: number; lon: number; label: string };
 
+function distanceKm(a: LatLng, b: LatLng) {
+  return Math.hypot((a[0] - b[0]) * 111, (a[1] - b[1]) * 108);
+}
+
 const fmt = new Intl.NumberFormat("es-GT");
 const mapActivityTypes = [
   "VISITA",
@@ -347,6 +351,8 @@ export function V70OperationalMap() {
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [dateWindow, setDateWindow] = useState("mes");
+  const [statusFilter, setStatusFilter] = useState("TODOS");
+  const [responsibleFilter, setResponsibleFilter] = useState("TODOS");
   const [createMode, setCreateMode] = useState(false);
   const [selectedCommunity, setSelectedCommunity] =
     useState<CommunityPoint | null>(null);
@@ -389,7 +395,10 @@ export function V70OperationalMap() {
     [voterCommunities, geoBundle, centers, runtime?.geo.bbox],
   );
   const topCommunities = useMemo(
-    () => mappedCommunities.slice(0, 13),
+    () =>
+      [...mappedCommunities].sort(
+        (a, b) => b.elector_count - a.elector_count,
+      ),
     [mappedCommunities],
   );
   const searchSuggestions = useMemo(() => {
@@ -456,10 +465,10 @@ export function V70OperationalMap() {
   }, [centers, geoBundle?.features, query]);
   const visibleCommunityList = useMemo(() => {
     const term = normalize(query);
-    if (!term) return topCommunities.slice(0, 7);
+    if (!term) return topCommunities;
     return mappedCommunities
       .filter((item) => normalize(item.community_label).includes(term))
-      .slice(0, 7);
+      .slice(0, 20);
   }, [mappedCommunities, query, topCommunities]);
   const priorityCenters = useMemo(
     () =>
@@ -469,17 +478,26 @@ export function V70OperationalMap() {
     [centers],
   );
   const visibleActivities = useMemo(() => {
-    const now = Date.now();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = today.getTime();
     const horizon = dateWindow === "hoy" ? 1 : dateWindow === "semana" ? 7 : dateWindow === "mes" ? 30 : null;
     return activities.filter((activity) => {
       if (activity.latitude === null || activity.longitude === null) return false;
+      if (activity.status.toUpperCase() === "CANCELADA") return false;
+      if (statusFilter !== "TODOS" && activity.status.toUpperCase() !== statusFilter) return false;
+      const responsible = String(activity.details?.responsible || "");
+      if (responsibleFilter !== "TODOS" && responsible !== responsibleFilter) return false;
       if (!activityTypes.includes(activity.activity_type || "OTRA")) return false;
       if (!horizon || !activity.starts_at) return true;
       const when = new Date(activity.starts_at).getTime();
-      if (dateWindow === "hoy") return when >= new Date().setHours(0, 0, 0, 0) && when < new Date().setHours(24, 0, 0, 0);
-      return when >= now - horizon * 86400000 && when <= now + horizon * 86400000;
+      return when >= start && when < start + horizon * 86400000;
     });
-  }, [activities, activityTypes, dateWindow]);
+  }, [activities, activityTypes, dateWindow, responsibleFilter, statusFilter]);
+  const activityResponsibles = useMemo(
+    () => [...new Set(activities.map((activity) => String(activity.details?.responsible || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es")),
+    [activities],
+  );
 
   useEffect(() => {
     const term = query.trim();
@@ -755,8 +773,18 @@ export function V70OperationalMap() {
       <em>{layers[key] ? "✓" : "—"}</em>
     </button>
   );
-  const coveredCommunities = new Set(activities.map((item) => normalize(item.community || "")).filter(Boolean));
-  const zonesWithoutCoverage = Math.max(topCommunities.length - coveredCommunities.size, 0);
+  const zonesWithoutCoverage = centers.filter((center) => {
+    if (center.lat === null || center.lon === null) return true;
+    return !visibleActivities.some(
+      (activity) =>
+        activity.latitude !== null &&
+        activity.longitude !== null &&
+        distanceKm(
+          [center.lat as number, center.lon as number],
+          [activity.latitude, activity.longitude],
+        ) < 1.5,
+    );
+  }).length;
 
   return (
     <>
@@ -893,19 +921,20 @@ export function V70OperationalMap() {
             <div className="map-filter-grid horizontal">
               <label>
                 <span>Estado</span>
-                <select defaultValue="TODOS">
+                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                   <option value="TODOS">Todos</option>
                   <option>PLANIFICADA</option>
                   <option>CONFIRMADA</option>
                   <option>EN CURSO</option>
-                  <option>Concluidas</option>
+                  <option value="CONCLUIDA">Concluidas</option>
                   <option>CANCELADA</option>
                 </select>
               </label>
               <label>
                 <span>Responsable</span>
-                <select defaultValue="TODOS">
+                <select value={responsibleFilter} onChange={(event) => setResponsibleFilter(event.target.value)}>
                   <option value="TODOS">Todos</option>
+                  {activityResponsibles.map((responsible) => <option key={responsible} value={responsible}>{responsible}</option>)}
                 </select>
               </label>
             </div>

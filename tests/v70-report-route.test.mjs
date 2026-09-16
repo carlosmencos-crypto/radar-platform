@@ -20,8 +20,8 @@ test("0509 report actions resolve to an authorized V70 executive-report surface"
   assert.ok(gate.includes('ensureRadarAccessToken()'), "Report route does not verify the active RADAR session.");
   assert.ok(gate.includes('resolveAuthorizedRadarConsumer("0509", accessToken)'), "Report route does not verify authorized 0509 context.");
   assert.ok(gate.includes('<V70DirectReport0509 />'), "Authorized gate does not render the canonical report.");
-  assert.ok(builder.includes('/reporte/${encodeURIComponent(section)}?parts='), "Generic ReportBuilder destination drifted.");
-  assert.ok(exporter.includes('/reporte/municipio-360?'), "Municipio-360 report destination drifted.");
+  assert.ok(builder.includes('import.meta.env.BASE_URL') && builder.includes('reporte/${encodeURIComponent(section)}?parts='), "Generic ReportBuilder must retain the deployed base path.");
+  assert.ok(exporter.includes('import.meta.env.BASE_URL') && exporter.includes('reporte/municipio-360?'), "Municipio-360 report must retain the deployed base path.");
 
   for (const phrase of [
     "report-shell",

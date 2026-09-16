@@ -636,3 +636,33 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
 .strategy-direct-form label>span{display:flex;align-items:center;justify-content:space-between;gap:8px}.strategy-ai-help{border:1px solid color-mix(in srgb,var(--radar-petroleo) 30%,var(--line));border-radius:999px;padding:4px 7px;background:color-mix(in srgb,var(--radar-petroleo) 6%,var(--white));color:var(--radar-petroleo);font-size:7px;font-weight:850}.strategy-ai-help:hover{background:var(--radar-petroleo);color:#fff}
 
 .commitment-record{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1.2fr) auto;align-items:center;gap:14px;border-top:1px solid var(--line);padding:13px 0}.commitment-record span>*{display:block}.commitment-record span small{color:var(--radar-petroleo);font-size:7px;font-weight:900}.commitment-record span b{margin:4px 0;font-size:11px}.commitment-record span em,.commitment-record p{margin:0;color:var(--radar-municipal);font-size:8px;font-style:normal}.commitment-record nav{display:flex;gap:6px}.commitment-record nav button{border:1px solid var(--line);border-radius:7px;padding:7px 8px;background:var(--white);color:var(--radar-petroleo);font-size:7px;font-weight:850}@media(max-width:760px){.commitment-record{grid-template-columns:1fr}.commitment-record nav{justify-content:flex-start}}
+.config-campaign-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.config-campaign-identity > img {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.config-campaign-identity > div {
+  display: grid;
+  min-width: 0;
+}
+
+.config-campaign-identity > div > b {
+  margin: 0;
+}
+
+.config-campaign-identity > div > span {
+  overflow: hidden;
+  margin-top: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -27,7 +27,7 @@ export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electio
     if (election) query.set("election", election.code);
     if (selected) query.set("center", selected.id);
     onClose();
-    window.open(`/reporte/municipio-360?${query.toString()}`, "_blank", "noopener,noreferrer");
+    window.open(`${import.meta.env.BASE_URL}reporte/municipio-360?${query.toString()}`, "_blank", "noopener,noreferrer");
   }
 
   return <>
