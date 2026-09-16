@@ -700,9 +700,9 @@ export function V70OperationalMap() {
           const marker = L.marker([activity.latitude, activity.longitude], {
             icon: L.divIcon({
               className: "agenda-map-marker-shell",
-              html: `<span class="agenda-map-marker" style="--activity-color:${color}">●</span>`,
-              iconSize: [34, 42],
-              iconAnchor: [17, 38],
+              html: `<svg class="agenda-map-marker" viewBox="0 0 36 42" aria-hidden="true"><path d="M18 1.5C8.9 1.5 1.5 8.9 1.5 18c0 12.2 16.5 22.5 16.5 22.5S34.5 30.2 34.5 18C34.5 8.9 27.1 1.5 18 1.5Z" fill="${color}" stroke="#fff" stroke-width="3"/><circle cx="18" cy="17" r="4.5" fill="#fff"/></svg>`,
+              iconSize: [36, 42],
+              iconAnchor: [18, 41],
             }),
           })
             .bindTooltip(`<b>${clean(activity.title)}</b><br>${clean(activity.community || "Actividad geolocalizada")}`)

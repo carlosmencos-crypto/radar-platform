@@ -64,6 +64,7 @@ test("report exports retain the deployed application base path", () => {
 
 test("map renders persisted activity points and routes", () => {
   const map = read("src/components/V70OperationalMap.tsx");
+  const styles = read("src/styles/canonical-adapter.css");
   assert.match(map, /loadCampaignBundle/);
   assert.match(map, /visibleActivities/);
   assert.match(map, /L\.polyline/);
@@ -74,6 +75,8 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /setStatusFilter/);
   assert.match(map, /setResponsibleFilter/);
   assert.match(map, /useState\("todos"\)/);
+  assert.match(map, /viewBox="0 0 36 42"/);
+  assert.doesNotMatch(styles, /\.agenda-map-marker\{[^}]*rotate\(-45deg\)/);
 });
 
 test("Día D consumes CRM fiscales and persists JRV assignments", () => {
