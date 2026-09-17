@@ -115,13 +115,21 @@ const logisticsEntryGroups = [
   ["TRANSPORTE_ELECTORES", "Transporte", "Fiscales, electores, recursos u otro"],
   ["ALIMENTACION", "Alimentación", "Tiempos, personas y entrega"],
   ["DATOS_MOVILES", "Datos móviles", "Números, responsables y recargas"],
-  ["KIT_ELECTORAL", "Kits electorales", "Material para cada fiscal"],
+  ["KIT_ELECTORAL", "Kits electorales", "Material de cada fiscal"],
   ["EQUIPO_CENTRO", "Equipo del centro", "Respaldo operativo por centro"],
   ["OTRA_PREVISION", "Nueva previsión", "Cualquier necesidad adicional"],
 ] as const;
 const transportCategories = ["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES", "TRANSPORTE_RECURSOS", "OTRO_TRANSPORTE"];
+const logisticsFilterGroups = [
+  ["TRANSPORTE", "Transporte"],
+  ["ALIMENTACION", "Alimentación"],
+  ["DATOS_MOVILES", "Datos móviles"],
+  ["KIT_ELECTORAL", "Kits electorales"],
+  ["EQUIPO_CENTRO", "Equipo de centros de votación"],
+  ["OTROS", "Otros"],
+] as const;
 const logisticsChecklists: Record<string, string[]> = {
-  KIT_ELECTORAL: ["Credencial", "Tabla de apoyo", "Lapiceros", "Marcadores", "Cinta adhesiva", "Batería externa", "Agua", "Contactos de emergencia"],
+  KIT_ELECTORAL: ["Lapiceros", "Gafete", "Capa para lluvia", "Tabla de hojas", "Checklist impreso", "Hoja de contactos", "Bolsa"],
   EQUIPO_CENTRO: ["Cargadores y power banks", "Botiquín", "Agua", "Linternas", "Extensiones eléctricas", "Copias de contactos y JRV", "Cinta adhesiva y marcadores", "Bolsas impermeables", "Baterías de respaldo"],
 };
 
@@ -201,8 +209,11 @@ function DayDContent() {
   const [logisticsStatusFilter, setLogisticsStatusFilter] = useState("all");
   const [logisticsForm, setLogisticsForm] = useState({
     category: "TRANSPORTE_ELECTORES",
+    subtype: "",
     title: "",
     center_id: "",
+    center_ids: [] as string[],
+    other_location: false,
     responsible_id: "",
     scheduled_at: "",
     quantity: "",
@@ -327,15 +338,18 @@ function DayDContent() {
   }
   function beginLogistics(category = "TRANSPORTE_ELECTORES") {
     setEditingLogistics(null);
-    setLogisticsForm({ category, title: "", center_id: "", responsible_id: "", scheduled_at: "", quantity: "", estimated_cost: "", status: "PLANIFICADO", community: "", driver_id: "", supplier_id: "", beneficiary_id: "", resource_record_id: "", budget_record_id: "", capacity: "", departure_at: "", return_at: "", meal_times: "", characteristics: "", recipients: "", delivery_method: "", mobile_carrier: "TIGO", recharge_at: "", recharge_amount: "", checklist: [...(logisticsChecklists[category] ?? [])], generic_elements: "", route_notes: "", notes: "" });
+    setLogisticsForm({ category, subtype: category === "ALIMENTACION" ? "DESAYUNO" : category === "KIT_ELECTORAL" ? "Kits para fiscales" : category === "EQUIPO_CENTRO" ? "Equipo de Centro de Votación" : "", title: "", center_id: "", center_ids: [], other_location: false, responsible_id: "", scheduled_at: "", quantity: category === "DATOS_MOVILES" ? "1" : "", estimated_cost: "", status: "PLANIFICADO", community: "", driver_id: "", supplier_id: "", beneficiary_id: "", resource_record_id: "", budget_record_id: "", capacity: "", departure_at: "", return_at: "", meal_times: "", characteristics: "", recipients: "", delivery_method: "", mobile_carrier: "TIGO", recharge_at: "", recharge_amount: "", checklist: [...(logisticsChecklists[category] ?? [])], generic_elements: "", route_notes: "", notes: "" });
     setLogisticsOpen(true);
   }
   function editLogistics(record: CampaignModuleRecord) {
     setEditingLogistics(record.id);
     setLogisticsForm({
       category: String(record.payload.category || "TRANSPORTE_ELECTORES"),
+      subtype: String(record.payload.subtype || ""),
       title: record.title,
       center_id: String(record.payload.center_id || ""),
+      center_ids: Array.isArray(record.payload.center_ids) ? record.payload.center_ids.map(String) : record.payload.center_id ? [String(record.payload.center_id)] : [],
+      other_location: Boolean(record.payload.other_location),
       responsible_id: String(record.payload.responsible_id || ""),
       scheduled_at: String(record.payload.scheduled_at || "").slice(0, 16),
       quantity: String(record.payload.quantity || ""),
@@ -364,19 +378,28 @@ function DayDContent() {
     });
     setLogisticsOpen(true);
   }
+  function toggleLogisticsCenter(centerId: string, checked: boolean) {
+    setLogisticsForm((current) => {
+      const centerIds = checked
+        ? [...new Set([...current.center_ids, centerId])]
+        : current.center_ids.filter((id) => id !== centerId);
+      return { ...current, center_ids: centerIds, center_id: centerIds[0] ?? "" };
+    });
+  }
   async function saveLogistics(event: FormEvent) {
     event.preventDefault();
     if (!campaign_id) return;
     setSaving(true); setMessage("");
     try {
       const token = await ensureRadarAccessToken();
-      const center = centers.find((item) => item.id === logisticsForm.center_id);
+      const selectedCenters = centers.filter((item) => logisticsForm.center_ids.includes(item.id));
+      const center = selectedCenters[0] ?? centers.find((item) => item.id === logisticsForm.center_id);
       const responsible = contacts.find((item) => item.id === logisticsForm.responsible_id);
       const saved = await saveCampaignRecord(campaign_id, {
         module_key: "dia-d", category: "LOGISTICA",
         title: logisticsForm.title.trim() || logisticsCategories.find(([key]) => key === logisticsForm.category)?.[1] || "Previsión logística",
         details: logisticsForm.notes || null, status: logisticsForm.status,
-        payload: { ...logisticsForm, quantity: Number(logisticsForm.quantity || 0), estimated_cost: Number(logisticsForm.estimated_cost || 0), capacity: Number(logisticsForm.capacity || 0), recharge_amount: Number(logisticsForm.recharge_amount || 0), generic_elements: logisticsForm.generic_elements.split(/[,;\n]+/).map((item) => item.trim()).filter(Boolean), center_name: center?.name || null, responsible_name: responsible?.full_name || null, driver_name: contacts.find((item) => item.id === logisticsForm.driver_id)?.full_name || null, supplier_name: contacts.find((item) => item.id === logisticsForm.supplier_id)?.full_name || null, beneficiary_name: contacts.find((item) => item.id === logisticsForm.beneficiary_id)?.full_name || null },
+        payload: { ...logisticsForm, center_id: center?.id || "", center_ids: selectedCenters.map((item) => item.id), center_names: selectedCenters.map((item) => item.name), quantity: Number(logisticsForm.quantity || 0), estimated_cost: Number(logisticsForm.estimated_cost || 0), capacity: Number(logisticsForm.capacity || 0), recharge_amount: Number(logisticsForm.recharge_amount || 0), generic_elements: logisticsForm.generic_elements.split(/[,;\n]+/).map((item) => item.trim()).filter(Boolean), center_name: selectedCenters.length ? selectedCenters.map((item) => item.name).join(" · ") : center?.name || null, responsible_name: responsible?.full_name || null, driver_name: contacts.find((item) => item.id === logisticsForm.driver_id)?.full_name || null, supplier_name: contacts.find((item) => item.id === logisticsForm.supplier_id)?.full_name || null, beneficiary_name: contacts.find((item) => item.id === logisticsForm.beneficiary_id)?.full_name || null },
       }, token, editingLogistics);
       setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
       setLogisticsOpen(false); setEditingLogistics(null); setMessage("Previsión logística guardada.");
@@ -403,8 +426,11 @@ function DayDContent() {
     });
   const visibleLogisticsRows = logisticsRows.filter((record) => {
     const category = String(record.payload.category || "");
-    return (logisticsFilter === "all" || category === logisticsFilter) &&
-      (logisticsCenterFilter === "all" || String(record.payload.center_id || "") === logisticsCenterFilter) &&
+    const categoryMatches = logisticsFilter === "all" ||
+      (logisticsFilter === "TRANSPORTE" ? transportCategories.includes(category) : logisticsFilter === "OTROS" ? category === "OTRA_PREVISION" : category === logisticsFilter);
+    const recordCenterIds = Array.isArray(record.payload.center_ids) ? record.payload.center_ids.map(String) : [String(record.payload.center_id || "")];
+    return categoryMatches &&
+      (logisticsCenterFilter === "all" || recordCenterIds.includes(logisticsCenterFilter)) &&
       (logisticsStatusFilter === "all" || record.status === logisticsStatusFilter);
   });
   const transportPlans = logisticsRows.filter((record) => ["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES"].includes(String(record.payload.category || "")));
@@ -475,7 +501,7 @@ function DayDContent() {
           <label>
             <span>Responsable del centro</span>
             <select value={centerResponsibleId} onChange={(event) => setCenterResponsibleId(event.target.value)}>
-              <option value="">Responsable del CRM…</option>
+              <option value="">Fiscal del CRM…</option>
               {fiscalContacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.community ? ` · ${person.community}` : ""}</option>)}
             </select>
           </label>
@@ -483,7 +509,7 @@ function DayDContent() {
             <span>JRV del centro</span>
             <select value={selectedJrv} onChange={(event) => { setSelectedJrv(event.target.value); const current = selectedCenter ? assignmentFor(selectedCenter.id, event.target.value) : undefined; setFiscalId(current ? String(current.payload.fiscal_id || "") : ""); }}>
               <option value="">Seleccionar…</option>
-              {selectedCenterJrvs.map((jrv) => <option key={jrv} value={jrv}>JRV {jrv}</option>)}
+              {selectedCenterJrvs.map((jrv) => <option key={jrv} value={jrv}>{jrv}</option>)}
             </select>
           </label>
           <label>
@@ -670,51 +696,52 @@ function DayDContent() {
         ))}
       </div>
       {message ? <p className="agenda-message" role="status">{message}</p> : null}
-      <div className="day-d-filters logistics-filters"><label><span>Tipo</span><select value={logisticsFilter} onChange={(event) => setLogisticsFilter(event.target.value)}><option value="all">Todos</option>{logisticsCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label><span>Centro</span><select value={logisticsCenterFilter} onChange={(event) => setLogisticsCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label><label><span>Estado</span><select value={logisticsStatusFilter} onChange={(event) => setLogisticsStatusFilter(event.target.value)}><option value="all">Todos</option><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label></div>
+      <div className="day-d-filters logistics-filters"><label><span>Tipo</span><select value={logisticsFilter} onChange={(event) => setLogisticsFilter(event.target.value)}><option value="all">Todos</option>{logisticsFilterGroups.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label><span>Centro</span><select value={logisticsCenterFilter} onChange={(event) => setLogisticsCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label><label><span>Estado</span><select value={logisticsStatusFilter} onChange={(event) => setLogisticsStatusFilter(event.target.value)}><option value="all">Todos</option><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label></div>
       <div className="logistics-plan-list">{visibleLogisticsRows.length ? visibleLogisticsRows.map((record) => <article key={record.id}><header><span><small>{logisticsCategories.find(([key]) => key === record.payload.category)?.[1] || "PREVISIÓN"}</small><b>{record.title}</b><em>{String(record.payload.center_name || "Cobertura general")}</em></span><strong className={record.status.toLocaleLowerCase("es")}>{record.status.replaceAll("_", " ")}</strong></header><div className="logistics-plan-facts"><span><small>Responsable</small><b>{String(record.payload.responsible_name || "Sin asignar")}</b></span><span><small>Fecha</small><b>{record.payload.scheduled_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(record.payload.scheduled_at))) : "Sin programar"}</b></span><span><small>Cantidad</small><b>{String(record.payload.quantity || 0)}</b></span><span><small>Costo estimado</small><b>{new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" }).format(Number(record.payload.estimated_cost || 0))}</b></span></div>{record.details ? <p>{record.details}</p> : null}<footer><span /><button type="button" onClick={() => editLogistics(record)}>Editar</button><button className="danger" type="button" onClick={() => void removeLogistics(record)}>Eliminar</button></footer></article>) : <div className="agenda-empty"><b>No hay previsiones con estos filtros.</b><span>Crea la primera orden logística de Día D.</span><button type="button" onClick={() => beginLogistics()}>Crear previsión</button></div>}</div>
       {logisticsOpen ? <div className="agenda-modal" role="dialog" aria-modal="true">
         <form className="logistics-modal" onSubmit={saveLogistics}>
           <header><div><small>LOGÍSTICA</small><h2>{editingLogistics ? "Editar previsión" : transportCategories.includes(logisticsForm.category) ? "Transporte" : logisticsForm.category === "ALIMENTACION" ? "Alimentación" : logisticsForm.category === "DATOS_MOVILES" ? "Recarga de datos móviles" : logisticsForm.category === "KIT_ELECTORAL" ? "Kits Electorales" : logisticsForm.category === "EQUIPO_CENTRO" ? "Equipo de Centros de Votación" : "Nueva previsión"}</h2></div><button type="button" aria-label="Cerrar" onClick={() => setLogisticsOpen(false)}>×</button></header>
           <div className="logistics-form-grid">
-            <label><span>Tipo *</span><select value={logisticsForm.category} onChange={(event) => { const category = event.target.value; setLogisticsForm({ ...logisticsForm, category, checklist: [...(logisticsChecklists[category] ?? [])] }); }}>{logisticsCategories.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+            {transportCategories.includes(logisticsForm.category) ? <label><span>Tipo *</span><select value={logisticsForm.category} onChange={(event) => setLogisticsForm({ ...logisticsForm, category: event.target.value })}>{logisticsCategories.filter(([value]) => transportCategories.includes(value)).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label> : null}
+            {logisticsForm.category === "ALIMENTACION" ? <label><span>Tipo</span><select value={logisticsForm.subtype || "DESAYUNO"} onChange={(event) => setLogisticsForm({ ...logisticsForm, subtype: event.target.value })}>{["DESAYUNO", "ALMUERZO", "CENA", "REFACCIÓN", "OTRO"].map((item) => <option key={item}>{item}</option>)}</select></label> : null}
+            {logisticsForm.category === "DATOS_MOVILES" ? <label><span>Empresa</span><select value={logisticsForm.mobile_carrier} onChange={(event) => setLogisticsForm({ ...logisticsForm, mobile_carrier: event.target.value })}><option>TIGO</option><option>CLARO</option></select></label> : null}
+            {logisticsForm.category === "KIT_ELECTORAL" ? <label><span>Tipo</span><select value={logisticsForm.subtype || "Kits para fiscales"} onChange={(event) => setLogisticsForm({ ...logisticsForm, subtype: event.target.value })}><option>Kits para fiscales</option><option>Otro</option></select></label> : null}
+            {logisticsForm.category === "EQUIPO_CENTRO" ? <label><span>Tipo</span><select value={logisticsForm.subtype || "Equipo de Centro de Votación"} onChange={(event) => setLogisticsForm({ ...logisticsForm, subtype: event.target.value })}><option>Equipo de Centro de Votación</option><option>Otro</option></select></label> : null}
+            {logisticsForm.category === "OTRA_PREVISION" ? <label><span>Tipo</span><input value={logisticsForm.subtype} onChange={(event) => setLogisticsForm({ ...logisticsForm, subtype: event.target.value })} placeholder="Escribe el tipo" /></label> : null}
             <label><span>Estado</span><select value={logisticsForm.status} onChange={(event) => setLogisticsForm({ ...logisticsForm, status: event.target.value })}><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label>
-            <label className="wide"><span>Nombre de la previsión *</span><input required value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} placeholder="Ej. Ruta Arizona → Escuela Oficial" /></label>
-            <label><span>Centro de votación</span><select value={logisticsForm.center_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, center_id: event.target.value })}><option value="">Cobertura general</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
-            <label><span>Comunidad / referencia</span><input value={logisticsForm.community} onChange={(event) => setLogisticsForm({ ...logisticsForm, community: event.target.value })} /></label>
-            <label><span>Responsable CRM</span><select value={logisticsForm.responsible_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, responsible_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
+            {logisticsForm.category === "DATOS_MOVILES" ? <label className="wide"><span>Motivo de recarga *</span><input required value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} /></label> : logisticsForm.category === "OTRA_PREVISION" ? <label className="wide"><span>Descripción</span><input value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} /></label> : ["KIT_ELECTORAL", "EQUIPO_CENTRO"].includes(logisticsForm.category) ? null : <label className="wide"><span>Título *</span><input required value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} /></label>}
+            <fieldset className="wide logistics-checklist logistics-center-picker"><legend>Centro(s) de votación asignado(s){["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES", "TRANSPORTE_RECURSOS", "OTRO_TRANSPORTE", "ALIMENTACION", "KIT_ELECTORAL", "EQUIPO_CENTRO"].includes(logisticsForm.category) ? " *" : ""}</legend>{centers.map((center) => { const responsible = centerResponsible(center.id); return <label key={center.id}><input type="checkbox" checked={logisticsForm.center_ids.includes(center.id)} onChange={(event) => toggleLogisticsCenter(center.id, event.target.checked)} /><span>{displayCenterName(center.name)}{logisticsForm.category === "EQUIPO_CENTRO" ? ` · ${responsible || "Responsable pendiente"}` : ""}</span></label>; })}</fieldset>
+            {[...transportCategories, "DATOS_MOVILES"].includes(logisticsForm.category) ? <label className="wide logistics-other-location"><span><input type="checkbox" checked={logisticsForm.other_location} onChange={(event) => setLogisticsForm({ ...logisticsForm, other_location: event.target.checked })} /> Otro lugar</span></label> : null}
+            {!(["KIT_ELECTORAL", "EQUIPO_CENTRO"].includes(logisticsForm.category)) ? <label className="wide"><span>Comunidades o referencia</span><input value={logisticsForm.community} onChange={(event) => setLogisticsForm({ ...logisticsForm, community: event.target.value })} /></label> : null}
+            <label><span>Responsable (CRM)</span><select value={logisticsForm.responsible_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, responsible_id: event.target.value })}><option value="">Seleccionar…</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
             <label><span>Fecha y hora</span><input type="datetime-local" value={logisticsForm.scheduled_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, scheduled_at: event.target.value })} /></label>
             {transportCategories.includes(logisticsForm.category) ? <>
-              <label><span>Piloto CRM</span><select value={logisticsForm.driver_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, driver_id: event.target.value })}><option value="">Seleccionar…</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.phone ? ` · ${person.phone}` : ""}</option>)}</select></label>
-              <label><span>Vehículo de Recursos</span><select value={logisticsForm.resource_record_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, resource_record_id: event.target.value })}><option value="">Seleccionar…</option>{resources.filter((record) => /veh[ií]culo|transporte/i.test(`${record.category} ${record.title}`)).map((record) => <option key={record.id} value={record.id}>{record.title}</option>)}</select></label>
-              <label><span>Personas / unidades previstas</span><input type="number" min="0" value={logisticsForm.quantity} onChange={(event) => setLogisticsForm({ ...logisticsForm, quantity: event.target.value })} /></label>
-              <label><span>Capacidad del vehículo</span><input type="number" min="0" value={logisticsForm.capacity} onChange={(event) => setLogisticsForm({ ...logisticsForm, capacity: event.target.value })} /></label>
-              <label><span>Hora de salida</span><input type="time" value={logisticsForm.departure_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, departure_at: event.target.value })} /></label>
-              <label><span>Retorno previsto</span><input type="time" value={logisticsForm.return_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, return_at: event.target.value })} /></label>
-              <label className="wide"><span>Ruta, paradas y contingencia</span><textarea rows={3} value={logisticsForm.route_notes} onChange={(event) => setLogisticsForm({ ...logisticsForm, route_notes: event.target.value })} /></label>
+              <label><span>Piloto (CRM)</span><select value={logisticsForm.driver_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, driver_id: event.target.value })}><option value="">Seleccionar…</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}{person.phone ? ` · ${person.phone}` : ""}</option>)}</select></label>
+              <label><span>Vehículo (Recursos)</span><select value={logisticsForm.resource_record_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, resource_record_id: event.target.value })}><option value="">Seleccionar…</option>{resources.filter((record) => /veh[ií]culo|transporte/i.test(`${record.category} ${record.title}`)).map((record) => <option key={record.id} value={record.id}>{record.title}</option>)}</select></label>
+              <label className="wide"><span>Posibles rutas y paradas</span><textarea rows={3} value={logisticsForm.route_notes} onChange={(event) => setLogisticsForm({ ...logisticsForm, route_notes: event.target.value })} /></label>
             </> : null}
             {logisticsForm.category === "ALIMENTACION" ? <>
-              <label><span>Proveedor (CRM)</span><select value={logisticsForm.supplier_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, supplier_id: event.target.value })}><option value="">Seleccionar…</option>{contacts.filter((person) => /proveedor/i.test(person.contact_type || "")).map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
+              <label><span>Proveedor (CRM)</span><select value={logisticsForm.supplier_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, supplier_id: event.target.value })}><option value="">Seleccionar…</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
               <label><span>Porciones</span><input type="number" min="0" value={logisticsForm.quantity} onChange={(event) => setLogisticsForm({ ...logisticsForm, quantity: event.target.value })} /></label>
-              <label><span>Tiempos de comida</span><input value={logisticsForm.meal_times} onChange={(event) => setLogisticsForm({ ...logisticsForm, meal_times: event.target.value })} placeholder="Desayuno, almuerzo, cena" /></label>
-              <label><span>Para quiénes</span><input value={logisticsForm.recipients} onChange={(event) => setLogisticsForm({ ...logisticsForm, recipients: event.target.value })} /></label>
               <label className="wide"><span>Características</span><textarea rows={2} value={logisticsForm.characteristics} onChange={(event) => setLogisticsForm({ ...logisticsForm, characteristics: event.target.value })} placeholder="Menú, restricciones alimentarias, empaque…" /></label>
+              <label className="wide"><span>Para quiénes</span><input value={logisticsForm.recipients} onChange={(event) => setLogisticsForm({ ...logisticsForm, recipients: event.target.value })} placeholder="Fiscales, pilotos, equipo" /></label>
               <label className="wide"><span>Método de entrega</span><textarea rows={2} value={logisticsForm.delivery_method} onChange={(event) => setLogisticsForm({ ...logisticsForm, delivery_method: event.target.value })} /></label>
             </> : null}
             {logisticsForm.category === "DATOS_MOVILES" ? <>
-              <label><span>Empresa</span><select value={logisticsForm.mobile_carrier} onChange={(event) => setLogisticsForm({ ...logisticsForm, mobile_carrier: event.target.value })}><option>TIGO</option><option>CLARO</option></select></label>
-              <label><span>Fiscal / número CRM</span><select value={logisticsForm.beneficiary_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, beneficiary_id: event.target.value })}><option value="">Seleccionar…</option>{fiscalContacts.filter((person) => person.phone).map((person) => <option key={person.id} value={person.id}>{person.phone} · {person.full_name}</option>)}</select></label>
               <label><span>Cantidad de recargas</span><input type="number" min="1" value={logisticsForm.quantity} onChange={(event) => setLogisticsForm({ ...logisticsForm, quantity: event.target.value })} /></label>
-              <label><span>Monto por recarga (Q)</span><input type="number" min="0" step="0.01" value={logisticsForm.recharge_amount} onChange={(event) => setLogisticsForm({ ...logisticsForm, recharge_amount: event.target.value })} /></label>
+              <label><span>Monto de recarga (Q)</span><input type="number" min="0" step="0.01" value={logisticsForm.recharge_amount} onChange={(event) => setLogisticsForm({ ...logisticsForm, recharge_amount: event.target.value })} /></label>
               <label><span>Fecha y hora de recarga</span><input type="datetime-local" value={logisticsForm.recharge_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, recharge_at: event.target.value })} /></label>
+              <label><span>Fiscal CRM</span><select value={logisticsForm.beneficiary_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, beneficiary_id: event.target.value })}><option value="">Escribe nombre o teléfono del fiscal…</option>{fiscalContacts.filter((person) => person.phone).map((person) => <option key={person.id} value={person.id}>{person.full_name} · {person.phone}</option>)}</select></label>
             </> : null}
             {["KIT_ELECTORAL", "EQUIPO_CENTRO"].includes(logisticsForm.category) ? <>
+              {logisticsForm.category === "KIT_ELECTORAL" ? <label><span>Fiscal CRM</span><select value={logisticsForm.beneficiary_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, beneficiary_id: event.target.value })}><option value="">Escribe fiscal, JRV o centro…</option>{fiscalContacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label> : null}
               <label><span>Cantidad de kits / centros</span><input type="number" min="0" value={logisticsForm.quantity} onChange={(event) => setLogisticsForm({ ...logisticsForm, quantity: event.target.value })} /></label>
-              <fieldset className="wide logistics-checklist"><legend>Elementos previstos</legend>{(logisticsChecklists[logisticsForm.category] ?? []).map((item) => <label key={item}><input type="checkbox" checked={logisticsForm.checklist.includes(item)} onChange={(event) => setLogisticsForm({ ...logisticsForm, checklist: event.target.checked ? [...logisticsForm.checklist, item] : logisticsForm.checklist.filter((entry) => entry !== item) })} /><span>{item}</span></label>)}</fieldset>
+              <fieldset className="wide logistics-checklist"><legend>Elementos previstos</legend>{(logisticsChecklists[logisticsForm.category] ?? []).map((item) => <label key={item}><input type="checkbox" checked={logisticsForm.checklist.includes(item)} onChange={(event) => setLogisticsForm({ ...logisticsForm, checklist: event.target.checked ? [...logisticsForm.checklist, item] : logisticsForm.checklist.filter((entry) => entry !== item) })} /><span>{item}</span></label>)}<label><input type="checkbox" checked={logisticsForm.checklist.includes("Otro")} onChange={(event) => setLogisticsForm({ ...logisticsForm, checklist: event.target.checked ? [...logisticsForm.checklist, "Otro"] : logisticsForm.checklist.filter((entry) => entry !== "Otro") })} /><span>Otro</span></label></fieldset>
             </> : null}
-            {logisticsForm.category === "OTRA_PREVISION" ? <label className="wide"><span>Elementos (separados por coma)</span><textarea rows={2} value={logisticsForm.generic_elements} onChange={(event) => setLogisticsForm({ ...logisticsForm, generic_elements: event.target.value })} /></label> : null}
-            <label><span>Presupuesto de Finanzas</span><select value={logisticsForm.budget_record_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, budget_record_id: event.target.value })}><option value="">Sin vincular</option>{financeRecords.filter((record) => record.category === "Presupuesto" && record.status !== "ARCHIVADO").map((record) => <option key={record.id} value={record.id}>{record.title}</option>)}</select></label>
+            {logisticsForm.category === "OTRA_PREVISION" ? <label className="wide"><span>Elementos</span><textarea rows={2} value={logisticsForm.generic_elements} onChange={(event) => setLogisticsForm({ ...logisticsForm, generic_elements: event.target.value })} placeholder="Escribe un elemento" /></label> : null}
+            <label><span>Presupuesto vinculado</span><select value={logisticsForm.budget_record_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, budget_record_id: event.target.value })}><option value="">Sin vincular</option>{financeRecords.filter((record) => record.category === "Presupuesto" && record.status !== "ARCHIVADO").map((record) => <option key={record.id} value={record.id}>{record.title}</option>)}</select></label>
             <label><span>Costo estimado (Q)</span><input type="number" min="0" step="0.01" value={logisticsForm.estimated_cost} onChange={(event) => setLogisticsForm({ ...logisticsForm, estimated_cost: event.target.value })} /></label>
-            <label className="wide"><span>Notas operativas</span><textarea rows={3} value={logisticsForm.notes} onChange={(event) => setLogisticsForm({ ...logisticsForm, notes: event.target.value })} /></label>
+            <label className="wide"><span>Notas</span><textarea rows={3} value={logisticsForm.notes} onChange={(event) => setLogisticsForm({ ...logisticsForm, notes: event.target.value })} /></label>
           </div>
           <footer><button type="button" onClick={() => setLogisticsOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar previsión"}</button></footer>
         </form>

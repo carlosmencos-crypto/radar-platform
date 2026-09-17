@@ -15,6 +15,10 @@ test("candidate documents open the individual V70 legal dossier", () => {
   assert.match(strategy, /candidate-upload-grid/);
   assert.match(strategy, /uploadCampaignVaultFile/);
   assert.match(strategy, /file_path/);
+  assert.match(strategy, /categories: \["Requisitos", "Actas", "Documentos", "Plantillas"\]/);
+  assert.match(strategy, /candidate \? candidate\[0\] : "LEGAL"/);
+  assert.match(strategy, /"Nombre del archivo"/);
+  assert.match(strategy, /"Ej\. Entrega del expediente del candidato"/);
 });
 
 test("directory search updates the canonical result list without an overlay", () => {
@@ -30,6 +34,9 @@ test("directory search updates the canonical result list without an overlay", ()
   assert.match(directory, /className="crm-row crm-head"/);
   assert.match(directory, /className="agenda-create-link"/);
   assert.match(directory, /createRadarXlsx/);
+  assert.match(directory, /FICHA DE CONTACTO · \{municipality_code\}-\{String\(detail\.elector\.id\)\.padStart\(6, "0"\)\}/);
+  assert.match(directory, /\{municipality_name\}/);
+  assert.match(directory, /"Guardar contacto"/);
 });
 
 test("campaign brand stays synchronized across Inicio, CRM, Communication and Legal", () => {
@@ -63,6 +70,7 @@ test("agenda routes, exports and commitments persist", () => {
   assert.match(agenda, /className="agenda-actions"/);
   assert.match(agenda, /className="agenda-print-action"/);
   assert.match(agenda, /className="agenda-delete-action"/);
+  assert.match(agenda, /value="EN_PROGRESO">EN PROGRESO/);
 });
 
 test("strategy workspaces keep the approved V70 vocabulary and functional exports", () => {
@@ -89,6 +97,8 @@ test("report exports retain the deployed application base path", () => {
   assert.match(report, /Plan de campaña y próximas actividades/);
   assert.match(report, /partyLogoUrl/);
   assert.match(report, /candidate\.photo_url/);
+  assert.match(report, /canonicalCode: member\.code/);
+  assert.match(report, /candidate\.canonicalCode/);
 });
 
 test("map renders persisted activity points and routes", () => {
@@ -129,6 +139,11 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /Rutas \/ traslados/);
   assert.match(dayD, /Porciones de comida previstas/);
   assert.match(dayD, /Recargas planificadas/);
+  assert.match(dayD, /center_ids: \[\] as string\[\]/);
+  assert.match(dayD, /Centro\(s\) de votación asignado\(s\)/);
+  assert.match(dayD, /logisticsFilterGroups/);
+  assert.match(dayD, /Material de cada fiscal/);
+  assert.match(dayD, /Fiscal del CRM…/);
 });
 
 test("responsible voter filtering stays server-side and campaign-scoped", () => {

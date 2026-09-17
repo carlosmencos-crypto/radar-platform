@@ -209,6 +209,9 @@ html[data-theme="dark"] .canonical-vault-notice {
 .report-candidate-grid>article small{color:var(--radar-petroleo);font-size:6pt;font-weight:750;letter-spacing:.08em}
 .report-candidate-grid>article b{font-size:9pt;line-height:1.25}
 .report-candidate-grid>article em{color:#52616a;font-size:7pt;font-style:normal}
+.logistics-center-picker{max-height:280px;overflow:auto}
+.logistics-other-location>span{display:flex;align-items:center;gap:8px}
+.logistics-other-location input{width:17px;height:17px;margin:0;padding:0}
 .report-metrics.compact{margin:4mm 0 7mm}
 .report-metrics.compact article{min-height:24mm;padding:4mm}
 .report-metrics.compact b{font-size:17pt}

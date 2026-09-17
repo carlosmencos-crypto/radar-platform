@@ -159,7 +159,7 @@ function readPrivateImage(file: File) {
 }
 
 function ElectorsDirectoryCanonical() {
-  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
   const communityOptions =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const initialCommunity =
@@ -739,7 +739,7 @@ function ElectorsDirectoryCanonical() {
         <div className="agenda-modal elector-modal" role="dialog" aria-modal="true">
           <section className="elector-sheet">
             <header>
-              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {detail.elector.id}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {detail.elector.municipality_name}</p></span></div>
+              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(detail.elector.id).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {municipality_name}</p></span></div>
               <button type="button" onClick={() => setDetail(null)}>×</button>
             </header>
             <div className="elector-base-data">
@@ -1239,12 +1239,12 @@ function TeamDirectoryCanonical() {
         <label><span>Correo</span><input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="nombre@correo.com" /></label>
         <label><span>Comunidad</span><input value={form.community} onChange={(event) => setForm({ ...form, community: event.target.value })} placeholder="Aldea, colonia o sector" /></label>
         <label><span>Cargo o función</span><input value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })} placeholder="Ej. Coordinadora territorial" /></label>
-        <label><span>Tipo de contacto *</span><select required value={form.contact_type} onChange={(event) => setForm({ ...form, contact_type: event.target.value, candidate_position: event.target.value === "Candidato" ? form.candidate_position : "" })}><option value="">Seleccionar…</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label><span>Tipo de contacto</span><select required value={form.contact_type} onChange={(event) => setForm({ ...form, contact_type: event.target.value, candidate_position: event.target.value === "Candidato" ? form.candidate_position : "" })}><option value="">Seleccionar…</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
         {form.contact_type === "Candidato" ? <label><span>Puesto al que se postula *</span><select required value={form.candidate_position} onChange={(event) => setForm({ ...form, candidate_position: event.target.value })}><option value="">Seleccionar candidatura…</option>{candidatePositions.map((position) => <option key={position} value={position}>{position}</option>)}</select></label> : null}
         {form.contact_type === "Fiscal" ? <aside className="crm-dayd-form-status wide"><small>ASIGNACIÓN DÍA D</small><b>{editing && assignmentFor(editing) ? `${String(assignmentFor(editing)?.payload.center_name || "Centro asignado")} · JRV ${String(assignmentFor(editing)?.payload.jrv || "—")}` : "JRV aún no asignada"}</b><span>La asignación se administra desde Día D → Centros de votación.</span></aside> : null}
         <label className="wide"><span>Notas</span><textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Información breve que ayude al equipo" /></label>
       </div>
-      {message ? <p className="form-error">{message}</p> : null}<footer>{editing ? <Link className="agenda-create-link" to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${editing}&responsible=${encodeURIComponent(`${form.first_names} ${form.last_names}`.trim())}&community=${encodeURIComponent(form.community)}`}>Crear actividad</Link> : <span />}<button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar contacto"}</button></footer>
+      {message ? <p className="form-error">{message}</p> : null}<footer>{editing ? <Link className="agenda-create-link" to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${editing}&responsible=${encodeURIComponent(`${form.first_names} ${form.last_names}`.trim())}&community=${encodeURIComponent(form.community)}`}>Crear actividad</Link> : <span />}<button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Guardar contacto"}</button></footer>
     </form></div> : null}
     {carnetPerson ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-label={`Carnet de ${carnetPerson.full_name}`}><section className="crm-carnet-modal"><header><div><small>CARNET IMPRIMIBLE</small><h2>Así se descargará</h2></div><button type="button" onClick={closeCarnet}>×</button></header><div className="crm-carnet-output">{carnetPreviewUrl ? <img src={carnetPreviewUrl} alt={`Vista final imprimible del carnet de ${carnetPerson.full_name}`} /> : <span>Preparando carnet…</span>}</div><footer><button type="button" onClick={closeCarnet}>Cerrar</button><button type="button" disabled={!carnetPreviewUrl} onClick={() => void downloadOne(carnetPerson)}>Descargar PNG</button></footer></section></div> : null}
   </>;
