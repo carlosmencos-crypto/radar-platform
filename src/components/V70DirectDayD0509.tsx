@@ -80,6 +80,14 @@ function centerReference(id: string) {
 function centerCem(value: string) {
   return `CEM · ${value.replace(/^cem\s*-\s*/i, "").trim()}`;
 }
+function displayCenterName(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase("es-GT")
+    .split(/\s+/)
+    .map((word) => word ? `${word.charAt(0).toLocaleUpperCase("es-GT")}${word.slice(1)}` : word)
+    .join(" ");
+}
 function jrvNumbers(range: string, expected: number) {
   const parsed = range.split(/[;,]+/).flatMap((segment) => {
     const values = (segment.match(/\d+/g) ?? []).map(Number).filter(Number.isFinite);
@@ -104,12 +112,12 @@ const logisticsCategories = [
   ["OTRA_PREVISION", "Otra previsión", "Necesidad operativa adicional"],
 ] as const;
 const logisticsEntryGroups = [
-  ["TRANSPORTE_ELECTORES", "Transporte", "Rutas, vehículos y horarios"],
-  ["ALIMENTACION", "Alimentación", "Tiempos, porciones y entrega"],
-  ["DATOS_MOVILES", "Datos móviles", "Fiscal, empresa, monto y fecha"],
+  ["TRANSPORTE_ELECTORES", "Transporte", "Fiscales, electores, recursos u otro"],
+  ["ALIMENTACION", "Alimentación", "Tiempos, personas y entrega"],
+  ["DATOS_MOVILES", "Datos móviles", "Números, responsables y recargas"],
   ["KIT_ELECTORAL", "Kits electorales", "Material para cada fiscal"],
-  ["EQUIPO_CENTRO", "Equipo de centros de votación", "Respaldo operativo por centro"],
-  ["OTRA_PREVISION", "Otros", "Cualquier previsión adicional"],
+  ["EQUIPO_CENTRO", "Equipo del centro", "Respaldo operativo por centro"],
+  ["OTRA_PREVISION", "Nueva previsión", "Cualquier necesidad adicional"],
 ] as const;
 const transportCategories = ["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES", "TRANSPORTE_RECURSOS", "OTRO_TRANSPORTE"];
 const logisticsChecklists: Record<string, string[]> = {
@@ -400,7 +408,7 @@ function DayDContent() {
       (logisticsStatusFilter === "all" || record.status === logisticsStatusFilter);
   });
   const transportPlans = logisticsRows.filter((record) => ["TRANSPORTE_ELECTORES", "TRASLADO_FISCALES"].includes(String(record.payload.category || "")));
-  const logisticsQuantity = logisticsRows.reduce((sum, record) => sum + Number(record.payload.quantity || 0), 0);
+  const plannedMeals = logisticsRows.filter((record) => record.payload.category === "ALIMENTACION").reduce((sum, record) => sum + Number(record.payload.quantity || 0), 0);
   const plannedRecharges = logisticsRows.filter((record) => record.payload.category === "DATOS_MOVILES").length;
   const openCenter = centers.find((center) => center.id === centerOpen) ?? null;
   const mando = (
@@ -459,7 +467,7 @@ function DayDContent() {
             <select value={selectedCenterId} onChange={(event) => { setSelectedCenterId(event.target.value); setSelectedJrv(""); }}>
               {centers.map((center) => (
                 <option value={center.id} key={center.id}>
-                  {center.name}
+                  {displayCenterName(center.name)}
                 </option>
               ))}
             </select>
@@ -493,7 +501,7 @@ function DayDContent() {
           <article key={center.id}>
             <span>
               <small>REFERENCIA RADAR · {centerReference(center.id)}</small>
-              <button type="button" onClick={() => setCenterOpen(center.id)}>{center.name}</button>
+              <button type="button" onClick={() => setCenterOpen(center.id)}>{displayCenterName(center.name)}</button>
               <em>{centerCem(center.community)}</em>
             </span>
             <strong>
@@ -506,7 +514,7 @@ function DayDContent() {
       </div>
       {openCenter ? <div className="agenda-modal" role="dialog" aria-modal="true">
         <section className="day-d-center-modal">
-          <header><div><small>CENTRO DE VOTACIÓN · {centerReference(openCenter.id)}</small><h2>{openCenter.name}</h2><p>{centerCem(openCenter.community)} · JRV {openCenter.jrvRange}</p></div><button type="button" onClick={() => setCenterOpen(null)}>×</button></header>
+          <header><div><small>CENTRO DE VOTACIÓN · {centerReference(openCenter.id)}</small><h2>{displayCenterName(openCenter.name)}</h2><p>{centerCem(openCenter.community)} · JRV {openCenter.jrvRange}</p></div><button type="button" onClick={() => setCenterOpen(null)}>×</button></header>
           <div className="day-d-center-modal-summary"><span><small>Responsable</small><b>{centerResponsible(openCenter.id) || "Sin asignar"}</b></span><span><small>JRV con fiscal</small><b>{assignmentsForCenter(openCenter.id).length} de {openCenter.jrv}</b></span><span><small>Pendientes</small><b>{Math.max(openCenter.jrv - assignmentsForCenter(openCenter.id).length, 0)}</b></span><span><small>Electores 2023</small><b>{(openCenter.voters ?? 0).toLocaleString("es-GT")}</b></span></div>
           <div className="day-d-center-jrv-list"><div className="head"><span>JRV</span><span>Fiscal asignado</span><span>Estado</span><span>Acciones</span></div>{jrvNumbers(openCenter.jrvRange, openCenter.jrv).map((jrv) => { const assignment = assignmentFor(openCenter.id, jrv); return <article key={jrv}><b>{jrv}</b><span>{assignment ? String(assignment.payload.fiscal_name || assignment.details || "Fiscal") : "Sin fiscal asignado"}</span><em className={assignment ? "assigned" : "pending"}>{assignment ? "ASIGNADA" : "PENDIENTE"}</em><nav><button type="button" onClick={() => { setSelectedCenterId(openCenter.id); setSelectedJrv(String(jrv)); setFiscalId(assignment ? String(assignment.payload.fiscal_id || "") : ""); setCenterOpen(null); }}>Asignar</button>{assignment ? <button className="danger" type="button" onClick={() => void removeAssignment(assignment)}>Quitar</button> : null}</nav></article>; })}</div>
           <footer><span>Las asignaciones también aparecen en el carnet del fiscal.</span><Link to={`/municipio/${municipality_code}/mapa`}>Ver centro en el mapa</Link></footer>
@@ -558,7 +566,7 @@ function DayDContent() {
           <select value={centerFilter} onChange={(event) => setCenterFilter(event.target.value)}>
             <option value="all">Todos</option>
             {centers.map((center) => (
-              <option value={center.id} key={center.id}>{center.name}</option>
+              <option value={center.id} key={center.id}>{displayCenterName(center.name)}</option>
             ))}
           </select>
         </label>
@@ -587,7 +595,7 @@ function DayDContent() {
           <span>5 actas RTD</span>
           <span>Acceso / sincronización</span>
         </div>
-        {visibleFiscalRows.length ? visibleFiscalRows.map((record) => { const grant = grantFor(record.id); return <article key={record.id}><span><Link className="day-d-person-link" to={`/municipio/${municipality_code}/directorio?view=team&personId=${encodeURIComponent(String(record.payload.fiscal_id || ""))}`}>{String(record.payload.fiscal_name || record.details || "Fiscal")}</Link><small>{String(record.payload.center_name || "Centro")} · JRV {String(record.payload.jrv || "—")}</small>{record.payload.support_needed ? <em className="day-d-support-alert">Necesita apoyo</em> : null}</span>{dayDMark(record.payload.checked_in, "Check-in")}{dayDMark(record.payload.transport_ready, "Transporte")}{dayDMark(record.payload.food_ready, "Comida")}{dayDMark(record.payload.mobile_data_ready, "Datos")}{dayDMark(record.payload.table_closed, "Cierre")}{rtdActaProgress(record)}<span className="day-d-access-actions"><small>{record.payload.last_fiscal_sync_at ? `Sincronizado ${new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(record.payload.last_fiscal_sync_at)))}` : "Sin actividad fiscal"}</small>{grant ? <><b>Acceso activo · vence {new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(grant.payload.expires_at)))}</b><nav><button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Regenerar"}</button><button type="button" onClick={() => void changeGrantStatus(grant, "SUSPENDIDO")}>Suspender</button><button className="danger" type="button" onClick={() => void changeGrantStatus(grant, "REVOCADO")}>Revocar</button></nav></> : <button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Generar acceso"}</button>}</span></article>; }) : <p>No hay fiscales con este filtro.</p>}
+        {visibleFiscalRows.length ? visibleFiscalRows.map((record) => { const grant = grantFor(record.id); return <article key={record.id}><span><Link className="day-d-person-link" to={`/municipio/${municipality_code}/directorio?view=team&personId=${encodeURIComponent(String(record.payload.fiscal_id || ""))}`}>{String(record.payload.fiscal_name || record.details || "Fiscal")}</Link><small>{displayCenterName(String(record.payload.center_name || "Centro"))} · JRV {String(record.payload.jrv || "—")}</small>{record.payload.support_needed ? <em className="day-d-support-alert">Necesita apoyo</em> : null}</span>{dayDMark(record.payload.checked_in, "Check-in")}{dayDMark(record.payload.transport_ready, "Transporte")}{dayDMark(record.payload.food_ready, "Comida")}{dayDMark(record.payload.mobile_data_ready, "Datos")}{dayDMark(record.payload.table_closed, "Cierre")}{rtdActaProgress(record)}<span className="day-d-access-actions"><small>{record.payload.last_fiscal_sync_at ? `Sincronizado ${new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(record.payload.last_fiscal_sync_at)))}` : "Sin actividad fiscal"}</small>{grant ? <><b>Acceso activo · vence {new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(grant.payload.expires_at)))}</b><nav><button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Regenerar"}</button><button type="button" onClick={() => void changeGrantStatus(grant, "SUSPENDIDO")}>Suspender</button><button className="danger" type="button" onClick={() => void changeGrantStatus(grant, "REVOCADO")}>Revocar</button></nav></> : <button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Generar acceso"}</button>}</span></article>; }) : <p>No hay fiscales con este filtro.</p>}
       </div>
       {issuedAccess ? <div className="agenda-modal" role="dialog" aria-modal="true"><section className="day-d-access-modal"><header><div><small>ACCESO GENERADO · SE MUESTRA UNA VEZ</small><h2>{issuedAccess.name} · JRV {issuedAccess.jrv}</h2></div><button type="button" onClick={() => setIssuedAccess(null)}>×</button></header><label><span>Enlace individual</span><input readOnly value={issuedAccess.link} /></label><label><span>Código alterno</span><strong>{issuedAccess.code}</strong></label><p>Comparte este acceso únicamente con el fiscal asignado.</p><footer><button type="button" onClick={() => void navigator.clipboard.writeText(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}>Copiar acceso</button><a href={`https://wa.me/?text=${encodeURIComponent(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}`} target="_blank" rel="noreferrer">Compartir por WhatsApp</a></footer></section></div> : null}
     </section>
@@ -638,14 +646,14 @@ function DayDContent() {
           <button type="button" onClick={() => beginLogistics()}>+ Nueva previsión</button>
         </nav>
       </header>
-      <div className="logistics-summary">
+      <div className="logistics-summary compact">
         <span>
           <small>Rutas / traslados</small>
           <b>{transportPlans.length}</b>
         </span>
         <span>
-          <small>Personas o porciones previstas</small>
-          <b>{logisticsQuantity}</b>
+          <small>Porciones de comida previstas</small>
+          <b>{plannedMeals}</b>
         </span>
         <span>
           <small>Recargas planificadas</small>
@@ -662,16 +670,16 @@ function DayDContent() {
         ))}
       </div>
       {message ? <p className="agenda-message" role="status">{message}</p> : null}
-      <div className="day-d-filters logistics-filters"><label><span>Tipo</span><select value={logisticsFilter} onChange={(event) => setLogisticsFilter(event.target.value)}><option value="all">Todos</option>{logisticsCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label><span>Centro</span><select value={logisticsCenterFilter} onChange={(event) => setLogisticsCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{center.name}</option>)}</select></label><label><span>Estado</span><select value={logisticsStatusFilter} onChange={(event) => setLogisticsStatusFilter(event.target.value)}><option value="all">Todos</option><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label></div>
+      <div className="day-d-filters logistics-filters"><label><span>Tipo</span><select value={logisticsFilter} onChange={(event) => setLogisticsFilter(event.target.value)}><option value="all">Todos</option>{logisticsCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label><span>Centro</span><select value={logisticsCenterFilter} onChange={(event) => setLogisticsCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label><label><span>Estado</span><select value={logisticsStatusFilter} onChange={(event) => setLogisticsStatusFilter(event.target.value)}><option value="all">Todos</option><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label></div>
       <div className="logistics-plan-list">{visibleLogisticsRows.length ? visibleLogisticsRows.map((record) => <article key={record.id}><header><span><small>{logisticsCategories.find(([key]) => key === record.payload.category)?.[1] || "PREVISIÓN"}</small><b>{record.title}</b><em>{String(record.payload.center_name || "Cobertura general")}</em></span><strong className={record.status.toLocaleLowerCase("es")}>{record.status.replaceAll("_", " ")}</strong></header><div className="logistics-plan-facts"><span><small>Responsable</small><b>{String(record.payload.responsible_name || "Sin asignar")}</b></span><span><small>Fecha</small><b>{record.payload.scheduled_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(record.payload.scheduled_at))) : "Sin programar"}</b></span><span><small>Cantidad</small><b>{String(record.payload.quantity || 0)}</b></span><span><small>Costo estimado</small><b>{new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" }).format(Number(record.payload.estimated_cost || 0))}</b></span></div>{record.details ? <p>{record.details}</p> : null}<footer><span /><button type="button" onClick={() => editLogistics(record)}>Editar</button><button className="danger" type="button" onClick={() => void removeLogistics(record)}>Eliminar</button></footer></article>) : <div className="agenda-empty"><b>No hay previsiones con estos filtros.</b><span>Crea la primera orden logística de Día D.</span><button type="button" onClick={() => beginLogistics()}>Crear previsión</button></div>}</div>
       {logisticsOpen ? <div className="agenda-modal" role="dialog" aria-modal="true">
         <form className="logistics-modal" onSubmit={saveLogistics}>
-          <header><div><small>ORDEN LOGÍSTICA</small><h2>{editingLogistics ? "Editar previsión" : "Nueva previsión"}</h2><p>Selecciona datos existentes del CRM, Recursos y Finanzas.</p></div><button type="button" aria-label="Cerrar" onClick={() => setLogisticsOpen(false)}>×</button></header>
+          <header><div><small>LOGÍSTICA</small><h2>{editingLogistics ? "Editar previsión" : transportCategories.includes(logisticsForm.category) ? "Transporte" : logisticsForm.category === "ALIMENTACION" ? "Alimentación" : logisticsForm.category === "DATOS_MOVILES" ? "Recarga de datos móviles" : logisticsForm.category === "KIT_ELECTORAL" ? "Kits Electorales" : logisticsForm.category === "EQUIPO_CENTRO" ? "Equipo de Centros de Votación" : "Nueva previsión"}</h2></div><button type="button" aria-label="Cerrar" onClick={() => setLogisticsOpen(false)}>×</button></header>
           <div className="logistics-form-grid">
             <label><span>Tipo *</span><select value={logisticsForm.category} onChange={(event) => { const category = event.target.value; setLogisticsForm({ ...logisticsForm, category, checklist: [...(logisticsChecklists[category] ?? [])] }); }}>{logisticsCategories.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
             <label><span>Estado</span><select value={logisticsForm.status} onChange={(event) => setLogisticsForm({ ...logisticsForm, status: event.target.value })}><option>PLANIFICADO</option><option>EN_PROCESO</option><option>CONCLUIDO</option></select></label>
             <label className="wide"><span>Nombre de la previsión *</span><input required value={logisticsForm.title} onChange={(event) => setLogisticsForm({ ...logisticsForm, title: event.target.value })} placeholder="Ej. Ruta Arizona → Escuela Oficial" /></label>
-            <label><span>Centro de votación</span><select value={logisticsForm.center_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, center_id: event.target.value })}><option value="">Cobertura general</option>{centers.map((center) => <option key={center.id} value={center.id}>{center.name}</option>)}</select></label>
+            <label><span>Centro de votación</span><select value={logisticsForm.center_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, center_id: event.target.value })}><option value="">Cobertura general</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
             <label><span>Comunidad / referencia</span><input value={logisticsForm.community} onChange={(event) => setLogisticsForm({ ...logisticsForm, community: event.target.value })} /></label>
             <label><span>Responsable CRM</span><select value={logisticsForm.responsible_id} onChange={(event) => setLogisticsForm({ ...logisticsForm, responsible_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((person) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
             <label><span>Fecha y hora</span><input type="datetime-local" value={logisticsForm.scheduled_at} onChange={(event) => setLogisticsForm({ ...logisticsForm, scheduled_at: event.target.value })} /></label>
@@ -741,7 +749,7 @@ function DayDContent() {
         <aside><small>CONTROL DE RECEPCIÓN</small><span><b>0</b> folios reales enviados</span><span><b>0</b> folios demostrativos</span><span><b>0</b> borradores en servidor</span><span><b>0</b> con acta</span><span><b>0</b> observados</span><span><b>0</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
       </div>
       <div className="day-d-filters">
-        <label><span>Centro</span><select><option>Todos</option>{centers.map((center) => <option key={center.id}>{center.name}</option>)}</select></label>
+        <label><span>Centro</span><select><option>Todos</option>{centers.map((center) => <option key={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
         <label><span>Estado</span><select><option>Todos</option><option>BORRADOR</option><option>PENDIENTE REVISION</option><option>OBSERVADO</option><option>VALIDADO</option><option>CORREGIDO</option></select></label>
         <label><span>JRV</span><input inputMode="numeric" placeholder="Buscar JRV" /></label>
       </div>

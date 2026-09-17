@@ -79,7 +79,9 @@ const injection = `<script>(function(){
   const runtime=${JSON.stringify(runtime)};
   const geoBundle=${JSON.stringify(geoBundle)};
   const voterCommunities=${JSON.stringify(voterCommunities)};
-  const campaignBundle={identity:{candidate_name:"Nombre Apellido",party_name:"",party_logo_data_url:null},activities:[],commitments:[]};
+  const campaignBundle={identity:{candidate_name:"Ana María Pérez",party_name:"Movimiento Municipal",party_logo_data_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg"},activities:[{id:"qa-activity",campaign_id:"qa-render-0509",title:"Reunión con líderes comunitarios",activity_type:"REUNION",starts_at:new Date(now+86400000).toISOString(),community:"Puerto San José",latitude:13.939,longitude:-90.821,status:"PLANIFICADA",notes:"Validación territorial",details:{responsible:"Ana María Pérez"},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],commitments:[{id:"qa-commitment",title:"Presentar propuesta de alumbrado",community:"Puerto San José",responsible:"Ana María Pérez",due_date:new Date(now+172800000).toISOString().slice(0,10),priority:"ALTA",status:"PENDIENTE",notes:"Seguimiento comunitario"}]};
+  const campaignContacts=[{id:"qa-candidate",campaign_id:"qa-render-0509",full_name:"Ana María Pérez",phone:"5555 0101",phone_secondary:null,email:"ana@example.test",community:"Puerto San José",address_text:null,role:"Candidata a alcalde",contact_type:"Candidato",candidate_position:"Alcalde",status:"ACTIVO",notes:null,active:true,photo_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",identification:null,social_url:null,file_code:"CA01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}];
+  const moduleRecords={estrategia:[{id:"qa-plan",campaign_id:"qa-render-0509",module_key:"estrategia",category:"PLAN_CAMPAÑA",title:"Objetivo general",details:"Consolidar una campaña territorial basada en evidencia y participación comunitaria.",status:"BORRADOR",payload:{},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],legal:[],finanzas:[],medios:[],agenda:[],"dia-d":[],recursos:[]};
   const voterRows=[{id:1,full_name:"Registro autorizado QA",community:"Cabecera Municipal",estimated_age_2026:40,masked_identification:"0000••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:36878}];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
@@ -89,6 +91,8 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_bundle_v1")) return new Response(JSON.stringify(campaignBundle),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_campaign_contacts_v1")) return new Response(JSON.stringify(campaignContacts),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(moduleRecords[body.p_module_key]||[]),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
@@ -359,9 +363,31 @@ try {
   diagnostics.reports.push({ route: reportRoute, screenshotBytes, pdfBytes, canonicalBranding: true, ok: reportOk });
   if (!reportOk) throw new Error("Report screenshot/PDF output is unexpectedly empty.");
 
+  // Prove the general PDF is a useful executive report populated from live campaign modules.
+  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace";
+  await navigate(executiveRoute);
+  await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña y próximas actividades')`, "populated executive report", 12000);
+  await delay(900);
+  const executive = await snapshot();
+  const executiveHealthy = executive.html.includes("report-candidate-grid")
+    && executive.html.includes("report-chart-grid")
+    && executive.text.includes("CA01")
+    && executive.text.includes("Reunión con líderes comunitarios")
+    && executive.text.includes("Objetivo general")
+    && executive.html.includes("radar-electoral-logo-horizontal");
+  if (!executiveHealthy) throw new Error("Executive report omitted candidate, intelligence, plan or agenda content.");
+  const executiveScreenshotBytes = await capture("report-inicio-ejecutivo");
+  const executivePdf = await cdp.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true });
+  const executivePdfPath = path.join(out, "report-inicio-ejecutivo.pdf");
+  fs.writeFileSync(executivePdfPath, Buffer.from(executivePdf.data, "base64"));
+  const executivePdfBytes = fs.statSync(executivePdfPath).size;
+  const executiveOk = executiveScreenshotBytes > 10_000 && executivePdfBytes > 20_000;
+  diagnostics.reports.push({ route: executiveRoute, screenshotBytes: executiveScreenshotBytes, pdfBytes: executivePdfBytes, populatedExecutiveContent: true, ok: executiveOk });
+  if (!executiveOk) throw new Error("Executive report screenshot/PDF output is unexpectedly empty.");
+
   diagnostics.status = "PASS";
   save();
-  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/3 report controls · ${diagnostics.reports.length}/1 printable report`);
+  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/3 report controls · ${diagnostics.reports.length}/2 printable reports`);
 } catch (error) {
   diagnostics.status = "FAIL";
   diagnostics.error = error instanceof Error ? error.stack ?? error.message : String(error);

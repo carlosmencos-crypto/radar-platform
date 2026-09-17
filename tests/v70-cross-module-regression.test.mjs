@@ -26,6 +26,10 @@ test("directory search updates the canonical result list without an overlay", ()
   assert.match(directory, /carnetPng/);
   assert.match(directory, /V70PhotoEditor/);
   assert.match(directory, /candidatePositions\.map/);
+  assert.match(directory, /className="crm-table crm-table-v2"/);
+  assert.match(directory, /className="crm-row crm-head"/);
+  assert.match(directory, /className="agenda-create-link"/);
+  assert.match(directory, /createRadarXlsx/);
 });
 
 test("campaign brand stays synchronized across Inicio, CRM, Communication and Legal", () => {
@@ -56,13 +60,35 @@ test("agenda routes, exports and commitments persist", () => {
   assert.match(agenda, /origin_activity_id/);
   assert.match(agenda, /uploadCampaignVaultFile/);
   assert.match(visual, /canvas\.toBlob/);
+  assert.match(agenda, /className="agenda-actions"/);
+  assert.match(agenda, /className="agenda-print-action"/);
+  assert.match(agenda, /className="agenda-delete-action"/);
+});
+
+test("strategy workspaces keep the approved V70 vocabulary and functional exports", () => {
+  const strategy = read("src/components/V70DirectStrategyArea0509.tsx");
+  const xlsx = read("src/data/xlsxExport.ts");
+  for (const source of ["PDM-OT", "INE 2018", "PDM-OT 2015", "Perfil municipal"]) assert.match(strategy, new RegExp(source));
+  assert.match(strategy, /communication-folder-delete/);
+  assert.match(strategy, /createRadarXlsx/);
+  assert.match(strategy, /finance-budget-detail/);
+  assert.match(strategy, /candidate-upload-grid/);
+  assert.match(xlsx, /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
+  assert.match(xlsx, /xl\/worksheets\/sheet/);
 });
 
 test("report exports retain the deployed application base path", () => {
   const builder = read("src/components/V70DirectReportBuilder.tsx");
   const intelligence = read("src/components/V70DirectIntelligenceExport0509.tsx");
+  const report = read("src/components/V70DirectReport0509.tsx");
   assert.match(builder, /import\.meta\.env\.BASE_URL/);
   assert.match(intelligence, /import\.meta\.env\.BASE_URL/);
+  assert.match(builder, /Gráficas ejecutivas/);
+  assert.match(report, /report-candidate-grid/);
+  assert.match(report, /report-chart-grid/);
+  assert.match(report, /Plan de campaña y próximas actividades/);
+  assert.match(report, /partyLogoUrl/);
+  assert.match(report, /candidate\.photo_url/);
 });
 
 test("map renders persisted activity points and routes", () => {
@@ -96,9 +122,13 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /LOGISTICA/);
   assert.match(dayD, /saveLogistics/);
   assert.match(dayD, /Movilización de electores/);
-  assert.match(dayD, /Equipo de centros de votación/);
+  assert.match(dayD, /Equipo del centro/);
   assert.match(dayD, /rtdElectionTypes/);
   assert.match(dayD, /day-d-actas-progress/);
+  assert.match(dayD, /SUPERVISIÓN EN TIEMPO REAL/);
+  assert.match(dayD, /Rutas \/ traslados/);
+  assert.match(dayD, /Porciones de comida previstas/);
+  assert.match(dayD, /Recargas planificadas/);
 });
 
 test("responsible voter filtering stays server-side and campaign-scoped", () => {

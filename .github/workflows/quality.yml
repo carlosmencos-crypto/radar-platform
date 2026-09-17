@@ -3,7 +3,7 @@ name: Quality
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, qa/v70-golden-electoral-runtime]
 
 jobs:
   build:

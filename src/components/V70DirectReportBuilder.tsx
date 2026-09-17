@@ -3,6 +3,7 @@ import { useState } from "react";
 const options = [
   ["summary", "Resumen ejecutivo", "Lectura escrita y propósito del informe"],
   ["metrics", "Indicadores principales", "Cifras y estados esenciales"],
+  ["charts", "Gráficas ejecutivas", "Composición electoral y avance operativo"],
   ["sections", "Áreas de control", "Hallazgos, prioridades y conexiones"],
   ["records", "Registros vigentes", "Detalle disponible del módulo"],
   ["trace", "Fuentes y trazabilidad", "Origen y clasificación de la información"],

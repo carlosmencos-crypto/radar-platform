@@ -31,18 +31,18 @@ export const candidatePositions = [
 ] as const;
 
 export const canonicalSlate = [
-  ["EC01", "Alcalde", "Candidato a alcalde", "ALCALDE"],
-  ["EC02", "Síndico I", "Síndico I", "SÍNDICOS"],
-  ["EC03", "Síndico II", "Síndico II", "SÍNDICOS"],
-  ["EC04", "Síndico III", "Síndico III", "SÍNDICOS"],
-  ["EC05", "Concejal I", "Concejal I", "CONCEJALES"],
-  ["EC06", "Concejal II", "Concejal II", "CONCEJALES"],
-  ["EC07", "Concejal III", "Concejal III", "CONCEJALES"],
-  ["EC08", "Concejal IV", "Concejal IV", "CONCEJALES"],
-  ["EC09", "Concejal V", "Concejal V", "CONCEJALES"],
-  ["EC10", "Concejal VI", "Concejal VI", "CONCEJALES"],
-  ["EC11", "Concejal VII", "Concejal VII", "CONCEJALES"],
-  ["EC12", "Concejal VIII", "Concejal VIII", "CONCEJALES"],
+  ["CA01", "Alcalde", "Candidato a alcalde", "ALCALDE"],
+  ["CA02", "Síndico I", "Síndico I", "SÍNDICOS"],
+  ["CA03", "Síndico II", "Síndico II", "SÍNDICOS"],
+  ["CA04", "Síndico III", "Síndico III", "SÍNDICOS"],
+  ["CA05", "Concejal I", "Concejal I", "CONCEJALES"],
+  ["CA06", "Concejal II", "Concejal II", "CONCEJALES"],
+  ["CA07", "Concejal III", "Concejal III", "CONCEJALES"],
+  ["CA08", "Concejal IV", "Concejal IV", "CONCEJALES"],
+  ["CA09", "Concejal V", "Concejal V", "CONCEJALES"],
+  ["CA10", "Concejal VI", "Concejal VI", "CONCEJALES"],
+  ["CA11", "Concejal VII", "Concejal VII", "CONCEJALES"],
+  ["CA12", "Concejal VIII", "Concejal VIII", "CONCEJALES"],
 ] as const;
 
 export type V70SlateMember = {
@@ -68,7 +68,7 @@ export function buildV70Slate(contacts: CampaignContactRecord[]): V70SlateMember
       candidates.find((person) => person.candidate_position === positionKey) ??
       null;
     return {
-      code,
+      code: contact?.file_code?.startsWith("CA") ? contact.file_code : code,
       positionKey,
       positionLabel,
       group,

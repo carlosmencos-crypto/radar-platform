@@ -23,17 +23,17 @@ type LatLng = [number, number];
 type LeafletLayer = { remove(): void };
 type LeafletMarker = LeafletLayer & {
   addTo(map: LeafletMap): LeafletMarker;
-  bindTooltip(html: string): LeafletMarker;
+  bindTooltip(html: string, options?: Record<string, unknown>): LeafletMarker;
   on(event: "click", handler: () => void): LeafletMarker;
 };
 type LeafletPolyline = LeafletLayer & {
   addTo(map: LeafletMap): LeafletPolyline;
-  bindTooltip(html: string): LeafletPolyline;
+  bindTooltip(html: string, options?: Record<string, unknown>): LeafletPolyline;
   on(event: "click", handler: () => void): LeafletPolyline;
 };
 type LeafletCircle = LeafletLayer & {
   addTo(map: LeafletMap): LeafletCircle;
-  bindTooltip(html: string): LeafletCircle;
+  bindTooltip(html: string, options?: Record<string, unknown>): LeafletCircle;
   on(event: "click", handler: () => void): LeafletCircle;
 };
 type LeafletBounds = {
@@ -708,6 +708,22 @@ export function V70OperationalMap() {
           drawnRef.current.push(marker);
         });
       }
+      if (selectedCommunity && !createMode) {
+        const directoryHref = `${import.meta.env.BASE_URL}municipio/${municipality_code}/directorio?community=${encodeURIComponent(selectedCommunity.community_label)}`;
+        const selectedMarker = L.circleMarker([selectedCommunity.lat, selectedCommunity.lon], {
+          radius: 9,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#552676",
+          fillOpacity: 1,
+        })
+          .bindTooltip(
+            `<b>${clean(selectedCommunity.community_label)}</b><span>${fmt.format(selectedCommunity.elector_count)} registros</span><small>${clean(selectedCommunity.precision)}</small><a class="community-electors-link" href="${directoryHref}">Ver electores</a>`,
+            { permanent: true, direction: "top", offset: [0, -12], className: "community-selected-tooltip" },
+          )
+          .addTo(map);
+        drawnRef.current.push(selectedMarker);
+      }
       const exactPoint = activityPoint ?? selectedPlace;
       if (exactPoint) {
         const marker = L.marker([exactPoint.lat, exactPoint.lon], {
@@ -738,6 +754,7 @@ export function V70OperationalMap() {
     mapReady,
     priorityCenters,
     selectedPlace,
+    selectedCommunity,
     topCommunities,
     visibleActivities,
     showRoutes,
@@ -1184,72 +1201,6 @@ export function V70OperationalMap() {
           <div className="map-boundary-note">
             Municipio {municipality_code} · navegación limitada
           </div>
-          {selectedCommunity ? (
-            <article className="territory-card">
-              <button
-                className="territory-card-close"
-                aria-label="Cerrar ficha"
-                onClick={() => setSelectedCommunity(null)}
-              >
-                ×
-              </button>
-              <header>
-                <small>TARJETA TERRITORIAL · {municipality_code}</small>
-                <h2>{selectedCommunity.community_label}</h2>
-                <p>{selectedCommunity.precision}</p>
-              </header>
-              <div className="territory-card-kpis">
-                <span>
-                  <b>{fmt.format(selectedCommunity.elector_count)}</b>
-                  <small>Electores agregados 2023</small>
-                </span>
-                <span>
-                  <b>{activities.filter((item) => normalize(item.community || "") === normalize(selectedCommunity.community_label)).length}</b>
-                  <small>Actividades registradas</small>
-                </span>
-                <span>
-                  <b>—</b>
-                  <small>Responsable vinculado</small>
-                </span>
-                <span>
-                  <b>0</b>
-                  <small>Compromisos pendientes</small>
-                </span>
-              </div>
-              <div className="territory-card-grid">
-                <section>
-                  <b>Historial reciente</b>
-                  <em>{activities.some((item) => normalize(item.community || "") === normalize(selectedCommunity.community_label)) ? "La actividad más reciente está disponible en Agenda." : "Sin actividades registradas."}</em>
-                </section>
-                <section>
-                  <b>Responsables del territorio</b>
-                  <em>Sin responsable asignado.</em>
-                </section>
-                <section>
-                  <b>Acuerdos y compromisos</b>
-                  <em>Sin compromisos vinculados.</em>
-                </section>
-                <section>
-                  <b>Lectura territorial</b>
-                  <span>
-                    Zona sin actividad registrada en este período.
-                    <small>
-                      {selectedCommunity.precision}; RADAR no inventa
-                      coordenadas.
-                    </small>
-                  </span>
-                </section>
-              </div>
-              <footer>
-                <Link to={`/municipio/${municipality_code}/agenda`}>
-                  + Crear actividad aquí
-                </Link>
-                <Link to={`/municipio/${municipality_code}/directorio`}>
-                  Asignar responsable
-                </Link>
-              </footer>
-            </article>
-          ) : null}
         </div>
       </section>
     </>

@@ -200,6 +200,39 @@ html[data-theme="dark"] .canonical-vault-notice {
   .canonical-coverage-secondary .canonical-module-grid { padding: 12px !important; }
 }
 
+/* Executive report: live campaign dossier on the canonical V70 print grid. */
+.report-candidate-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.report-candidate-grid>article{display:grid;grid-template-columns:18mm 1fr;gap:4mm;align-items:center;min-height:24mm;padding:4mm;border:1px solid #d6ddd8;border-radius:3mm;break-inside:avoid}
+.report-candidate-grid>article>img,.report-candidate-grid>article>span{width:18mm;height:18mm;border-radius:3mm;object-fit:cover}
+.report-candidate-grid>article>span{display:grid;place-items:center;background:var(--radar-grafito);color:#fff;font-size:9pt;font-weight:750}
+.report-candidate-grid>article div{display:grid;gap:1mm}
+.report-candidate-grid>article small{color:var(--radar-petroleo);font-size:6pt;font-weight:750;letter-spacing:.08em}
+.report-candidate-grid>article b{font-size:9pt;line-height:1.25}
+.report-candidate-grid>article em{color:#52616a;font-size:7pt;font-style:normal}
+.report-metrics.compact{margin:4mm 0 7mm}
+.report-metrics.compact article{min-height:24mm;padding:4mm}
+.report-metrics.compact b{font-size:17pt}
+.report-chart-grid{display:grid;grid-template-columns:1fr 1.35fr;gap:5mm}
+.report-chart-grid>article{padding:5mm;border:1px solid #d6ddd8;border-radius:3mm;break-inside:avoid}
+.report-chart-grid>article>small{color:var(--radar-petroleo);font-size:6.5pt;font-weight:800;letter-spacing:.08em}
+.report-sex-bar{display:flex;height:7mm;margin:12mm 0 4mm;border-radius:9mm;overflow:hidden;background:#edf0ec}
+.report-sex-bar i{background:var(--radar-electoral)}
+.report-sex-bar em{background:var(--radar-petroleo)}
+.report-chart-grid>article>p{display:flex;justify-content:space-between;margin:0;color:#52616a;font-size:7pt}
+.report-age-bars{display:grid;gap:2.1mm;margin-top:5mm}
+.report-age-bars>div{display:grid;grid-template-columns:12mm 1fr 12mm;gap:2mm;align-items:center;color:#52616a;font-size:6.5pt}
+.report-age-bars>div>i{height:2.2mm;border-radius:2mm;overflow:hidden;background:#edf0ec}
+.report-age-bars>div>i>em{display:block;height:100%;border-radius:inherit;background:var(--radar-electoral)}
+.report-age-bars>div>b{text-align:right;color:var(--radar-grafito);font-size:6.5pt}
+.report-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.report-plan-grid>section{padding:5mm;border:1px solid #d6ddd8;border-radius:3mm}
+.report-plan-grid h3{margin:0 0 4mm;font-size:12pt}
+.report-plan-grid section>article{display:grid;gap:1mm;padding:3mm 0;border-top:1px solid #d6ddd8;break-inside:avoid}
+.report-plan-grid article small{color:var(--radar-petroleo);font-size:6pt;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.report-plan-grid article b{font-size:8pt;line-height:1.3}
+.report-plan-grid article p{margin:0;color:#52616a;font-size:6.5pt;line-height:1.4}
+.report-empty.small{min-height:34mm;padding:6mm}
+
 /* Root catalog namespace: V70 uses .territory-grid/.territory-card for the map overlay.
    Keep the public national catalog isolated from those canonical map selectors. */
 .national-result-heading { margin: 36px 0 16px; font-size: 1rem; color: #656a6d; }
@@ -632,8 +665,8 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
 .elector-history{border-top:1px solid var(--line);padding:18px}.elector-history>header{display:flex;align-items:center;justify-content:space-between;gap:12px}.elector-history>header small{color:var(--radar-petroleo);font-size:8px;font-weight:900;letter-spacing:.09em}.elector-history>header h3{margin:3px 0;font-size:15px}.elector-history>header>span{color:var(--radar-municipal);font-size:9px}.elector-history>form{display:grid;grid-template-columns:.7fr 1fr 1fr minmax(180px,1.7fr) auto;gap:8px;margin:12px 0}.elector-history>form :is(select,input,button){min-height:38px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--white);font-size:9px}.elector-history>form button{border:0;background:var(--radar-petroleo);color:#fff;font-weight:850}.elector-interaction-list article{grid-template-columns:auto minmax(0,1fr) auto}.crm-contact-card>header>img{display:block;width:48px;height:48px;border-radius:50%;object-fit:cover}.crm-contact-card>footer{display:flex;justify-content:flex-end;gap:7px;border-top:1px solid var(--line);padding-top:10px}.crm-contact-card>footer button{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--white);color:var(--radar-petroleo);font-size:8px;font-weight:850}.crm-approved-empty{display:grid;min-height:300px;place-items:center;align-content:center;gap:8px;border:1px dashed color-mix(in srgb,var(--radar-petroleo) 35%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--radar-petroleo) 3%,var(--white));text-align:center}.crm-approved-empty>span{display:grid;width:58px;height:58px;place-items:center;border-radius:50%;background:var(--radar-grafito);color:#fff;font-size:10px;font-weight:900}.crm-approved-empty h3{margin:6px 0 0;font-size:18px}.crm-approved-empty p{margin:0;color:var(--radar-municipal);font-size:10px}.crm-approved-empty button{margin-top:8px;border:0;border-radius:9px;padding:10px 14px;background:var(--radar-petroleo);color:#fff;font-size:9px;font-weight:850}.crm-approved-contact{width:min(880px,94vw)!important}.crm-photo-editor{display:flex;align-items:center;gap:14px;margin:0 18px 16px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--radar-marfil)}.crm-photo-editor label{display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;column-gap:14px;cursor:pointer}.crm-photo-editor :is(img,label>span){grid-row:1/4;display:grid;width:76px;height:76px;place-items:center;border-radius:50%;background:var(--radar-grafito);color:#fff;object-fit:cover;font-size:20px;font-weight:900}.crm-photo-editor b{font-size:12px}.crm-photo-editor small{color:var(--radar-municipal);font-size:8px}.crm-photo-editor input{font-size:8px}.crm-photo-editor>button{margin-left:auto;border:1px solid var(--line);border-radius:8px;padding:7px;background:var(--white);font-size:8px}.crm-dayd-status{margin:10px 0 0;border-radius:8px;padding:8px;background:color-mix(in srgb,var(--radar-petroleo) 9%,var(--white));color:var(--radar-petroleo);font-size:8px;font-weight:800}html[data-theme="dark"] :is(.elector-history>form select,.elector-history>form input,.crm-contact-card>footer button,.crm-approved-empty,.crm-photo-editor,.crm-photo-editor>button){background:var(--radar-fondo-oscuro);color:var(--radar-marfil);border-color:var(--radar-municipal)}
 @media(max-width:900px){.elector-history>form{grid-template-columns:1fr 1fr}.elector-history>form input[aria-label="Nota"]{grid-column:1/-1}.elector-history>form button{grid-column:1/-1}}@media(max-width:620px){.crm-photo-editor{align-items:stretch;flex-direction:column}.crm-photo-editor>button{margin-left:0}.crm-photo-editor label{grid-template-columns:64px 1fr}.crm-photo-editor :is(img,label>span){width:64px;height:64px}}
 
-/* IA asistida del plan: conserva la jerarquía ligera del piloto. */
-.strategy-direct-form label>span{display:flex;align-items:center;justify-content:space-between;gap:8px}.strategy-ai-help{border:1px solid color-mix(in srgb,var(--radar-petroleo) 30%,var(--line));border-radius:999px;padding:4px 7px;background:color-mix(in srgb,var(--radar-petroleo) 6%,var(--white));color:var(--radar-petroleo);font-size:7px;font-weight:850}.strategy-ai-help:hover{background:var(--radar-petroleo);color:#fff}
+/* Comunicación conserva las pestañas V70 y permite retirar únicamente carpetas creadas. */
+.communication-folder-tab{display:inline-flex;align-items:center;border-radius:8px;background:transparent}.communication-folder-tab>button:first-child{border-radius:8px 0 0 8px}.communication-folder-tab .communication-folder-delete{min-width:24px;margin-left:-3px;border-left:0;border-radius:0 8px 8px 0;color:var(--radar-gobierno)}.communication-folder-tab.active{background:var(--radar-marfil)}
 
 .commitment-record{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1.2fr) auto;align-items:center;gap:14px;border-top:1px solid var(--line);padding:13px 0}.commitment-record span>*{display:block}.commitment-record span small{color:var(--radar-petroleo);font-size:7px;font-weight:900}.commitment-record span b{margin:4px 0;font-size:11px}.commitment-record span em,.commitment-record p{margin:0;color:var(--radar-municipal);font-size:8px;font-style:normal}.commitment-record nav{display:flex;gap:6px}.commitment-record nav button{border:1px solid var(--line);border-radius:7px;padding:7px 8px;background:var(--white);color:var(--radar-petroleo);font-size:7px;font-weight:850}@media(max-width:760px){.commitment-record{grid-template-columns:1fr}.commitment-record nav{justify-content:flex-start}}
 .config-campaign-identity {

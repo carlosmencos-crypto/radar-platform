@@ -25,6 +25,7 @@ import {
 } from "../data/radarRuntime";
 import { zipSync } from "fflate";
 import { getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
+import { createRadarXlsx } from "../data/xlsxExport";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { V70PhotoEditor } from "./V70PhotoEditor";
 import {
@@ -59,6 +60,8 @@ const contactTypePrefixes: Record<string, string> = {
   Fiscal: "FI",
 };
 const fmt = new Intl.NumberFormat("es-GT");
+const DIRECTORY_ADD_EVENT = "radar:v70-directory-add";
+const DIRECTORY_EXPORT_EVENT = "radar:v70-directory-export";
 const directoryCache = new Map<
   string,
   { items: AuthorizedVoterDirectoryRow[]; total: number }
@@ -66,6 +69,8 @@ const directoryCache = new Map<
 
 type VoterProfileForm = {
   photo_url: string;
+  dpi_front_url: string;
+  dpi_back_url: string;
   contact_status: string;
   phone_primary: string;
   phone_secondary: string;
@@ -85,6 +90,8 @@ type VoterProfileForm = {
 
 const emptyProfile: VoterProfileForm = {
   photo_url: "",
+  dpi_front_url: "",
+  dpi_back_url: "",
   contact_status: "SIN_CONTACTO",
   phone_primary: "",
   phone_secondary: "",
@@ -108,6 +115,8 @@ function profileFromDetail(detail: AuthorizedVoterDetail): VoterProfileForm {
   return {
     ...emptyProfile,
     photo_url: text("photo_url"),
+    dpi_front_url: text("dpi_front_url") || text("dpi_front_data_url"),
+    dpi_back_url: text("dpi_back_url") || text("dpi_back_data_url"),
     contact_status: text("contact_status") || "SIN_CONTACTO",
     phone_primary: text("phone_primary"),
     phone_secondary: text("phone_secondary"),
@@ -134,6 +143,19 @@ function initials(name: string) {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+}
+
+function readPrivateImage(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    if (file.size > 6 * 1024 * 1024) {
+      reject(new Error("La imagen supera el máximo de 6 MB."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function ElectorsDirectoryCanonical() {
@@ -717,7 +739,7 @@ function ElectorsDirectoryCanonical() {
         <div className="agenda-modal elector-modal" role="dialog" aria-modal="true">
           <section className="elector-sheet">
             <header>
-              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(detail.elector.id).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {detail.elector.municipality_name}</p></span></div>
+              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {detail.elector.id}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {detail.elector.municipality_name}</p></span></div>
               <button type="button" onClick={() => setDetail(null)}>×</button>
             </header>
             <div className="elector-base-data">
@@ -729,28 +751,30 @@ function ElectorsDirectoryCanonical() {
               <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
               <div className="agenda-form-grid">
                 <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={profile.photo_url} onChange={(photo_url) => setProfile({ ...profile, photo_url })} onError={setMessage} /></div>
-                <label><span>Estado</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                <label><span>Estado de contacto</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
                 <label><span>Afiliado al partido</span><select value={profile.party_affiliation} onChange={(event) => setProfile({ ...profile, party_affiliation: event.target.value })}><option value="">—</option><option value="SI">Sí</option><option value="NO">No</option></select></label>
+                <label><span>Responsable</span><select value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select></label>
                 <label><span>Teléfono principal</span><input value={profile.phone_primary} onChange={(event) => setProfile({ ...profile, phone_primary: event.target.value })} /></label>
                 <label><span>Teléfono secundario</span><input value={profile.phone_secondary} onChange={(event) => setProfile({ ...profile, phone_secondary: event.target.value })} /></label>
-                <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} /></label>
-                <label><span>Comunidad confirmada</span><input value={profile.confirmed_community} onChange={(event) => setProfile({ ...profile, confirmed_community: event.target.value })} /></label>
-                <label><span>Rol en campaña</span><input value={profile.campaign_role} onChange={(event) => setProfile({ ...profile, campaign_role: event.target.value })} /></label>
-                <label><span>Responsable</span><select value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select></label>
+                <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} placeholder="Dato privado agregado por la campaña" /></label>
+                <label><span>Referencia de ubicación</span><input value={profile.location_reference} onChange={(event) => setProfile({ ...profile, location_reference: event.target.value })} /></label>
+                <label><span>Comunidad actual confirmada</span><input value={profile.confirmed_community} onChange={(event) => setProfile({ ...profile, confirmed_community: event.target.value })} /></label>
+                <label><span>Rol o responsabilidad</span><input value={profile.campaign_role} onChange={(event) => setProfile({ ...profile, campaign_role: event.target.value })} /></label>
                 <label><span>Próxima acción</span><input value={profile.next_action} onChange={(event) => setProfile({ ...profile, next_action: event.target.value })} /></label>
-                <label><span>Fecha próxima acción</span><input type="datetime-local" value={profile.next_action_at} onChange={(event) => setProfile({ ...profile, next_action_at: event.target.value })} /></label>
-                <label className="wide"><span>Notas privadas</span><textarea rows={3} value={profile.notes} onChange={(event) => setProfile({ ...profile, notes: event.target.value })} /></label>
+                <label><span>Fecha de próxima acción</span><input type="date" value={profile.next_action_at.slice(0, 10)} onChange={(event) => setProfile({ ...profile, next_action_at: event.target.value })} /></label>
+                <fieldset className="wide elector-document-grid"><legend>DPI (opcional)</legend><label><span>Frontal</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; void readPrivateImage(next).then((dpi_front_url) => setProfile((current) => ({ ...current, dpi_front_url }))).catch((fileError: Error) => setMessage(fileError.message)); }} /><small>{profile.dpi_front_url ? "Imagen lista o guardada" : "JPG, PNG o WebP · máximo 6 MB"}</small>{profile.dpi_front_url ? <a href={profile.dpi_front_url} target="_blank" rel="noreferrer">Ver imagen</a> : null}</label><label><span>Trasero</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; void readPrivateImage(next).then((dpi_back_url) => setProfile((current) => ({ ...current, dpi_back_url }))).catch((fileError: Error) => setMessage(fileError.message)); }} /><small>{profile.dpi_back_url ? "Imagen lista o guardada" : "JPG, PNG o WebP · máximo 6 MB"}</small>{profile.dpi_back_url ? <a href={profile.dpi_back_url} target="_blank" rel="noreferrer">Ver imagen</a> : null}</label></fieldset>
+                <label className="wide"><span>Observaciones</span><textarea rows={3} value={profile.notes} onChange={(event) => setProfile({ ...profile, notes: event.target.value })} /></label>
               </div>
               {message ? <p className="form-error">{message}</p> : null}
-              <footer><span /><button type="button" onClick={() => setDetail(null)}>Cerrar</button><button disabled={saving}>{saving ? "Guardando…" : "Guardar ficha"}</button></footer>
+              <footer><button disabled={saving}>{saving ? "Guardando…" : "Guardar ficha privada"}</button></footer>
             </form>
             <section className="elector-history">
-              <header><div><small>HISTORIAL</small><h3>Interacciones y seguimiento</h3></div><span>{detail.interactions.length} registros</span></header>
+              <header><div><small>HISTORIAL</small><h3>Contactos, visitas y compromisos</h3></div></header>
               <form onSubmit={addInteraction}>
-                <select aria-label="Tipo de interacción" value={interaction.interaction_type} onChange={(event) => setInteraction({ ...interaction, interaction_type: event.target.value })}>{["LLAMADA", "VISITA", "REUNIÓN", "MENSAJE", "OTRA"].map((item) => <option key={item}>{item}</option>)}</select>
-                <input aria-label="Fecha de interacción" type="datetime-local" value={interaction.interaction_at} onChange={(event) => setInteraction({ ...interaction, interaction_at: event.target.value })} />
+                <select aria-label="Tipo de interacción" value={interaction.interaction_type} onChange={(event) => setInteraction({ ...interaction, interaction_type: event.target.value })}>{["LLAMADA", "VISITA", "REUNION", "MENSAJE", "COMPROMISO", "OTRA"].map((item) => <option key={item}>{item}</option>)}</select>
+                <input required aria-label="Fecha de interacción" type="datetime-local" value={interaction.interaction_at} onChange={(event) => setInteraction({ ...interaction, interaction_at: event.target.value })} />
                 <select aria-label="Responsable" value={interaction.responsible_contact_id} onChange={(event) => setInteraction({ ...interaction, responsible_contact_id: event.target.value })}><option value="">Responsable…</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select>
-                <input aria-label="Nota" required value={interaction.notes} onChange={(event) => setInteraction({ ...interaction, notes: event.target.value })} placeholder="Nota o resultado de la interacción" />
+                <input aria-label="Nota" value={interaction.notes} onChange={(event) => setInteraction({ ...interaction, notes: event.target.value })} placeholder="Nota breve" />
                 <button disabled={saving}>Agregar</button>
               </form>
               <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Aún no hay interacciones registradas.</p>}</div>
@@ -1110,6 +1134,16 @@ function TeamDirectoryCanonical() {
   }, [contacts]);
   const assignmentFor = (contactId: string) => assignments.find((record) => record.category === "ASIGNACION_JRV" && String(record.payload?.fiscal_id || "") === contactId);
   const openNew = () => { setEditing(null); setForm(emptyContact); setMessage(""); setOpen(true); };
+  useEffect(() => {
+    const add = () => openNew();
+    const exportRows = () => downloadDirectoryExcel();
+    window.addEventListener(DIRECTORY_ADD_EVENT, add);
+    window.addEventListener(DIRECTORY_EXPORT_EVENT, exportRows);
+    return () => {
+      window.removeEventListener(DIRECTORY_ADD_EVENT, add);
+      window.removeEventListener(DIRECTORY_EXPORT_EVENT, exportRows);
+    };
+  }, [visible, contactCodes, municipality_code]);
   const openEdit = (contact: CampaignContactRecord) => {
     const name = splitContactName(contact.full_name);
     setEditing(contact.id); setForm({ ...name, phone: contact.phone || "", phone_secondary: contact.phone_secondary || "", email: contact.email || "", community: contact.community || "", role: contact.role || "", contact_type: contact.contact_type, candidate_position: contact.candidate_position || "", notes: contact.notes || "", photo_url: contact.photo_url || "" }); setOpen(true);
@@ -1127,7 +1161,14 @@ function TeamDirectoryCanonical() {
       const token = await ensureRadarAccessToken();
       const full_name = `${form.first_names} ${form.last_names}`.trim();
       const contactType = normalizedContactType(form.contact_type || "Equipo de campaña");
-      const saved = await saveCampaignContact(campaign_id, { full_name, phone: form.phone, phone_secondary: form.phone_secondary, email: form.email, community: form.community, role: form.role, contact_type: contactType, candidate_position: form.candidate_position, notes: form.notes, photo_url: form.photo_url, file_code: editing ? (contacts.find((item) => item.id === editing)?.file_code || contactCodes.get(editing) || nextContactCode(contactType, contacts)) : nextContactCode(contactType, contacts), active: true, is_in_crm: true }, token, editing);
+      const expectedPrefix = contactTypePrefixes[contactType] || "EC";
+      const currentCode = editing ? contacts.find((item) => item.id === editing)?.file_code || "" : "";
+      const fileCode = editing && new RegExp(`^${expectedPrefix}\\d+$`, "i").test(currentCode)
+        ? currentCode
+        : editing
+          ? contactCodes.get(editing) || nextContactCode(contactType, contacts)
+          : nextContactCode(contactType, contacts);
+      const saved = await saveCampaignContact(campaign_id, { full_name, phone: form.phone, phone_secondary: form.phone_secondary, email: form.email, community: form.community, role: form.role, contact_type: contactType, candidate_position: form.candidate_position, notes: form.notes, photo_url: form.photo_url, file_code: fileCode, active: true, is_in_crm: true }, token, editing);
       setContacts((current) => [...current.filter((item) => item.id !== saved.id), saved].sort((a, b) => a.full_name.localeCompare(b.full_name, "es")));
       announceV70CampaignUpdate();
       setOpen(false); setEditing(null); setForm(emptyContact); setMessage(editing ? "Contacto actualizado." : "Contacto agregado al Campaign Vault.");
@@ -1165,31 +1206,27 @@ function TeamDirectoryCanonical() {
     finally { setExporting(false); }
   }
   function downloadDirectoryExcel() {
-    const escape = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    const rows = visible.map((contact) => `<tr><td>${escape(contactCodes.get(contact.id) || contact.file_code)}</td><td>${escape(contact.full_name)}</td><td>${escape(contact.contact_type)}</td><td>${escape(contact.candidate_position || contact.role)}</td><td>${escape(contact.community)}</td><td>${escape(contact.phone)}</td><td>${escape(contact.phone_secondary)}</td><td>${escape(contact.email)}</td></tr>`).join("");
-    const table = `<!doctype html><html><head><meta charset="UTF-8"></head><body><table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Cargo</th><th>Comunidad</th><th>Teléfono</th><th>Teléfono secundario</th><th>Correo</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-    blobDownload(new Blob(["\ufeff", table], { type: "application/vnd.ms-excel;charset=utf-8" }), `RADAR_Directorio_${municipality_code}.xls`);
+    const workbook = createRadarXlsx([{ name: "Equipo y responsables", title: "RADAR · Directorio CRM", subtitle: `Municipio ${municipality_code} · ${visible.length} contactos visibles`, headers: ["Código", "Nombre", "Tipo", "Cargo", "Comunidad", "Teléfono", "Teléfono secundario", "Correo"], rows: visible.map((contact) => [contactCodes.get(contact.id) || contact.file_code || "", contact.full_name, contact.contact_type, contact.candidate_position || contact.role || "", contact.community || "", contact.phone || "", contact.phone_secondary || "", contact.email || ""]), widths: [12, 34, 24, 28, 28, 18, 20, 32] }]);
+    blobDownload(workbook, `RADAR_Directorio_${municipality_code}.xlsx`);
   }
   return <>
     <section className="crm-controlbar">
       <label className="crm-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar nombre, teléfono, comunidad o cargo" /></label>
       <label><span>Tipo de contacto</span><select value={contactFilter} onChange={(event) => setContactFilter(event.target.value)}><option value="all">Todos</option>{contactTypes.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <button className="secondary" type="button" disabled={!visible.length} onClick={downloadDirectoryExcel}>↓ Descargar Excel</button>
       <button className="crm-bulk-carnets" type="button" disabled={exporting || !visible.length} onClick={() => void downloadVisible()}>{exporting ? "Preparando…" : `↓ Carnets (${visible.length})`}</button>
-      <button className="primary" type="button" onClick={openNew}>+ Agregar contacto</button>
       <div className="crm-view-switch" aria-label="Cambiar vista"><button className={view === "cards" ? "active" : ""} onClick={() => setView("cards")}>Tarjetas</button><button className={view === "table" ? "active" : ""} onClick={() => setView("table")}>Lista</button></div>
     </section>
     <section className="crm-directory crm-directory-v2">
       <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h2>{fmt.format(visible.length)} contactos visibles</h2><p>Equipo, responsables, fiscales y credenciales vinculados a la operación.</p></div></header>
       {message ? <p className="agenda-message" role="status">{message}</p> : null}
-      {visible.length ? <div className={view === "cards" ? "crm-card-grid" : "crm-table-list"}>{visible.map((contact) => { const assignment = assignmentFor(contact.id); const name = splitContactName(contact.full_name); return <article className="crm-contact-card" key={contact.id}>
+      {visible.length && view === "cards" ? <div className="crm-card-grid">{visible.map((contact) => { const assignment = assignmentFor(contact.id); const name = splitContactName(contact.full_name); return <article className="crm-contact-card" key={contact.id}>
         <header>{contact.photo_url ? <img className="crm-avatar" src={contact.photo_url} alt={`Fotografía de ${contact.full_name}`} /> : <i aria-hidden="true">{initials(contact.full_name)}</i>}<div><span className="crm-contact-code">{contactCodes.get(contact.id) || contact.file_code || "PENDIENTE"}</span><h3 className="crm-person-name"><span>{name.first_names || "Sin nombre"}</span><b>{name.last_names || "\u00a0"}</b></h3></div></header>
         <div className="crm-contact-meta"><span><small>COMUNIDAD</small><b>{contact.community || "Sin asignar"}</b></span><span><small>{contact.contact_type === "Candidato" ? "CANDIDATURA" : "TIPO DE CONTACTO"}</small><b>{contact.contact_type === "Candidato" ? contact.candidate_position || "Cargo pendiente" : contact.contact_type || "Sin clasificar"}</b></span></div>
         {contact.contact_type === "Fiscal" ? <div className={`crm-dayd-status ${assignment ? "assigned" : "pending"}`}><small>DÍA D</small><b>{assignment ? `${String(assignment.payload.center_name || "Centro asignado")} · JRV ${String(assignment.payload.jrv || "—")}` : "JRV aún no asignada"}</b></div> : null}
         <div className="crm-contact-lines"><span><b>Teléfono principal</b>{contact.phone ? <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>{contact.phone}</a> : <em>Pendiente</em>}</span><span><b>Teléfono secundario</b>{contact.phone_secondary ? <a href={`tel:${contact.phone_secondary.replace(/[^\d+]/g, "")}`}>{contact.phone_secondary}</a> : <em>—</em>}</span><span><b>Correo</b>{contact.email ? <a href={`mailto:${contact.email}`}>{contact.email}</a> : <em>Pendiente</em>}</span></div>
         {contact.notes ? <p className="crm-notes">{contact.notes}</p> : null}
         <footer><div className="crm-card-actions"><Link to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${contact.id}&responsible=${encodeURIComponent(contact.full_name)}&community=${encodeURIComponent(contact.community || "")}`}>Crear actividad</Link><div className="crm-card-secondary"><button className="print-action" type="button" onClick={() => void openCarnet(contact)}>Imprimir</button><button className="open-action" type="button" onClick={() => openEdit(contact)}>Abrir</button><button className="delete-action" type="button" onClick={() => void archive(contact)}>Borrar</button></div></div></footer>
-      </article>; })}</div> : <div className="crm-approved-empty"><span>CRM</span><h3>Agrega a tu equipo y responsables</h3><p>Centraliza contactos, asignaciones, fotografía y carnets de campaña.</p><button type="button" onClick={openNew}>+ Nuevo contacto</button></div>}
+      </article>; })}</div> : visible.length ? <div className="crm-table crm-table-v2"><div className="crm-row crm-head"><span>Persona</span><span>Código</span><span>Comunidad</span><span>Contacto</span><span>Calidad</span><span>Acciones</span></div>{visible.map((contact) => { const missing = [contact.phone, contact.community, contact.contact_type].filter((value) => !value).length; return <article className="crm-row" key={contact.id} onClick={() => openEdit(contact)}><span>{contact.photo_url ? <img className="crm-avatar" src={contact.photo_url} alt="" /> : <i>{initials(contact.full_name)}</i>}<b>{contact.full_name}</b></span><span>{contactCodes.get(contact.id) || contact.file_code || "Pendiente"}</span><span>{contact.community || "Pendiente"}</span><span>{contact.phone || contact.email || "Pendiente"}</span><span><em className={missing ? "incomplete" : ""}>{missing ? `${missing} pendiente${missing === 1 ? "" : "s"}` : "Completo"}</em></span><span className="crm-table-actions"><button className="crm-table-carnet" type="button" onClick={(event) => { event.stopPropagation(); void openCarnet(contact); }}>Imprimir</button><button className="crm-table-delete" type="button" onClick={(event) => { event.stopPropagation(); void archive(contact); }}>Borrar</button></span></article>; })}</div> : <div className="agenda-empty"><b>{contacts.length ? "No hay contactos con estos filtros." : "El Directorio está listo para recibir tu base."}</b><span>{contacts.length ? "Cambia los filtros o la búsqueda." : "Agrega el primer contacto del equipo."}</span><div><button type="button" onClick={openNew}>Agregar contacto</button></div></div>}
     </section>
     {open ? <div className="agenda-modal" role="dialog" aria-modal="true"><form className="crm-person-form" onSubmit={save}>
       <header><div><small>DIRECTORIO CRM</small><h2>{editing ? "Editar contacto" : "Nuevo contacto"}</h2><p>El nombre es obligatorio. En candidaturas puedes completar el teléfono después.</p></div><button type="button" onClick={() => setOpen(false)}>×</button></header>
@@ -1207,7 +1244,7 @@ function TeamDirectoryCanonical() {
         {form.contact_type === "Fiscal" ? <aside className="crm-dayd-form-status wide"><small>ASIGNACIÓN DÍA D</small><b>{editing && assignmentFor(editing) ? `${String(assignmentFor(editing)?.payload.center_name || "Centro asignado")} · JRV ${String(assignmentFor(editing)?.payload.jrv || "—")}` : "JRV aún no asignada"}</b><span>La asignación se administra desde Día D → Centros de votación.</span></aside> : null}
         <label className="wide"><span>Notas</span><textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Información breve que ayude al equipo" /></label>
       </div>
-      {message ? <p className="form-error">{message}</p> : null}<footer>{editing ? <Link className="crm-create-activity" to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${editing}&responsible=${encodeURIComponent(`${form.first_names} ${form.last_names}`.trim())}&community=${encodeURIComponent(form.community)}`}>Crear actividad</Link> : <span />}<button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar contacto"}</button></footer>
+      {message ? <p className="form-error">{message}</p> : null}<footer>{editing ? <Link className="agenda-create-link" to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${editing}&responsible=${encodeURIComponent(`${form.first_names} ${form.last_names}`.trim())}&community=${encodeURIComponent(form.community)}`}>Crear actividad</Link> : <span />}<button type="button" onClick={() => setOpen(false)}>Cancelar</button><button disabled={saving}>{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar contacto"}</button></footer>
     </form></div> : null}
     {carnetPerson ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-label={`Carnet de ${carnetPerson.full_name}`}><section className="crm-carnet-modal"><header><div><small>CARNET IMPRIMIBLE</small><h2>Así se descargará</h2></div><button type="button" onClick={closeCarnet}>×</button></header><div className="crm-carnet-output">{carnetPreviewUrl ? <img src={carnetPreviewUrl} alt={`Vista final imprimible del carnet de ${carnetPerson.full_name}`} /> : <span>Preparando carnet…</span>}</div><footer><button type="button" onClick={closeCarnet}>Cerrar</button><button type="button" disabled={!carnetPreviewUrl} onClick={() => void downloadOne(carnetPerson)}>Descargar PNG</button></footer></section></div> : null}
   </>;
@@ -1231,6 +1268,7 @@ function DirectoryContent() {
               : "Base de datos / contactos por tipo"}
           </span>
         </div>
+        {mode === "team" ? <div className="crm-banner-actions"><button className="secondary" type="button" onClick={() => window.dispatchEvent(new Event(DIRECTORY_EXPORT_EVENT))}>↓ Descargar Excel</button><button type="button" onClick={() => window.dispatchEvent(new Event(DIRECTORY_ADD_EVENT))}>+ Agregar contacto</button></div> : null}
       </section>
       <nav
         className="directory-universe-tabs"
