@@ -120,6 +120,14 @@ test("map renders persisted activity points and routes", () => {
   assert.doesNotMatch(styles, /\.agenda-map-marker\{[^}]*rotate\(-45deg\)/);
 });
 
+test("the executive report includes commitments stored by the current Agenda flow", () => {
+  const report = read("src/components/V70DirectReport0509.tsx");
+
+  assert.match(report, /records\.agenda\?\?\[\]/);
+  assert.match(report, /record\.category==="COMPROMISO"/);
+  assert.match(report, /openCommitmentCount/);
+});
+
 test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   const dayD = read("src/components/V70DirectDayD0509.tsx");
   assert.match(dayD, /loadCampaignContacts/);

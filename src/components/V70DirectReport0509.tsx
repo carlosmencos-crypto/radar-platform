@@ -75,6 +75,8 @@ export function V70DirectReport0509(){
     const source = definitions[section] ?? definitions.inicio;
     const activities=bundle?.activities??[];
     const commitments=bundle?.commitments??[];
+    const commitmentRecords=(records.agenda??[]).filter((record)=>record.category==="COMPROMISO");
+    const openCommitmentCount=commitments.filter((item)=>item.status!=="cumplido").length+commitmentRecords.filter((record)=>record.status!=="CUMPLIDO").length;
     const candidates=contacts.filter((contact)=>contact.contact_type==="Candidato");
     const fiscales=contacts.filter((contact)=>/fiscal/i.test(`${contact.contact_type} ${contact.role??""}`));
     const now=Date.now();
@@ -97,12 +99,12 @@ export function V70DirectReport0509(){
       dynamic.metrics=[
         {label:"Planilla registrada",value:String(candidates.length),note:"Candidaturas activas en CRM"},
         {label:"Actividades",value:String(activities.length),note:`${upcoming.length} próximas`},
-        {label:"Compromisos abiertos",value:String(commitments.filter((item)=>item.status!=="CUMPLIDO").length),note:"Seguimiento operativo"},
+        {label:"Compromisos abiertos",value:String(openCommitmentCount),note:"Seguimiento operativo"},
         {label:"Expedientes",value:String(legal.length),note:"Documentos vinculados"},
       ];
       dynamic.sections=[
         {eyebrow:"PLANILLA MUNICIPAL",title:"Integración de la candidatura",items:[`Candidato a alcalde: ${candidateName}`,...candidates.filter((person)=>person.candidate_position!=="Alcalde").slice(0,11).map((person)=>`${person.candidate_position||"Candidatura"}: ${person.full_name}`)]},
-        {eyebrow:"CONTROL EJECUTIVO",title:"Situación operativa",items:[`${upcoming.length} actividades próximas y ${geolocated.length} actividades geolocalizadas.`,`${commitments.filter((item)=>item.status!=="CUMPLIDO").length} compromisos abiertos.`,`${fiscales.length} fiscales en CRM y ${assignments.length} JRV con asignación.`]},
+        {eyebrow:"CONTROL EJECUTIVO",title:"Situación operativa",items:[`${upcoming.length} actividades próximas y ${geolocated.length} actividades geolocalizadas.`,`${openCommitmentCount} compromisos abiertos.`,`${fiscales.length} fiscales en CRM y ${assignments.length} JRV con asignación.`]},
       ];
     }
     if(source.key==="estrategia"){
