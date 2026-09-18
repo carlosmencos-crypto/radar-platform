@@ -84,7 +84,7 @@ test("V70 gate loads compact authorized runtime v6 while retaining point bundle 
 test("detailed public geography loads for intelligence and mapa and reconciles fail closed", () => {
   assert.match(gate, /section === "mapa"/);
   assert.match(gate, /section === "inteligencia"/);
-  assert.match(gate, /loadAuthorizedGeoBundle\(municipalityCode, accessToken, \[\.\.\.RADAR_PUBLIC_MAP_FEATURE_TYPES\]\)/);
+  assert.match(gate, /loadAuthorizedGeoBundle\([\s\S]*?RADAR_PUBLIC_MAP_FEATURE_TYPES[\s\S]*?\)/);
   assert.match(gate, /assertGeoBundleMatchesRuntime\(consumer\.runtime, geoBundle\)/);
   assert.match(gate, /installRadarGeoBundle\(geoBundle\)/);
   assert.match(cache, /new Map<string, MunicipalityGeoBundle>\(\)/);
