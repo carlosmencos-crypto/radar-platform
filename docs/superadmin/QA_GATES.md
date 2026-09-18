@@ -19,6 +19,7 @@ Base: `579caa8a58e5f8b7368a3500e723c9fc7d0401a2`
 | Smoke 340 rutas | Aprobado local | 5,780/5,780 pares, 340/340 municipios, 0 cruces |
 | Auditoría de bundle | Aprobado local | 0 sourcemaps, secretos, Campaign Vault privado o PII detectada |
 | Sintaxis migración PostgreSQL 17 | Aprobado local | Parser nativo PostgreSQL 17: `SQL_PARSE_OK` |
+| Typecheck Edge Function en Deno | Bloqueado local | El runtime no pudo resolver `jsr.io`; debe validarse al desplegar en la rama QA |
 | Migración SQL en rama QA | Bloqueado | El proyecto solo tiene `main`; Supabase cotiza la rama QA en USD 0.01344/h y requiere confirmación |
 | Pruebas negativas RLS/roles | Bloqueado | Requieren rama Supabase QA y usuarios de prueba |
 | Edge Function QA | Bloqueado | Depende de migración QA y secretos de esa rama |
