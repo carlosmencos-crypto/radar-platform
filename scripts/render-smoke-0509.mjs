@@ -109,6 +109,9 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_bundle_v1")) return new Response(JSON.stringify(campaignBundle),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_campaign_contacts_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_pulse_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
@@ -199,7 +202,13 @@ function createCdp(wsUrl) {
       listeners.set(method, set);
     });
   }
-  return { send, once, close: () => socket.close(), open };
+  function on(method, listener) {
+    const set = listeners.get(method) ?? new Set();
+    set.add(listener);
+    listeners.set(method, set);
+    return () => set.delete(listener);
+  }
+  return { send, once, on, close: () => socket.close(), open };
 }
 
 const chrome = findChrome();
@@ -227,6 +236,7 @@ const routes = [
   ["configuracion", `/municipio/${municipalityCode}/configuracion`, "Configuración"],
 ];
 const results = [];
+const runtimeEvents = [];
 let cdp = null;
 try {
   const target = await waitForDebugTarget();
@@ -234,6 +244,12 @@ try {
   await cdp.open;
   await cdp.send("Page.enable");
   await cdp.send("Runtime.enable");
+  cdp.on("Runtime.consoleAPICalled", (event) => {
+    runtimeEvents.push({ type: event.type, text: (event.args ?? []).map((item) => item.value ?? item.description ?? item.type).join(" ") });
+  });
+  cdp.on("Runtime.exceptionThrown", (event) => {
+    runtimeEvents.push({ type: "exception", text: event.exceptionDetails?.exception?.description ?? event.exceptionDetails?.text ?? "Runtime exception" });
+  });
   await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
 
   for (const [slug, route, marker] of routes) {
@@ -271,10 +287,13 @@ try {
     const screenshotBytes = fs.statSync(screenshot).size;
     const ok = domOk && screenshotBytes > 10_000;
     results.push({ slug, route, marker, ok, domOk, routeSpecificOk, screenshotBytes, href: snapshot.href ?? null });
-    fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results }, null, 2));
-    if (!ok) throw new Error(`Rendered route failed: ${route}; see render-smoke-${municipalityCode} diagnostics.`);
+    fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: ok ? "RUNNING" : "FAIL", routes: results, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
+    if (!ok) {
+      console.error("V70_RENDER_RUNTIME_EVENTS", JSON.stringify(runtimeEvents.slice(-12)));
+      throw new Error(`Rendered route failed: ${route}; see render-smoke-${municipalityCode} diagnostics.`);
+    }
   }
-  fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results }, null, 2));
+  fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes rendered without auth/runtime/cross-municipality/white-screen failure`);
 } finally {
   cdp?.close();
