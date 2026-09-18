@@ -475,6 +475,7 @@ try {
     && executive.html.includes("report-intelligence-grid")
     && executive.html.includes("report-activity-card-list")
     && executive.html.includes("report-activity-map")
+    && executive.html.includes("report-activity-map-overlay")
     && executive.html.includes("radar-electoral-logo-horizontal");
   if (!executiveHealthy) throw new Error("Executive report omitted candidate, intelligence, plan or agenda content.");
   const executiveScreenshotBytes = await capture("report-inicio-ejecutivo");

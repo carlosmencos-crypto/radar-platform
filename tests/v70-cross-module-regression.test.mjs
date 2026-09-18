@@ -100,6 +100,8 @@ test("report exports retain the deployed application base path", () => {
   assert.match(report, /Plan de campaña vigente/);
   assert.match(report, /report-activity-card-list/);
   assert.match(report, /report-activity-map/);
+  assert.match(report, /report-activity-map-overlay/);
+  assert.match(report, /chunks\(selectedActivities,1\)/);
   assert.match(report, /activityScope/);
   assert.match(builder, /\["all","Todas"\]/);
   assert.match(report, /activityScope==="all"/);
