@@ -18,6 +18,7 @@ import type {
   GeoFeatureRecord,
 } from "../data/radarRuntime";
 import { loadCampaignBundle } from "../data/radarRuntime";
+import { V70MapFullscreen } from "./V70MapFullscreen";
 
 type LatLng = [number, number];
 type LeafletLayer = { remove(): void };
@@ -329,6 +330,7 @@ export function V70OperationalMap() {
   const centers = electoral?.centers ?? [];
 
   const mapNode = useRef<HTMLDivElement>(null);
+  const fullscreenNode = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const baseLayerRef = useRef<LeafletLayer | null>(null);
   const drawnRef = useRef<LeafletLayer[]>([]);
@@ -838,6 +840,7 @@ export function V70OperationalMap() {
         </div>
       </section>
 
+      <div ref={fullscreenNode} className="map-fullscreen-frame">
       <section
         className="operational-map-toolbar"
         aria-label="Controles del Mapa Inteligente"
@@ -1047,6 +1050,7 @@ export function V70OperationalMap() {
         >
           {satellite ? "Vista mapa" : "Vista satelital"}
         </button>
+        <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
       </section>
 
       {selectedCommunity ? (
@@ -1203,6 +1207,7 @@ export function V70OperationalMap() {
           </div>
         </div>
       </section>
+      </div>
     </>
   );
 }

@@ -92,6 +92,7 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_bundle_v1")) return new Response(JSON.stringify(campaignBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_contacts_v1")) return new Response(JSON.stringify(campaignContacts),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_pulse_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(moduleRecords[body.p_module_key]||[]),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
@@ -302,6 +303,8 @@ try {
       await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: mapPoint.x, y: mapPoint.y, button: "left", clickCount: 1 });
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: mapPoint.x, y: mapPoint.y, button: "left", clickCount: 1 });
       await waitFor(`Boolean(document.querySelector('.free-place-card a[href*="lat="][href*="lon="]'))`, "exact map point handoff to Agenda");
+      const fullscreenControl = await evaluate(`Boolean(document.querySelector('.map-fullscreen-frame .map-fullscreen-button[aria-label="Ver mapa en pantalla completa"]'))`);
+      if (!fullscreenControl) throw new Error("Smart Map fullscreen control is missing.");
     }
     if (slug === "dia-d") {
       const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
@@ -310,6 +313,8 @@ try {
       const openedFiscales = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Fiscales'); if(!button)return false; button.click(); return true;})()`);
       if (!openedFiscales) throw new Error("Fiscales internal view is missing.");
       await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="fiscales"] .day-d-actas-tooltip')) && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('1 / 5 actas recibidas') && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('Faltan:')`, "fiscal RTD five-acta status");
+      const fiscalColumns = await evaluate(`(()=>{const actas=document.querySelector('.day-d-actas-progress');const access=document.querySelector('.day-d-access-actions');if(!actas||!access)return null;const left=actas.getBoundingClientRect(),right=access.getBoundingClientRect();return{actasRight:left.right,accessLeft:right.left,accessWidth:right.width};})()`);
+      if (!fiscalColumns || fiscalColumns.accessLeft <= fiscalColumns.actasRight || fiscalColumns.accessWidth < 300) throw new Error(`Fiscal access controls remain crowded against RTD: ${JSON.stringify(fiscalColumns)}`);
       const actaPoint = await evaluate(`(()=>{const item=document.querySelector('.day-d-actas-progress'); if(!item)return null; const rect=item.getBoundingClientRect(); return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
       if (!actaPoint) throw new Error("Fiscal RTD five-acta control is missing.");
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: actaPoint.x, y: actaPoint.y });
@@ -348,6 +353,7 @@ try {
   await delay(1800);
   const rankLayout = await evaluate(`(()=>{const value=document.querySelector('.territory-overview>div:nth-child(3)>b'); if(!value)return null; const style=getComputedStyle(value); const rect=value.getBoundingClientRect(); return {whiteSpace:style.whiteSpace,height:rect.height,lineHeight:Number.parseFloat(style.lineHeight)};})()`);
   if (!rankLayout || rankLayout.whiteSpace !== "nowrap" || (Number.isFinite(rankLayout.lineHeight) && rankLayout.height > rankLayout.lineHeight * 1.5)) throw new Error(`Municipal rank typography wrapped: ${JSON.stringify(rankLayout)}`);
+  if (!(await evaluate(`Boolean(document.querySelector('.map-workspace .map-fullscreen-button[aria-label="Ver mapa en pantalla completa"]'))`))) throw new Error("Intelligence Map fullscreen control is missing.");
   for (const selector of [".floating-export", ".print-top-action"]) {
     const clicked = await evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)}); if(!b)return false; b.click(); return true;})()`);
     if (!clicked) throw new Error(`Intelligence export control missing: ${selector}`);
@@ -404,7 +410,8 @@ try {
     && executive.text.includes("Reunión con líderes comunitarios")
     && executive.text.includes("Objetivo general")
     && executive.html.includes("report-intelligence-grid")
-    && executive.html.includes("report-activity-grid")
+    && executive.html.includes("report-activity-card-list")
+    && executive.html.includes("report-activity-map")
     && executive.html.includes("radar-electoral-logo-horizontal");
   if (!executiveHealthy) throw new Error("Executive report omitted candidate, intelligence, plan or agenda content.");
   const executiveScreenshotBytes = await capture("report-inicio-ejecutivo");

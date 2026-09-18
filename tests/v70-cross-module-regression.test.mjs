@@ -83,8 +83,8 @@ test("strategy workspaces keep the approved V70 vocabulary and functional export
   assert.match(strategy, /candidate-upload-grid/);
   assert.match(xlsx, /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
   assert.match(xlsx, /xl\/worksheets\/sheet/);
-  assert.match(xlsx, /<\/sheetData><autoFilter[\s\S]*\$\{mergeCells\}<pageMargins/);
-  assert.doesNotMatch(xlsx, /<\/sheetData>\$\{mergeCells\}<autoFilter/);
+  assert.match(xlsx, /<\/sheetData>\$\{autoFilter\}\$\{mergeCells\}<ignoredErrors/);
+  assert.doesNotMatch(xlsx, /<\/sheetData>\$\{mergeCells\}\$\{autoFilter\}/);
 });
 
 test("report exports retain the deployed application base path", () => {
@@ -97,7 +97,8 @@ test("report exports retain the deployed application base path", () => {
   assert.match(report, /report-candidate-grid/);
   assert.match(report, /report-chart-grid/);
   assert.match(report, /Plan de campaña vigente/);
-  assert.match(report, /report-activity-grid/);
+  assert.match(report, /report-activity-card-list/);
+  assert.match(report, /report-activity-map/);
   assert.match(report, /activityScope/);
   assert.match(report, /municipalProfile\.modules/);
   assert.match(report, /partyLogoUrl/);

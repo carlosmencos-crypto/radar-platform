@@ -254,6 +254,30 @@ export interface CampaignVaultFileRef {
   file_size: number;
 }
 
+export interface AuthorizedPulseResult {
+  option_code: string;
+  candidate_name: string;
+  organization: string | null;
+  value: number;
+}
+
+export interface AuthorizedPulseMeasurement {
+  id: string;
+  folio: string;
+  election_type: "ALCALDIA" | "PRESIDENTE" | "DIP_NAC" | "DIP_DIST" | "PARLACEN";
+  scope_type: "MUNICIPALITY" | "DEPARTMENT" | "NATIONAL";
+  country_code: string;
+  department_code: string | null;
+  municipality_code: string | null;
+  field_start: string | null;
+  field_end: string;
+  sample_size: number;
+  scope_label: string;
+  methodology: string;
+  source_label: string;
+  results: AuthorizedPulseResult[];
+}
+
 export interface VoterDirectoryFilters {
   query?: string;
   dpi?: string;
@@ -483,6 +507,25 @@ export async function loadCampaignBundle(
     throw new Error("La sesión no tiene acceso al Campaign Vault.");
   }
   return bundle;
+}
+
+export async function loadAuthorizedPulse(
+  municipalityCode: string,
+  accessToken: string,
+) {
+  assertMunicipalityCode(municipalityCode);
+  const measurements = await rpc<AuthorizedPulseMeasurement[]>(
+    "radar_authorized_pulse_v1",
+    { p_municipality_code: municipalityCode },
+    accessToken,
+  );
+  if (!Array.isArray(measurements) || measurements.some((measurement) =>
+    !Array.isArray(measurement.results) ||
+    (measurement.scope_type === "MUNICIPALITY" && measurement.municipality_code !== municipalityCode)
+  )) {
+    throw new Error("Pulso devolvió una medición fuera del alcance autorizado.");
+  }
+  return measurements;
 }
 
 export async function saveCampaignIdentity(

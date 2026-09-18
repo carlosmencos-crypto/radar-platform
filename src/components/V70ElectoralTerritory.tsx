@@ -5,6 +5,7 @@ import type {
   V70ElectoralCenter,
   V70ElectoralViewModel,
 } from "../data/v70ElectoralAdapter";
+import { V70MapFullscreen } from "./V70MapFullscreen";
 
 type Metric = "leader" | "turnout" | "margin" | "coverage";
 type Layers = { electoral: boolean; schools: boolean; territory: boolean; health: boolean; works: boolean };
@@ -132,6 +133,7 @@ function MetricLegend({ metric }: { metric: Metric }) {
 export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange }: { viewModel: V70ElectoralViewModel; geoBundle?: MunicipalityGeoBundle; onSelectionChange?: (selection: SelectionChange) => void }) {
   const initialElection: V70ElectionCode = viewModel.elections.some((item) => item.code === "CORPORACION_MUNICIPAL") ? "CORPORACION_MUNICIPAL" : viewModel.elections[0]?.code ?? "CORPORACION_MUNICIPAL";
   const mapNode = useRef<HTMLDivElement>(null);
+  const fullscreenNode = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
   const healthRef = useRef<LeafletLayerGroup | null>(null);
@@ -282,7 +284,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
       <div className="election-switch" role="tablist" aria-label="Tipo de elección">
         {viewModel.elections.map((item) => <button key={item.code} className={item.code === electionCode ? "active" : ""} onClick={() => setElectionCode(item.code)}><span>{item.shortName}</span><small>{item.counted ?? "—"}/{item.expected ?? "—"} actas</small></button>)}
       </div>
-      <div className="map-workspace">
+      <div ref={fullscreenNode} className="map-workspace">
         <aside className="directory">
           <div className="directory-head"><div><p className="eyebrow">DIRECTORIO ELECTORAL</p><h3>{viewModel.centers.length} centros · {viewModel.centers.reduce((total, center) => total + center.jrv, 0)} JRV</h3></div><span>{filtered.length}</span></div>
           <label className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar centro o comunidad" /></label>
@@ -301,6 +303,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
               <button className={`layer-health ${layers.health ? "on" : ""}`} aria-pressed={layers.health} onClick={() => setLayers((value) => ({ ...value, health: !value.health }))}><i className="health-dot" />Salud <b>{healthCount || "SIN_REGISTRO"}</b></button>
               <button className={`layer-works ${layers.works ? "on" : ""}`} aria-pressed={layers.works} onClick={() => setLayers((value) => ({ ...value, works: !value.works }))}><i className="works-dot" />Obras <b>NO_PUBLICADO</b></button>
             </div>
+            <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
           </div>
           <div className="active-reading"><span>Visualizando</span><b>{election.shortName} · {metricNames[metric]}</b><small>Los colores y valores de los {viewModel.centers.length} nodos responden a esta selección.</small></div>
           <div ref={mapNode} className="real-map" role="img" aria-label={`Mapa interactivo de centros de votación de ${viewModel.municipalityName}`} />
