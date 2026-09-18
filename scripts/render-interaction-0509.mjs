@@ -253,7 +253,7 @@ try {
     return fs.statSync(file).size;
   }
   async function clickSelector(selector) {
-    const point = await evaluate(`(()=>{const item=document.querySelector(${JSON.stringify(selector)});if(!item)return null;const rect=item.getBoundingClientRect();return{x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
+    const point = await evaluate(`(()=>{const item=document.querySelector(${JSON.stringify(selector)});if(!item)return null;item.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const rect=item.getBoundingClientRect();return{x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
     if (!point) throw new Error(`Clickable control missing: ${selector}`);
     await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
     await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
