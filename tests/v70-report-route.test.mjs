@@ -8,7 +8,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const sha256 = (file) => createHash("sha256").update(fs.readFileSync(path.join(root, file))).digest("hex");
 
-test("0509 report actions resolve to an authorized V70 executive-report surface", () => {
+test("all municipal report actions resolve to the authorized V70 executive-report surface", () => {
   const app = read("src/app/App.tsx");
   const gate = read("src/components/V70DirectReportAccessGate0509.tsx");
   const report = read("src/components/V70DirectReport0509.tsx");
@@ -18,10 +18,12 @@ test("0509 report actions resolve to an authorized V70 executive-report surface"
   assert.ok(app.includes('path="reporte/:section" element={<V70DirectReportAccessGate0509 />}'), "Authorized executive report route is not mounted.");
   assert.ok(app.includes('import { V70DirectReportAccessGate0509 }'), "Authorized report gate is not imported.");
   assert.ok(gate.includes('ensureRadarAccessToken()'), "Report route does not verify the active RADAR session.");
-  assert.ok(gate.includes('resolveAuthorizedRadarConsumer("0509", accessToken)'), "Report route does not verify authorized 0509 context.");
+  assert.ok(gate.includes('resolveAuthorizedRadarConsumer(municipalityCode, accessToken)'), "Report route does not verify its authorized municipal context.");
+  assert.ok(gate.includes('searchParams.get("municipality") ?? ""'), "Report route must fail closed when a municipality is omitted.");
   assert.ok(gate.includes('<V70DirectReport0509 />'), "Authorized gate does not render the canonical report.");
   assert.ok(builder.includes('import.meta.env.BASE_URL') && builder.includes('reporte/inicio?${query.toString()}'), "Universal ReportBuilder must retain the deployed base path.");
   assert.ok(exporter.includes('import.meta.env.BASE_URL') && exporter.includes('reporte/municipio-360?'), "Municipio-360 report must retain the deployed base path.");
+  assert.ok(exporter.includes('municipality: municipality_code'), "Municipio-360 report must preserve the active municipality.");
 
   for (const phrase of [
     "report-shell",

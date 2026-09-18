@@ -208,7 +208,8 @@ test("Inicio reflects Agenda and commitment state", () => {
   assert.match(home, /loadCampaignRecords/);
   assert.match(home, /activitiesToday/);
   assert.match(home, /coveredTerritories/);
-  assert.match(home, /coveredTerritories \/ 81/);
+  assert.match(home, /coveredTerritories \/ knownTerritories/);
+  assert.match(home, /runtime\.voter_roll\.aggregates\.find/);
 });
 
 test("private files and Recursos persist instead of exposing inert controls", () => {

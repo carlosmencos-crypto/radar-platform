@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { resolveRadarConsumer } from "../data/radarConsumer";
@@ -20,6 +21,8 @@ import { RadarAssistant } from "./V70DirectAi0509";
 import { V70PhotoEditor } from "./V70PhotoEditor";
 import { announceV70CampaignUpdate, useV70CampaignBrand } from "./useV70CampaignBrand";
 import { createRadarXlsx } from "../data/xlsxExport";
+import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
+import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
 
 const planFields = [
   ["Situación del candidato", "Situación del candidato", "¿Es conocido, nuevo, oficialista u oposición? ¿Cuál es su principal ventaja y qué debe cuidar?"],
@@ -31,33 +34,24 @@ const planFields = [
   ["Oportunidad", "Oportunidades", "Cambios o necesidades del municipio que abren espacio"],
   ["Amenaza", "Amenazas", "Factores externos que pueden afectar la ruta"],
 ] as const;
-const municipalDiagnostic = [
-  {
-    title: "Agua",
-    source: "PDM-OT",
-    evidence: "Cobertura histórica de 17.8% en la línea base 2016.",
-    prompt: "Agua segura y continuidad del servicio: precisar comunidades afectadas, causa y solución municipal posible.",
-  },
-  {
-    title: "Residuos",
-    source: "INE 2018",
-    evidence: "63.3% de hogares reportó quemar basura en el Censo 2018.",
-    prompt: "Recolección y manejo de residuos: verificar cambios recientes y plantear una respuesta medible por comunidad.",
-  },
-  {
-    title: "Educación media",
-    source: "PDM-OT 2015",
-    evidence: "Cobertura histórica: 59.63% en básico y 34.16% en diversificado.",
-    prompt: "Acceso a educación media: identificar barreras locales y acciones que sí corresponden a la municipalidad.",
-  },
-  {
-    title: "Prevención",
-    source: "Perfil municipal",
-    evidence: "La lectura municipal combina seguridad ciudadana, atención a mujeres y seguridad vial.",
-    prompt: "Prevención y seguridad: definir el problema comprobable, la coordinación necesaria y el resultado esperado.",
-  },
-] as const;
 const allPlanFields = planFields;
+
+function municipalPayload(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function municipalNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function municipalPercent(value: unknown, fraction = false) {
+  const number = municipalNumber(value);
+  return number === null
+    ? "no publicado"
+    : `${(fraction ? number * 100 : number).toLocaleString("es-GT", { maximumFractionDigits: 1 })}%`;
+}
 
 const areaConfig = {
   "estrategia-comunicacion": {
@@ -111,13 +105,36 @@ function useRecords(moduleKey: string) {
 
 function PlanWorkspace() {
   const store = useRecords("estrategia");
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, municipality_name } = useMunicipalityContext();
+  const { runtime } = useAuthorizedRadarRuntime();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [aiField, setAiField] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [approving, setApproving] = useState(false);
   const [deletingVersionId, setDeletingVersionId] = useState<string | null>(null);
+  const electoralView = useMemo(() => {
+    try { return adaptAuthorizedElectoralTerritoryLayers(getInstalledRadarElectoralLayers(municipality_code) ?? []); }
+    catch { return null; }
+  }, [municipality_code]);
+  const activeElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026")?.elector_count;
+  const detailedElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023")?.elector_count;
+  const electorDelta = activeElectors !== undefined && detailedElectors !== undefined ? activeElectors - detailedElectors : null;
+  const centerCount = electoralView?.centers.length ?? 0;
+  const jrvCount = electoralView?.centers.reduce((sum, center) => sum + center.jrv, 0) ?? 0;
+  const layerPayload = (layerId: string) => municipalPayload(runtime.layers.find((item) => item.layer_id === layerId)?.payload);
+  const pdm = layerPayload("PDM_PDMOT");
+  const census = layerPayload("INE_CENSO_B2_B6");
+  const nutrition = layerPayload("SESAN_TALLA");
+  const risk = layerPayload("CONRED_INFORM");
+  const pdmDocument = String(pdm.file_name ?? "Documento municipal no publicado");
+  const pdmReview = String(pdm.inventory_review_status ?? pdm.coverage_status ?? "estado no publicado").replaceAll("_", " ").toLocaleLowerCase("es");
+  const diagnosticRows = [
+    { title: "Planificación territorial", source: "PDM-OT", evidence: `${pdmDocument} · ${pdmReview}. El documento corresponde exclusivamente a ${municipality_name}.`, prompt: `Revisa el PDM-OT de ${municipality_name} y formula un problema verificable, una competencia municipal y un resultado medible.` },
+    { title: "Población y hogares", source: "INE 2018", evidence: `Agua dentro de la vivienda: ${municipalPercent(census.water_pipe_inside_pct, true)}. Universo: ${municipalNumber(census.total_households)?.toLocaleString("es-GT") ?? "no publicado"} hogares del municipio.`, prompt: `Relaciona una necesidad de ${municipality_name} con el Censo 2018 sin mezclar universos ni inventar actualización.` },
+    { title: "Desarrollo municipal", source: "PDM-OT 2015", evidence: pdm.publication_year === 2015 ? `Línea base municipal publicada en 2015 dentro de ${pdmDocument}.` : "La capa municipal no confirma una línea base 2015; el vacío se conserva y debe validarse antes de afirmar vigencia.", prompt: `Convierte una línea base histórica de ${municipality_name} en una pregunta de diagnóstico actual, no en una afirmación sin verificar.` },
+    { title: "Perfil municipal", source: "Perfil municipal", evidence: `Talla baja: ${municipalPercent(nutrition.stunting_prevalence_pct)} · riesgo INFORM: ${municipalNumber(risk.inform_risk)?.toLocaleString("es-GT", { maximumFractionDigits: 1 }) ?? "no publicado"} · padrón activo: ${activeElectors?.toLocaleString("es-GT") ?? "no publicado"}.`, prompt: `Formula una prioridad de ${municipality_name} basada solo en estos datos municipales y marca claramente lo que falta validar.` },
+  ];
   const latestByCategory = useMemo(() => {
     const latest = new Map<string, CampaignModuleRecord>();
     for (const record of store.records) {
@@ -208,16 +225,16 @@ function PlanWorkspace() {
     finally { setDeletingVersionId(null); }
   }
   function exportPlan() {
-    window.open(`${import.meta.env.BASE_URL}reporte/estrategia?parts=summary%2Cmetrics%2Crecords`, "_blank", "noopener,noreferrer");
+    window.open(`${import.meta.env.BASE_URL}reporte/estrategia?municipality=${encodeURIComponent(municipality_code)}&parts=summary%2Cmetrics%2Crecords`, "_blank", "noopener,noreferrer");
   }
   return <>
     <section className="section-banner"><div className="section-banner-copy"><p>CAMPAÑA MUNICIPAL</p><h1>Plan de campaña</h1><span>Diagnóstico, objetivos y ruta electoral vigente</span></div></section>
     <section className="strategy-workspace">
       {store.message ? <div className="agenda-message strategy-message">{store.message}</div> : null}
-      <div className="strategy-opening-grid"><article className="strategy-radar-reading"><h2>Lectura inicial</h2><ul><li>El padrón aumentó en <b>1,956 electores</b> frente al universo enlazado de 2023.</li><li>La cobertura electoral se organiza alrededor de <b>13 centros y 103 JRV</b>.</li><li>La campaña debe definir su posición, meta de votos y mensaje central.</li></ul><Link to={`/municipio/${municipality_code}/mapa`}>Revisar territorio en el mapa →</Link></article></div>
-      <article className="strategy-issues"><header><h2>Problemas municipales</h2><Link to={`/municipio/${municipality_code}/inteligencia`}>Ver diagnóstico →</Link></header><div>{municipalDiagnostic.map((issue) => <section key={issue.title}><div><b>{issue.title}</b><small>{issue.source}</small></div><p>{issue.evidence}</p><button type="button" onClick={() => addTalkingPoint(issue.prompt)}>Agregar a mensajes</button></section>)}</div><p>Son líneas base para orientar preguntas. Deben validarse antes de convertirse en promesas o afirmaciones actuales.</p></article>
-      <header className="strategy-command-bar"><div className="strategy-plan-state"><b>Plan 0509</b><span>{planStatus} · {defined}/{allPlanFields.length} campos · {displayDate(lastUpdated)}</span></div><div><button className="secondary" type="button" aria-expanded={historyOpen} onClick={openHistory}>{historyOpen ? "Cerrar historial" : `Historial (${store.records.length})`}</button><button className="secondary" type="button" disabled={defined !== allPlanFields.length} onClick={exportPlan}>Exportar plan</button><button type="button" disabled={!hasDraft || approving || changed.length > 0} onClick={() => void approvePlan()}>{approving ? "Aprobando…" : "Aprobar versión"}</button></div></header>
-      <article className="strategy-direct-form"><div className="strategy-form-heading"><div><h2>Campaña electoral</h2><p>Escribe directamente. Los textos guardados quedan visibles y siempre pueden modificarse.</p></div><div className="strategy-form-actions"><button className="secondary" type="button" disabled={saving} onClick={clearPlan}>Limpiar 8 campos</button><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : `Guardar cambios${changed.length ? ` (${changed.length})` : ""}`}</button></div></div><div className="strategy-form-grid">{planFields.slice(0, 4).map(([field, label, prompt]) => <label id={`strategy-field-${field.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}`} key={field}><span>{label}</span><textarea rows={field === "Mensaje central" ? 7 : 5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small><button type="button" onClick={() => help(field)}>Ayuda con IA</button></label>)}</div><div className="strategy-form-divider"><span>FODA</span></div><div className="strategy-form-grid foda">{planFields.slice(4).map(([field, label, prompt]) => <label key={field}><span>{label}</span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small><button type="button" onClick={() => help(field)}>Ayuda con IA</button></label>)}</div>{aiField ? <div className="strategy-inline-ai"><RadarAssistant compact initialPrompt={drafts[aiField]?.trim() || `Ayúdame a redactar ${aiField.toLocaleLowerCase("es")} para una campaña municipal en Puerto San José, con lenguaje verificable y sin inventar datos.`} onApply={(value) => { setDrafts((current) => ({ ...current, [aiField]: value })); setAiField(null); store.setMessage("Propuesta agregada al campo. Revísala antes de guardar."); }} /></div> : null}<footer className="strategy-form-footer"><span>Al guardar se registra tu usuario y la fecha. No se exige asignar responsable.</span><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : "Guardar cambios"}</button></footer></article>
+      <div className="strategy-opening-grid"><article className="strategy-radar-reading"><h2>Lectura inicial</h2><ul><li>{electorDelta === null ? "La comparación entre padrón activo y base detallada aún no está publicada." : <>El padrón activo registra una variación de <b>{electorDelta >= 0 ? "+" : ""}{electorDelta.toLocaleString("es-GT")} electores</b> frente al universo detallado.</>}</li><li>La cobertura electoral se organiza alrededor de <b>{centerCount.toLocaleString("es-GT")} centros y {jrvCount.toLocaleString("es-GT")} JRV</b>.</li><li>La campaña debe definir su posición, meta de votos y mensaje central.</li></ul><Link to={`/municipio/${municipality_code}/mapa`}>Revisar territorio en el mapa →</Link></article></div>
+      <article className="strategy-issues"><header><h2>Problemas municipales</h2><Link to={`/municipio/${municipality_code}/inteligencia`}>Ver diagnóstico →</Link></header><div>{diagnosticRows.map((issue) => <section key={issue.title}><div><b>{issue.title}</b><small>{issue.source}</small></div><p>{issue.evidence}</p><button type="button" onClick={() => addTalkingPoint(issue.prompt)}>Agregar a mensajes</button></section>)}</div><p>Son líneas base para orientar preguntas. Deben validarse antes de convertirse en promesas o afirmaciones actuales.</p></article>
+      <header className="strategy-command-bar"><div className="strategy-plan-state"><b>Plan {municipality_code}</b><span>{planStatus} · {defined}/{allPlanFields.length} campos · {displayDate(lastUpdated)}</span></div><div><button className="secondary" type="button" aria-expanded={historyOpen} onClick={openHistory}>{historyOpen ? "Cerrar historial" : `Historial (${store.records.length})`}</button><button className="secondary" type="button" disabled={defined !== allPlanFields.length} onClick={exportPlan}>Exportar plan</button><button type="button" disabled={!hasDraft || approving || changed.length > 0} onClick={() => void approvePlan()}>{approving ? "Aprobando…" : "Aprobar versión"}</button></div></header>
+      <article className="strategy-direct-form"><div className="strategy-form-heading"><div><h2>Campaña electoral</h2><p>Escribe directamente. Los textos guardados quedan visibles y siempre pueden modificarse.</p></div><div className="strategy-form-actions"><button className="secondary" type="button" disabled={saving} onClick={clearPlan}>Limpiar 8 campos</button><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : `Guardar cambios${changed.length ? ` (${changed.length})` : ""}`}</button></div></div><div className="strategy-form-grid">{planFields.slice(0, 4).map(([field, label, prompt]) => <label id={`strategy-field-${field.toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}`} key={field}><span>{label}</span><textarea rows={field === "Mensaje central" ? 7 : 5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small><button type="button" onClick={() => help(field)}>Ayuda con IA</button></label>)}</div><div className="strategy-form-divider"><span>FODA</span></div><div className="strategy-form-grid foda">{planFields.slice(4).map(([field, label, prompt]) => <label key={field}><span>{label}</span><textarea rows={5} value={drafts[field] ?? ""} onChange={(event) => setDrafts({ ...drafts, [field]: event.target.value })} placeholder={prompt} /><small>{latestByCategory.has(field) ? `Última edición: ${displayDate(latestByCategory.get(field)?.updated_at || "")}` : "Pendiente"}</small><button type="button" onClick={() => help(field)}>Ayuda con IA</button></label>)}</div>{aiField ? <div className="strategy-inline-ai"><RadarAssistant compact initialPrompt={drafts[aiField]?.trim() || `Ayúdame a redactar ${aiField.toLocaleLowerCase("es")} para una campaña municipal en ${municipality_name}, con lenguaje verificable y sin inventar datos.`} onApply={(value) => { setDrafts((current) => ({ ...current, [aiField]: value })); setAiField(null); store.setMessage("Propuesta agregada al campo. Revísala antes de guardar."); }} /></div> : null}<footer className="strategy-form-footer"><span>Al guardar se registra tu usuario y la fecha. No se exige asignar responsable.</span><button disabled={saving || !changed.length} onClick={() => void save()}>{saving ? "Guardando…" : "Guardar cambios"}</button></footer></article>
       {historyOpen ? <article id="strategy-history" className="strategy-history"><header><div><h2>Historial de versiones</h2><p>Puedes eliminar individualmente cualquier versión guardada.</p></div></header>{store.records.length ? store.records.map((record) => <div key={record.id}><span>{record.category}</span><b>{record.title}</b><small>{record.status === "COMPLETADO" ? "Vigente" : record.status === "ARCHIVADO" ? "Archivado" : "Borrador"} · {displayDate(record.updated_at || record.created_at)}</small><button className="record-delete-action" type="button" disabled={deletingVersionId === record.id} onClick={() => void deleteVersion(record)}>{deletingVersionId === record.id ? "Eliminando…" : "Eliminar versión"}</button></div>) : <p>Todavía no hay cambios guardados.</p>}</article> : null}
     </section>
   </>;
@@ -305,7 +322,7 @@ function PrivateCampaignImage({ record }: { record: CampaignModuleRecord }) {
 
 function RecordsWorkspace({ config }: { config: (typeof areaConfig)[keyof typeof areaConfig] }) {
   const store = useRecords(config.moduleKey);
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const brand = useV70CampaignBrand();
   const candidateCode = new URLSearchParams(window.location.search).get("candidate");
   const candidateMember = brand.slate.find(({ code }) => code === candidateCode);
@@ -526,7 +543,7 @@ function RecordsWorkspace({ config }: { config: (typeof areaConfig)[keyof typeof
       const generated = new Intl.DateTimeFormat("es-GT", { dateStyle: "long" }).format(new Date());
       const brandTitle = "RADAR · INTELIGENCIA ELECTORAL";
       const workbook = createRadarXlsx([
-        { name: "Resumen general", brandTitle, campaignLine: campaign, title: "Control financiero general", description: `San José / Puerto San José · Escuintla · Generado el ${generated}`, headers: ["Indicador", "Monto", "Cómo se calcula"], rows: [["Presupuesto general", budget, "Suma de presupuestos específicos marcados para afectar el general"], ["Ingresos", income, "Ingresos generales y de presupuestos vinculados"], ["Egresos", expense, "Egresos generales y de presupuestos vinculados"], ["Disponible", income - expense, "Ingresos menos egresos"]], widths: [26, 19, 63], currencyColumns: [1] },
+        { name: "Resumen general", brandTitle, campaignLine: campaign, title: "Control financiero general", description: `${municipality_name} · ${department_name} · Generado el ${generated}`, headers: ["Indicador", "Monto", "Cómo se calcula"], rows: [["Presupuesto general", budget, "Suma de presupuestos específicos marcados para afectar el general"], ["Ingresos", income, "Ingresos generales y de presupuestos vinculados"], ["Egresos", expense, "Egresos generales y de presupuestos vinculados"], ["Disponible", income - expense, "Ingresos menos egresos"]], widths: [26, 19, 63], currencyColumns: [1] },
         { name: "Movimientos generales", brandTitle, campaignLine: campaign, title: "Movimientos generales", description: "Ingresos y egresos registrados directamente en el control general", headers: ["Tipo", "Concepto", "Categoría", "Fuente", "Responsable", "Actividad", "Monto", "Fecha"], rows: movements.map((record) => [record.category, record.title, record.details || "—", String(record.payload?.source || "—"), String(record.payload?.responsible || "—"), activityName(record.payload?.related_activity_id), amount(record), new Date(record.created_at).toLocaleDateString("es-GT")]), widths: [13, 33, 23, 21, 26, 31, 17, 15], currencyColumns: [6] },
         { name: "Presupuestos", brandTitle, campaignLine: campaign, title: "Presupuestos específicos", description: "Control por actividad o rubro y su relación con el presupuesto general", headers: ["Tipo", "Presupuesto", "Actividad o rubro", "Monto inicial", "Saldo actual", "Afecta general"], rows: budgets.map((record) => { const related = movements.filter((movement) => String(movement.payload?.parent_record_id || "") === record.id); const additions = related.filter((movement) => movement.category === "Ingreso").reduce((sum, movement) => sum + amount(movement), 0); const expenses = related.filter((movement) => movement.category === "Egreso").reduce((sum, movement) => sum + amount(movement), 0); return [record.details || "Presupuesto", record.title, record.payload?.related_activity_id ? activityName(record.payload.related_activity_id) : "Rubro independiente", amount(record), amount(record) + additions - expenses, record.payload?.affects_general !== false ? "Sí" : "No"]; }), widths: [16, 35, 33, 19, 19, 19], currencyColumns: [3, 4] },
       ]);
@@ -566,6 +583,7 @@ function StrategyAreaContent({ section }: { section: string }) {
 export function V70DirectStrategyArea0509() {
   const { municipalityCode, section = "" } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509") return <Navigate to="/" replace />;
-  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="estrategia" eyebrow="ESTRATEGIA" topbarTitle="San José / Puerto San José · Escuintla"><StrategyAreaContent section={section} /></V70DirectShell0509></MunicipalityProvider>;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
+  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="estrategia" eyebrow="ESTRATEGIA" topbarTitle={municipalityTitle}><StrategyAreaContent section={section} /></V70DirectShell0509></MunicipalityProvider>;
 }

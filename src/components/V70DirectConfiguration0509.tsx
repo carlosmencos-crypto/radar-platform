@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -9,7 +9,7 @@ import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { useV70CampaignBrand } from "./useV70CampaignBrand";
 
 function ConfigurationContent() {
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const { candidateName, candidatePhotoUrl, partyName } = useV70CampaignBrand();
   const [photo, setPhoto] = useState(() => {
     window.localStorage.removeItem("radar-user-photo");
@@ -61,8 +61,8 @@ function ConfigurationContent() {
           </article>
           <article>
             <small>MUNICIPIO</small>
-            <b>Municipio 0509</b>
-            <span>San José · Escuintla</span>
+            <b>Municipio {municipality_code}</b>
+            <span>{municipality_name} · {department_name}</span>
             <em>El alcance está protegido por la sesión.</em>
           </article>
           <article>
@@ -82,7 +82,7 @@ function ConfigurationContent() {
               {photo ? (
                 <img src={photo} alt="Fotografía del usuario" />
               ) : (
-                <i>CM</i>
+                <i>R</i>
               )}
               <label>
                 <span>Cambiar fotografía</span>
@@ -148,14 +148,14 @@ function ConfigurationContent() {
 export function V70DirectConfiguration0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509")
-    return <Navigate to="/" replace />;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
   return (
     <MunicipalityProvider consumer={consumer}>
       <V70DirectShell0509
         active="configuracion"
         eyebrow="CUENTA"
-        topbarTitle="San José / Puerto San José · Escuintla"
+        topbarTitle={municipalityTitle}
       >
         <ConfigurationContent />
       </V70DirectShell0509>

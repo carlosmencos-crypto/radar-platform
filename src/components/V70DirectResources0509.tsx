@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { resolveRadarConsumer } from "../data/radarConsumer";
@@ -204,6 +204,7 @@ function ResourcesContent() {
 export function V70DirectResources0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509") return <Navigate to="/" replace />;
-  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="recursos" eyebrow="OPERACIÓN" topbarTitle="San José / Puerto San José · Escuintla"><ResourcesContent /></V70DirectShell0509></MunicipalityProvider>;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
+  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="recursos" eyebrow="OPERACIÓN" topbarTitle={municipalityTitle}><ResourcesContent /></V70DirectShell0509></MunicipalityProvider>;
 }

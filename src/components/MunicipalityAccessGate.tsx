@@ -25,7 +25,6 @@ import {
   loadAuthorizedGeoBundle,
   loadAuthorizedVoterCommunities,
 } from "../data/radarRuntime";
-import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
 import { V70DirectAi0509 } from "./V70DirectAi0509";
 import { V70DirectConfiguration0509 } from "./V70DirectConfiguration0509";
@@ -75,7 +74,7 @@ async function loadMunicipalityRuntime(
   return { consumer, geoBundle, electoralLayers, voterCommunities };
 }
 
-function direct0509(section: string | undefined): ReactNode | null {
+function directV70(section: string | undefined): ReactNode | null {
   if (!section || section === "inicio") return <V70DirectHome0509 />;
   if (section === "inteligencia") return <V70DirectIntelligence0509 />;
   if (section === "estrategia") return <V70DirectStrategy0509 />;
@@ -199,19 +198,13 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  if (municipalityCode === "0509") {
-    const direct = direct0509(section);
-    if (direct)
-      return (
-        <AuthorizedRuntimeProvider consumer={state.consumer}>
-          {direct}
-        </AuthorizedRuntimeProvider>
-      );
-  }
+  const direct = directV70(section);
+  if (direct)
+    return (
+      <AuthorizedRuntimeProvider consumer={state.consumer}>
+        {direct}
+      </AuthorizedRuntimeProvider>
+    );
 
-  return (
-    <AuthorizedRuntimeProvider consumer={state.consumer}>
-      <MunicipalDashboardV70Runtime />
-    </AuthorizedRuntimeProvider>
-  );
+  return <Navigate to={`/municipio/${municipalityCode}/inicio`} replace />;
 }

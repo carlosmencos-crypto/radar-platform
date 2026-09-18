@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -152,7 +152,7 @@ function displayActivityDate(value: string | null) {
 }
 
 function AgendaContent() {
-  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const communities =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const [view, setView] = useState<"calendar" | "list">("calendar");
@@ -461,7 +461,7 @@ function AgendaContent() {
       campaignName: identity.candidate_name || "Campaña municipal",
       partyName: identity.party_name || "Partido político",
       partyLogoUrl: identity.party_logo_data_url || undefined,
-      municipality: "San José / Puerto San José · Escuintla",
+      municipality: `${municipality_name} · ${department_name}`,
     }).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "No se pudo generar el PNG."));
   }
   function openActivityMonth(activity: CampaignActivityRecord) {
@@ -940,14 +940,14 @@ function AgendaContent() {
 export function V70DirectAgenda0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509")
-    return <Navigate to="/" replace />;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
   return (
     <MunicipalityProvider consumer={consumer}>
       <V70DirectShell0509
         active="agenda"
         eyebrow="OPERACIÓN"
-        topbarTitle="San José / Puerto San José · Escuintla"
+        topbarTitle={municipalityTitle}
       >
         <AgendaContent />
       </V70DirectShell0509>

@@ -39,7 +39,7 @@ function useRadarPreferences() {
 }
 
 export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false }: Props) {
-  const { municipality_code, campaign_id, user_role, permissions } = useMunicipalityContext();
+  const { municipality_code, municipality_name, campaign_id, user_role, permissions } = useMunicipalityContext();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -64,16 +64,17 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     });
   }
 
-  const userLabel = "Carlos Mencos";
-  const avatar = userPhoto ? <img src={userPhoto} alt="" /> : "CM";
-  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
+  const userLabel = "Cuenta RADAR";
+  const fallbackAvatar = "R";
+  const avatar = userPhoto ? <img src={userPhoto} alt="" /> : fallbackAvatar;
+  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>{municipality_name} · sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
 
   const controls = <div className="top-actions">
     <button className="print-top-action" type="button" onClick={() => setReportOpen(true)}><span className="control-icon" aria-hidden="true">⇩</span><span className="control-label">Reporte PDF</span></button>
     <button className="text-size-action" type="button" onClick={increaseTextSize} title="Cambiar tamaño del texto" aria-label={`Tamaño de texto ${textSize === "large" ? "cómodo" : "compacto"}`}>A<span>A</span></button>
     <button className="theme-switch" type="button" onClick={toggleTheme} aria-label={`Cambiar a modo ${theme === "dark" ? "claro" : "oscuro"}`} title={`Cambiar a modo ${theme === "dark" ? "claro" : "oscuro"}`}><span className="control-icon" aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span><span className="control-label">{theme === "dark" ? "Claro" : "Oscuro"}</span></button>
-    <span className="pilot">Municipio <b>0509</b></span><span className="country-flag" role="img" aria-label="Versión Guatemala" title="Versión Guatemala">🇬🇹</span>
+    <span className="pilot">Municipio <b>{municipality_code}</b></span><span className="country-flag" role="img" aria-label="Versión Guatemala" title="Versión Guatemala">🇬🇹</span>
   </div>;
 
   if (active === "inteligencia") {
@@ -83,7 +84,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
         <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
         <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
         <nav aria-label="Navegación principal">{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
-        <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>CM</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
+        <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
       </aside>
       <div className="portal-main">
         <header className="portal-topbar"><button className="mobile-menu" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div><small>{eyebrow}</small><b>{topbarTitle}</b></div>{controls}</header>
