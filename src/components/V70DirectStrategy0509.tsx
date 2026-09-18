@@ -16,6 +16,7 @@ import {
   formatInteger,
   formatPercent,
 } from "../data/v70MunicipalIntelligence";
+import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
 const preliminaryElectionDate = new Date("2027-06-27T00:00:00-06:00");
@@ -94,7 +95,11 @@ function daysUntil(date: Date) {
 function StrategyContent() {
   const { campaign_id, municipality_code } = useMunicipalityContext();
   const { runtime } = useAuthorizedRadarRuntime();
-  const municipalReference = useMemo(() => buildMunicipalIntelligenceModel(runtime), [runtime]);
+  const electoralLayers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
+  const municipalReference = useMemo(
+    () => buildMunicipalIntelligenceModel(runtime, electoralLayers),
+    [runtime, electoralLayers],
+  );
   const [values, setValues] = useState({
     conservador: "",
     base: "",

@@ -111,7 +111,10 @@ function strategicRound(value: number | null) {
   return Math.max(step, Math.round(value / step) * step);
 }
 
-export function buildMunicipalIntelligenceModel(runtime: RadarRuntimeBundle): MunicipalIntelligenceModel {
+export function buildMunicipalIntelligenceModel(
+  runtime: RadarRuntimeBundle,
+  electoralLayers: AuthorizedLayerRecord[] = [],
+): MunicipalIntelligenceModel {
   const municipalityCode = runtime.context.municipality_code;
   if (
     runtime.geo.municipality.municipality_code !== municipalityCode ||
@@ -126,6 +129,10 @@ export function buildMunicipalIntelligenceModel(runtime: RadarRuntimeBundle): Mu
     if (layerMap.has(item.layer_id)) throw new Error(`RADAR_DUPLICATE_LAYER:${item.layer_id}`);
     assertLayerScope(runtime, item);
     layerMap.set(item.layer_id, item);
+  }
+  for (const item of electoralLayers) {
+    assertLayerScope(runtime, item);
+    if (!layerMap.has(item.layer_id)) layerMap.set(item.layer_id, item);
   }
   const layer = (layerId: string) => layerMap.get(layerId);
   const payload = (layerId: string) => record(layer(layerId)?.payload);

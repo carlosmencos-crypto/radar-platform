@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
-import { getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
+import { getInstalledRadarElectoralLayers, getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
 import {
   buildMunicipalIntelligenceModel,
   finite,
@@ -25,7 +25,11 @@ function stateLabel(value: string | null | undefined) {
 export function V70CanonicalRichMunicipality() {
   const { runtime } = useAuthorizedRadarRuntime();
   const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
-  const model = useMemo(() => buildMunicipalIntelligenceModel(runtime), [runtime]);
+  const electoralLayers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
+  const model = useMemo(
+    () => buildMunicipalIntelligenceModel(runtime, electoralLayers),
+    [runtime, electoralLayers],
+  );
   const [historyYear, setHistoryYear] = useState<2011 | 2015 | 2019 | 2023>(2023);
   const [communitySearch, setCommunitySearch] = useState("");
   const communities = getInstalledRadarVoterCommunities(municipality_code) ?? [];

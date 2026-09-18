@@ -9,6 +9,7 @@ import { resolveRadarConsumer } from "../data/radarConsumer";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
 import { buildMunicipalIntelligenceModel, finite, formatCurrency, formatDecimal, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
+import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { V70CampaignIdentity } from "./V70CampaignIdentity";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import {
@@ -127,7 +128,11 @@ function greetingForGuatemala() {
 function HomeContent() {
   const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const { runtime } = useAuthorizedRadarRuntime();
-  const municipalModel = useMemo(() => buildMunicipalIntelligenceModel(runtime), [runtime]);
+  const electoralLayers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
+  const municipalModel = useMemo(
+    () => buildMunicipalIntelligenceModel(runtime, electoralLayers),
+    [runtime, electoralLayers],
+  );
   const { slate } = useV70CampaignBrand();
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);

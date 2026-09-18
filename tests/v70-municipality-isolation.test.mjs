@@ -72,7 +72,8 @@ test("every non-golden municipality receives the full V70 intelligence architect
 });
 
 test("strategy and Inicio are calculated from the active municipal runtime", () => {
-  assert.match(strategyOverview, /buildMunicipalIntelligenceModel\(runtime\)/);
+  assert.match(strategyOverview, /getInstalledRadarElectoralLayers\(municipality_code\)/);
+  assert.match(strategyOverview, /buildMunicipalIntelligenceModel\(runtime, electoralLayers\)/);
   assert.match(strategyOverview, /municipalReference\.projectedElectors2027/);
   assert.match(strategyOverview, /municipalReference\.participationReference/);
   assert.match(strategyOverview, /municipalReference\.magicNumber/);
@@ -80,6 +81,7 @@ test("strategy and Inicio are calculated from the active municipal runtime", () 
   assert.match(home, /municipalModel\.priorities/);
   assert.match(home, /municipalModel\.opportunities/);
   assert.match(home, /municipalModel\.payload\("SESAN_TALLA"\)/);
+  assert.match(home, /getInstalledRadarElectoralLayers\(municipality_code\)/);
 });
 
 test("the shared intelligence selector fails closed on cross-municipal payloads", () => {
@@ -89,6 +91,7 @@ test("the shared intelligence selector fails closed on cross-municipal payloads"
   assert.match(municipalModel, /nestedMunicipality\.municipality_code/);
   assert.match(municipalModel, /Math\.pow\(active \/ registered2023, 1 \/ 3\)/);
   assert.match(municipalModel, /TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL/);
+  assert.match(municipalModel, /electoralLayers: AuthorizedLayerRecord\[\]/);
 });
 
 test("municipal problems are derived from the active runtime and preserve missing evidence", () => {
