@@ -964,13 +964,15 @@ $$;
 revoke all on function public.radar_admin_save_pulse_v1(jsonb,jsonb,uuid) from authenticated;
 revoke all on function public.radar_admin_save_pulse_v1(jsonb,jsonb,uuid) from service_role;
 
-insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types,versioning_status)
+-- Supabase Storage does not support native S3 object versioning. Every upload
+-- therefore uses an immutable UUID path (upsert=false) and is versioned through
+-- publication_batches + dataset_releases, both tied to a SHA-256 digest.
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('radar-admin-staging','radar-admin-staging',false,52428800,array[
   'text/csv','application/json','application/pdf','application/zip',
   'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-],'ENABLED')
-on conflict(id) do update set public=false,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types,versioning_status='ENABLED';
-update storage.buckets set versioning_status='ENABLED' where id='radar-campaign-vault';
+])
+on conflict(id) do update set public=false,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
 
 revoke all on function public.radar_admin_audit_v1(uuid,text,text,text,text,jsonb,jsonb,text,uuid,text,text,uuid) from public,anon,authenticated;
 revoke all on function public.radar_admin_operator_context_v1(uuid,text) from public,anon,authenticated;
