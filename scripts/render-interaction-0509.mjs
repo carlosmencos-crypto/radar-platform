@@ -315,6 +315,16 @@ try {
       await waitFor(`Boolean(document.querySelector('.day-d-access-modal')) && (document.body?.innerText||'').includes('ACCESO GENERADO') && (document.body?.innerText||'').includes('Código alterno')`, "functional fiscal access generation");
       await evaluate(`document.querySelector('.day-d-access-modal>header button')?.click()`);
       await waitFor(`!document.querySelector('.day-d-access-modal')`, "fiscal access modal close");
+      const openedLogistics = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Logística'); if(!button)return false; button.click(); return true;})()`);
+      if (!openedLogistics) throw new Error("Logistics internal view is missing.");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="logistica"] .day-d-logistics-links'))`, "Day D logistics workspace");
+      const openedGenericForecast = await evaluate(`(()=>{const button=document.querySelector('.internal-view-content[data-view="logistica"] .day-d-logistics-links button'); if(!button)return false; button.click(); return true;})()`);
+      if (!openedGenericForecast) throw new Error("Top new-forecast action is missing.");
+      await waitFor(`Boolean(document.querySelector('.logistics-modal')) && (document.querySelector('.logistics-modal')?.innerText||'').includes('Nueva previsión') && Boolean(document.querySelector('.logistics-modal input[placeholder="Escribe el tipo"]')) && !(document.querySelector('.logistics-modal')?.innerText||'').includes('Piloto (CRM)')`, "generic logistics forecast modal");
+      const logisticsScreenshotBytes = await capture("modal-logistics-generic");
+      diagnostics.modals.push({ selector: ".day-d-logistics-links button", kind: "generic-logistics-forecast", opened: true, screenshotBytes: logisticsScreenshotBytes, ok: logisticsScreenshotBytes > 10_000 });
+      await evaluate(`document.querySelector('.logistics-modal>header button[aria-label="Cerrar"]')?.click()`);
+      await waitFor(`!document.querySelector('.logistics-modal')`, "generic logistics forecast close");
     }
     const snap = await snapshot();
     assertHealthy(snap, marker);
@@ -400,7 +410,7 @@ try {
 
   diagnostics.status = "PASS";
   save();
-  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/4 report controls · ${diagnostics.reports.length}/2 printable reports`);
+  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/5 critical modals · ${diagnostics.reports.length}/2 printable reports`);
 } catch (error) {
   diagnostics.status = "FAIL";
   diagnostics.error = error instanceof Error ? error.stack ?? error.message : String(error);
