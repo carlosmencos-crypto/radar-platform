@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const runtime = fs.readFileSync(path.join(root, "src/data/radarRuntime.ts"), "utf8");
 const envExample = fs.readFileSync(path.join(root, ".env.example"), "utf8");
+const parity = fs.readFileSync(path.join(root, "supabase/migrations/20260918183400_restore_authorized_context_branch_parity.sql"), "utf8");
 
 test("runtime Supabase is fail-closed and uses authenticated RPCs only", () => {
   assert.match(runtime, /Sesión autenticada requerida/);
@@ -24,4 +25,12 @@ test("client config documents publishable values only", () => {
   assert.match(envExample, /VITE_SUPABASE_PUBLISHABLE_KEY=/);
   assert.doesNotMatch(envExample, /SERVICE_ROLE/i);
   assert.doesNotMatch(envExample, /SECRET/i);
+});
+
+test("fresh branches reproduce the canonical authorization context", () => {
+  assert.match(parity, /create or replace function private\.radar_authorized_context_v2/);
+  assert.match(parity, /create or replace function public\.radar_authorized_context_v2/);
+  assert.match(parity, /p\.user_id=\(select auth\.uid\(\)\)/);
+  assert.match(parity, /grant execute on function public\.radar_authorized_context_v2\(text,text\) to authenticated/);
+  assert.doesNotMatch(parity, /grant execute on function public\.radar_authorized_context_v2\(text,text\) to anon/);
 });
