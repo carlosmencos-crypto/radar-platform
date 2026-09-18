@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import type { MunicipalityGeoBundle } from "../data/radarRuntime";
+import { V70MapFullscreen } from "./V70MapFullscreen";
 
 const elections = ["Presidencia", "Lista nacional", "Distrito", "Alcaldía", "Parlacen"] as const;
 
@@ -11,6 +13,7 @@ export function V70ElectoralTerritoryUnavailable({
   geoBundle?: MunicipalityGeoBundle;
   state?: "NO_PUBLICADO" | "PARCIAL" | "SIN_REGISTRO";
 }) {
+  const fullscreenNode = useRef<HTMLDivElement>(null);
   const schools = geoBundle?.feature_counts.school ?? 0;
   const health = geoBundle?.feature_counts.health_facility ?? 0;
   return <>
@@ -19,7 +22,7 @@ export function V70ElectoralTerritoryUnavailable({
       <div className="election-switch" role="tablist" aria-label="Tipo de elección">
         {elections.map((label, index) => <button key={label} className={index === 3 ? "active" : ""} disabled><span>{label}</span><small>{state}</small></button>)}
       </div>
-      <div className="map-workspace">
+      <div ref={fullscreenNode} className="map-workspace">
         <aside className="directory">
           <div className="directory-head"><div><p className="eyebrow">DIRECTORIO ELECTORAL</p><h3>{state}</h3></div><span>0</span></div>
           <label className="search"><span>⌕</span><input value="" readOnly placeholder="Buscar centro o comunidad" aria-label="Buscar centro o comunidad" /></label>
@@ -36,6 +39,7 @@ export function V70ElectoralTerritoryUnavailable({
               <button className="layer-health on" disabled><i className="health-dot" />Salud <b>{health || "SIN_REGISTRO"}</b></button>
               <button className="layer-works on" disabled><i className="works-dot" />Obras <b>NO_PUBLICADO</b></button>
             </div>
+            <V70MapFullscreen targetRef={fullscreenNode} />
           </div>
           <div className="active-reading"><span>Visualizando</span><b>Alcaldía · Partido ganador</b><small>{state}</small></div>
           <div className="real-map canonical-map-pending" aria-label={`Mapa interactivo de centros de votación de ${municipalityName}`}><span>{state}</span><h2>Inteligencia electoral territorial en preparación</h2><p>RADAR no inventa centros, resultados ni asociaciones geográficas faltantes.</p></div>
