@@ -24,12 +24,14 @@ const assetsDataMigration = read("supabase/migrations/20260912044000_promote_val
 const runtimeV6Migration = read("supabase/migrations/20260912044100_radar_authorized_runtime_v6_optional_assets.sql");
 const voterCanonicalCodeFix = read("supabase/migrations/20260909232000_fix_padron_2023_canonical_department_codes.sql");
 
-test("authorized runtime is installed before enriched V70 renders", () => {
+test("authorized runtime is installed before the approved V70 renders", () => {
   assert.match(gate, /installRadarRuntime\(consumer\.runtime\)/);
   assert.match(gate, /setState\(\{ status: "authorized", consumer \}\)/);
   assert.match(gate, /clearInstalledRadarRuntime\(municipalityCode\)/);
   assert.match(cache, /new Map<string, RadarRuntimeBundle>\(\)/);
-  assert.match(gate, /MunicipalDashboardV70Runtime/);
+  assert.match(gate, /directV70\(section\)/);
+  assert.match(gate, /AuthorizedRuntimeProvider/);
+  assert.doesNotMatch(gate, /<MunicipalDashboardV70Runtime \/>/);
   assert.doesNotMatch(cache, /localStorage|sessionStorage|service[_-]?role/i);
 });
 

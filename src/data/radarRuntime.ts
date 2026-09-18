@@ -502,9 +502,11 @@ export async function loadCampaignBundle(
   if (
     !bundle ||
     !Array.isArray(bundle.activities) ||
-    !Array.isArray(bundle.commitments)
+    !Array.isArray(bundle.commitments) ||
+    (bundle.identity?.campaign_id && bundle.identity.campaign_id !== campaignId) ||
+    bundle.activities.some((activity) => activity.campaign_id !== campaignId)
   ) {
-    throw new Error("La sesión no tiene acceso al Campaign Vault.");
+    throw new Error("El Campaign Vault no corresponde a la campaña autorizada.");
   }
   return bundle;
 }
@@ -521,7 +523,9 @@ export async function loadAuthorizedPulse(
   );
   if (!Array.isArray(measurements) || measurements.some((measurement) =>
     !Array.isArray(measurement.results) ||
-    (measurement.scope_type === "MUNICIPALITY" && measurement.municipality_code !== municipalityCode)
+    (measurement.scope_type === "MUNICIPALITY" && measurement.municipality_code !== municipalityCode) ||
+    (measurement.scope_type === "DEPARTMENT" && measurement.department_code !== municipalityCode.slice(0, 2)) ||
+    (measurement.scope_type === "NATIONAL" && measurement.country_code !== "GT")
   )) {
     throw new Error("Pulso devolvió una medición fuera del alcance autorizado.");
   }
@@ -601,11 +605,15 @@ export async function loadCampaignContacts(
   campaignId: string,
   accessToken: string,
 ) {
-  return rpc<CampaignContactRecord[]>(
+  const contacts = await rpc<CampaignContactRecord[]>(
     "radar_campaign_contacts_v1",
     { p_campaign_id: campaignId },
     accessToken,
   );
+  if (contacts.some((contact) => contact.campaign_id !== campaignId)) {
+    throw new Error("El Directorio devolvió contactos de otra campaña.");
+  }
+  return contacts;
 }
 
 export async function saveCampaignContact(
@@ -641,11 +649,15 @@ export async function loadAuthorizedVoterDetail(
   accessToken: string,
 ) {
   assertMunicipalityCode(municipalityCode);
-  return rpc<AuthorizedVoterDetail | null>(
+  const detail = await rpc<AuthorizedVoterDetail | null>(
     "radar_authorized_voter_detail_v1",
     { p_municipality_code: municipalityCode, p_voter_id: voterId },
     accessToken,
   );
+  if (detail && detail.elector.municipality_code !== municipalityCode) {
+    throw new Error("La ficha electoral no corresponde al municipio autorizado.");
+  }
+  return detail;
 }
 
 export async function revealAuthorizedVoterIdentification(
@@ -704,11 +716,15 @@ export async function loadCampaignRecords(
   moduleKey: string,
   accessToken: string,
 ) {
-  return rpc<CampaignModuleRecord[]>(
+  const records = await rpc<CampaignModuleRecord[]>(
     "radar_campaign_records_v1",
     { p_campaign_id: campaignId, p_module_key: moduleKey },
     accessToken,
   );
+  if (records.some((record) => record.campaign_id !== campaignId || record.module_key !== moduleKey)) {
+    throw new Error("El Campaign Vault devolvió registros fuera del módulo autorizado.");
+  }
+  return records;
 }
 
 export async function saveCampaignRecord(

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -819,14 +819,14 @@ function DayDContent() {
 export function V70DirectDayD0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509")
-    return <Navigate to="/" replace />;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
   return (
     <MunicipalityProvider consumer={consumer}>
       <V70DirectShell0509
         active="dia-d"
         eyebrow="OPERACIÓN ELECTORAL"
-        topbarTitle="San José / Puerto San José · Escuintla"
+        topbarTitle={municipalityTitle}
       >
         <DayDContent />
       </V70DirectShell0509>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import type { PulseElectionType } from "../data/pulseScope";
@@ -22,7 +22,7 @@ const catalogs: Record<Election, Array<[string, string]>> = {
 };
 const series: Record<Election, number[][]> = { ALCALDIA: [[30,23,20,9,18],[31,24,21,8,16],[32,25,21,8,14]], PRESIDENTE: [[31,15,12,10,32],[32,15,12,12,29],[33,14,11,15,27]], DIP_NAC: [[22,17,15,10,36],[23,18,15,10,34],[24,18,16,10,32]], DIP_DIST: [[24,20,15,9,32],[25,20,16,9,30],[26,21,16,9,28]], PARLACEN: [[20,18,15,9,38],[21,19,16,9,35],[22,20,16,10,32]] };
 const waves = ["2023-04-15", "2023-05-15", "2023-06-15"];
-const demo: Survey[] = (Object.keys(catalogs) as Election[]).flatMap((electionType) => waves.map((fieldEnd, waveIndex) => ({ folio: `DEMO-${electionType}-${waveIndex + 1}`, electionType, fieldEnd, sampleSize: 400, scopeLabel: electionType === "ALCALDIA" ? "San José / Puerto San José" : electionType === "DIP_DIST" ? "Escuintla" : "Guatemala", methodology: "Valores simulados exclusivamente para validar la experiencia de Pulso Electoral.", sourceLabel: "RADAR · SIMULACIÓN", results: catalogs[electionType].map(([candidateName, organization], index) => ({ optionCode: `${electionType}-${index + 1}`, candidateName, organization, value: series[electionType][waveIndex][index] })) })));
+const demo: Survey[] = (Object.keys(catalogs) as Election[]).flatMap((electionType) => waves.map((fieldEnd, waveIndex) => ({ folio: `DEMO-${electionType}-${waveIndex + 1}`, electionType, fieldEnd, sampleSize: 400, scopeLabel: "Alcance autorizado", methodology: "Valores simulados exclusivamente para validar la experiencia de Pulso Electoral.", sourceLabel: "RADAR · SIMULACIÓN", results: catalogs[electionType].map(([candidateName, organization], index) => ({ optionCode: `${electionType}-${index + 1}`, candidateName, organization, value: series[electionType][waveIndex][index] })) })));
 
 function dateLabel(value: string) { return new Intl.DateTimeFormat("es-GT", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`)); }
 function electionLabel(value: Election) { return electionTypes.find(([key]) => key === value)?.[1] ?? value; }
@@ -38,7 +38,7 @@ function TrendChart({ surveys }: { surveys: Survey[] }) {
 }
 
 function PulseContent() {
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const [election,setElection]=useState<Election>("ALCALDIA");
   const [mode,setMode]=useState<"demo"|"radar">("demo");
   const [radarSurveys,setRadarSurveys]=useState<Survey[]>([]);
@@ -54,7 +54,8 @@ function PulseContent() {
     }).catch(()=>{if(!cancelled){setRadarSurveys([]);setRadarStatus("Pulso está preparado; falta activar su almacenamiento seguro en Supabase.");}});
     return()=>{cancelled=true;};
   },[mode,municipality_code]);
-  const source=mode==="demo"?demo:radarSurveys;
+  const scopedDemo=useMemo(()=>demo.map((survey)=>({...survey,scopeLabel:survey.electionType==="ALCALDIA"?municipality_name:survey.electionType==="DIP_DIST"?department_name:"Guatemala"})),[municipality_name,department_name]);
+  const source=mode==="demo"?scopedDemo:radarSurveys;
   const selected=useMemo(()=>source.filter((survey)=>survey.electionType===election).sort((a,b)=>b.fieldEnd.localeCompare(a.fieldEnd)),[election,source]);
   const latest=selected[0];
   const previous=selected[1];
@@ -65,4 +66,4 @@ function PulseContent() {
   return <><section className="section-banner"><div className="section-banner-copy"><p>MEDICIÓN Y TENDENCIAS</p><h1>Pulso Electoral</h1><span>Encuestas comparables, metodología visible y tendencias sin inventar certeza</span></div></section><main className="pulse-dashboard"><section className={`pulse-disclaimer ${mode}`}><span><b>{mode==="demo"?"SIMULACIÓN VISUAL":"ENCUESTAS RADAR"}</b><small>{mode==="demo"?"Candidaturas y organizaciones 2023 con porcentajes simulados. No es una encuesta ni un resultado electoral.":"Solo aparecen mediciones publicadas autorizadas para este municipio, su departamento o el alcance nacional."}</small></span><nav><button className={mode==="demo"?"active":""} onClick={()=>setMode("demo")}>Demostración 2023</button><button className={mode==="radar"?"active":""} onClick={()=>setMode("radar")}>Encuestas RADAR</button></nav></section><section className="pulse-election-tabs" aria-label="Tipo de elección">{electionTypes.map(([value,label])=><button key={value} className={election===value?"active":""} onClick={()=>setElection(value)}>{label}</button>)}</section>{!latest?<section className="pulse-empty"><b>{radarStatus}</b><span>La simulación permanece separada para no mezclar datos demostrativos con mediciones reales.</span></section>:<><section className="pulse-overview"><article><small>ÚLTIMA MEDICIÓN</small><b>{dateLabel(latest.fieldEnd)}</b><span>{latest.scopeLabel}</span></article><article><small>MUESTRA</small><b>{latest.sampleSize.toLocaleString("es-GT")}</b></article><article><small>PRIMERA POSICIÓN</small><b>{leader?`${leader.value.toFixed(1)}%`:"—"}</b><span>{leader?.candidateName??"Sin resultados publicados"}</span></article><article><small>CAMBIO ÚLTIMA OLA</small><b>{change===null?"—":`${change>=0?"+":""}${change.toFixed(1)} pts`}</b><span>Comparación homogénea</span></article></section><section className="pulse-main-grid single"><article className="pulse-ranking"><header><div><small>INTENCIÓN DE VOTO · {latest.scopeLabel.toUpperCase()}</small><h2>{electionLabel(election)}</h2></div><strong>{dateLabel(latest.fieldEnd)}</strong></header><div>{ranked.map((result,index)=><article key={result.optionCode}><span><i style={{background:colors[index%colors.length]}} /><b>{result.candidateName}</b><small>{result.organization||"Sin organización"}</small></span><strong>{result.value.toFixed(1)}%</strong><div><i style={{width:`${result.value}%`,background:colors[index%colors.length]}} /></div></article>)}</div><footer>{latest.methodology}</footer></article></section><section className="pulse-trend"><header><small>EVOLUCIÓN COMPARABLE</small><h2>Intención de voto a lo largo del tiempo</h2></header><TrendChart surveys={selected} /></section><section className="pulse-history"><header><div><small>BITÁCORA DE MEDICIONES</small><h2>Encuestas del período</h2></div><span>{selected.length} registros</span></header><div>{selected.map((survey)=><article key={survey.folio}><span><small>{survey.folio}</small><b>{dateLabel(survey.fieldEnd)}</b></span><span><small>Alcance</small><b>{survey.scopeLabel}</b></span><span><small>Muestra</small><b>{survey.sampleSize.toLocaleString("es-GT")}</b></span><span><small>Fuente</small><b>{survey.sourceLabel}</b></span><em>{mode==="demo"?"DEMOSTRACIÓN":"PUBLICADA"}</em></article>)}</div></section></>}</main></>;
 }
 
-export function V70DirectPulse0509(){const {municipalityCode}=useParams(); const consumer=resolveRadarConsumer(municipalityCode); if(!consumer||municipalityCode!=="0509") return <Navigate to="/" replace/>; return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="pulso" eyebrow="INVESTIGACIÓN" topbarTitle="San José / Puerto San José · Escuintla" accountRole="Dirección de campaña"><PulseContent/></V70DirectShell0509></MunicipalityProvider>;}
+export function V70DirectPulse0509(){const {municipalityCode}=useParams(); const consumer=resolveRadarConsumer(municipalityCode); if(!consumer)return null; const municipalityTitle=`${consumer.municipality.displayName??consumer.municipality.name} · ${consumer.municipality.department}`; return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="pulso" eyebrow="INVESTIGACIÓN" topbarTitle={municipalityTitle} accountRole="Dirección de campaña"><PulseContent/></V70DirectShell0509></MunicipalityProvider>;}

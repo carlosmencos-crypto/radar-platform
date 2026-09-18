@@ -12,6 +12,8 @@ import {
   type CampaignModuleRecord,
 } from "../data/radarRuntime";
 import { municipalProfiles } from "../data/municipalProfiles";
+import { getInstalledRadarRuntime } from "../data/radarRuntimeCache";
+import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
 import { useV70CampaignBrand } from "./useV70CampaignBrand";
 
 type ReportMetric = { label: string; value: string; note: string };
@@ -47,7 +49,7 @@ function activityPeople(value:unknown){if(!Array.isArray(value))return[];return 
 function activityMapUrl(activity:CampaignActivityRecord){if(activity.latitude===null||activity.longitude===null)return"";const lat=activity.latitude,lon=activity.longitude,latDelta=.006,lonDelta=.009;return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(`${lon-lonDelta},${lat-latDelta},${lon+lonDelta},${lat+latDelta}`)}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lon}`)}`;}
 function ActivityReportCard({activity,partyLogo,partyName}:{activity:CampaignActivityRecord;partyLogo:string;partyName:string}){const details=activity.details??{};const responsible=String(details.responsible_name??details.responsible??"Responsable pendiente");const team=activityPeople(details.participants);const electors=activityPeople(details.electors);const groups=String(details.manual_participants??"").trim();const mapUrl=activityMapUrl(activity);const coordinates=activity.latitude!==null&&activity.longitude!==null?`${activity.latitude.toFixed(5)}, ${activity.longitude.toFixed(5)}`:"";return <article className="report-activity-card"><header><div><small>AGENDA TERRITORIAL · RADAR</small><h3>{activity.title}</h3><p>{activity.community||"Ubicación pendiente"} · {common.department} · {responsible}</p></div>{partyLogo?<span><img src={partyLogo} alt={partyName||"Partido político"}/><b>{partyName||"Partido"}</b></span>:null}</header><div className="report-activity-map">{mapUrl?<><iframe title={`Mapa de ${activity.title}`} loading="eager" src={mapUrl}/><div className="report-activity-map-overlay" aria-hidden="true"><i/><span>N</span></div><small>{coordinates} · OpenStreetMap</small></>:<div className="report-activity-map-empty"><b>Actividad sin coordenadas</b><span>La ubicación escrita se conserva sin inventar un punto.</span></div>}<strong>{activity.community||"Ubicación pendiente"}</strong></div><div className="report-activity-facts"><span><small>FECHA Y HORA</small><b>{activityDate(activity.starts_at)}</b></span><span><small>RESPONSABLE</small><b>{responsible}</b></span><span><small>ESTADO</small><b>{activity.status.replaceAll("_"," ")}</b></span></div><div className="report-activity-notes"><span><small>TEMAS / OBJETIVO / NOTAS</small><b>{activity.notes||String(details.objective??"Sin temas u observaciones registrados")}</b></span><div><p><small>PARTICIPANTES DEL EQUIPO</small>{team.length?team.join(" · "):"Sin registros"}</p><p><small>ELECTORES PARTICIPANTES</small>{electors.length?electors.join(" · "):"Sin registros"}</p><p><small>SECTORES PARTICIPANTES</small>{groups||"Sin registros"}</p></div></div></article>}
 
-export function V70DirectReport0509(){
+function Golden0509Report(){
   const {section="inicio"}=useParams();
   const [searchParams]=useSearchParams();
   const { campaign_id } = useMunicipalityContext();
@@ -185,4 +187,91 @@ export function V70DirectReport0509(){
       {sectionPages.map((page,index)=><Sheet key={index} definition={definition} page={2+(summaryIncluded?1:0)+consolidatedPages+index} total={total}><div className="report-title-block compact"><small>CONTENIDO DEL INFORME</small><h2>{page.length===1?page[0].title:"Áreas de control"}</h2></div><div className="report-section-grid">{page.map((item)=><SectionCard key={`${item.eyebrow}-${item.title}`} section={item}/>)}</div></Sheet>)}
     </div>
   </main>;
+}
+
+function DynamicReportSheet({ page, total, code, municipality, title, children, cover = false }: { page: number; total: number; code: string; municipality: string; title: string; children: React.ReactNode; cover?: boolean }) {
+  return <section className={`report-sheet ${cover ? "cover" : ""}`}>{!cover ? <header className="report-page-header"><Brand/><div><b>{title}</b><span>{municipality} · {code}</span></div></header> : null}<div className="report-page-body">{children}</div><footer className="report-page-footer"><span>RADAR · {code} · CAMPAIGN VAULT</span><b>{page} / {total}</b></footer></section>;
+}
+
+function dynamicRecord(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+function dynamicNumber(value: unknown): number | null { return typeof value === "number" && Number.isFinite(value) ? value : null; }
+function dynamicInteger(value: unknown) { const number = dynamicNumber(value); return number === null ? "No publicado" : number.toLocaleString("es-GT"); }
+function dynamicPct(value: unknown, fraction = false) { const number = dynamicNumber(value); return number === null ? "No publicado" : `${(fraction ? number * 100 : number).toLocaleString("es-GT", { maximumFractionDigits: 1 })}%`; }
+function dynamicGtq(value: unknown) { const number = dynamicNumber(value); return number === null ? "No publicado" : new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ", maximumFractionDigits: 0 }).format(number); }
+
+function MunicipalV70Report() {
+  const [searchParams] = useSearchParams();
+  const { municipality_code, municipality_name, department_name, campaign_id } = useMunicipalityContext();
+  const runtime = getInstalledRadarRuntime(municipality_code);
+  const brand = useV70CampaignBrand();
+  const [bundle, setBundle] = useState<CampaignBundle | null>(null);
+  const [plan, setPlan] = useState<CampaignModuleRecord[]>([]);
+  const [generatedAt, setGeneratedAt] = useState("");
+  useEffect(() => {
+    setGeneratedAt(new Intl.DateTimeFormat("es-GT", { dateStyle: "long", timeStyle: "short" }).format(new Date()));
+    let cancelled = false;
+    if (!campaign_id) return;
+    void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignBundle(campaign_id, token), loadCampaignRecords(campaign_id, "estrategia", token)])).then(([campaignBundle, strategy]) => { if (!cancelled) { setBundle(campaignBundle); setPlan(strategy.filter((item) => item.status !== "ARCHIVADO")); } }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [campaign_id]);
+  if (!runtime) return <main className="report-shell"><div className="page page--compact"><h1>Preparando inteligencia municipal…</h1></div></main>;
+  const payload = (id: string) => dynamicRecord(runtime.layers.find((item) => item.layer_id === id)?.payload);
+  const nucleus = payload("NUCLEO_ELECTORAL");
+  const electoralMunicipality = dynamicRecord(nucleus.municipality);
+  const centersJrv = dynamicRecord(nucleus.centers_jrv);
+  const activeElectors = dynamicNumber(electoralMunicipality.active_voters_2026) ?? runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026")?.elector_count ?? null;
+  const registered2023 = dynamicNumber(electoralMunicipality.registered_voters_2023) ?? runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023")?.elector_count ?? null;
+  let electoralView = null;
+  try { electoralView = adaptAuthorizedElectoralTerritoryLayers(runtime.layers); } catch { electoralView = null; }
+  const centerCount = dynamicNumber(centersJrv.physical_locations) ?? electoralView?.centers.length ?? null;
+  const jrvCount = dynamicNumber(centersJrv.jrv) ?? electoralView?.centers.reduce((sum, center) => sum + center.jrv, 0) ?? null;
+  const finance = payload("MINFIN_YTD");
+  const projects = payload("SNIP_2026");
+  const health = payload("MSPAS_SALUD");
+  const schools = payload("MINEDUC_ESCUELAS");
+  const nutrition = payload("SESAN_TALLA");
+  const contracts = payload("GUATECOMPRAS");
+  const risk = payload("CONRED_INFORM");
+  const forest = payload("INAB_FORESTAL");
+  const activityScope = searchParams.get("activities") ?? "next7";
+  const now = Date.now();
+  const sevenDays = now + 7 * 24 * 60 * 60 * 1000;
+  const activities = (bundle?.activities ?? []).filter((activity) => { const starts = activity.starts_at ? new Date(activity.starts_at).getTime() : NaN; if (!Number.isFinite(starts)) return false; if (activityScope === "all") return true; if (activityScope === "past") return starts < now; if (activity.status === "CANCELADA") return false; if (activityScope === "scheduled") return starts >= now; return starts >= now && starts <= sevenDays; }).sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime());
+  const activityPages = activities.length ? activities : [null];
+  const total = 4 + activityPages.length;
+  const code = `RADAR-${municipality_code}-INFORME-INTEGRAL`;
+  const intelligenceCards = [
+    ["Salud", `${dynamicInteger(health.records)} establecimientos`, "MSPAS · directorio autorizado"],
+    ["Educación", `${dynamicInteger(schools.records)} registros`, "MINEDUC · alcance parcial documentado"],
+    ["Nutrición", dynamicPct(nutrition.stunting_prevalence_pct), `SESAN 2024 · ${String(nutrition.nutritional_vulnerability_category ?? "sin categoría")}`],
+    ["Riesgo", String(dynamicNumber(risk.inform_risk) ?? "No publicado"), "CONRED INFORM 2021"],
+    ["Bosque", `${dynamicInteger(forest.forest_cover_2020_ha)} ha`, "INAB · cobertura 2020"],
+    ["Presupuesto", dynamicGtq(finance.current_budget_amount), `MINFIN 2026 YTD · ejecución ${dynamicPct(finance.budget_execution_pct)}`],
+    ["Proyectos", dynamicInteger(projects.project_count), `${dynamicGtq(projects.requested_amount)} solicitados · SNIP 2026`],
+    ["Contratos", dynamicInteger(contracts.contracts_total), "Guatecompras 2025–2026 YTD · no equivale a ejecución"],
+  ];
+  return <main className="report-shell"><nav className="report-actions"><Link to={`/municipio/${municipality_code}`}>← Volver al municipio</Link><div><button className="primary" onClick={() => { document.title = `${code} · ${municipality_name}`; window.print(); }}>Guardar / Imprimir PDF</button></div></nav><div className="report-document">
+    <DynamicReportSheet page={1} total={total} code={municipality_code} municipality={municipality_name} title="Informe integral RADAR" cover><div className="report-cover-top"><Brand/><span>CAMPAIGN VAULT</span></div><div className="report-cover-main"><small>INTELIGENCIA Y OPERACIÓN MUNICIPAL</small><h1>Informe integral RADAR</h1><p>{municipality_name} · {department_name}</p><div className="report-cover-rule"/><div className="report-cover-project">{brand.candidatePhotoUrl ? <img src={brand.candidatePhotoUrl} alt=""/> : <i/>}<div><small>CAMPAÑA ALCALDÍA</small><b>{brand.candidateName}</b><span>{municipality_name} · {department_name}</span></div>{brand.partyLogoUrl ? <img className="party" src={brand.partyLogoUrl} alt={brand.partyName || "Partido político"}/> : <i/>}</div></div><div className="report-cover-meta"><div><span>Documento</span><b>{code}</b></div><div><span>Generado</span><b>{generatedAt || "Preparando fecha…"}</b></div><div><span>Clasificación</span><b>USO INTERNO Y CONFIDENCIAL</b></div></div></DynamicReportSheet>
+    <DynamicReportSheet page={2} total={total} code={municipality_code} municipality={municipality_name} title="Resumen ejecutivo"><div className="report-title-block"><small>RESUMEN EJECUTIVO</small><h2>{municipality_name}</h2><p>Inteligencia pública trazable y operación privada de campaña dentro del municipio autorizado.</p></div><div className="report-metrics">{[
+      { label: "Población proyectada", value: runtime.demographics?.population_total?.toLocaleString("es-GT") ?? "No publicada", note: runtime.demographics?.source_label ?? "INE" },
+      { label: "Padrón activo 2026", value: activeElectors?.toLocaleString("es-GT") ?? "No publicado", note: registered2023 === null || activeElectors === null ? "TSE" : `${activeElectors - registered2023 >= 0 ? "+" : ""}${(activeElectors - registered2023).toLocaleString("es-GT")} frente a 2023` },
+      { label: "Centros / JRV", value: `${centerCount ?? "—"} / ${jrvCount ?? "—"}`, note: "TSE 2023" },
+      { label: "Capas / puntos", value: `${runtime.layers.length} / ${runtime.geo.feature_total}`, note: "Data Vault municipal" },
+    ].map((metric) => <article key={metric.label}><small>{metric.label}</small><b>{metric.value}</b><span>{metric.note}</span></article>)}</div><div className="report-executive-note"><b>Regla de datos</b><p>Los vacíos no se convierten en cero. Cada cifra conserva fuente, período y universo.</p></div></DynamicReportSheet>
+    <DynamicReportSheet page={3} total={total} code={municipality_code} municipality={municipality_name} title="Inteligencia Municipal"><div className="report-title-block compact"><small>EXPEDIENTE MUNICIPAL 360</small><h2>Datos para decisión</h2><p>Lectura compacta de servicios, riesgo, ambiente, finanzas e inversión.</p></div><div className="report-intelligence-grid">{intelligenceCards.map(([title, value, detail]) => <article key={title}><small>VALIDADO / PERÍODO VISIBLE</small><b>{title}</b><span>{value} · {detail}</span></article>)}</div><div className="report-trace"><span>FUENTES</span><p>{runtime.layers.map((item) => item.source_label).filter(Boolean).filter((item, index, list) => list.indexOf(item) === index).join(" · ")}</p></div></DynamicReportSheet>
+    <DynamicReportSheet page={4} total={total} code={municipality_code} municipality={municipality_name} title="Plan de campaña"><div className="report-title-block compact"><small>RUMBO DE CAMPAÑA</small><h2>Plan vigente</h2><p>Contenido guardado en el Campaign Vault de {municipality_name}.</p></div><div className="report-plan-grid single"><section>{plan.length ? plan.slice(0, 12).map((item) => <article key={item.id}><small>{item.category}</small><b>{item.title}</b>{item.details ? <p>{item.details}</p> : null}</article>) : <div className="report-empty small"><b>Plan pendiente</b><p>Los ocho campos aparecerán aquí cuando la campaña los complete.</p></div>}</section></div></DynamicReportSheet>
+    {activityPages.map((activity, index) => {
+      const details = activity?.details ?? {};
+      const responsible = String(details.responsible_name ?? details.responsible ?? "Responsable pendiente");
+      const team = activityPeople(details.participants);
+      const electors = activityPeople(details.electors);
+      const groups = String(details.manual_participants ?? "").trim();
+      return <DynamicReportSheet key={activity?.id ?? "empty"} page={5 + index} total={total} code={municipality_code} municipality={municipality_name} title="Agenda operativa"><div className="report-title-block compact"><small>AGENDA TERRITORIAL</small><h2>{activityScope === "all" ? "Todas las actividades" : activityScope === "past" ? "Actividades pasadas" : activityScope === "scheduled" ? "Actividades programadas" : "Próximos 7 días"}</h2><p>Ubicación, responsable, estado y participantes registrados.</p></div>{activity ? <article className="report-activity-card"><header><div><small>AGENDA TERRITORIAL · RADAR</small><h3>{activity.title}</h3><p>{activity.community || "Ubicación pendiente"} · {department_name} · {responsible}</p></div>{brand.partyLogoUrl ? <span><img src={brand.partyLogoUrl} alt={brand.partyName || "Partido"}/><b>{brand.partyName || "Partido"}</b></span> : null}</header><div className="report-activity-map">{activityMapUrl(activity) ? <iframe title={`Mapa de ${activity.title}`} loading="eager" src={activityMapUrl(activity)}/> : <div className="report-activity-map-empty"><b>Actividad sin coordenadas</b><span>La ubicación escrita se conserva sin inventar un punto.</span></div>}</div><div className="report-activity-facts"><span><small>FECHA Y HORA</small><b>{activityDate(activity.starts_at)}</b></span><span><small>RESPONSABLE</small><b>{responsible}</b></span><span><small>ESTADO</small><b>{activity.status.replaceAll("_", " ")}</b></span></div><div className="report-activity-notes"><span><small>TEMAS / OBJETIVO / NOTAS</small><b>{activity.notes || String(details.objective ?? "Sin temas u observaciones registrados")}</b></span><div><p><small>PARTICIPANTES DEL EQUIPO</small>{team.length ? team.join(" · ") : "Sin registros"}</p><p><small>ELECTORES PARTICIPANTES</small>{electors.length ? electors.join(" · ") : "Sin registros"}</p><p><small>SECTORES PARTICIPANTES</small>{groups || "Sin registros"}</p></div></div></article> : <div className="report-empty small"><b>Sin actividades para este período</b><p>Cambia el período en la ventana previa o registra actividades en Agenda.</p></div>}</DynamicReportSheet>;
+    })}
+  </div></main>;
+}
+
+export function V70DirectReport0509() {
+  const { municipality_code } = useMunicipalityContext();
+  return municipality_code === "0509" ? <Golden0509Report/> : <MunicipalV70Report/>;
 }

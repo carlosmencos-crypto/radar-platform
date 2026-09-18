@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import {
@@ -84,9 +84,17 @@ export function useV70CampaignBrand() {
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [identity, setIdentity] = useState<CampaignIdentityRecord>({});
   const [loading, setLoading] = useState(true);
+  const requestVersion = useRef(0);
 
   const load = useCallback(async () => {
-    if (!campaign_id) return;
+    const version = requestVersion.current + 1;
+    requestVersion.current = version;
+    setContacts([]);
+    setIdentity({});
+    if (!campaign_id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const token = await ensureRadarAccessToken();
@@ -94,15 +102,19 @@ export function useV70CampaignBrand() {
         loadCampaignBundle(campaign_id, token),
         loadCampaignContacts(campaign_id, token),
       ]);
+      if (requestVersion.current !== version) return;
       setIdentity(bundle.identity ?? {});
       setContacts((people ?? []).filter((person) => person.active));
     } finally {
-      setLoading(false);
+      if (requestVersion.current === version) setLoading(false);
     }
   }, [campaign_id]);
 
   useEffect(() => {
     void load().catch(() => undefined);
+    return () => {
+      requestVersion.current += 1;
+    };
   }, [load]);
   useEffect(() => {
     const reload = () => void load().catch(() => undefined);

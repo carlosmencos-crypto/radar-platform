@@ -1,19 +1,21 @@
 import { useMemo, useState } from "react";
+import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 
 type ExportSection = "electoral" | "center" | "territory" | "indicators" | "finance";
 type Props = { open: boolean; onOpen: () => void; onClose: () => void; electionCode?: string; centerId?: string };
 
-function resolveViewModel(): V70ElectoralViewModel | null {
-  const layers = getInstalledRadarElectoralLayers("0509") ?? [];
+function resolveViewModel(municipalityCode: string): V70ElectoralViewModel | null {
+  const layers = getInstalledRadarElectoralLayers(municipalityCode) ?? [];
   if (!layers.some((layer) => layer.layer_id === "TREP_2023_CENTER_INDEX")) return null;
   try { return adaptAuthorizedElectoralTerritoryLayers(layers); }
-  catch (error) { console.error("RADAR_V70_EXPORT_ADAPTER_FAIL_CLOSED", "0509", error); return null; }
+  catch (error) { console.error("RADAR_V70_EXPORT_ADAPTER_FAIL_CLOSED", municipalityCode, error); return null; }
 }
 
 export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electionCode, centerId }: Props) {
-  const view = useMemo(() => resolveViewModel(), []);
+  const { municipality_code } = useMunicipalityContext();
+  const view = useMemo(() => resolveViewModel(municipality_code), [municipality_code]);
   const [exportSections, setExportSections] = useState<Record<ExportSection, boolean>>({ electoral: true, center: true, territory: true, indicators: true, finance: true });
   const election = view?.elections.find((item) => item.code === electionCode)
     ?? view?.elections.find((item) => item.code === "CORPORACION_MUNICIPAL")
@@ -23,7 +25,7 @@ export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electio
 
   function exportPdf() {
     const blocks = Object.entries(exportSections).filter(([, enabled]) => enabled).map(([key]) => key).join(",");
-    const query = new URLSearchParams({ blocks });
+    const query = new URLSearchParams({ municipality: municipality_code, blocks });
     if (election) query.set("election", election.code);
     if (selected) query.set("center", selected.id);
     onClose();

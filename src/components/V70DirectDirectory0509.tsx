@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -24,7 +24,10 @@ import {
   type CampaignContactRecord,
 } from "../data/radarRuntime";
 import { zipSync } from "fflate";
-import { getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
+import {
+  getInstalledRadarRuntime,
+  getInstalledRadarVoterCommunities,
+} from "../data/radarRuntimeCache";
 import { createRadarXlsx } from "../data/xlsxExport";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { V70PhotoEditor } from "./V70PhotoEditor";
@@ -160,12 +163,17 @@ function readPrivateImage(file: File) {
 
 function ElectorsDirectoryCanonical() {
   const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
+  const municipalRuntime = getInstalledRadarRuntime(municipality_code);
   const communityOptions =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const initialCommunity =
     new URLSearchParams(window.location.search).get("community") ?? "";
   const [items, setItems] = useState<AuthorizedVoterDirectoryRow[]>([]);
-  const [total, setTotal] = useState(36_878);
+  const [total, setTotal] = useState(
+    municipalRuntime?.voter_roll.aggregates.find(
+      (item) => item.universe === "PADRON_DETALLADO_2023",
+    )?.elector_count ?? 0,
+  );
   const [query, setQuery] = useState("");
   const [dpi, setDpi] = useState("");
   const [community, setCommunity] = useState(initialCommunity);
@@ -1301,14 +1309,14 @@ function DirectoryContent() {
 export function V70DirectDirectory0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509")
-    return <Navigate to="/" replace />;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
   return (
     <MunicipalityProvider consumer={consumer}>
       <V70DirectShell0509
         active="directorio"
         eyebrow="RELACIONES"
-        topbarTitle="San José / Puerto San José · Escuintla"
+        topbarTitle={municipalityTitle}
       >
         <DirectoryContent />
       </V70DirectShell0509>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { MunicipalityProvider } from "../context/MunicipalityContext";
 import { resolveAuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
@@ -20,22 +20,28 @@ function isAuthenticationFailure(error: unknown) {
 
 export function V70DirectReportAccessGate0509() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const municipalityCode = searchParams.get("municipality") ?? "";
   const [state, setState] = useState<GateState>("loading");
   const [consumer, setConsumer] = useState<RadarMunicipalConsumer | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setState("loading");
+    if (!/^\d{4}$/.test(municipalityCode)) {
+      setState("forbidden");
+      return () => { cancelled = true; };
+    }
     ensureRadarAccessToken()
-      .then((accessToken) => resolveAuthorizedRadarConsumer("0509", accessToken))
+      .then((accessToken) => resolveAuthorizedRadarConsumer(municipalityCode, accessToken))
       .then((consumer) => {
         if (cancelled) return;
-        if (consumer.municipality.code !== "0509") {
+        if (consumer.municipality.code !== municipalityCode) {
           setState("forbidden");
           return;
         }
         installRadarRuntime(consumer.runtime);
-        const municipalConsumer = resolveRadarConsumer("0509");
+        const municipalConsumer = resolveRadarConsumer(municipalityCode);
         if (!municipalConsumer) {
           setState("runtime_error");
           return;
@@ -55,9 +61,9 @@ export function V70DirectReportAccessGate0509() {
       });
     return () => {
       cancelled = true;
-      clearInstalledRadarRuntime("0509");
+      clearInstalledRadarRuntime(municipalityCode);
     };
-  }, []);
+  }, [municipalityCode]);
 
   if (state === "loading") return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Preparando informe…</h1></div>;
   if (state === "auth_required") {

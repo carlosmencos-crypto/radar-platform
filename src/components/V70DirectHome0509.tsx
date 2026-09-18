@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -123,7 +124,8 @@ function greetingForGuatemala() {
   return "BUENAS NOCHES";
 }
 function HomeContent() {
-  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
+  const { runtime } = useAuthorizedRadarRuntime();
   const { slate } = useV70CampaignBrand();
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);
@@ -157,14 +159,27 @@ function HomeContent() {
   const activitiesToday = activities.filter((item) => item.starts_at && new Intl.DateTimeFormat("en-CA", { timeZone: "America/Guatemala", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(item.starts_at)) === todayKey).length;
   const openCommitments = commitments.filter((item) => item.status !== "cumplido").length + commitmentRecords.filter((item) => item.status !== "CUMPLIDO").length;
   const coveredTerritories = new Set(activities.filter((item) => item.status.toUpperCase() !== "CANCELADA" && Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).map((item) => item.community?.trim()).filter(Boolean)).size;
-  const territoryCoverage = Math.min(100, Math.round((coveredTerritories / 81) * 100));
+  const knownTerritories = runtime.voter_roll.aggregates.find((item) => item.community_count)?.community_count ?? 0;
+  const territoryCoverage = knownTerritories > 0 ? Math.min(100, Math.round((coveredTerritories / knownTerritories) * 100)) : 0;
+  const activeElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026")?.elector_count;
+  const detailedElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023")?.elector_count;
+  const localPriorityThemes = municipality_code === "0509" ? priorityThemes[rotation] : [
+    { title: "Escucha por comunidad", detail: "Priorizar necesidades con evidencia territorial y seguimiento." },
+    { title: "Servicios municipales", detail: "Contrastar cobertura, fuentes oficiales y brechas documentadas." },
+    { title: "Operación territorial", detail: "Vincular agenda, responsables y mapa en una sola ruta de trabajo." },
+  ];
+  const localOpportunityThemes = municipality_code === "0509" ? opportunityThemes[rotation] : [
+    { title: "Inteligencia electoral", detail: "Resultados, centros y JRV organizados para el municipio." },
+    { title: "Mapa municipal", detail: "Capas geográficas autorizadas sin mezclar otros territorios." },
+    { title: "Memoria de campaña", detail: "Plan, actividades y compromisos dentro del Campaign Vault." },
+  ];
   return (
     <>
       <section className="command-hero home-welcome">
         <div className="home-welcome-copy">
-          <p>{greetingForGuatemala()}, CARLOS</p>
+          <p>{greetingForGuatemala()}, {municipality_code === "0509" ? "CARLOS" : "EQUIPO"}</p>
           <small>Centro de control electoral 2027</small>
-          <h1>San José / Puerto San José</h1>
+          <h1>{municipality_name}</h1>
           <span className="campaign-type">Campaña Alcaldía</span>
         </div>
         <V70CampaignIdentity />
@@ -254,39 +269,25 @@ function HomeContent() {
       >
         <header>
           <small>CONTEXTO MUNICIPAL</small>
-          <h2 id="municipal-context-title">San José</h2>
+          <h2 id="municipal-context-title">{municipality_name}</h2>
         </header>
-        <p>
+        {municipality_code === "0509" ? <><p>
           <b>San José es un municipio costero, portuario e industrial</b> con
           una población proyectada de 72,156 habitantes para 2026. Su actividad
           se concentra entre el casco urbano, la zona portuaria-industrial y la
           costa; esa ventaja convive con presión sobre los servicios y alta
           exposición a inundaciones.
-        </p>
-        <div>
-          <article>
-            <small>SERVICIOS BÁSICOS</small>
-            <b>Agua y residuos</b>
-            <span>Brechas históricas de cobertura y manejo domiciliar.</span>
-          </article>
-          <article>
-            <small>SALUD</small>
-            <b>5 establecimientos</b>
-            <span>La atención obstétrica muestra dependencia externa.</span>
-          </article>
-          <article>
-            <small>SEGURIDAD</small>
-            <b>Prevención prioritaria</b>
-            <span>
-              Violencia contra la mujer y seguridad vial requieren atención.
-            </span>
-          </article>
-          <article>
-            <small>EDUCACIÓN</small>
-            <b>44 sedes físicas</b>
-            <span>76 servicios educativos registrados en el municipio.</span>
-          </article>
-        </div>
+        </p><div>
+          <article><small>SERVICIOS BÁSICOS</small><b>Agua y residuos</b><span>Brechas históricas de cobertura y manejo domiciliar.</span></article>
+          <article><small>SALUD</small><b>5 establecimientos</b><span>La atención obstétrica muestra dependencia externa.</span></article>
+          <article><small>SEGURIDAD</small><b>Prevención prioritaria</b><span>Violencia contra la mujer y seguridad vial requieren atención.</span></article>
+          <article><small>EDUCACIÓN</small><b>44 sedes físicas</b><span>76 servicios educativos registrados en el municipio.</span></article>
+        </div></> : <><p><b>{municipality_name} · {department_name}</b> utiliza exclusivamente su contexto territorial, electoral y de campaña autorizado.</p><div>
+          <article><small>POBLACIÓN</small><b>{runtime.demographics?.population_total?.toLocaleString("es-GT") ?? "No publicada"}</b><span>{runtime.demographics ? `Proyección ${runtime.demographics.projection_year} · ${runtime.demographics.source_label}` : "Vacío conservado sin imputación."}</span></article>
+          <article><small>PADRÓN ACTIVO</small><b>{activeElectors?.toLocaleString("es-GT") ?? "No publicado"}</b><span>Núcleo electoral autorizado del municipio.</span></article>
+          <article><small>PADRÓN DETALLADO</small><b>{detailedElectors?.toLocaleString("es-GT") ?? "No publicado"}</b><span>Base territorial disponible para CRM.</span></article>
+          <article><small>COBERTURA GEOGRÁFICA</small><b>{runtime.geo.feature_total.toLocaleString("es-GT")} puntos</b><span>{runtime.layers.length} capas visibles del Data Vault.</span></article>
+        </div></>}
         <Link to={`/municipio/${municipality_code}/inteligencia`}>
           Abrir Inteligencia Municipal →
         </Link>
@@ -304,7 +305,7 @@ function HomeContent() {
             <h3>Temas prioritarios</h3>
             <p>Lo que requiere atención</p>
             <ul>
-              {priorityThemes[rotation].map((item) => (
+              {localPriorityThemes.map((item) => (
                 <li key={item.title}>
                   <b>{item.title}</b>
                   <span>{item.detail}</span>
@@ -316,7 +317,7 @@ function HomeContent() {
             <h3>Oportunidades</h3>
             <p>Fortalezas aprovechables</p>
             <ul>
-              {opportunityThemes[rotation].map((item) => (
+              {localOpportunityThemes.map((item) => (
                 <li key={item.title}>
                   <b>{item.title}</b>
                   <span>{item.detail}</span>
@@ -332,14 +333,14 @@ function HomeContent() {
 export function V70DirectHome0509() {
   const { municipalityCode } = useParams();
   const consumer = resolveRadarConsumer(municipalityCode);
-  if (!consumer || municipalityCode !== "0509")
-    return <Navigate to="/" replace />;
+  if (!consumer) return null;
+  const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
   return (
     <MunicipalityProvider consumer={consumer}>
       <V70DirectShell0509
         active="inicio"
         eyebrow="CENTRO DE MANDO"
-        topbarTitle="San José / Puerto San José · Escuintla"
+        topbarTitle={municipalityTitle}
       >
         <HomeContent />
       </V70DirectShell0509>
