@@ -28,6 +28,17 @@ export interface RadarMfaChallenge {
   friendlyName: string;
 }
 
+export interface RadarMfaEnrollment {
+  qrCode: string;
+  secret: string;
+  uri: string;
+}
+
+export interface RadarAdminMfaStep {
+  challenge: RadarMfaChallenge;
+  enrollment: RadarMfaEnrollment | null;
+}
+
 function authConfig() {
   const url = String(import.meta.env.VITE_SUPABASE_URL ?? "").trim().replace(/\/$/, "");
   const publishableKey = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
@@ -135,6 +146,52 @@ export async function beginRadarMfaChallenge(): Promise<RadarMfaChallenge> {
     factorId: factor.id,
     challengeId: challenge.id,
     friendlyName: factor.friendly_name || "Aplicación autenticadora",
+  };
+}
+
+interface SupabaseMfaEnrollmentResponse {
+  id: string;
+  friendly_name?: string;
+  totp?: {
+    qr_code?: string;
+    secret?: string;
+    uri?: string;
+  };
+}
+
+export async function prepareRadarAdminMfa(): Promise<RadarAdminMfaStep> {
+  const user = await authenticatedAuthRequest<{ factors?: SupabaseFactor[] }>("/user");
+  const verified = user.factors?.find((factor) => factor.factor_type === "totp" && factor.status === "verified");
+  if (verified) {
+    return { challenge: await beginRadarMfaChallenge(), enrollment: null };
+  }
+
+  for (const factor of user.factors ?? []) {
+    if (factor.factor_type === "totp" && factor.status !== "verified") {
+      await authenticatedAuthRequest(`/factors/${factor.id}`, { method: "DELETE" });
+    }
+  }
+
+  const enrolled = await authenticatedAuthRequest<SupabaseMfaEnrollmentResponse>("/factors", {
+    method: "POST",
+    body: JSON.stringify({ factor_type: "totp", friendly_name: "RADAR Administrador" }),
+  });
+  if (!enrolled.id || !enrolled.totp?.secret) throw new Error("RADAR_MFA_ENROLL_FAILED");
+  const challenge = await authenticatedAuthRequest<{ id: string }>(`/factors/${enrolled.id}/challenge`, {
+    method: "POST",
+    body: "{}",
+  });
+  return {
+    challenge: {
+      factorId: enrolled.id,
+      challengeId: challenge.id,
+      friendlyName: enrolled.friendly_name || "RADAR Administrador",
+    },
+    enrollment: {
+      qrCode: enrolled.totp.qr_code || "",
+      secret: enrolled.totp.secret,
+      uri: enrolled.totp.uri || "",
+    },
   };
 }
 
