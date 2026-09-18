@@ -162,7 +162,9 @@ function rtdElectionReceived(record: CampaignModuleRecord, election: string) {
   return false;
 }
 function rtdActaProgress(record: CampaignModuleRecord) {
-  return <span className="day-d-actas-progress" aria-label="Estado de las cinco actas">{rtdElectionTypes.map(([key, label]) => {
+  const received = rtdElectionTypes.filter(([key]) => rtdElectionReceived(record, key));
+  const missing = rtdElectionTypes.filter(([key]) => !rtdElectionReceived(record, key));
+  return <span className="day-d-actas-progress" tabIndex={0} aria-label={`${received.length} de 5 actas recibidas. ${missing.length ? `Faltan ${missing.map(([,label])=>label).join(", ")}` : "Cobertura completa"}`}><span className="day-d-actas-tooltip"><b>{received.length} / 5 actas recibidas</b>{missing.length?<><small>Faltan:</small>{missing.map(([key,label])=><em key={key}>• {label}</em>)}</>:<small>Cobertura completa</small>}</span>{rtdElectionTypes.map(([key, label]) => {
     const received = rtdElectionReceived(record, key);
     return <i className={received ? "received" : "pending"} title={`${label}: ${received ? "recibida" : "pendiente"}`} key={key} />;
   })}</span>;
@@ -336,7 +338,7 @@ function DayDContent() {
       setMessage(status === "SUSPENDIDO" ? "Acceso suspendido." : "Acceso revocado.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo actualizar el acceso."); }
   }
-  function beginLogistics(category = "TRANSPORTE_ELECTORES") {
+  function beginLogistics(category = "OTRA_PREVISION") {
     setEditingLogistics(null);
     setLogisticsForm({ category, subtype: category === "ALIMENTACION" ? "DESAYUNO" : category === "KIT_ELECTORAL" ? "Kits para fiscales" : category === "EQUIPO_CENTRO" ? "Equipo de Centro de Votación" : "", title: "", center_id: "", center_ids: [], other_location: false, responsible_id: "", scheduled_at: "", quantity: category === "DATOS_MOVILES" ? "1" : "", estimated_cost: "", status: "PLANIFICADO", community: "", driver_id: "", supplier_id: "", beneficiary_id: "", resource_record_id: "", budget_record_id: "", capacity: "", departure_at: "", return_at: "", meal_times: "", characteristics: "", recipients: "", delivery_method: "", mobile_carrier: "TIGO", recharge_at: "", recharge_amount: "", checklist: [...(logisticsChecklists[category] ?? [])], generic_elements: "", route_notes: "", notes: "" });
     setLogisticsOpen(true);

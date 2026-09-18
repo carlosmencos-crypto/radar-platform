@@ -1,7 +1,6 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
-import { V70DirectIntelligenceExport0509 } from "./V70DirectIntelligenceExport0509";
 import { V70DirectModalEscape } from "./V70DirectModalEscape";
 import { V70DirectReportBuilder } from "./V70DirectReportBuilder";
 
@@ -39,7 +38,7 @@ function useRadarPreferences() {
   return { theme, textSize, toggleTheme, increaseTextSize };
 }
 
-export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false, intelligenceExportSelection }: Props) {
+export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false }: Props) {
   const { municipality_code, campaign_id, user_role, permissions } = useMunicipalityContext();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -68,7 +67,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   const userLabel = "Carlos Mencos";
   const avatar = userPhoto ? <img src={userPhoto} alt="" /> : "CM";
   const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
-  const intelligenceExport = active === "inteligencia" ? <V70DirectIntelligenceExport0509 open={reportOpen} onOpen={() => setReportOpen(true)} onClose={() => setReportOpen(false)} electionCode={intelligenceExportSelection?.electionCode} centerId={intelligenceExportSelection?.centerId} /> : null;
+  const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
 
   const controls = <div className="top-actions">
     <button className="print-top-action" type="button" onClick={() => setReportOpen(true)}><span className="control-icon" aria-hidden="true">⇩</span><span className="control-label">Reporte PDF</span></button>
@@ -104,6 +103,6 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     </aside>
     <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />
     <main className="portal-main module-page"><header className="portal-topbar"><button className="mobile-menu" type="button" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div><small>{eyebrow}</small><b>{topbarTitle}</b></div>{controls}</header>{children}</main>
-    {reportOpen ? <V70DirectReportBuilder section={active} onClose={() => setReportOpen(false)} /> : null}
+    {reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}
   </div>;
 }

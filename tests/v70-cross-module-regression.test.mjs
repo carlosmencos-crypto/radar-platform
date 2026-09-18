@@ -83,6 +83,8 @@ test("strategy workspaces keep the approved V70 vocabulary and functional export
   assert.match(strategy, /candidate-upload-grid/);
   assert.match(xlsx, /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
   assert.match(xlsx, /xl\/worksheets\/sheet/);
+  assert.match(xlsx, /<\/sheetData><autoFilter[\s\S]*\$\{mergeCells\}<pageMargins/);
+  assert.doesNotMatch(xlsx, /<\/sheetData>\$\{mergeCells\}<autoFilter/);
 });
 
 test("report exports retain the deployed application base path", () => {
@@ -94,7 +96,10 @@ test("report exports retain the deployed application base path", () => {
   assert.match(builder, /Gráficas ejecutivas/);
   assert.match(report, /report-candidate-grid/);
   assert.match(report, /report-chart-grid/);
-  assert.match(report, /Plan de campaña y próximas actividades/);
+  assert.match(report, /Plan de campaña vigente/);
+  assert.match(report, /report-activity-grid/);
+  assert.match(report, /activityScope/);
+  assert.match(report, /municipalProfile\.modules/);
   assert.match(report, /partyLogoUrl/);
   assert.match(report, /candidate\.photo_url/);
   assert.match(report, /canonicalCode: member\.code/);
@@ -143,6 +148,9 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /Equipo del centro/);
   assert.match(dayD, /rtdElectionTypes/);
   assert.match(dayD, /day-d-actas-progress/);
+  assert.match(dayD, /day-d-actas-tooltip/);
+  assert.match(dayD, /Faltan:/);
+  assert.match(dayD, /function beginLogistics\(category = "OTRA_PREVISION"\)/);
   assert.match(dayD, /SUPERVISIÓN EN TIEMPO REAL/);
   assert.match(dayD, /Rutas \/ traslados/);
   assert.match(dayD, /Porciones de comida previstas/);
@@ -169,6 +177,7 @@ test("V70 typography uses the canonical variable font without synthetic weight",
   const styles = read("src/styles/canonical-adapter.css");
   const fonts = read("src/styles/v70/fonts.css");
   assert.match(styles, /font-synthesis:\s*none/);
+  assert.match(styles, /\.territory-overview>div>b,[\s\S]*\.management-ranks article>span\{white-space:nowrap\}/);
   assert.match(fonts, /font-weight:\s*100 900/);
 });
 

@@ -14,9 +14,11 @@ test("direct 0509 shell uses the canonical V70 report builder", () => {
     "Áreas de control",
     "Registros vigentes",
     "Fuentes y trazabilidad",
-    "Documento escrito, no solo una captura",
+    "Documento listo para imprimir",
+    "Próximos 7 días",
     "Preparar informe",
   ]) assert.ok(builder.includes(expected), `Missing canonical ReportBuilder fragment: ${expected}`);
   assert.ok(shell.includes("V70DirectReportBuilder"), "Direct shell must mount the canonical ReportBuilder.");
+  assert.ok(shell.includes('section="inicio"'), "Every module must open the same integral report.");
   assert.ok(!shell.includes("La exportación conserva la vista municipal autorizada"), "Non-canonical report modal copy must not return.");
 });

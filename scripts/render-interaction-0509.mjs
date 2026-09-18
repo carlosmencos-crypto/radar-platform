@@ -80,8 +80,8 @@ const injection = `<script>(function(){
   const geoBundle=${JSON.stringify(geoBundle)};
   const voterCommunities=${JSON.stringify(voterCommunities)};
   const campaignBundle={identity:{candidate_name:"Ana María Pérez",party_name:"Movimiento Municipal",party_logo_data_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg"},activities:[{id:"qa-activity",campaign_id:"qa-render-0509",title:"Reunión con líderes comunitarios",activity_type:"REUNION",starts_at:new Date(now+86400000).toISOString(),community:"Puerto San José",latitude:13.939,longitude:-90.821,status:"PLANIFICADA",notes:"Validación territorial",details:{responsible:"Ana María Pérez"},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],commitments:[{id:"qa-commitment",title:"Presentar propuesta de alumbrado",community:"Puerto San José",responsible:"Ana María Pérez",due_date:new Date(now+172800000).toISOString().slice(0,10),priority:"ALTA",status:"PENDIENTE",notes:"Seguimiento comunitario"}]};
-  const campaignContacts=[{id:"qa-candidate",campaign_id:"qa-render-0509",full_name:"Ana María Pérez",phone:"5555 0101",phone_secondary:null,email:"ana@example.test",community:"Puerto San José",address_text:null,role:"Candidata a alcalde",contact_type:"Candidato",candidate_position:"Alcalde",status:"ACTIVO",notes:null,active:true,photo_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",identification:null,social_url:null,file_code:"CA01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}];
-  const moduleRecords={estrategia:[{id:"qa-plan",campaign_id:"qa-render-0509",module_key:"estrategia",category:"PLAN_CAMPAÑA",title:"Objetivo general",details:"Consolidar una campaña territorial basada en evidencia y participación comunitaria.",status:"BORRADOR",payload:{},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],legal:[],finanzas:[],medios:[],agenda:[],"dia-d":[],recursos:[]};
+  const campaignContacts=[{id:"qa-candidate",campaign_id:"qa-render-0509",full_name:"Ana María Pérez",phone:"5555 0101",phone_secondary:null,email:"ana@example.test",community:"Puerto San José",address_text:null,role:"Candidata a alcalde",contact_type:"Candidato",candidate_position:"Alcalde",status:"ACTIVO",notes:null,active:true,photo_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",identification:null,social_url:null,file_code:"CA01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()},{id:"qa-fiscal",campaign_id:"qa-render-0509",full_name:"María López",phone:"5555 0202",phone_secondary:null,email:"maria@example.test",community:"Puerto San José",address_text:null,role:"Fiscal de mesa",contact_type:"Fiscal",candidate_position:null,status:"ACTIVO",notes:null,active:true,photo_url:null,identification:null,social_url:null,file_code:"FI01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}];
+  const moduleRecords={estrategia:[{id:"qa-plan",campaign_id:"qa-render-0509",module_key:"estrategia",category:"PLAN_CAMPAÑA",title:"Objetivo general",details:"Consolidar una campaña territorial basada en evidencia y participación comunitaria.",status:"BORRADOR",payload:{},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],legal:[],finanzas:[],medios:[],agenda:[],"dia-d":[{id:"qa-assignment",campaign_id:"qa-render-0509",module_key:"dia-d",category:"ASIGNACION_JRV",title:"Escuela Oficial Urbana Mixta · JRV 1",details:"María López",status:"ASIGNADO",payload:{center_id:"qa-center",center_name:"Escuela Oficial Urbana Mixta",center_reference:"Frente al parque central",jrv:1,fiscal_id:"qa-fiscal",fiscal_name:"María López",checked_in:true,transport_ready:true,food_ready:false,mobile_data_ready:true,table_closed:false,rtd_elections:["PRESIDENTE"]},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],recursos:[]};
   const voterRows=[{id:1,full_name:"Registro autorizado QA",community:"Cabecera Municipal",estimated_age_2026:40,masked_identification:"0000••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:36878}];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
@@ -95,6 +95,7 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(moduleRecords[body.p_module_key]||[]),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
+    if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_record_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:body.p_record_id||"qa-record-"+Date.now(),campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_record}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("nominatim.openstreetmap.org/search")) return new Response(JSON.stringify([{place_id:1,name:"Municipalidad de San José",display_name:"Municipalidad de San José, Escuintla, Guatemala",lat:"13.939",lon:"-90.821",addresstype:"townhall"}]),{status:200,headers:{"Content-Type":"application/json"}});
     return nativeFetch(input,init);
@@ -305,7 +306,15 @@ try {
     if (slug === "dia-d") {
       const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
       if (!openedRtd) throw new Error("RTD internal view is missing.");
-      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && /0\\s*\\/\\s*\\d+/.test(document.querySelector('.internal-view-content[data-view="rtd"]')?.innerText||'')`, "RTD JRV coverage board");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && /\\d+\\s*\\/\\s*\\d+/.test(document.querySelector('.internal-view-content[data-view="rtd"]')?.innerText||'')`, "RTD JRV coverage board");
+      const openedFiscales = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Fiscales'); if(!button)return false; button.click(); return true;})()`);
+      if (!openedFiscales) throw new Error("Fiscales internal view is missing.");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="fiscales"] .day-d-actas-tooltip')) && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('1 / 5 actas recibidas') && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('Faltan:')`, "fiscal RTD five-acta status");
+      const generatedAccess = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.day-d-access-actions button')).find((item)=>item.textContent.trim()==='Generar acceso'); if(!button)return false; button.click(); return true;})()`);
+      if (!generatedAccess) throw new Error("Fiscal access generation control is missing.");
+      await waitFor(`Boolean(document.querySelector('.day-d-access-modal')) && (document.body?.innerText||'').includes('ACCESO GENERADO') && (document.body?.innerText||'').includes('Código alterno')`, "functional fiscal access generation");
+      await evaluate(`document.querySelector('.day-d-access-modal>header button')?.click()`);
+      await waitFor(`!document.querySelector('.day-d-access-modal')`, "fiscal access modal close");
     }
     const snap = await snapshot();
     assertHealthy(snap, marker);
@@ -316,19 +325,21 @@ try {
     if (!ok) throw new Error(`SPA screenshot too small for ${route}`);
   }
 
-  // municipio-360 has its own canonical export panel. Both top PDF and floating export open that same panel.
+  // Every report control opens the same universal, print-friendly report builder.
   await navigate("/municipio/0509/inteligencia");
   await delay(1800);
+  const rankLayout = await evaluate(`(()=>{const value=document.querySelector('.territory-overview>div:nth-child(3)>b'); if(!value)return null; const style=getComputedStyle(value); const rect=value.getBoundingClientRect(); return {whiteSpace:style.whiteSpace,height:rect.height,lineHeight:Number.parseFloat(style.lineHeight)};})()`);
+  if (!rankLayout || rankLayout.whiteSpace !== "nowrap" || (Number.isFinite(rankLayout.lineHeight) && rankLayout.height > rankLayout.lineHeight * 1.5)) throw new Error(`Municipal rank typography wrapped: ${JSON.stringify(rankLayout)}`);
   for (const selector of [".floating-export", ".print-top-action"]) {
     const clicked = await evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)}); if(!b)return false; b.click(); return true;})()`);
     if (!clicked) throw new Error(`Intelligence export control missing: ${selector}`);
-    await waitFor(`Boolean(document.querySelector('.export-panel')) && (document.body?.innerText||'').includes('Exportar esta lectura') && (document.body?.innerText||'').includes('Generar PDF')`, `canonical Intelligence export panel from ${selector}`);
+    await waitFor(`Boolean(document.querySelector('.report-builder')) && (document.body?.innerText||'').includes('Crear reporte PDF') && (document.body?.innerText||'').includes('Próximos 7 días')`, `universal report builder from ${selector}`);
     const screenshotBytes = await capture(`modal-${selector.includes("floating") ? "floating" : "top"}`);
-    diagnostics.modals.push({ selector, kind: "intelligence-export", opened: true, screenshotBytes, ok: screenshotBytes > 10_000 });
+    diagnostics.modals.push({ selector, kind: "universal-report-builder", opened: true, screenshotBytes, ok: screenshotBytes > 10_000 });
     save();
-    const closed = await evaluate(`(()=>{const b=document.querySelector('.export-head button[aria-label="Cerrar"]'); if(!b)return false; b.click(); return true;})()`);
+    const closed = await evaluate(`(()=>{const b=document.querySelector('.report-builder>header button[aria-label="Cerrar"]'); if(!b)return false; b.click(); return true;})()`);
     if (!closed) throw new Error(`Intelligence export close control missing for ${selector}`);
-    await waitFor(`!document.querySelector('.export-panel')`, `Intelligence export close for ${selector}`);
+    await waitFor(`!document.querySelector('.report-builder')`, `Intelligence export close for ${selector}`);
   }
 
   // Normal PortalFrame routes use the canonical generic ReportBuilder and ModalEscape behavior.
@@ -364,9 +375,9 @@ try {
   if (!reportOk) throw new Error("Report screenshot/PDF output is unexpectedly empty.");
 
   // Prove the general PDF is a useful executive report populated from live campaign modules.
-  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace";
+  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace&activities=next7";
   await navigate(executiveRoute);
-  await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña y próximas actividades')`, "populated executive report", 12000);
+  await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña vigente') && (document.body?.innerText||'').includes('Próximos 7 días')`, "populated executive report", 12000);
   await delay(900);
   const executive = await snapshot();
   const executiveHealthy = executive.html.includes("report-candidate-grid")
@@ -374,6 +385,8 @@ try {
     && executive.text.includes("CA01")
     && executive.text.includes("Reunión con líderes comunitarios")
     && executive.text.includes("Objetivo general")
+    && executive.html.includes("report-intelligence-grid")
+    && executive.html.includes("report-activity-grid")
     && executive.html.includes("radar-electoral-logo-horizontal");
   if (!executiveHealthy) throw new Error("Executive report omitted candidate, intelligence, plan or agenda content.");
   const executiveScreenshotBytes = await capture("report-inicio-ejecutivo");
@@ -387,7 +400,7 @@ try {
 
   diagnostics.status = "PASS";
   save();
-  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/3 report controls · ${diagnostics.reports.length}/2 printable reports`);
+  console.log(`V70_INTERACTION_SMOKE_OK ${diagnostics.navigation.length}/10 SPA transitions · ${diagnostics.modals.length}/4 report controls · ${diagnostics.reports.length}/2 printable reports`);
 } catch (error) {
   diagnostics.status = "FAIL";
   diagnostics.error = error instanceof Error ? error.stack ?? error.message : String(error);

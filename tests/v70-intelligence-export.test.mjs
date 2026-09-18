@@ -8,22 +8,22 @@ const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const sha256 = (file) => createHash("sha256").update(fs.readFileSync(path.join(root, file))).digest("hex");
 
-test("0509 Inteligencia restores the canonical municipio-360 shell and export surface", () => {
+test("0509 Inteligencia preserves the canonical shell and opens the universal report", () => {
   const shell = read("src/components/V70DirectShell0509.tsx");
   const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
   const territory = read("src/components/V70ElectoralTerritory.tsx");
-  const exporter = read("src/components/V70DirectIntelligenceExport0509.tsx");
+  const builder = read("src/components/V70DirectReportBuilder.tsx");
 
-  assert.match(shell, /V70DirectIntelligenceExport0509/);
+  assert.match(shell, /V70DirectReportBuilder/);
   assert.match(shell, /if \(active === "inteligencia"\)/);
   assert.match(shell, /<main id="inicio" className=/);
   assert.match(shell, /<div className="portal-main">/);
   assert.match(shell, /<nav aria-label="Navegación principal">/);
   assert.match(shell, /<div id="cuenta" className="sidebar-account">/);
   assert.match(shell, /aria-label="Abrir menú"/);
-  assert.match(shell, /const intelligenceExport = active === "inteligencia" \? <V70DirectIntelligenceExport0509/);
-  assert.match(shell, /electionCode=\{intelligenceExportSelection\?\.electionCode\}/);
-  assert.match(shell, /centerId=\{intelligenceExportSelection\?\.centerId\}/);
+  assert.match(shell, /const intelligenceExport = active === "inteligencia"/);
+  assert.match(shell, /Reporte PDF integral/);
+  assert.match(shell, /V70DirectReportBuilder section="inicio"/);
 
   assert.match(intelligence, /intelligenceExportSelection=\{exportSelection\}/);
   assert.match(intelligence, /onSelectionChange=\{handleSelectionChange\}/);
@@ -36,22 +36,16 @@ test("0509 Inteligencia restores the canonical municipio-360 shell and export su
   assert.match(territory, /onSelectionChange\?\.\(\{ electionCode, centerId \}\)/);
 
   for (const phrase of [
-    "Exportar vista",
-    "Reporte PDF personalizado",
-    "REPORTE EJECUTIVO",
-    "Exportar esta lectura",
-    "Lectura electoral municipal",
-    "Detalle del centro seleccionado",
-    "Comunidades y territorio",
-    "Indicadores municipales",
-    "Finanzas y gestión",
-    "Generar PDF",
-    "Guardar como PDF",
-  ]) assert.ok(exporter.includes(phrase), `Missing canonical municipio-360 export copy: ${phrase}`);
+    "INFORME EJECUTIVO RADAR",
+    "Actividades incluidas",
+    "Pasadas",
+    "Programadas",
+    "Próximos 7 días",
+    "Preparar informe",
+  ]) assert.ok(builder.includes(phrase), `Missing universal report copy: ${phrase}`);
 
-  assert.ok(exporter.includes("import.meta.env.BASE_URL") && exporter.includes("reporte/municipio-360?"), "Canonical municipio-360 report route must retain the deployed base path.");
-  assert.ok(exporter.includes('"CORPORACION_MUNICIPAL"'), "Canonical default Alcaldía election context is missing.");
-  assert.ok(!exporter.includes("createPortal"));
-  assert.ok(!exporter.includes("querySelector"));
-  assert.ok(!exporter.includes("insertAdjacentElement"));
+  assert.ok(builder.includes("import.meta.env.BASE_URL") && builder.includes("reporte/inicio?"), "Universal report route must retain the deployed base path.");
+  assert.ok(!builder.includes("createPortal"));
+  assert.ok(!builder.includes("querySelector"));
+  assert.ok(!builder.includes("insertAdjacentElement"));
 });

@@ -228,6 +228,7 @@ html[data-theme="dark"] .canonical-vault-notice {
 .report-age-bars>div>i>em{display:block;height:100%;border-radius:inherit;background:var(--radar-electoral)}
 .report-age-bars>div>b{text-align:right;color:var(--radar-grafito);font-size:6.5pt}
 .report-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+.report-plan-grid.single{grid-template-columns:1fr}
 .report-plan-grid>section{padding:5mm;border:1px solid #d6ddd8;border-radius:3mm}
 .report-plan-grid h3{margin:0 0 4mm;font-size:12pt}
 .report-plan-grid section>article{display:grid;gap:1mm;padding:3mm 0;border-top:1px solid #d6ddd8;break-inside:avoid}
@@ -235,6 +236,39 @@ html[data-theme="dark"] .canonical-vault-notice {
 .report-plan-grid article b{font-size:8pt;line-height:1.3}
 .report-plan-grid article p{margin:0;color:#52616a;font-size:6.5pt;line-height:1.4}
 .report-empty.small{min-height:34mm;padding:6mm}
+.report-builder>fieldset{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;border:1px solid var(--line);border-radius:11px;padding:12px}
+.report-builder>fieldset legend{padding:0 6px;color:var(--radar-petroleo);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.report-builder>fieldset label{display:flex;align-items:center;gap:7px;border-radius:999px;padding:8px 11px;background:var(--radar-marfil);font-size:10px;font-weight:750;cursor:pointer}
+.report-builder>fieldset input{width:auto;margin:0}
+.report-intelligence-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.report-intelligence-grid>article{min-height:29mm;padding:4mm;border:1px solid #d6ddd8;border-radius:3mm;break-inside:avoid}
+.report-intelligence-grid small,.report-intelligence-grid b,.report-intelligence-grid span{display:block}
+.report-intelligence-grid small{color:var(--radar-petroleo);font-size:6pt;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.report-intelligence-grid b{margin:1.8mm 0;font-size:10pt}
+.report-intelligence-grid span{color:#52616a;font-size:6.5pt;line-height:1.45}
+.report-activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.report-activity-grid>article{display:grid;grid-template-columns:14mm minmax(0,1fr);gap:3mm;padding:4mm;border:1px solid #d6ddd8;border-radius:3mm;break-inside:avoid}
+.report-activity-grid time{display:grid;align-content:center;justify-items:center;min-height:14mm;border-radius:2.5mm;background:#f3f4ef;color:var(--radar-petroleo);font-size:6pt;font-weight:800;text-align:center;text-transform:uppercase}
+.report-activity-grid time b{font-size:13pt;line-height:1}
+.report-activity-grid article>div{display:grid;align-content:center;gap:1mm}
+.report-activity-grid small{color:var(--radar-petroleo);font-size:6pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.report-activity-grid b{font-size:9pt;line-height:1.3}
+.report-activity-grid p{margin:0;color:#52616a;font-size:6.5pt;line-height:1.4}
+
+/* Hoja blanca de bajo consumo de tinta; mantiene la jerarquía de marca. */
+.report-sheet.cover{background:linear-gradient(145deg,#fff 0 74%,#f3f4ef 74% 100%)!important;color:#27323a!important;border-top:4mm solid var(--radar-petroleo)}
+.report-sheet.cover:after{border-color:color-mix(in srgb,var(--radar-petroleo) 11%,transparent)!important;box-shadow:0 0 0 18mm color-mix(in srgb,var(--radar-petroleo) 4%,transparent),0 0 0 37mm color-mix(in srgb,var(--radar-electoral) 3%,transparent)!important}
+.report-cover-top .report-brand img{padding:0;background:transparent;filter:none!important}
+.report-cover-top>span{border-color:#d6ddd8;color:#52616a}
+.report-cover-main>small,.report-cover-project small,.report-cover-meta span{color:var(--radar-petroleo)}
+.report-cover-main>p,.report-cover-project span{color:#52616a}
+.report-cover-project{border-color:#d6ddd8;background:#fff}
+.report-cover-meta{border-color:#d6ddd8}
+.report-cover-meta b,.report-sheet.cover .report-page-footer b{color:#27323a}
+.report-sheet.cover .report-page-footer{border-color:#d6ddd8;color:#52616a}
+
+/* Evita que los indicadores canónicos 22 / 340 y rango /340 se partan. */
+.territory-overview>div>b,.management-ranks article>span{white-space:nowrap}
 
 /* Root catalog namespace: V70 uses .territory-grid/.territory-card for the map overlay.
    Keep the public national catalog isolated from those canonical map selectors. */
@@ -739,12 +773,39 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
 .agenda-list-actions .record-delete-action { color: var(--radar-calido-profundo); }
 
 .day-d-actas-progress {
+  position: relative;
   display: inline-grid;
   grid-template-columns: repeat(5, 12px);
   gap: 5px;
   align-items: center;
   justify-content: center;
 }
+
+.day-d-actas-tooltip {
+  position: absolute;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  display: none;
+  width: max-content;
+  min-width: 165px;
+  max-width: 230px;
+  transform: translateX(-50%);
+  border: 1px solid color-mix(in srgb,var(--radar-blanco) 14%,transparent);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: var(--radar-grafito);
+  color: var(--radar-blanco);
+  box-shadow: 0 10px 28px color-mix(in srgb,var(--radar-grafito) 28%,transparent);
+  font-style: normal;
+  text-align: left;
+}
+
+.day-d-actas-tooltip:after { content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--radar-grafito) }
+.day-d-actas-tooltip :is(b,small,em){display:block;font-size:7px;font-style:normal;line-height:1.55}
+.day-d-actas-tooltip b{margin-bottom:3px;color:var(--radar-blanco);font-size:8px}
+.day-d-actas-tooltip small{color:var(--radar-salvia)}
+.day-d-actas-progress:is(:hover,:focus-visible) .day-d-actas-tooltip{display:block}
 
 .day-d-actas-progress > i {
   display: block;
