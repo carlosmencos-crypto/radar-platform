@@ -155,8 +155,9 @@ export function V70DirectReport0509(){
   const activeCandidates=brand.slate.filter((member)=>member.contact).map((member)=>({ ...member.contact!, canonicalCode: member.code })).sort((a,b)=>a.canonicalCode.localeCompare(b.canonicalCode,undefined,{numeric:true}));
   const now=Date.now();
   const sevenDaysFromNow=now+7*24*60*60*1000;
-  const selectedActivities=(bundle?.activities??[]).filter((activity)=>{const starts=activity.starts_at?new Date(activity.starts_at).getTime():NaN;if(!Number.isFinite(starts))return false;if(activityScope==="past")return starts<now;if(activity.status==="CANCELADA")return false;if(activityScope==="scheduled")return starts>=now;return starts>=now&&starts<=sevenDaysFromNow;}).sort((a,b)=>{const left=new Date(a.starts_at!).getTime(),right=new Date(b.starts_at!).getTime();return activityScope==="past"?right-left:left-right;}).slice(0,10);
-  const activityScopeLabel=activityScope==="past"?"Actividades pasadas":activityScope==="scheduled"?"Actividades programadas":"Próximos 7 días";
+  const matchingActivities=(bundle?.activities??[]).filter((activity)=>{const starts=activity.starts_at?new Date(activity.starts_at).getTime():NaN;if(!Number.isFinite(starts))return false;if(activityScope==="all")return true;if(activityScope==="past")return starts<now;if(activity.status==="CANCELADA")return false;if(activityScope==="scheduled")return starts>=now;return starts>=now&&starts<=sevenDaysFromNow;}).sort((a,b)=>{const left=new Date(a.starts_at!).getTime(),right=new Date(b.starts_at!).getTime();return activityScope==="past"?right-left:left-right;});
+  const selectedActivities=activityScope==="all"?matchingActivities:matchingActivities.slice(0,10);
+  const activityScopeLabel=activityScope==="all"?"Todas las actividades":activityScope==="past"?"Actividades pasadas":activityScope==="scheduled"?"Actividades programadas":"Próximos 7 días";
   const planRecords=(records.estrategia??[]).filter((record)=>record.status!=="ARCHIVADO").filter((record,index,list)=>list.findIndex((candidate)=>candidate.category===record.category&&candidate.status!=="ARCHIVADO")===index).slice(0,8);
   const hasCandidatePage=consolidated&&parts.includes("records");
   const hasIntelligencePages=consolidated&&(parts.includes("charts")||parts.includes("metrics"));

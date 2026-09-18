@@ -296,13 +296,16 @@ html[data-theme="dark"] .canonical-vault-notice {
 
 /* Los dos mapas conservan todos sus controles en modo sala de mando. */
 .map-fullscreen-frame{position:relative}
-.map-fullscreen-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;border:1px solid var(--line);border-radius:8px;padding:0 11px;background:var(--white);color:var(--radar-petroleo);font-size:var(--radar-text-support,9px);font-weight:850;white-space:nowrap}
-.map-fullscreen-button>span{font-size:15px;line-height:1}
+.map-fullscreen-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid var(--line);border-radius:8px;padding:0 9px;background:var(--white);color:var(--radar-petroleo);font-size:var(--radar-text-support,9px);font-weight:850;white-space:nowrap}
+.map-fullscreen-button:not(.active){width:34px;min-width:34px;padding:0}
+.map-fullscreen-button:not(.active) .map-fullscreen-label{display:none}
+.map-fullscreen-icon{font-size:15px;line-height:1}
 .map-fullscreen-button.active{position:fixed;z-index:2500;top:14px;right:16px;border-color:rgba(255,255,255,.28);background:var(--radar-grafito);color:#fff;box-shadow:0 8px 28px rgba(20,25,28,.22)}
 .map-fullscreen-frame:fullscreen,.map-workspace:fullscreen{width:100vw;height:100vh;max-width:none;margin:0;padding:14px;background:var(--radar-marfil);overflow:auto}
-.map-fullscreen-frame:fullscreen{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:8px}
+.map-fullscreen-frame:fullscreen{display:flex;flex-direction:column;gap:8px;overflow:hidden}
 .map-fullscreen-frame:fullscreen .operational-map-toolbar{margin:0;padding-right:118px}
-.map-fullscreen-frame:fullscreen .smart-map-shell{min-height:0;height:100%;margin:0}
+.map-fullscreen-frame:fullscreen .operational-map-toolbar,.map-fullscreen-frame:fullscreen .map-selection-strip{flex:0 0 auto}
+.map-fullscreen-frame:fullscreen .smart-map-shell{flex:1 1 auto;min-height:0;height:auto;margin:0}
 .map-fullscreen-frame:fullscreen .map-stage,.map-fullscreen-frame:fullscreen .smart-map-canvas{height:100%;min-height:0}
 .map-workspace:fullscreen{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:12px;padding-top:62px}
 .map-workspace:fullscreen .directory,.map-workspace:fullscreen .map-panel{min-height:0;height:calc(100vh - 76px)}
@@ -311,14 +314,18 @@ html[data-theme="dark"] .canonical-vault-notice {
 .map-workspace:fullscreen .real-map{flex:1;min-height:360px}
 html[data-theme="dark"] :is(.map-fullscreen-frame:fullscreen,.map-workspace:fullscreen){background:var(--radar-fondo-oscuro)}
 html[data-theme="dark"] .map-fullscreen-button:not(.active){background:var(--radar-fondo-oscuro);border-color:var(--radar-municipal);color:var(--radar-marfil)}
-@media(max-width:760px){.map-fullscreen-button{min-width:40px;padding:0 9px}.map-fullscreen-button:not(.active){font-size:0}.map-fullscreen-button:not(.active)>span{font-size:17px}.map-workspace:fullscreen{grid-template-columns:1fr}.map-workspace:fullscreen .directory{display:none}.map-workspace:fullscreen .map-panel{height:calc(100vh - 76px)}}
+@media(max-width:760px){.map-workspace:fullscreen{grid-template-columns:1fr}.map-workspace:fullscreen .directory{display:none}.map-workspace:fullscreen .map-panel{height:calc(100vh - 76px)}}
 
 /* Día D: separa el progreso RTD de los controles de acceso del fiscal. */
-.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(230px,1.35fr) repeat(5,minmax(68px,.38fr)) minmax(108px,.52fr) minmax(340px,1.5fr);min-width:1280px}
+.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(205px,1.35fr) repeat(5,minmax(52px,.38fr)) minmax(104px,.58fr) minmax(286px,1.65fr);min-width:1000px}
 .day-d-fiscal-table.extended .head span:last-child{text-align:center}
-.day-d-access-actions{justify-items:center;padding-inline:12px;text-align:center}
+.day-d-access-actions{justify-self:stretch;justify-items:center;width:100%;padding-inline:6px;text-align:center}
 .day-d-access-actions nav{justify-content:center;flex-wrap:nowrap}
 .day-d-access-actions>button{min-width:128px}
+
+/* Pulso mantiene los cinco alcances electorales en una sola fila de escritorio. */
+.pulse-election-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:680px){.pulse-election-tabs{grid-template-columns:1fr 1fr}}
 
 /* IA RADAR: contexto visible y conversación continua sin exponer el CRM individual. */
 .radar-ai-context-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--radar-marfil)}

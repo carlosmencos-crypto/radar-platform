@@ -38,6 +38,7 @@ test("0509 Inteligencia preserves the canonical shell and opens the universal re
   for (const phrase of [
     "INFORME EJECUTIVO RADAR",
     "Actividades incluidas",
+    "Todas",
     "Pasadas",
     "Programadas",
     "Próximos 7 días",

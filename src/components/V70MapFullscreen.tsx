@@ -16,6 +16,7 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
       setActive(next);
       onChange?.(next);
       window.setTimeout(() => window.dispatchEvent(new Event("resize")), 80);
+      window.setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
     };
     document.addEventListener("fullscreenchange", sync);
     return () => document.removeEventListener("fullscreenchange", sync);
@@ -35,7 +36,7 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
     disabled={!supported}
     onClick={() => void toggle()}
   >
-    <span aria-hidden="true">{active ? "×" : "⛶"}</span>
-    {active ? "Salir" : "Pantalla completa"}
+    <span className="map-fullscreen-icon" aria-hidden="true">{active ? "×" : "⛶"}</span>
+    <span className="map-fullscreen-label">{active ? "Salir" : "Pantalla completa"}</span>
   </button>;
 }

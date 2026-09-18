@@ -85,6 +85,7 @@ test("strategy workspaces keep the approved V70 vocabulary and functional export
   assert.match(xlsx, /xl\/worksheets\/sheet/);
   assert.match(xlsx, /<\/sheetData>\$\{autoFilter\}\$\{mergeCells\}<ignoredErrors/);
   assert.doesNotMatch(xlsx, /<\/sheetData>\$\{mergeCells\}\$\{autoFilter\}/);
+  assert.doesNotMatch(xlsx, /<ignoredErrors>[\s\S]*<pageMargins/);
 });
 
 test("report exports retain the deployed application base path", () => {
@@ -100,6 +101,9 @@ test("report exports retain the deployed application base path", () => {
   assert.match(report, /report-activity-card-list/);
   assert.match(report, /report-activity-map/);
   assert.match(report, /activityScope/);
+  assert.match(builder, /\["all","Todas"\]/);
+  assert.match(report, /activityScope==="all"/);
+  assert.match(report, /"Todas las actividades"/);
   assert.match(report, /municipalProfile\.modules/);
   assert.match(report, /partyLogoUrl/);
   assert.match(report, /candidate\.photo_url/);
@@ -124,6 +128,9 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /agenda: true/);
   assert.match(map, /viewBox="0 0 36 42"/);
   assert.doesNotMatch(styles, /\.agenda-map-marker\{[^}]*rotate\(-45deg\)/);
+  assert.match(styles, /\.map-fullscreen-button:not\(\.active\)\{width:34px/);
+  assert.match(styles, /\.map-fullscreen-frame:fullscreen\{display:flex;flex-direction:column/);
+  assert.match(styles, /\.map-fullscreen-frame:fullscreen \.smart-map-shell\{flex:1 1 auto/);
 });
 
 test("the executive report includes commitments stored by the current Agenda flow", () => {
@@ -136,6 +143,7 @@ test("the executive report includes commitments stored by the current Agenda flo
 
 test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   const dayD = read("src/components/V70DirectDayD0509.tsx");
+  const styles = read("src/styles/canonical-adapter.css");
   assert.match(dayD, /loadCampaignContacts/);
   assert.match(dayD, /ASIGNACION_JRV/);
   assert.match(dayD, /saveCampaignRecord/);
@@ -161,6 +169,15 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /logisticsFilterGroups/);
   assert.match(dayD, /Material de cada fiscal/);
   assert.match(dayD, /Fiscal del CRM…/);
+  assert.match(styles, /minmax\(286px,1\.65fr\);min-width:1000px/);
+  assert.match(styles, /\.day-d-access-actions\{justify-self:stretch;justify-items:center;width:100%/);
+});
+
+test("Pulso keeps all five election types on one desktop row", () => {
+  const pulse = read("src/components/V70DirectPulse0509.tsx");
+  const styles = read("src/styles/canonical-adapter.css");
+  assert.match(pulse, /\["PARLACEN", "Parlacen"\]/);
+  assert.match(styles, /\.pulse-election-tabs\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)\}/);
 });
 
 test("responsible voter filtering stays server-side and campaign-scoped", () => {

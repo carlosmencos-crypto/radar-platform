@@ -80,9 +80,10 @@ function sheetXml(sheet: RadarWorkbookSheet) {
   const sheetView = branded
     ? '<sheetView workbookViewId="0" showGridLines="1"/>'
     : `<sheetView workbookViewId="0"><pane ySplit="${headerRow}" topLeftCell="A${headerRow + 1}" activePane="bottomLeft" state="frozen"/><selection activeCell="A${headerRow + 1}" sqref="A${headerRow + 1}"/></sheetView>`;
-  // OOXML is order-sensitive. In particular, autoFilter must precede
-  // mergeCells in CT_Worksheet or desktop Excel repairs/rejects the file.
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="${dimension}"/><sheetViews>${sheetView}</sheetViews><sheetFormatPr baseColWidth="8" defaultRowHeight="15"/><cols>${widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join("")}</cols><sheetData>${rows.join("")}</sheetData>${autoFilter}${mergeCells}<ignoredErrors><ignoredError numberStoredAsText="1" sqref="${dimension}"/></ignoredErrors><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+  // OOXML is order-sensitive. autoFilter must precede mergeCells, and
+  // ignoredErrors must be the last emitted CT_Worksheet child. Excel for Mac
+  // repairs the workbook (and can discard sheetData) when pageMargins follows it.
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="${dimension}"/><sheetViews>${sheetView}</sheetViews><sheetFormatPr baseColWidth="8" defaultRowHeight="15"/><cols>${widths.map((width, index) => `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`).join("")}</cols><sheetData>${rows.join("")}</sheetData>${autoFilter}${mergeCells}<ignoredErrors><ignoredError numberStoredAsText="1" sqref="${dimension}"/></ignoredErrors></worksheet>`;
 }
 
 export function createRadarXlsx(sheets: RadarWorkbookSheet[]) {

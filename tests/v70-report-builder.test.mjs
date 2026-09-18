@@ -15,6 +15,7 @@ test("direct 0509 shell uses the canonical V70 report builder", () => {
     "Registros vigentes",
     "Fuentes y trazabilidad",
     "Documento listo para imprimir",
+    "Todas",
     "Próximos 7 días",
     "Preparar informe",
   ]) assert.ok(builder.includes(expected), `Missing canonical ReportBuilder fragment: ${expected}`);

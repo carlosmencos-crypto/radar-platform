@@ -18,6 +18,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:xlsx
       - run: npm run smoke:340
       - run: node scripts/smoke-v70-parity.mjs
       - run: npm run build

@@ -3,6 +3,7 @@ import http from "node:http";
 import path from "node:path";
 import os from "node:os";
 import { spawn, spawnSync } from "node:child_process";
+import { strFromU8, unzipSync } from "fflate";
 
 const root = process.cwd();
 const dist = path.join(root, "dist-render");
@@ -79,7 +80,7 @@ const injection = `<script>(function(){
   const runtime=${JSON.stringify(runtime)};
   const geoBundle=${JSON.stringify(geoBundle)};
   const voterCommunities=${JSON.stringify(voterCommunities)};
-  const campaignBundle={identity:{candidate_name:"Ana María Pérez",party_name:"Movimiento Municipal",party_logo_data_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg"},activities:[{id:"qa-activity",campaign_id:"qa-render-0509",title:"Reunión con líderes comunitarios",activity_type:"REUNION",starts_at:new Date(now+86400000).toISOString(),community:"Puerto San José",latitude:13.939,longitude:-90.821,status:"PLANIFICADA",notes:"Validación territorial",details:{responsible:"Ana María Pérez"},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],commitments:[{id:"qa-commitment",title:"Presentar propuesta de alumbrado",community:"Puerto San José",responsible:"Ana María Pérez",due_date:new Date(now+172800000).toISOString().slice(0,10),priority:"ALTA",status:"PENDIENTE",notes:"Seguimiento comunitario"}]};
+  const campaignBundle={identity:{candidate_name:"Ana María Pérez",party_name:"Movimiento Municipal",party_logo_data_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg"},activities:[{id:"qa-activity",campaign_id:"qa-render-0509",title:"Reunión con líderes comunitarios",activity_type:"REUNION",starts_at:new Date(now+86400000).toISOString(),community:"Puerto San José",latitude:13.939,longitude:-90.821,status:"PLANIFICADA",notes:"Validación territorial",details:{responsible:"Ana María Pérez"},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()},{id:"qa-activity-past",campaign_id:"qa-render-0509",title:"Asamblea territorial realizada",activity_type:"ASAMBLEA",starts_at:new Date(now-86400000).toISOString(),community:"Cabecera Municipal",latitude:13.934,longitude:-90.826,status:"CONCLUIDA",notes:"Actividad pasada para validar el informe total",details:{responsible:"María López"},created_at:new Date(now-172800000).toISOString(),updated_at:new Date(now-86400000).toISOString()},{id:"qa-activity-cancelled",campaign_id:"qa-render-0509",title:"Recorrido reprogramado",activity_type:"RECORRIDO",starts_at:new Date(now+172800000).toISOString(),community:"Colonia El Progreso",latitude:13.943,longitude:-90.815,status:"CANCELADA",notes:"Registro conservado en el alcance Todas",details:{responsible:"Ana María Pérez"},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],commitments:[{id:"qa-commitment",title:"Presentar propuesta de alumbrado",community:"Puerto San José",responsible:"Ana María Pérez",due_date:new Date(now+172800000).toISOString().slice(0,10),priority:"ALTA",status:"PENDIENTE",notes:"Seguimiento comunitario"}]};
   const campaignContacts=[{id:"qa-candidate",campaign_id:"qa-render-0509",full_name:"Ana María Pérez",phone:"5555 0101",phone_secondary:null,email:"ana@example.test",community:"Puerto San José",address_text:null,role:"Candidata a alcalde",contact_type:"Candidato",candidate_position:"Alcalde",status:"ACTIVO",notes:null,active:true,photo_url:"/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",identification:null,social_url:null,file_code:"CA01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()},{id:"qa-fiscal",campaign_id:"qa-render-0509",full_name:"María López",phone:"5555 0202",phone_secondary:null,email:"maria@example.test",community:"Puerto San José",address_text:null,role:"Fiscal de mesa",contact_type:"Fiscal",candidate_position:null,status:"ACTIVO",notes:null,active:true,photo_url:null,identification:null,social_url:null,file_code:"FI01",is_in_crm:true,created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}];
   const moduleRecords={estrategia:[{id:"qa-plan",campaign_id:"qa-render-0509",module_key:"estrategia",category:"PLAN_CAMPAÑA",title:"Objetivo general",details:"Consolidar una campaña territorial basada en evidencia y participación comunitaria.",status:"BORRADOR",payload:{},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],legal:[],finanzas:[],medios:[],agenda:[],"dia-d":[{id:"qa-assignment",campaign_id:"qa-render-0509",module_key:"dia-d",category:"ASIGNACION_JRV",title:"Escuela Oficial Urbana Mixta · JRV 1",details:"María López",status:"ASIGNADO",payload:{center_id:"qa-center",center_name:"Escuela Oficial Urbana Mixta",center_reference:"Frente al parque central",jrv:1,fiscal_id:"qa-fiscal",fiscal_name:"María López",checked_in:true,transport_ready:true,food_ready:false,mobile_data_ready:true,table_closed:false,rtd_elections:["PRESIDENTE"]},created_at:new Date(now).toISOString(),updated_at:new Date(now).toISOString()}],recursos:[]};
   const voterRows=[{id:1,full_name:"Registro autorizado QA",community:"Cabecera Municipal",estimated_age_2026:40,masked_identification:"0000••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:36878}];
@@ -201,7 +202,7 @@ const routes = [
   ["ia-radar", "/municipio/0509/ia-radar", "IA RADAR"],
   ["configuracion", "/municipio/0509/configuracion", "Configuración"],
 ];
-const diagnostics = { status: "RUNNING", navigation: [], modals: [], reports: [] };
+const diagnostics = { status: "RUNNING", navigation: [], modals: [], reports: [], fullscreen: [], downloads: [] };
 const save = () => fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify(diagnostics, null, 2));
 
 const chrome = findChrome();
@@ -250,6 +251,12 @@ try {
     const file = path.join(out, `${name}.png`);
     fs.writeFileSync(file, Buffer.from(shot.data, "base64"));
     return fs.statSync(file).size;
+  }
+  async function clickSelector(selector) {
+    const point = await evaluate(`(()=>{const item=document.querySelector(${JSON.stringify(selector)});if(!item)return null;const rect=item.getBoundingClientRect();return{x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
+    if (!point) throw new Error(`Clickable control missing: ${selector}`);
+    await cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
+    await cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
   }
   function assertHealthy(snap, marker) {
     const text = snap.text ?? "";
@@ -305,6 +312,15 @@ try {
       await waitFor(`Boolean(document.querySelector('.free-place-card a[href*="lat="][href*="lon="]'))`, "exact map point handoff to Agenda");
       const fullscreenControl = await evaluate(`Boolean(document.querySelector('.map-fullscreen-frame .map-fullscreen-button[aria-label="Ver mapa en pantalla completa"]'))`);
       if (!fullscreenControl) throw new Error("Smart Map fullscreen control is missing.");
+      await clickSelector('.map-fullscreen-frame .map-fullscreen-button');
+      await waitFor(`document.fullscreenElement?.classList.contains('map-fullscreen-frame')`, "Smart Map fullscreen entry");
+      await delay(500);
+      const fullscreenLayout = await evaluate(`(()=>{const frame=document.fullscreenElement,shell=frame?.querySelector('.smart-map-shell'),stage=frame?.querySelector('.map-stage'),button=frame?.querySelector('.map-fullscreen-button.active');if(!frame||!shell||!stage||!button)return null;const f=frame.getBoundingClientRect(),s=shell.getBoundingClientRect(),m=stage.getBoundingClientRect(),b=button.getBoundingClientRect();return{frame:{width:f.width,height:f.height},shell:{width:s.width,height:s.height},stage:{width:m.width,height:m.height},button:{width:b.width,height:b.height,label:button.getAttribute('aria-label')}};})()`);
+      if (!fullscreenLayout || fullscreenLayout.shell.width < 900 || fullscreenLayout.shell.height < 650 || fullscreenLayout.stage.height < 600 || fullscreenLayout.button.width > 100 || fullscreenLayout.button.label !== "Salir de pantalla completa") throw new Error(`Smart Map fullscreen layout is unusable: ${JSON.stringify(fullscreenLayout)}`);
+      const fullscreenScreenshotBytes = await capture("mapa-fullscreen");
+      diagnostics.fullscreen.push({ map: "smart", ...fullscreenLayout, screenshotBytes: fullscreenScreenshotBytes, exit: "button", ok: fullscreenScreenshotBytes > 10_000 });
+      await clickSelector('.map-fullscreen-frame .map-fullscreen-button.active');
+      await waitFor(`!document.fullscreenElement`, "Smart Map fullscreen button exit");
     }
     if (slug === "dia-d") {
       const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
@@ -313,8 +329,8 @@ try {
       const openedFiscales = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Fiscales'); if(!button)return false; button.click(); return true;})()`);
       if (!openedFiscales) throw new Error("Fiscales internal view is missing.");
       await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="fiscales"] .day-d-actas-tooltip')) && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('1 / 5 actas recibidas') && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('Faltan:')`, "fiscal RTD five-acta status");
-      const fiscalColumns = await evaluate(`(()=>{const actas=document.querySelector('.day-d-actas-progress');const access=document.querySelector('.day-d-access-actions');if(!actas||!access)return null;const left=actas.getBoundingClientRect(),right=access.getBoundingClientRect();return{actasRight:left.right,accessLeft:right.left,accessWidth:right.width};})()`);
-      if (!fiscalColumns || fiscalColumns.accessLeft <= fiscalColumns.actasRight || fiscalColumns.accessWidth < 300) throw new Error(`Fiscal access controls remain crowded against RTD: ${JSON.stringify(fiscalColumns)}`);
+      const fiscalColumns = await evaluate(`(()=>{const table=document.querySelector('.day-d-fiscal-table.extended');const actas=document.querySelector('.day-d-actas-progress');const access=document.querySelector('.day-d-access-actions');const header=document.querySelector('.day-d-fiscal-table.extended .head span:last-child');const control=access?.querySelector('button');if(!table||!actas||!access||!header||!control)return null;const t=table.getBoundingClientRect(),left=actas.getBoundingClientRect(),right=access.getBoundingClientRect(),head=header.getBoundingClientRect(),button=control.getBoundingClientRect();return{tableRight:t.right,actasRight:left.right,accessLeft:right.left,accessRight:right.right,accessWidth:right.width,accessCenter:right.left+right.width/2,headerCenter:head.left+head.width/2,controlCenter:button.left+button.width/2};})()`);
+      if (!fiscalColumns || fiscalColumns.accessLeft <= fiscalColumns.actasRight || fiscalColumns.accessWidth < 270 || fiscalColumns.accessRight > fiscalColumns.tableRight + 1 || Math.abs(fiscalColumns.accessCenter - fiscalColumns.headerCenter) > 3 || Math.abs(fiscalColumns.accessCenter - fiscalColumns.controlCenter) > 12) throw new Error(`Fiscal access controls are not centered in their available column: ${JSON.stringify(fiscalColumns)}`);
       const actaPoint = await evaluate(`(()=>{const item=document.querySelector('.day-d-actas-progress'); if(!item)return null; const rect=item.getBoundingClientRect(); return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
       if (!actaPoint) throw new Error("Fiscal RTD five-acta control is missing.");
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: actaPoint.x, y: actaPoint.y });
@@ -339,6 +355,10 @@ try {
       await evaluate(`document.querySelector('.logistics-modal>header button[aria-label="Cerrar"]')?.click()`);
       await waitFor(`!document.querySelector('.logistics-modal')`, "generic logistics forecast close");
     }
+    if (slug === "pulso") {
+      const pulseTabs = await evaluate(`(()=>{const items=Array.from(document.querySelectorAll('.pulse-election-tabs button')).map((item)=>{const rect=item.getBoundingClientRect();return{label:item.textContent.trim(),top:rect.top,left:rect.left,right:rect.right};});return items;})()`);
+      if (!pulseTabs || pulseTabs.length !== 5 || pulseTabs.some((item) => Math.abs(item.top - pulseTabs[0].top) > 2) || pulseTabs.at(-1)?.label !== "Parlacen") throw new Error(`Pulso election tabs do not fit on one row: ${JSON.stringify(pulseTabs)}`);
+    }
     const snap = await snapshot();
     assertHealthy(snap, marker);
     const screenshotBytes = await capture(`nav-${slug}`);
@@ -348,16 +368,59 @@ try {
     if (!ok) throw new Error(`SPA screenshot too small for ${route}`);
   }
 
+  // Download the workbook through the real Financial Control button and inspect
+  // the exact bytes produced by the browser, not a parallel test-only fixture.
+  const downloadDir = path.join(out, "downloads");
+  fs.mkdirSync(downloadDir, { recursive: true });
+  await cdp.send("Browser.setDownloadBehavior", { behavior: "allow", downloadPath: downloadDir, eventsEnabled: true });
+  await navigate("/municipio/0509/estrategia-finanzas");
+  await waitFor(`Boolean(document.querySelector('.finance-control>header nav button.secondary')) && (document.body?.innerText||'').includes('CONTROL FINANCIERO')`, "Financial Control Excel export");
+  await clickSelector('.finance-control>header nav button.secondary');
+  const downloadStarted = Date.now();
+  let downloadedWorkbook = null;
+  while (Date.now() - downloadStarted < 12000) {
+    downloadedWorkbook = fs.readdirSync(downloadDir).find((name) => name.endsWith(".xlsx")) ?? null;
+    if (downloadedWorkbook && !fs.existsSync(path.join(downloadDir, `${downloadedWorkbook}.crdownload`))) break;
+    await delay(120);
+  }
+  if (!downloadedWorkbook) throw new Error("Financial Control did not download an XLSX workbook.");
+  const workbookPath = path.join(downloadDir, downloadedWorkbook);
+  const workbookFiles = unzipSync(fs.readFileSync(workbookPath));
+  const workbookXml = workbookFiles["xl/workbook.xml"] ? strFromU8(workbookFiles["xl/workbook.xml"]) : "";
+  const worksheetNames = ["sheet1.xml", "sheet2.xml", "sheet3.xml"];
+  const worksheetChecks = worksheetNames.map((name) => {
+    const bytes = workbookFiles[`xl/worksheets/${name}`];
+    const xml = bytes ? strFromU8(bytes) : "";
+    const ignoredEnd = xml.indexOf("</ignoredErrors>");
+    const worksheetEnd = xml.indexOf("</worksheet>");
+    return { name, bytes: bytes?.byteLength ?? 0, hasSheetData: xml.includes("<sheetData>"), strictTail: ignoredEnd >= 0 && xml.slice(ignoredEnd + "</ignoredErrors>".length, worksheetEnd) === "" };
+  });
+  const workbookOk = workbookXml.includes('name="Resumen general"') && workbookXml.includes('name="Movimientos generales"') && workbookXml.includes('name="Presupuestos"') && worksheetChecks.every((sheet) => sheet.bytes > 100 && sheet.hasSheetData && sheet.strictTail);
+  const workbookBytes = fs.statSync(workbookPath).size;
+  diagnostics.downloads.push({ kind: "financial-xlsx", file: downloadedWorkbook, workbookBytes, worksheets: worksheetChecks, ok: workbookOk });
+  if (!workbookOk || workbookBytes < 4_000) throw new Error(`Downloaded Financial Control workbook failed OOXML validation: ${JSON.stringify({ workbookBytes, worksheetChecks })}`);
+  save();
+
   // Every report control opens the same universal, print-friendly report builder.
   await navigate("/municipio/0509/inteligencia");
   await delay(1800);
   const rankLayout = await evaluate(`(()=>{const value=document.querySelector('.territory-overview>div:nth-child(3)>b'); if(!value)return null; const style=getComputedStyle(value); const rect=value.getBoundingClientRect(); return {whiteSpace:style.whiteSpace,height:rect.height,lineHeight:Number.parseFloat(style.lineHeight)};})()`);
   if (!rankLayout || rankLayout.whiteSpace !== "nowrap" || (Number.isFinite(rankLayout.lineHeight) && rankLayout.height > rankLayout.lineHeight * 1.5)) throw new Error(`Municipal rank typography wrapped: ${JSON.stringify(rankLayout)}`);
   if (!(await evaluate(`Boolean(document.querySelector('.map-workspace .map-fullscreen-button[aria-label="Ver mapa en pantalla completa"]'))`))) throw new Error("Intelligence Map fullscreen control is missing.");
+  await clickSelector('.map-workspace .map-fullscreen-button');
+  await waitFor(`document.fullscreenElement?.classList.contains('map-workspace')`, "Intelligence Map fullscreen entry");
+  await delay(500);
+  const intelligenceFullscreen = await evaluate(`(()=>{const frame=document.fullscreenElement,map=frame?.querySelector('.real-map'),button=frame?.querySelector('.map-fullscreen-button.active');if(!frame||!map||!button)return null;const m=map.getBoundingClientRect(),b=button.getBoundingClientRect();return{map:{width:m.width,height:m.height},button:{width:b.width,height:b.height,label:button.getAttribute('aria-label')}};})()`);
+  if (!intelligenceFullscreen || intelligenceFullscreen.map.width < 700 || intelligenceFullscreen.map.height < 500 || intelligenceFullscreen.button.width > 100 || intelligenceFullscreen.button.label !== "Salir de pantalla completa") throw new Error(`Intelligence Map fullscreen layout is unusable: ${JSON.stringify(intelligenceFullscreen)}`);
+  const intelligenceFullscreenScreenshotBytes = await capture("inteligencia-mapa-fullscreen");
+  diagnostics.fullscreen.push({ map: "intelligence", ...intelligenceFullscreen, screenshotBytes: intelligenceFullscreenScreenshotBytes, exit: "Escape", ok: intelligenceFullscreenScreenshotBytes > 10_000 });
+  await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await waitFor(`!document.fullscreenElement`, "Intelligence Map fullscreen Escape exit");
   for (const selector of [".floating-export", ".print-top-action"]) {
     const clicked = await evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)}); if(!b)return false; b.click(); return true;})()`);
     if (!clicked) throw new Error(`Intelligence export control missing: ${selector}`);
-    await waitFor(`Boolean(document.querySelector('.report-builder')) && (document.body?.innerText||'').includes('Crear reporte PDF') && (document.body?.innerText||'').includes('Próximos 7 días')`, `universal report builder from ${selector}`);
+    await waitFor(`Boolean(document.querySelector('.report-builder')) && (document.body?.innerText||'').includes('Crear reporte PDF') && (document.body?.innerText||'').includes('Todas') && (document.body?.innerText||'').includes('Próximos 7 días')`, `universal report builder from ${selector}`);
     const screenshotBytes = await capture(`modal-${selector.includes("floating") ? "floating" : "top"}`);
     diagnostics.modals.push({ selector, kind: "universal-report-builder", opened: true, screenshotBytes, ok: screenshotBytes > 10_000 });
     save();
@@ -399,9 +462,9 @@ try {
   if (!reportOk) throw new Error("Report screenshot/PDF output is unexpectedly empty.");
 
   // Prove the general PDF is a useful executive report populated from live campaign modules.
-  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace&activities=next7";
+  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace&activities=all";
   await navigate(executiveRoute);
-  await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña vigente') && (document.body?.innerText||'').includes('Próximos 7 días')`, "populated executive report", 12000);
+  await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña vigente') && (document.body?.innerText||'').includes('Todas las actividades') && (document.body?.innerText||'').includes('Asamblea territorial realizada') && (document.body?.innerText||'').includes('Recorrido reprogramado')`, "populated executive report with all activities", 12000);
   await delay(900);
   const executive = await snapshot();
   const executiveHealthy = executive.html.includes("report-candidate-grid")
