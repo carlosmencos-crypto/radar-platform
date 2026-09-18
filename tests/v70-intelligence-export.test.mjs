@@ -8,7 +8,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const sha256 = (file) => createHash("sha256").update(fs.readFileSync(path.join(root, file))).digest("hex");
 
-test("0509 Inteligencia preserves the canonical shell and opens the universal report", () => {
+test("Inteligencia preserves the canonical shell and opens the universal report for every municipality", () => {
   const shell = read("src/components/V70DirectShell0509.tsx");
   const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
   const territory = read("src/components/V70ElectoralTerritory.tsx");
@@ -30,7 +30,7 @@ test("0509 Inteligencia preserves the canonical shell and opens the universal re
   assert.match(intelligence, /<V70ElectoralTerritory[^>]*onSelectionChange=\{onSelectionChange\}/);
   assert.match(intelligence, /className="print-cover"/);
   assert.match(intelligence, /radar-electoral-logo-reducido-horizontal-claro\.svg/);
-  assert.match(intelligence, /San José \/ Puerto San José · 0509/);
+  assert.match(intelligence, /\{municipality_name\} · \{municipality_code\}/);
   assert.equal(sha256("public/brand/radar-electoral-logo-reducido-horizontal-claro.svg"), "3ace9bc5d121a259d6d18109be1d13693d7e4a093b3bcbafa90367fe6e13e42d", "Canonical compact municipio-360 print logo drifted.");
   assert.match(territory, /onSelectionChange\?: \(selection: SelectionChange\) => void/);
   assert.match(territory, /onSelectionChange\?\.\(\{ electionCode, centerId \}\)/);

@@ -21,7 +21,7 @@ for (const [slug, file, component] of routes) { const source = read(`src/compone
 for (const bridge of ["V70HomeParityBridge","V70ElectoralParityBridge","V70StrategyParityBridge","V70DirectoryParityBridge","V70AgendaParityBridge","V70MapParityBridge","V70DayDParityBridge","V70ResourcesParityBridge","V70PulseParityBridge","V70AiParityBridge","V70ConfigurationParityBridge","V70ClientChromeParityBridge","V70ProductParityBridge"]) assert(!gate.includes(bridge), `Legacy DOM bridge still mounted by access gate: ${bridge}`);
 
 assert(!shell.includes("createPortal") && !shell.includes("querySelector"), "Direct 0509 shell must not mutate a pre-existing shell.");
-assert(shell.includes("Carlos Mencos") && shell.includes("sesión protegida") && shell.includes("Cerrar sesión"), "Canonical V70 account block is incomplete.");
+assert(shell.includes("Cuenta RADAR") && shell.includes("sesión protegida") && shell.includes("Cerrar sesión"), "Canonical V70 account block is incomplete.");
 for (const asset of ["radar-electoral-logo-horizontal-oscuro-transparente.svg","radar-electoral-isotipo.svg","radar-isotipo.svg"]) assert(shell.includes(asset), `Official V70 asset missing: ${asset}`);
 assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>{municipality_code}</b>"), "Canonical V70 top controls are incomplete.");
 assert(shell.includes('slug==="dia-d"&&dayDNext') && shell.includes("PRÓXIMO"), "Canonical Intelligence-only Día D próximo marker support is missing.");
@@ -39,7 +39,7 @@ const directPulse = read("src/components/V70DirectPulse0509.tsx");
 const directAi = read("src/components/V70DirectAi0509.tsx");
 const directConfiguration = read("src/components/V70DirectConfiguration0509.tsx");
 
-assert(directHome.includes("BUENOS DÍAS") && directHome.includes("BUENAS TARDES") && directHome.includes("BUENAS NOCHES") && directHome.includes("CARLOS"), "Canonical time-aware Carlos greeting is missing from Inicio.");
+assert(directHome.includes("BUENOS DÍAS") && directHome.includes("BUENAS TARDES") && directHome.includes("BUENAS NOCHES") && directHome.includes("EQUIPO"), "Canonical time-aware account greeting is missing from Inicio.");
 assert(campaignIdentity.includes("Perfil de ${candidateName}") && campaignIdentity.includes("Candidato a alcalde · {municipality_name}"), "Canonical 0509 campaign identity copy drifted on Inicio.");
 assert(campaignIdentity.includes('className="party-signature party-signature-trigger"') && campaignIdentity.includes("saveCampaignIdentity") && directHome.includes("TERRITORIO CUBIERTO") && directHome.includes("Planilla Municipal"), "Canonical Inicio structure or persisted identity action is incomplete.");
 assert(!directHome.includes("Campaign Vault listo para asociar"), "Non-canonical Campaign Vault placeholder returned to Inicio.");
@@ -76,10 +76,9 @@ for (const mapToken of [
 assert(operationalMap.includes("map-layer-${key}"), "Canonical operational map dynamic layer class vocabulary is missing.");
 assert(operationalMap.includes("getInstalledRadarVoterCommunities"), "Authorized aggregate community runtime is missing from operational map.");
 assert(!operationalMap.includes("map-stat-chip") && !operationalMap.includes('className="map-privacy"'), "Non-canonical operational map chrome returned.");
-const goldenIntelligence = directIntelligence.split("function MunicipalIntelligenceContent")[0];
-assert(goldenIntelligence.includes("<V70ElectoralTerritory") && goldenIntelligence.includes("<V70CanonicalRich0509") && goldenIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing canonical V70 depth components.");
+assert(directIntelligence.includes("function CanonicalMunicipalIntelligenceContent") && directIntelligence.includes("<V70ElectoralTerritory") && directIntelligence.includes("<V70CanonicalRichMunicipality") && directIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing the shared canonical V70 depth components.");
 assert(directIntelligence.includes('eyebrow="EXPEDIENTE MUNICIPAL 360"') && directIntelligence.includes("topbarTitle={municipalityTitle}") && directIntelligence.includes('accountRole="Cuenta del municipio"') && directIntelligence.includes("dayDNext"), "Intelligence chrome drifted from canonical V70.");
-assert(directIntelligence.includes('municipalityCode === "0509" ? <Golden0509IntelligenceContent') && goldenIntelligence.includes("EXPEDIENTE MUNICIPAL 360 · ESCUINTLA — PUERTO SAN JOSÉ") && !goldenIntelligence.includes("FUENTES Y TRAZABILIDAD") && !goldenIntelligence.includes("canonical-coverage-secondary"), "Canonical Intelligence copy/tail guardrail failed.");
+assert(directIntelligence.includes('data-v70-contract="electorate-profile-v70"') && !directIntelligence.includes('municipalityCode === "0509"') && directIntelligence.includes("POBLACIÓN Y TERRITORIO") && directIntelligence.includes("No publicado"), "Canonical 340 Intelligence contract guardrail failed.");
 assert(ecosystem.includes("PORTAL RADAR · VISIÓN DE PRODUCTO") && ecosystem.includes("De la evidencia a la operación diaria") && ecosystem.includes("RADAR Data Vault") && ecosystem.includes("Campaign Vault") && ecosystem.includes("≠"), "Canonical product-vision footer is incomplete.");
 
 console.log(`V70_PARITY_SMOKE_OK ${routes.length}/11 routes direct-rendered · canonical source lock verified · no mounted portal bridges · no invented directory fixtures · direct route controls guarded`);

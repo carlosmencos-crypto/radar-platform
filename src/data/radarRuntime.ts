@@ -118,12 +118,32 @@ export interface AuthorizedDemographicSummary {
   source_label: string;
 }
 
+export interface AuthorizedActiveVoterProfile {
+  municipality_code: string;
+  cutoff_at: string;
+  total_active: number;
+  women_active: number;
+  men_active: number;
+  women_literate: number | null;
+  women_illiterate: number | null;
+  men_literate: number | null;
+  men_illiterate: number | null;
+  age_total: Record<string, number> | null;
+  age_women: Record<string, number> | null;
+  age_men: Record<string, number> | null;
+  source_id: string | null;
+  source_label: string | null;
+  source_status: string | null;
+}
+
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
   geo: MunicipalityGeoSummary;
   voter_roll: AuthorizedVoterRollSummary;
   demographics: AuthorizedDemographicSummary | null;
+  elector_profile?: AuthorizedActiveVoterProfile | null;
+  voting_centers?: unknown;
 }
 
 export interface CampaignIdentityRecord {
@@ -480,7 +500,9 @@ export async function loadRadarRuntimeBundle(
     !Array.isArray(bundle.layers) ||
     !Array.isArray(bundle.voter_roll.aggregates) ||
     (bundle.demographics !== null &&
-      bundle.demographics?.municipality_code !== municipalityCode)
+      bundle.demographics?.municipality_code !== municipalityCode) ||
+    (bundle.elector_profile != null &&
+      bundle.elector_profile?.municipality_code !== municipalityCode)
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }

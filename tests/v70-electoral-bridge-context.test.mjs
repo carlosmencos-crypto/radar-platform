@@ -17,7 +17,9 @@ test("V70 direct intelligence consumes authenticated runtime without a DOM bridg
   assert.ok(direct.includes('getInstalledRadarElectoralLayers'));
   assert.ok(direct.includes('getInstalledRadarGeoBundle'));
   assert.ok(direct.includes('V70ElectoralTerritoryUnavailable'));
-  assert.ok(direct.includes('V70CanonicalRich0509'));
+  assert.ok(direct.includes('V70CanonicalRichMunicipality'));
+  assert.ok(direct.includes('data-v70-contract="electorate-profile-v70"'));
+  assert.equal(direct.includes('municipalityCode === "0509"'), false);
   assert.equal(direct.includes('createPortal'), false);
   assert.equal(direct.includes('querySelector'), false);
   assert.equal(direct.includes('insertAdjacentElement'), false);

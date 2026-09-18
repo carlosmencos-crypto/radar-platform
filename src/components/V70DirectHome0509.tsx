@@ -8,7 +8,7 @@ import {
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
-import { buildMunicipalIntelligenceModel, finite, formatCurrency, formatDecimal, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
+import { buildMunicipalIntelligenceModel, finite, formatDecimal, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { V70CampaignIdentity } from "./V70CampaignIdentity";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
@@ -16,66 +16,6 @@ import {
   useV70CampaignBrand,
   type V70SlateMember,
 } from "./useV70CampaignBrand";
-const priorityThemes = [
-  [
-    {
-      title: "Acceso al agua",
-      detail: "Continuidad, calidad y cobertura del servicio por comunidad.",
-    },
-    {
-      title: "Transporte y movilidad",
-      detail: "Conexión entre comunidades, casco urbano, empleo y servicios.",
-    },
-    {
-      title: "Prevención de inundaciones",
-      detail: "Drenajes, rutas críticas y respuesta en zonas expuestas.",
-    },
-  ],
-  [
-    {
-      title: "Residuos",
-      detail: "Recolección, disposición final y alternativas a la quema.",
-    },
-    {
-      title: "Seguridad comunitaria",
-      detail: "Prevención, iluminación y coordinación institucional.",
-    },
-    {
-      title: "Educación media",
-      detail: "Acceso a básico y diversificado para jóvenes del municipio.",
-    },
-  ],
-] as const;
-const opportunityThemes = [
-  [
-    {
-      title: "Economía diversificada",
-      detail: "Puerto, industria, turismo, pesca, comercio y agro.",
-    },
-    {
-      title: "Conectividad estratégica",
-      detail: "Posición logística y acceso a corredores nacionales.",
-    },
-    {
-      title: "Inversión municipal",
-      detail: "Capacidad para priorizar obras con impacto territorial.",
-    },
-  ],
-  [
-    {
-      title: "Identidad costera",
-      detail: "Turismo, cultura local y recuperación de espacios públicos.",
-    },
-    {
-      title: "Juventud y empleo",
-      detail: "Formación vinculada con la actividad portuaria e industrial.",
-    },
-    {
-      title: "Red comunitaria",
-      detail: "Organización territorial para escuchar y ejecutar mejor.",
-    },
-  ],
-] as const;
 function initials(name: string) {
   return name
     .split(/\s+/)
@@ -149,16 +89,6 @@ function HomeContent() {
     month: "long",
     year: "numeric",
   }).format(new Date());
-  const rotation = useMemo(
-    () =>
-      Math.abs(
-        Math.floor(
-          (Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) /
-            604800000,
-        ),
-      ) % priorityThemes.length,
-    [],
-  );
   const mayor = slate.filter((item) => item.group === "ALCALDE");
   const syndics = slate.filter((item) => item.group === "SÍNDICOS");
   const councilors = slate.filter((item) => item.group === "CONCEJALES");
@@ -168,21 +98,18 @@ function HomeContent() {
   const coveredTerritories = new Set(activities.filter((item) => item.status.toUpperCase() !== "CANCELADA" && Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).map((item) => item.community?.trim()).filter(Boolean)).size;
   const knownTerritories = runtime.voter_roll.aggregates.find((item) => item.community_count)?.community_count ?? 0;
   const territoryCoverage = knownTerritories > 0 ? Math.min(100, Math.round((coveredTerritories / knownTerritories) * 100)) : 0;
-  const localPriorityThemes = municipality_code === "0509"
-    ? priorityThemes[rotation]
-    : municipalModel.priorities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
-  const localOpportunityThemes = municipality_code === "0509"
-    ? opportunityThemes[rotation]
-    : municipalModel.opportunities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
-  const nutrition = municipalModel.payload("SESAN_TALLA");
+  const localPriorityThemes = municipalModel.priorities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
+  const localOpportunityThemes = municipalModel.opportunities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
+  const census = municipalModel.payload("INE_CENSO_B2_B6");
+  const services = municipalModel.payload("RGM_SERVICIOS");
+  const health = municipalModel.payload("MSPAS_SALUD");
   const risk = municipalModel.payload("CONRED_INFORM");
-  const finance = municipalModel.payload("MINFIN_YTD");
   const schools = municipalModel.payload("MINEDUC_ESCUELAS");
   return (
     <>
       <section className="command-hero home-welcome">
         <div className="home-welcome-copy">
-          <p>{greetingForGuatemala()}, {municipality_code === "0509" ? "CARLOS" : "EQUIPO"}</p>
+          <p>{greetingForGuatemala()}, EQUIPO</p>
           <small>Centro de control electoral 2027</small>
           <h1>{municipality_name}</h1>
           <span className="campaign-type">Campaña Alcaldía</span>
@@ -276,25 +203,12 @@ function HomeContent() {
           <small>CONTEXTO MUNICIPAL</small>
           <h2 id="municipal-context-title">{municipality_name}</h2>
         </header>
-        {municipality_code === "0509" ? <><p>
-          <b>San José es un municipio costero, portuario e industrial</b> con
-          una población proyectada de 72,156 habitantes para 2026. Su actividad
-          se concentra entre el casco urbano, la zona portuaria-industrial y la
-          costa; esa ventaja convive con presión sobre los servicios y alta
-          exposición a inundaciones.
-        </p><div>
-          <article><small>SERVICIOS BÁSICOS</small><b>Agua y residuos</b><span>Brechas históricas de cobertura y manejo domiciliar.</span></article>
-          <article><small>SALUD</small><b>5 establecimientos</b><span>La atención obstétrica muestra dependencia externa.</span></article>
-          <article><small>SEGURIDAD</small><b>Prevención prioritaria</b><span>Violencia contra la mujer y seguridad vial requieren atención.</span></article>
-          <article><small>EDUCACIÓN</small><b>44 sedes físicas</b><span>76 servicios educativos registrados en el municipio.</span></article>
-        </div></> : <><p><b>{municipality_name} · {department_name}</b> combina exclusivamente evidencia territorial, electoral, social y financiera autorizada para el municipio {municipality_code}.</p><div>
-          <article><small>POBLACIÓN PROYECTADA</small><b>{formatInteger(municipalModel.population)}</b><span>{runtime.demographics ? `${runtime.demographics.projection_year} · ${runtime.demographics.source_label}` : "Vacío conservado sin imputación."}</span></article>
-          <article><small>NUTRICIÓN ESCOLAR</small><b>{formatPercent(finite(nutrition.stunting_prevalence_pct), false)}</b><span>{formatInteger(finite(nutrition.analyzed_students))} estudiantes · SESAN 2024.</span></article>
+        <p><b>{municipality_name} · {department_name}</b> combina exclusivamente evidencia territorial, electoral, social y financiera autorizada para el municipio {municipality_code}. Los vacíos permanecen visibles y no se sustituyen con datos de otro territorio.</p><div>
+          <article><small>SERVICIOS BÁSICOS</small><b>{formatPercent(finite(census.water_pipe_inside_pct))} con agua dentro</b><span>Índice de servicios: {formatDecimal(finite(services.indice_servicios_publicos), 3)} · universos históricos.</span></article>
+          <article><small>SALUD</small><b>{formatInteger(finite(health.records))} establecimientos</b><span>{formatInteger(finite(health.map_publishable))} georreferenciados · MSPAS.</span></article>
           <article><small>RIESGO TERRITORIAL</small><b>{formatDecimal(finite(risk.inform_risk))}</b><span>INFORM 2021 · puesto nacional {formatInteger(finite(risk.national_rank))}.</span></article>
-          <article><small>GESTIÓN E INVERSIÓN</small><b>{formatPercent(finite(finance.budget_execution_pct), false)}</b><span>Ejecución 2026 YTD · {formatCurrency(finite(finance.current_budget_amount))} vigentes.</span></article>
-          <article><small>RED EDUCATIVA</small><b>{formatInteger(finite(schools.records))}</b><span>Registros MINEDUC con alcance documentado.</span></article>
-          <article><small>TERRITORIO ELECTORAL</small><b>{formatInteger(municipalModel.centers)} centros</b><span>{formatInteger(municipalModel.jrv)} JRV · {formatInteger(municipalModel.communities)} comunidades.</span></article>
-        </div></>}
+          <article><small>EDUCACIÓN</small><b>{formatInteger(finite(schools.records))} registros</b><span>{formatInteger(finite(schools.level_primaria))} primaria · {formatInteger(finite(schools.level_basico))} básico.</span></article>
+        </div>
         <Link to={`/municipio/${municipality_code}/inteligencia`}>
           Abrir Inteligencia Municipal →
         </Link>

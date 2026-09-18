@@ -86,6 +86,27 @@
 .canonical-intelligence-pending h2 { margin: 14px 0 7px; }
 .canonical-intelligence-pending p { max-width: 720px; margin: 0; color: var(--radar-muted); line-height: 1.6; }
 .electorate-profile .trace-note .canonical-state { margin-right: 8px; vertical-align: middle; }
+.canonical-inline-unavailable {
+  display: flex;
+  min-height: 96px;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--radar-municipal);
+  font-size: var(--radar-text-meta);
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+.age-profile .profile-title {
+  align-items: flex-start;
+  gap: 16px;
+}
+.age-profile .profile-title > b {
+  max-width: 58%;
+  white-space: normal;
+  text-align: right;
+}
 
 .canonical-vault-notice {
   margin: 0 22px 22px;

@@ -64,8 +64,8 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     });
   }
 
-  const userLabel = municipality_code === "0509" ? "Carlos Mencos" : "Cuenta RADAR";
-  const fallbackAvatar = municipality_code === "0509" ? "CM" : "R";
+  const userLabel = "Cuenta RADAR";
+  const fallbackAvatar = "R";
   const avatar = userPhoto ? <img src={userPhoto} alt="" /> : fallbackAvatar;
   const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>{municipality_name} · sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;

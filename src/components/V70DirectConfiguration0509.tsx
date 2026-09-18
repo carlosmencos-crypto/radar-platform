@@ -82,7 +82,7 @@ function ConfigurationContent() {
               {photo ? (
                 <img src={photo} alt="Fotografía del usuario" />
               ) : (
-                <i>{municipality_code === "0509" ? "CM" : "R"}</i>
+                <i>R</i>
               )}
               <label>
                 <span>Cambiar fotografía</span>

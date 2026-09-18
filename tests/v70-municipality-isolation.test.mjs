@@ -53,9 +53,19 @@ test("voter and pulse responses are checked against municipal scope", () => {
   assert.match(pulse, /survey\.electionType==="DIP_DIST"\?department_name/);
 });
 
-test("every non-golden municipality receives the full V70 intelligence architecture", () => {
-  assert.match(intelligence, /municipalityCode === "0509" \? <Golden0509IntelligenceContent[\s\S]*: <MunicipalIntelligenceContent/);
+test("all 340 municipalities receive one canonical V70 intelligence architecture", () => {
+  assert.match(intelligence, /function CanonicalMunicipalIntelligenceContent/);
+  assert.match(intelligence, /data-v70-contract="electorate-profile-v70"/);
+  assert.doesNotMatch(intelligence, /\bGolden0509IntelligenceContent\b|\bMunicipalIntelligenceContent\b|municipalityCode === "0509"/);
   assert.match(intelligence, /<V70CanonicalRichMunicipality \/>/);
+  for (const token of [
+    "PERFIL DEL ELECTORADO · PADRÓN ACTIVO 2026",
+    "COMPOSICIÓN POR SEXO",
+    "ALFABETISMO REGISTRADO",
+    "ESTRUCTURA POR EDAD",
+    "POBLACIÓN Y TERRITORIO",
+    "No publicado",
+  ]) assert.ok(intelligence.includes(token), `Missing canonical electorate contract token: ${token}`);
   for (const section of [
     "HISTÓRICO ELECTORAL MUNICIPAL",
     "ORGANIZACIÓN COMUNITARIA TSE",
@@ -63,12 +73,21 @@ test("every non-golden municipality receives the full V70 intelligence architect
     "CAPACIDAD FISCAL Y GESTIÓN MUNICIPAL",
     "INVERSIÓN PÚBLICA · SNIP + GUATECOMPRAS",
     "EDUCACIÓN, NUTRICIÓN, SALUD Y CONDICIONES DE VIDA",
-    "AMBIENTE, CONECTIVIDAD Y RIESGO",
+    "SEGURIDAD Y CONFLICTIVIDAD",
+    "ECONOMÍA Y EMPLEO LOCAL",
+    "INFRAESTRUCTURA, CONECTIVIDAD Y RIESGO",
     "LECTURA EJECUTIVA",
   ]) assert.ok(richMunicipality.includes(section), `Missing full-depth intelligence section: ${section}`);
-  assert.match(report, /municipality_code === "0509" \? <Golden0509Report\/> : <MunicipalV70Report\/>/);
+  assert.match(report, /return <CanonicalV70Report \/>/);
+  assert.doesNotMatch(report, /Golden0509Report|MunicipalV70Report|municipality_code === "0509"/);
   assert.match(report, /getInstalledRadarRuntime\(municipality_code\)/);
   assert.doesNotMatch(activityVisual, /brand\.municipality \|\| "San José/);
+});
+
+test("active client surfaces do not branch their presentation on municipality 0509", () => {
+  for (const [name, source] of [["Inteligencia", intelligence], ["Inicio", home], ["Reporte", report], ["Estrategia", strategy]]) {
+    assert.doesNotMatch(source, /municipality_(?:code|Code)\s*===\s*["']0509["']|municipalityCode\s*===\s*["']0509["']/, `${name} still contains a 0509-only presentation branch.`);
+  }
 });
 
 test("strategy and Inicio are calculated from the active municipal runtime", () => {
@@ -80,7 +99,9 @@ test("strategy and Inicio are calculated from the active municipal runtime", () 
   for (const leakedValue of ["41,563", "67.8%", "9,000"]) assert.doesNotMatch(strategyOverview, new RegExp(leakedValue.replace(/[,.%]/g, "\\$&")));
   assert.match(home, /municipalModel\.priorities/);
   assert.match(home, /municipalModel\.opportunities/);
-  assert.match(home, /municipalModel\.payload\("SESAN_TALLA"\)/);
+  for (const layerId of ["INE_CENSO_B2_B6", "RGM_SERVICIOS", "MSPAS_SALUD", "CONRED_INFORM", "MINEDUC_ESCUELAS"]) {
+    assert.match(home, new RegExp(`municipalModel\\.payload\\("${layerId}"\\)`));
+  }
   assert.match(home, /getInstalledRadarElectoralLayers\(municipality_code\)/);
 });
 

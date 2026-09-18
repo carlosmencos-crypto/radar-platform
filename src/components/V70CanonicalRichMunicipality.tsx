@@ -24,7 +24,7 @@ function stateLabel(value: string | null | undefined) {
 
 export function V70CanonicalRichMunicipality() {
   const { runtime } = useAuthorizedRadarRuntime();
-  const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
+  const { municipality_code } = useMunicipalityContext();
   const electoralLayers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
   const model = useMemo(
     () => buildMunicipalIntelligenceModel(runtime, electoralLayers),
@@ -50,7 +50,6 @@ export function V70CanonicalRichMunicipality() {
   const financeHistory = model.payload("MINFIN_HIST");
   const projects = model.payload("SNIP_2026");
   const contracts = model.payload("GUATECOMPRAS");
-  const pdm = model.payload("PDM_PDMOT");
   const annualFinance = records(financeHistory.annual);
   const latestFinance = [...annualFinance].sort((a, b) => (finite(b.year) ?? 0) - (finite(a.year) ?? 0))[0] ?? {};
   const contractValue = (finite(contracts.contract_value_2025_gtq) ?? 0) + (finite(contracts.contract_value_2026_ytd_gtq) ?? 0);
@@ -98,11 +97,11 @@ export function V70CanonicalRichMunicipality() {
 
     <section className="section split-section exportable include-print">
       <div className="finance-card"><p className="eyebrow">FINANZAS MUNICIPALES · 2026 YTD</p><h2>Ejecución y capacidad de inversión</h2><div className="finance-main"><div><small>Presupuesto vigente</small><b>{formatCurrency(finite(finance.current_budget_amount))}</b></div><div><small>Devengado</small><b>{formatCurrency(finite(finance.accrued_amount))}</b></div></div><div className="execution"><div><span>Ejecución</span><b>{formatPercent(finite(finance.budget_execution_pct), false)}</b></div><div className="finance-progress"><i style={{ width: `${Math.max(0, Math.min(100, finite(finance.budget_execution_pct) ?? 0))}%` }} /></div></div><div className="finance-sub"><div><b>{formatInteger(finite(projects.project_count))}</b><span>proyectos SNIP<br /><small>{formatCurrency(finite(projects.requested_amount))} solicitados</small></span></div><div><b>{formatInteger(finite(contracts.contracts_total))}</b><span>contratos publicados<br /><small>{formatCurrency(contractValue)}</small></span></div></div><p className="source-line">MINFIN, SNIP y Guatecompras se presentan como universos separados.</p></div>
-      <div className="management-card"><p className="eyebrow">SERVICIOS Y GESTIÓN · 2020–2021</p><h2>Capacidad institucional documentada</h2><div className="management-ranks"><article><span>{formatDecimal(finite(services.indice_servicios_publicos), 3)}</span><div><b>Índice de servicios públicos</b><p>{textValue(services.indice_servicios_publicos_categoria) ?? "Categoría no publicada"}</p></div></article><article><span>{formatPercent(finite(services.agua_cobertura_urbana))}</span><div><b>Cobertura urbana de agua</b><p>Indicador histórico RGM</p></div></article><article className="breach"><span>{formatPercent(finite(services.residuos_recoleccion_urbana))}</span><div><b>Recolección urbana de residuos</b><p>Brecha a verificar localmente</p></div></article></div><p className="source-line">SEGEPLAN · Ranking de Gestión Municipal 2020–2021. No predice intención de voto.</p></div>
+      <div className="management-card"><p className="eyebrow">RANKING DE GESTIÓN 2020–2021</p><h2>Capacidad institucional</h2><div className="management-ranks"><article><span>{formatDecimal(finite(services.indice_servicios_publicos), 3)}</span><div><b>Índice de servicios públicos</b><p>{textValue(services.indice_servicios_publicos_categoria) ?? "Categoría no publicada"}</p></div></article><article><span>{formatPercent(finite(services.agua_cobertura_urbana))}</span><div><b>Cobertura urbana de agua</b><p>Indicador histórico RGM</p></div></article><article className="breach"><span>{formatPercent(finite(services.residuos_recoleccion_urbana))}</span><div><b>Recolección urbana de residuos</b><p>Brecha a verificar localmente</p></div></article></div><p className="source-line">SEGEPLAN · Ranking de Gestión Municipal 2020–2021. No predice intención de voto.</p></div>
     </section>
 
     <section className="section fiscal-management-depth exportable include-print">
-      <div className="section-head"><div><p className="eyebrow">CAPACIDAD FISCAL Y GESTIÓN MUNICIPAL</p><h2>Cómo evoluciona el presupuesto</h2></div><p>El corte 2026 YTD se separa de la serie cerrada 2016–2025 para evitar comparaciones engañosas.</p></div>
+      <div className="section-head"><div><p className="eyebrow">CAPACIDAD FISCAL Y GESTIÓN MUNICIPAL</p><h2>De dónde vienen los recursos y cómo se comparan</h2></div><p>El corte 2026 YTD se separa de la serie cerrada 2016–2025 para evitar comparaciones engañosas.</p></div>
       <div className="fiscal-kpis"><article><small>PRESUPUESTO 2026 YTD</small><b>{formatCurrency(finite(finance.current_budget_amount))}</b><span>vigente</span><em>Corte parcial oficial</em></article><article><small>INVERSIÓN VIGENTE</small><b>{formatCurrency(finite(finance.investment_current_amount))}</b><span>{formatCurrency(finite(finance.investment_accrued_amount))} devengado</span><em>Universo presupuestario</em></article><article><small>CIERRE 2025</small><b>{formatPercent(finite(latestFinance.pct_ejecucion_egresos))}</b><span>{formatCurrency(finite(latestFinance.egresos_devengado))} devengados</span><em>Serie histórica validada</em></article><article><small>HISTÓRICO</small><b>{formatInteger(finite(financeHistory.years_available))} años</b><span>{formatCurrency(finite(financeHistory.ingresos_percibidos_10y))} percibidos</span><em>2016–2025</em></article></div>
       <p className="trace-note">Fuentes: MINFIN · ejecución municipal 2016–2025 y egresos municipales 2026 YTD. Montos redondeados solo para presentación.</p>
     </section>
@@ -118,8 +117,34 @@ export function V70CanonicalRichMunicipality() {
       <div className="social-grid"><article><small>RED EDUCATIVA</small><b>{formatInteger(finite(schools.records))}</b><span>{formatInteger(finite(schools.level_primaria))} primaria · {formatInteger(finite(schools.level_basico))} básico</span><em>MINEDUC · alcance documentado</em></article><article><small>RETARDO EN TALLA · 2024</small><b>{formatPercent(finite(nutrition.stunting_prevalence_pct), false)}</b><span>{formatInteger(finite(nutrition.analyzed_students))} escolares · {stateLabel(textValue(nutrition.nutritional_vulnerability_category))}</span><em>SESAN / MINEDUC</em></article><article><small>ESTABLECIMIENTOS DE SALUD</small><b>{formatInteger(finite(health.records))}</b><span>{formatInteger(finite(health.map_publishable))} puntos publicables</span><em>MSPAS</em></article><article><small>AGUA DENTRO DEL HOGAR · 2018</small><b>{formatPercent(finite(census.water_pipe_inside_pct))}</b><span>{formatInteger(finite(census.total_households))} hogares censados</span><em>INE · Censo 2018</em></article><article><small>DRENAJE SANITARIO · 2018</small><b>{formatPercent(finite(census.sanitary_drainage_pct))}</b><span>Universo de hogares</span><em>INE · Censo 2018</em></article><article><small>INTERNET EN EL HOGAR · 2018</small><b>{formatPercent(finite(census.internet_pct))}</b><span>Conectividad domiciliar</span><em>INE · Censo 2018</em></article></div>
     </section>
 
+    <section className="section security-panorama">
+      <div className="section-head"><div><p className="eyebrow">SEGURIDAD Y CONFLICTIVIDAD</p><h2>Señales municipales para prevención y territorio</h2></div><p>El bloque canónico permanece visible. Solo publica tasas cuando existe una capa oficial municipal comparable; una ausencia no se interpreta como cero incidentes.</p></div>
+      <div className="security-grid">
+        {[
+          ["HOMICIDIOS", "PNC · tasa municipal"],
+          ["VIOLENCIA CONTRA LA MUJER", "Ministerio Público · razón municipal"],
+          ["MUJERES AGRAVIADAS", "Ministerio Público · tasa municipal"],
+          ["FALTAS JUDICIALES", "Organismo Judicial · proporción municipal"],
+          ["ACCIDENTES DE TRÁNSITO", "PNC · concentración municipal"],
+        ].map(([label, source], index) => <article className={index < 2 ? "security-critical" : ""} key={label}><small>{label}</small><b>No publicado</b><span>Sin indicador municipal comparable en el contrato actual</span><em>{source}</em></article>)}
+      </div>
+      <div className="security-reading"><div><span>LECTURA RADAR</span><b>La prevención requiere evidencia local y verificación humana.</b><p>Antes de convertir señales administrativas en propuestas o mensajes, deben contrastarse con PNC local, Bomberos, liderazgos comunitarios y registros de atención.</p></div></div>
+    </section>
+
+    <section className="section economy-panorama">
+      <div className="section-head"><div><p className="eyebrow">ECONOMÍA Y EMPLEO LOCAL</p><h2>Qué mueve al municipio y dónde se concentra</h2></div><p>La arquitectura canónica conserva este espacio para el diagnóstico municipal. No atribuye tasas nacionales de empleo, informalidad o actividad económica al municipio.</p></div>
+      <div className="economy-kpis">
+        <article className="economy-dark"><small>MOTORES DOCUMENTADOS</small><b>No publicado</b><span>Requiere clasificación explícita del PDM-OT</span></article>
+        <article><small>TRABAJO ESTACIONAL</small><b>No publicado</b><span>Sin ventana municipal comparable</span></article>
+        <article><small>INTERNET EN EL HOGAR · 2018</small><b>{formatPercent(finite(census.internet_pct))}</b><span>Conectividad productiva · universo censal</span></article>
+        <article><small>ACCESOS PRINCIPALES</small><b>No publicado</b><span>Requiere inventario vial municipal trazable</span></article>
+      </div>
+      <div className="economy-layout"><div className="engine-list"><div className="economy-title"><span>MOTORES ECONÓMICOS</span><b>Lectura territorial</b></div><div className="canonical-vault-notice compact"><span>NO PUBLICADO</span><h3>Clasificación económica pendiente</h3><p>El PDM-OT se conserva como fuente; RADAR no inventa motores ni conteos de empleo.</p></div></div><div className="mobility-card"><div className="economy-title"><span>MOVILIDAD PARA TRABAJO Y COMERCIO</span><b>PDM-OT</b></div><h3>Validación territorial pendiente</h3><div className="employment-gap"><b>Brecha conservada</b><p>Empleo formal, desempleo, ocupación por rama e informalidad requieren una fuente municipal comparable.</p></div></div></div>
+      <p className="trace-note">Fuente prevista: PDM-OT e INE · Censo 2018. El bloque mantiene la estructura V70 y muestra explícitamente qué datos no están publicados.</p>
+    </section>
+
     <section className="section infrastructure-risk">
-      <div className="section-head"><div><p className="eyebrow">AMBIENTE, CONECTIVIDAD Y RIESGO</p><h2>Exposición territorial y activos naturales</h2></div><p>Los indicadores describen sus fuentes y períodos; no sustituyen mapas de amenaza ni verificación en campo.</p></div>
+      <div className="section-head"><div><p className="eyebrow">INFRAESTRUCTURA, CONECTIVIDAD Y RIESGO</p><h2>Accesibilidad con exposición territorial</h2></div><p>Los indicadores describen sus fuentes y períodos; no sustituyen mapas de amenaza ni verificación en campo.</p></div>
       <div className="infrastructure-layout"><div className="access-card"><div className="risk-title"><span>AMBIENTE</span><b>INAB + CONAP</b></div><div className="access-list"><article><i>↗</i><div><b>{formatDecimal(finite(forest.forest_cover_2020_ha))} ha de bosque</b><p>Cobertura 2020 · cambio neto {formatDecimal(finite(forest.net_change_ha))} ha desde 2016.</p></div></article><article><i>↗</i><div><b>{formatInteger(finite(protectedAreas.explicit_protected_area_count))} áreas protegidas asociadas</b><p>{textValue(protectedAreas.management_categories) ?? "Sin asociación explícita publicada"}</p></div></article></div></div><div className="risk-card"><div className="risk-title"><span>RIESGO INFORM</span><b>CONRED · 2021</b></div><div className="risk-kpis"><article className="risk-critical"><small>RIESGO</small><b>{formatDecimal(finite(risk.inform_risk))}</b><span>Puesto nacional {formatInteger(finite(risk.national_rank))}</span></article><article><small>VULNERABILIDAD</small><b>{formatDecimal(finite(risk.vulnerability))}</b><span>Índice histórico</span></article><article><small>AMENAZA / EXPOSICIÓN</small><b>{formatDecimal(finite(risk.hazard_exposure))}</b><span>CONRED INFORM</span></article><article><small>FALTA DE CAPACIDAD</small><b>{formatDecimal(finite(risk.lack_coping_capacity))}</b><span>Lectura preventiva</span></article></div></div></div>
     </section>
 
@@ -128,10 +153,5 @@ export function V70CanonicalRichMunicipality() {
       <div className="opportunity-grid">{model.priorities.map((item) => <article className="alert" key={`p-${item.title}`}><span>ALERTA</span><h3>{item.title}</h3><b>{item.value}</b><p>{item.detail}</p><small>{item.source}</small></article>)}{model.opportunities.map((item) => <article className="opportunity" key={`o-${item.title}`}><span>OPORTUNIDAD</span><h3>{item.title}</h3><b>{item.value}</b><p>{item.detail}</p><small>{item.source}</small></article>)}</div>
     </section>
 
-    <section className="section">
-      <div className="section-head"><div><p className="eyebrow">PLANIFICACIÓN Y TRAZABILIDAD</p><h2>Expediente oficial del municipio</h2></div><p>{runtime.layers.length} capas autorizadas para {municipality_name}, {department_name}.</p></div>
-      <div className="canonical-source-card"><div><span>PDM-OT</span><h3>{textValue(pdm.file_name) ?? "Documento no publicado"}</h3><p>{stateLabel(textValue(pdm.coverage_status))} · {stateLabel(textValue(pdm.inventory_review_status))}</p></div>{textValue(pdm.drive_url) ? <a href={textValue(pdm.drive_url) ?? undefined} target="_blank" rel="noreferrer">Abrir documento oficial ↗</a> : null}</div>
-      <div className="source-list">{runtime.layers.filter((item) => !item.layer_id.startsWith("TREP_2023_CENTER_RESULTS_")).map((item) => <article key={item.layer_id}><b>{item.layer_id}</b><span>{item.source_label ?? "Fuente no publicada"}</span><small>{item.period ?? "Sin período"} · {item.source_status ?? "Sin estado"}</small></article>)}</div>
-    </section>
   </>;
 }

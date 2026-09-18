@@ -34,32 +34,6 @@ const planFields = [
   ["Oportunidad", "Oportunidades", "Cambios o necesidades del municipio que abren espacio"],
   ["Amenaza", "Amenazas", "Factores externos que pueden afectar la ruta"],
 ] as const;
-const municipalDiagnostic = [
-  {
-    title: "Agua",
-    source: "PDM-OT",
-    evidence: "Cobertura histórica de 17.8% en la línea base 2016.",
-    prompt: "Agua segura y continuidad del servicio: precisar comunidades afectadas, causa y solución municipal posible.",
-  },
-  {
-    title: "Residuos",
-    source: "INE 2018",
-    evidence: "63.3% de hogares reportó quemar basura en el Censo 2018.",
-    prompt: "Recolección y manejo de residuos: verificar cambios recientes y plantear una respuesta medible por comunidad.",
-  },
-  {
-    title: "Educación media",
-    source: "PDM-OT 2015",
-    evidence: "Cobertura histórica: 59.63% en básico y 34.16% en diversificado.",
-    prompt: "Acceso a educación media: identificar barreras locales y acciones que sí corresponden a la municipalidad.",
-  },
-  {
-    title: "Prevención",
-    source: "Perfil municipal",
-    evidence: "La lectura municipal combina seguridad ciudadana, atención a mujeres y seguridad vial.",
-    prompt: "Prevención y seguridad: definir el problema comprobable, la coordinación necesaria y el resultado esperado.",
-  },
-] as const;
 const allPlanFields = planFields;
 
 function municipalPayload(value: unknown): Record<string, unknown> {
@@ -155,7 +129,7 @@ function PlanWorkspace() {
   const risk = layerPayload("CONRED_INFORM");
   const pdmDocument = String(pdm.file_name ?? "Documento municipal no publicado");
   const pdmReview = String(pdm.inventory_review_status ?? pdm.coverage_status ?? "estado no publicado").replaceAll("_", " ").toLocaleLowerCase("es");
-  const diagnosticRows = municipality_code === "0509" ? municipalDiagnostic : [
+  const diagnosticRows = [
     { title: "Planificación territorial", source: "PDM-OT", evidence: `${pdmDocument} · ${pdmReview}. El documento corresponde exclusivamente a ${municipality_name}.`, prompt: `Revisa el PDM-OT de ${municipality_name} y formula un problema verificable, una competencia municipal y un resultado medible.` },
     { title: "Población y hogares", source: "INE 2018", evidence: `Agua dentro de la vivienda: ${municipalPercent(census.water_pipe_inside_pct, true)}. Universo: ${municipalNumber(census.total_households)?.toLocaleString("es-GT") ?? "no publicado"} hogares del municipio.`, prompt: `Relaciona una necesidad de ${municipality_name} con el Censo 2018 sin mezclar universos ni inventar actualización.` },
     { title: "Desarrollo municipal", source: "PDM-OT 2015", evidence: pdm.publication_year === 2015 ? `Línea base municipal publicada en 2015 dentro de ${pdmDocument}.` : "La capa municipal no confirma una línea base 2015; el vacío se conserva y debe validarse antes de afirmar vigencia.", prompt: `Convierte una línea base histórica de ${municipality_name} en una pregunta de diagnóstico actual, no en una afirmación sin verificar.` },
