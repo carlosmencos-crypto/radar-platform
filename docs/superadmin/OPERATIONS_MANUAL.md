@@ -27,7 +27,7 @@ Nunca se usa `user_metadata` para autorizar. El `service_role` solo se configura
 4. Desplegar `radar-admin-api` con `verify_jwt = true`.
 5. Configurar `RADAR_ADMIN_ALLOWED_ORIGINS` únicamente con el dominio QA y localhost autorizado.
 6. Configurar el frontend QA con la URL y publishable key de la rama, nunca con secretos.
-7. Crear un `super_admin` QA, alinear su perfil, enrolar TOTP y probar elevación AAL2.
+7. Crear un `super_admin` QA y alinear su perfil. En el primer ingreso a `/admin`, la pantalla guía el enrolamiento TOTP y eleva la sesión a AAL2.
 8. Registrar cada ejecución en `admin_vault.qa_runs`. Solo después de todos los gates puede registrarse un deployment `READY`.
 
 ## 3. Vertical 0509 + segundo municipio
@@ -48,7 +48,7 @@ No editar directamente `public.campaigns` para evitar el control contractual.
 
 ## 5. Publicación de Data Vault
 
-1. Usar `Nueva carga`, seleccionar dataset, alcance territorial y fuente registrada, y cargar CSV o JSON. La API calcula SHA-256 y guarda el archivo en `radar-admin-staging` con versionado.
+1. Usar `Nueva carga`, seleccionar dataset, alcance territorial y fuente registrada, y cargar CSV o JSON. La API calcula SHA-256 y guarda cada archivo en una ruta UUID inmutable de `radar-admin-staging`; `publication_batches` y `dataset_releases` conservan el historial de versiones.
 2. Revisar `diff_summary`, `validation_summary` y `publication_issues`.
 3. Corregir cualquier `ERROR` o `BLOCKER`; un lote con bloqueos no puede aprobarse.
 4. QA transiciona `PREVALIDATED → APPROVED` con motivo.
@@ -88,7 +88,7 @@ Abrir una sesión con ticket, municipio o campaña, motivo, modo y expiración. 
 - Tres pruebas Pulso: municipal, departamental y nacional.
 - Reserva solapada rechazada por base.
 - Publicación con blocker rechazada; publicación limpia y rollback verificados.
-- Storage privado y versionado verificado.
+- Storage privado y versionado aplicativo verificado: rutas inmutables, `upsert=false`, SHA-256 y releases numerados.
 - Advisors revisados sin hallazgos críticos nuevos.
 - Preview del administrador disponible solo en QA.
 
