@@ -306,7 +306,7 @@ try {
     if (slug === "dia-d") {
       const openedRtd = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='RTD'); if(!button)return false; button.click(); return true;})()`);
       if (!openedRtd) throw new Error("RTD internal view is missing.");
-      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && /\\d+\\s*\\/\\s*\\d+/.test(document.querySelector('.internal-view-content[data-view="rtd"]')?.innerText||'')`, "RTD JRV coverage board");
+      await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="rtd"]')) && (document.body?.innerText||'').includes('JRV con RTD recibido') && /\\d+\\s+de\\s+\\d+/i.test(document.querySelector('.internal-view-content[data-view="rtd"]')?.innerText||'')`, "RTD JRV coverage board");
       const openedFiscales = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Fiscales'); if(!button)return false; button.click(); return true;})()`);
       if (!openedFiscales) throw new Error("Fiscales internal view is missing.");
       await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="fiscales"] .day-d-actas-tooltip')) && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('1 / 5 actas recibidas') && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('Faltan:')`, "fiscal RTD five-acta status");
