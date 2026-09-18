@@ -169,7 +169,7 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /logisticsFilterGroups/);
   assert.match(dayD, /Material de cada fiscal/);
   assert.match(dayD, /Fiscal del CRM…/);
-  assert.match(styles, /minmax\(286px,1\.65fr\);min-width:1000px/);
+  assert.match(styles, /minmax\(280px,1\.75fr\);min-width:920px/);
   assert.match(styles, /\.day-d-access-actions\{justify-self:stretch;justify-items:center;width:100%/);
 });
 

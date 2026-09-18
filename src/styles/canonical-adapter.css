@@ -317,7 +317,7 @@ html[data-theme="dark"] .map-fullscreen-button:not(.active){background:var(--rad
 @media(max-width:760px){.map-workspace:fullscreen{grid-template-columns:1fr}.map-workspace:fullscreen .directory{display:none}.map-workspace:fullscreen .map-panel{height:calc(100vh - 76px)}}
 
 /* Día D: separa el progreso RTD de los controles de acceso del fiscal. */
-.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(205px,1.35fr) repeat(5,minmax(52px,.38fr)) minmax(104px,.58fr) minmax(286px,1.65fr);min-width:1000px}
+.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(190px,1.3fr) repeat(5,minmax(48px,.36fr)) minmax(96px,.55fr) minmax(280px,1.75fr);min-width:920px}
 .day-d-fiscal-table.extended .head span:last-child{text-align:center}
 .day-d-access-actions{justify-self:stretch;justify-items:center;width:100%;padding-inline:6px;text-align:center}
 .day-d-access-actions nav{justify-content:center;flex-wrap:nowrap}
