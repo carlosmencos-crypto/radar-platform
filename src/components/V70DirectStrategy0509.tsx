@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import {
   MunicipalityProvider,
   useMunicipalityContext,
@@ -10,6 +11,11 @@ import {
   loadStrategyScenarios,
   saveStrategyScenarios,
 } from "../data/radarRuntime";
+import {
+  buildMunicipalIntelligenceModel,
+  formatInteger,
+  formatPercent,
+} from "../data/v70MunicipalIntelligence";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
 const preliminaryElectionDate = new Date("2027-06-27T00:00:00-06:00");
@@ -87,6 +93,8 @@ function daysUntil(date: Date) {
 }
 function StrategyContent() {
   const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { runtime } = useAuthorizedRadarRuntime();
+  const municipalReference = useMemo(() => buildMunicipalIntelligenceModel(runtime), [runtime]);
   const [values, setValues] = useState({
     conservador: "",
     base: "",
@@ -218,15 +226,15 @@ function StrategyContent() {
           <div className="strategy-goals-radar">
             <article>
               <small>Padrón estimado 2027</small>
-              <b>41,563</b>
+              <b>{formatInteger(municipalReference.projectedElectors2027)}</b>
             </article>
             <article>
               <small>Participación de referencia</small>
-              <b>67.8%</b>
+              <b>{formatPercent(municipalReference.participationReference)}</b>
             </article>
             <article className="magic">
               <small>Número mágico</small>
-              <b>9,000</b>
+              <b>{formatInteger(municipalReference.magicNumber)}</b>
               <i>Estimación RADAR</i>
             </article>
           </div>
@@ -279,8 +287,10 @@ function StrategyContent() {
           </div>
           <footer>
             <span>
-              Base: elecciones municipales 2011–2023, crecimiento del padrón y
-              participación observada.
+              Base municipal {municipality_code}: crecimiento anual compuesto
+              del padrón 2023–2026, participación y distribución de voto
+              observadas en la elección municipal 2023. Si falta una fuente,
+              RADAR muestra “No publicado” y no sustituye datos de otro municipio.
             </span>
             <button
               type="button"

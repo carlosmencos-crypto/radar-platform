@@ -11,6 +11,10 @@ const cache = read("src/data/radarRuntimeCache.ts");
 const brand = read("src/components/useV70CampaignBrand.ts");
 const directory = read("src/components/V70DirectDirectory0509.tsx");
 const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
+const richMunicipality = read("src/components/V70CanonicalRichMunicipality.tsx");
+const municipalModel = read("src/data/v70MunicipalIntelligence.ts");
+const strategyOverview = read("src/components/V70DirectStrategy0509.tsx");
+const home = read("src/components/V70DirectHome0509.tsx");
 const report = read("src/components/V70DirectReport0509.tsx");
 const pulse = read("src/components/V70DirectPulse0509.tsx");
 const activityVisual = read("src/components/V70ActivityVisual.tsx");
@@ -49,11 +53,42 @@ test("voter and pulse responses are checked against municipal scope", () => {
   assert.match(pulse, /survey\.electionType==="DIP_DIST"\?department_name/);
 });
 
-test("0509 golden content is explicitly isolated from the national municipal renderer", () => {
+test("every non-golden municipality receives the full V70 intelligence architecture", () => {
   assert.match(intelligence, /municipalityCode === "0509" \? <Golden0509IntelligenceContent[\s\S]*: <MunicipalIntelligenceContent/);
+  assert.match(intelligence, /<V70CanonicalRichMunicipality \/>/);
+  for (const section of [
+    "HISTÓRICO ELECTORAL MUNICIPAL",
+    "ORGANIZACIÓN COMUNITARIA TSE",
+    "FOTOGRAFÍA MUNICIPAL",
+    "CAPACIDAD FISCAL Y GESTIÓN MUNICIPAL",
+    "INVERSIÓN PÚBLICA · SNIP + GUATECOMPRAS",
+    "EDUCACIÓN, NUTRICIÓN, SALUD Y CONDICIONES DE VIDA",
+    "AMBIENTE, CONECTIVIDAD Y RIESGO",
+    "LECTURA EJECUTIVA",
+  ]) assert.ok(richMunicipality.includes(section), `Missing full-depth intelligence section: ${section}`);
   assert.match(report, /municipality_code === "0509" \? <Golden0509Report\/> : <MunicipalV70Report\/>/);
   assert.match(report, /getInstalledRadarRuntime\(municipality_code\)/);
   assert.doesNotMatch(activityVisual, /brand\.municipality \|\| "San José/);
+});
+
+test("strategy and Inicio are calculated from the active municipal runtime", () => {
+  assert.match(strategyOverview, /buildMunicipalIntelligenceModel\(runtime\)/);
+  assert.match(strategyOverview, /municipalReference\.projectedElectors2027/);
+  assert.match(strategyOverview, /municipalReference\.participationReference/);
+  assert.match(strategyOverview, /municipalReference\.magicNumber/);
+  for (const leakedValue of ["41,563", "67.8%", "9,000"]) assert.doesNotMatch(strategyOverview, new RegExp(leakedValue.replace(/[,.%]/g, "\\$&")));
+  assert.match(home, /municipalModel\.priorities/);
+  assert.match(home, /municipalModel\.opportunities/);
+  assert.match(home, /municipalModel\.payload\("SESAN_TALLA"\)/);
+});
+
+test("the shared intelligence selector fails closed on cross-municipal payloads", () => {
+  assert.match(municipalModel, /RADAR_CROSS_MUNICIPAL_RUNTIME_BLOCKED/);
+  assert.match(municipalModel, /RADAR_CROSS_MUNICIPAL_LAYER_BLOCKED/);
+  assert.match(municipalModel, /payload\.municipality_code/);
+  assert.match(municipalModel, /nestedMunicipality\.municipality_code/);
+  assert.match(municipalModel, /Math\.pow\(active \/ registered2023, 1 \/ 3\)/);
+  assert.match(municipalModel, /TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL/);
 });
 
 test("municipal problems are derived from the active runtime and preserve missing evidence", () => {

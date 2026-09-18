@@ -7,6 +7,7 @@ import { resolveRadarConsumer } from "../data/radarConsumer";
 import { getInstalledRadarElectoralLayers, getInstalledRadarGeoBundle } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectionCode, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 import { V70CanonicalRich0509 } from "./V70CanonicalRich0509";
+import { V70CanonicalRichMunicipality } from "./V70CanonicalRichMunicipality";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { V70Ecosystem0509 } from "./V70Ecosystem0509";
 import { V70ElectoralTerritory } from "./V70ElectoralTerritory";
@@ -71,9 +72,7 @@ function record(value: unknown): Record<string, unknown> {
 }
 function finite(value: unknown): number | null { return typeof value === "number" && Number.isFinite(value) ? value : null; }
 function integer(value: unknown) { const number = finite(value); return number === null ? "No publicado" : new Intl.NumberFormat("es-GT").format(number); }
-function decimal(value: unknown, digits = 1) { const number = finite(value); return number === null ? "No publicado" : number.toLocaleString("es-GT", { maximumFractionDigits: digits }); }
 function pct(value: unknown, fraction = false) { const number = finite(value); return number === null ? "No publicado" : `${(fraction ? number * 100 : number).toLocaleString("es-GT", { maximumFractionDigits: 1 })}%`; }
-function gtq(value: unknown) { const number = finite(value); return number === null ? "No publicado" : new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ", maximumFractionDigits: 0 }).format(number); }
 
 function MunicipalIntelligenceContent({ onSelectionChange }: { onSelectionChange: (selection: { electionCode: V70ElectionCode; centerId: string }) => void }) {
   const { runtime } = useAuthorizedRadarRuntime();
@@ -96,32 +95,6 @@ function MunicipalIntelligenceContent({ onSelectionChange }: { onSelectionChange
   const jrvCount = finite(centersJrv.jrv) ?? electoralView?.centers.reduce((sum, center) => sum + center.jrv, 0) ?? null;
   const geoCount = runtime.geo.feature_total;
   const population = runtime.demographics?.population_total ?? null;
-  const census = payload("INE_CENSO_B2_B6");
-  const services = payload("RGM_SERVICIOS");
-  const health = payload("MSPAS_SALUD");
-  const schools = payload("MINEDUC_ESCUELAS");
-  const risk = payload("CONRED_INFORM");
-  const forest = payload("INAB_FORESTAL");
-  const protectedAreas = payload("CONAP_SIGAP");
-  const nutrition = payload("SESAN_TALLA");
-  const finance = payload("MINFIN_YTD");
-  const financeHistory = payload("MINFIN_HIST");
-  const projects = payload("SNIP_2026");
-  const contracts = payload("GUATECOMPRAS");
-  const insightCards = [
-    { eyebrow: "HOGARES · INE 2018", title: "Agua dentro de la vivienda", value: pct(census.water_pipe_inside_pct, true), detail: `${integer(census.total_households)} hogares en el universo censal.` },
-    { eyebrow: "SERVICIOS PÚBLICOS", title: "Índice histórico", value: decimal(services.indice_servicios_publicos, 3), detail: String(services.indice_servicios_publicos_categoria ?? "Categoría no publicada") },
-    { eyebrow: "SALUD · MSPAS", title: "Establecimientos", value: integer(health.records), detail: `${integer(health.map_publishable)} georreferenciados.` },
-    { eyebrow: "EDUCACIÓN · MINEDUC", title: "Registros", value: integer(schools.records), detail: `${integer(schools.level_primaria)} primaria · ${integer(schools.level_basico)} básico · alcance parcial documentado.` },
-    { eyebrow: "RIESGO · CONRED 2021", title: "INFORM", value: decimal(risk.inform_risk), detail: `Puesto nacional ${integer(risk.national_rank)} · vulnerabilidad ${decimal(risk.vulnerability)}.` },
-    { eyebrow: "BOSQUE · INAB", title: "Cobertura 2020", value: `${decimal(forest.forest_cover_2020_ha)} ha`, detail: `${String(forest.trend ?? "Tendencia no publicada")} · cambio neto ${decimal(forest.net_change_ha)} ha.` },
-    { eyebrow: "ÁREAS PROTEGIDAS · CONAP", title: "Asociación explícita", value: integer(protectedAreas.explicit_protected_area_count), detail: String(protectedAreas.management_categories ?? "Sin asociación explícita publicada") },
-    { eyebrow: "NUTRICIÓN · SESAN 2024", title: "Prevalencia de talla baja", value: pct(nutrition.stunting_prevalence_pct), detail: `${integer(nutrition.analyzed_students)} estudiantes analizados · ${String(nutrition.nutritional_vulnerability_category ?? "categoría no publicada")}.` },
-    { eyebrow: "FINANZAS · 2026 YTD", title: "Presupuesto vigente", value: gtq(finance.current_budget_amount), detail: `Ejecución ${pct(finance.budget_execution_pct)} · corte oficial abierto.` },
-    { eyebrow: "FINANZAS · 2016–2025", title: "Ingresos percibidos", value: gtq(financeHistory.ingresos_percibidos_10y), detail: `${integer(financeHistory.years_available)} años comparables.` },
-    { eyebrow: "INVERSIÓN · SNIP 2026", title: "Proyectos", value: integer(projects.project_count), detail: `${gtq(projects.requested_amount)} solicitados.` },
-    { eyebrow: "GUATECOMPRAS · 2025–2026", title: "Contratos publicados", value: integer(contracts.contracts_total), detail: `${gtq((finite(contracts.contract_value_2025_gtq) ?? 0) + (finite(contracts.contract_value_2026_ytd_gtq) ?? 0))} publicados; no equivale a ejecución física.` },
-  ];
   return <>
     <div className="print-cover"><div className="radar-brand compact"><img src={canonicalAsset("/brand/radar-electoral-logo-reducido-horizontal-claro.svg")} alt="RADAR Electoral" /></div><div><b>{municipality_name} · {municipality_code}</b><span>{department_name} · expediente municipal autorizado</span></div></div>
     <section className="section-banner"><div className="section-banner-copy"><p>EXPEDIENTE MUNICIPAL 360 · {department_name.toUpperCase()} — {municipality_name.toUpperCase()}</p><h1>Inteligencia Municipal</h1><span>Fotografía estratégica del municipio para definir mensajes y prioridades</span></div></section>
@@ -137,8 +110,8 @@ function MunicipalIntelligenceContent({ onSelectionChange }: { onSelectionChange
       <article className="literacy-profile"><div><span>ALFABETISMO REGISTRADO</span><b>{pct(electoralMunicipality.literacy_share_2026, true)}</b><small>TSE · padrón activo 2026</small></div><div className="literacy-detail"><span>18–35 años <b>{integer(electoralMunicipality.age_18_35_2026)}</b></span><span>Participación 18–35 <b>{pct(electoralMunicipality.age_18_35_share_2026, true)}</b></span></div></article>
     </div><p className="trace-note">Fuentes: TSE · núcleo electoral 2023–2026; INE · proyecciones municipales. Cada tarjeta conserva su período y universo.</p></section>
     {electoralView ? <V70ElectoralTerritory viewModel={electoralView} geoBundle={geoBundle ?? undefined} onSelectionChange={onSelectionChange} /> : <V70ElectoralTerritoryUnavailable municipalityName={municipality_name} geoBundle={geoBundle ?? undefined} state="NO_PUBLICADO" />}
-    <section className="section"><div className="section-head"><div><p className="eyebrow">EXPEDIENTE MUNICIPAL 360</p><h2>Datos que ayudan a decidir</h2></div><p>Servicios, hogares, riesgo, ambiente, finanzas e inversión sin mezclar períodos.</p></div><section className="module-card-grid canonical-module-grid">{insightCards.map((item) => <article key={item.eyebrow}><span className="canonical-state canonical-state--disponible">Disponible</span><small>{item.eyebrow}</small><h2>{item.title}</h2><div className="canonical-metric"><b>{item.value}</b><span>{item.detail}</span></div></article>)}</section></section>
-    <section className="section"><div className="section-head"><div><p className="eyebrow">TRAZABILIDAD</p><h2>Fuentes autorizadas</h2></div><p>{runtime.layers.length} capas visibles para {municipality_name}.</p></div><div className="source-list">{runtime.layers.filter((item) => !item.layer_id.startsWith("TREP_2023_CENTER_RESULTS_")).map((item) => <article key={item.layer_id}><b>{item.layer_id}</b><span>{item.source_label ?? "Fuente no publicada"}</span><small>{item.period ?? "Sin período"} · {item.source_status ?? "Sin estado"}</small></article>)}</div></section>
+    <V70CanonicalRichMunicipality />
+    <V70Ecosystem0509 />
   </>;
 }
 

@@ -8,6 +8,7 @@ import {
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
+import { buildMunicipalIntelligenceModel, finite, formatCurrency, formatDecimal, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
 import { V70CampaignIdentity } from "./V70CampaignIdentity";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import {
@@ -126,6 +127,7 @@ function greetingForGuatemala() {
 function HomeContent() {
   const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
   const { runtime } = useAuthorizedRadarRuntime();
+  const municipalModel = useMemo(() => buildMunicipalIntelligenceModel(runtime), [runtime]);
   const { slate } = useV70CampaignBrand();
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);
@@ -161,18 +163,16 @@ function HomeContent() {
   const coveredTerritories = new Set(activities.filter((item) => item.status.toUpperCase() !== "CANCELADA" && Number.isFinite(item.latitude) && Number.isFinite(item.longitude)).map((item) => item.community?.trim()).filter(Boolean)).size;
   const knownTerritories = runtime.voter_roll.aggregates.find((item) => item.community_count)?.community_count ?? 0;
   const territoryCoverage = knownTerritories > 0 ? Math.min(100, Math.round((coveredTerritories / knownTerritories) * 100)) : 0;
-  const activeElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026")?.elector_count;
-  const detailedElectors = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023")?.elector_count;
-  const localPriorityThemes = municipality_code === "0509" ? priorityThemes[rotation] : [
-    { title: "Escucha por comunidad", detail: "Priorizar necesidades con evidencia territorial y seguimiento." },
-    { title: "Servicios municipales", detail: "Contrastar cobertura, fuentes oficiales y brechas documentadas." },
-    { title: "Operación territorial", detail: "Vincular agenda, responsables y mapa en una sola ruta de trabajo." },
-  ];
-  const localOpportunityThemes = municipality_code === "0509" ? opportunityThemes[rotation] : [
-    { title: "Inteligencia electoral", detail: "Resultados, centros y JRV organizados para el municipio." },
-    { title: "Mapa municipal", detail: "Capas geográficas autorizadas sin mezclar otros territorios." },
-    { title: "Memoria de campaña", detail: "Plan, actividades y compromisos dentro del Campaign Vault." },
-  ];
+  const localPriorityThemes = municipality_code === "0509"
+    ? priorityThemes[rotation]
+    : municipalModel.priorities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
+  const localOpportunityThemes = municipality_code === "0509"
+    ? opportunityThemes[rotation]
+    : municipalModel.opportunities.map((item) => ({ title: item.title, detail: `${item.value} · ${item.detail}` }));
+  const nutrition = municipalModel.payload("SESAN_TALLA");
+  const risk = municipalModel.payload("CONRED_INFORM");
+  const finance = municipalModel.payload("MINFIN_YTD");
+  const schools = municipalModel.payload("MINEDUC_ESCUELAS");
   return (
     <>
       <section className="command-hero home-welcome">
@@ -282,11 +282,13 @@ function HomeContent() {
           <article><small>SALUD</small><b>5 establecimientos</b><span>La atención obstétrica muestra dependencia externa.</span></article>
           <article><small>SEGURIDAD</small><b>Prevención prioritaria</b><span>Violencia contra la mujer y seguridad vial requieren atención.</span></article>
           <article><small>EDUCACIÓN</small><b>44 sedes físicas</b><span>76 servicios educativos registrados en el municipio.</span></article>
-        </div></> : <><p><b>{municipality_name} · {department_name}</b> utiliza exclusivamente su contexto territorial, electoral y de campaña autorizado.</p><div>
-          <article><small>POBLACIÓN</small><b>{runtime.demographics?.population_total?.toLocaleString("es-GT") ?? "No publicada"}</b><span>{runtime.demographics ? `Proyección ${runtime.demographics.projection_year} · ${runtime.demographics.source_label}` : "Vacío conservado sin imputación."}</span></article>
-          <article><small>PADRÓN ACTIVO</small><b>{activeElectors?.toLocaleString("es-GT") ?? "No publicado"}</b><span>Núcleo electoral autorizado del municipio.</span></article>
-          <article><small>PADRÓN DETALLADO</small><b>{detailedElectors?.toLocaleString("es-GT") ?? "No publicado"}</b><span>Base territorial disponible para CRM.</span></article>
-          <article><small>COBERTURA GEOGRÁFICA</small><b>{runtime.geo.feature_total.toLocaleString("es-GT")} puntos</b><span>{runtime.layers.length} capas visibles del Data Vault.</span></article>
+        </div></> : <><p><b>{municipality_name} · {department_name}</b> combina exclusivamente evidencia territorial, electoral, social y financiera autorizada para el municipio {municipality_code}.</p><div>
+          <article><small>POBLACIÓN PROYECTADA</small><b>{formatInteger(municipalModel.population)}</b><span>{runtime.demographics ? `${runtime.demographics.projection_year} · ${runtime.demographics.source_label}` : "Vacío conservado sin imputación."}</span></article>
+          <article><small>NUTRICIÓN ESCOLAR</small><b>{formatPercent(finite(nutrition.stunting_prevalence_pct), false)}</b><span>{formatInteger(finite(nutrition.analyzed_students))} estudiantes · SESAN 2024.</span></article>
+          <article><small>RIESGO TERRITORIAL</small><b>{formatDecimal(finite(risk.inform_risk))}</b><span>INFORM 2021 · puesto nacional {formatInteger(finite(risk.national_rank))}.</span></article>
+          <article><small>GESTIÓN E INVERSIÓN</small><b>{formatPercent(finite(finance.budget_execution_pct), false)}</b><span>Ejecución 2026 YTD · {formatCurrency(finite(finance.current_budget_amount))} vigentes.</span></article>
+          <article><small>RED EDUCATIVA</small><b>{formatInteger(finite(schools.records))}</b><span>Registros MINEDUC con alcance documentado.</span></article>
+          <article><small>TERRITORIO ELECTORAL</small><b>{formatInteger(municipalModel.centers)} centros</b><span>{formatInteger(municipalModel.jrv)} JRV · {formatInteger(municipalModel.communities)} comunidades.</span></article>
         </div></>}
         <Link to={`/municipio/${municipality_code}/inteligencia`}>
           Abrir Inteligencia Municipal →
