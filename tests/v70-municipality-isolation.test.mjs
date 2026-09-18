@@ -81,6 +81,9 @@ test("all 340 municipalities receive one canonical V70 intelligence architecture
   assert.match(report, /return <CanonicalV70Report \/>/);
   assert.doesNotMatch(report, /Golden0509Report|MunicipalV70Report|municipality_code === "0509"/);
   assert.match(report, /getInstalledRadarRuntime\(municipality_code\)/);
+  assert.match(report, /municipalModel\?\.centers/);
+  assert.match(report, /municipalModel\?\.jrv/);
+  assert.doesNotMatch(report, /intelligence\.votingBoards/);
   assert.doesNotMatch(activityVisual, /brand\.municipality \|\| "San José/);
 });
 
