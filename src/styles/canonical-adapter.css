@@ -784,13 +784,13 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
 .day-d-actas-tooltip {
   position: absolute;
   z-index: 40;
-  left: 50%;
-  bottom: calc(100% + 10px);
+  top: 50%;
+  right: calc(100% + 10px);
   display: none;
   width: max-content;
   min-width: 165px;
   max-width: 230px;
-  transform: translateX(-50%);
+  transform: translateY(-50%);
   border: 1px solid color-mix(in srgb,var(--radar-blanco) 14%,transparent);
   border-radius: 8px;
   padding: 9px 11px;
@@ -801,7 +801,7 @@ html[data-theme="dark"] .catalog-department-index button.active { background: va
   text-align: left;
 }
 
-.day-d-actas-tooltip:after { content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--radar-grafito) }
+.day-d-actas-tooltip:after { content:"";position:absolute;left:100%;top:50%;transform:translateY(-50%);border:6px solid transparent;border-left-color:var(--radar-grafito) }
 .day-d-actas-tooltip :is(b,small,em){display:block;font-size:7px;font-style:normal;line-height:1.55}
 .day-d-actas-tooltip b{margin-bottom:3px;color:var(--radar-blanco);font-size:8px}
 .day-d-actas-tooltip small{color:var(--radar-salvia)}

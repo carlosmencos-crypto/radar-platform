@@ -314,6 +314,8 @@ try {
       if (!actaPoint) throw new Error("Fiscal RTD five-acta control is missing.");
       await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: actaPoint.x, y: actaPoint.y });
       await waitFor(`getComputedStyle(document.querySelector('.day-d-actas-tooltip')).display==='block'`, "visible fiscal RTD hover detail");
+      const tooltipLayout = await evaluate(`(()=>{const tip=document.querySelector('.day-d-actas-tooltip');const table=document.querySelector('.day-d-fiscal-table');if(!tip||!table)return null;const t=tip.getBoundingClientRect(),c=table.getBoundingClientRect();return{tip:{top:t.top,right:t.right,bottom:t.bottom,left:t.left},table:{top:c.top,right:c.right,bottom:c.bottom,left:c.left}};})()`);
+      if (!tooltipLayout || tooltipLayout.tip.top < tooltipLayout.table.top || tooltipLayout.tip.bottom > tooltipLayout.table.bottom || tooltipLayout.tip.left < tooltipLayout.table.left || tooltipLayout.tip.right > tooltipLayout.table.right) throw new Error(`Fiscal RTD hover detail is clipped: ${JSON.stringify(tooltipLayout)}`);
       const actaHoverScreenshotBytes = await capture("day-d-fiscal-actas-hover");
       if (actaHoverScreenshotBytes < 10_000) throw new Error("Fiscal RTD hover screenshot is unexpectedly empty.");
       const generatedAccess = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.day-d-access-actions button')).find((item)=>item.textContent.trim()==='Generar acceso'); if(!button)return false; button.click(); return true;})()`);
