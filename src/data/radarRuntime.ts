@@ -246,6 +246,27 @@ export interface CampaignModuleRecord {
   updated_at: string;
 }
 
+export interface FiscalAccessGrantRecord {
+  id: string;
+  campaign_id: string;
+  assignment_id: string;
+  fiscal_id: string;
+  fiscal_name: string;
+  municipality_code: string;
+  center_id: string;
+  jrv: number;
+  status: "active" | "suspended" | "revoked" | "expired";
+  expires_at: string;
+  issued_at: string;
+  last_used_at: string | null;
+  status_changed_at?: string | null;
+}
+
+export interface IssuedFiscalAccess {
+  grant: FiscalAccessGrantRecord;
+  access: { code: string; link: string };
+}
+
 export interface CampaignVaultFileRef {
   bucket: "radar-campaign-vault";
   path: string;
@@ -338,6 +359,30 @@ async function rpc<T>(
     throw new Error(`RADAR runtime rechazó la solicitud (${response.status}).`);
   }
 
+  return response.json() as Promise<T>;
+}
+
+async function invokeEdge<T>(
+  functionName: string,
+  body: Record<string, unknown>,
+  accessToken: string,
+): Promise<T> {
+  assertAccessToken(accessToken);
+  if (!supabaseUrl || !publishableKey)
+    throw new Error("Runtime Supabase no configurado.");
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`No se pudo completar la operación de acceso (${response.status}).`);
+  }
   return response.json() as Promise<T>;
 }
 
@@ -709,6 +754,52 @@ export async function loadCampaignRecords(
     { p_campaign_id: campaignId, p_module_key: moduleKey },
     accessToken,
   );
+}
+
+export async function loadFiscalAccessGrants(
+  campaignId: string,
+  accessToken: string,
+) {
+  return rpc<FiscalAccessGrantRecord[]>(
+    "radar_fiscal_access_grants_v1",
+    { p_campaign_id: campaignId },
+    accessToken,
+  );
+}
+
+export async function issueFiscalAccess(
+  campaignId: string,
+  assignmentId: string,
+  accessToken: string,
+) {
+  return invokeEdge<IssuedFiscalAccess>(
+    "day-d-access-admin",
+    {
+      action: "issue",
+      campaign_id: campaignId,
+      assignment_id: assignmentId,
+      expires_in_hours: 72,
+    },
+    accessToken,
+  );
+}
+
+export async function setFiscalAccessStatus(
+  campaignId: string,
+  grantId: string,
+  status: "suspended" | "revoked",
+  accessToken: string,
+) {
+  const result = await invokeEdge<{ grant: FiscalAccessGrantRecord }>(
+    "day-d-access-admin",
+    {
+      action: status === "suspended" ? "suspend" : "revoke",
+      campaign_id: campaignId,
+      grant_id: grantId,
+    },
+    accessToken,
+  );
+  return result.grant;
 }
 
 export async function saveCampaignRecord(

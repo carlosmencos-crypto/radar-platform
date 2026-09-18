@@ -8,11 +8,15 @@ import { resolveRadarConsumer } from "../data/radarConsumer";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import {
   deleteCampaignRecord,
+  issueFiscalAccess,
   loadCampaignContacts,
   loadCampaignRecords,
+  loadFiscalAccessGrants,
   saveCampaignRecord,
+  setFiscalAccessStatus,
   type CampaignContactRecord,
   type CampaignModuleRecord,
+  type FiscalAccessGrantRecord,
 } from "../data/radarRuntime";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
@@ -133,10 +137,6 @@ const logisticsChecklists: Record<string, string[]> = {
   EQUIPO_CENTRO: ["Cargadores y power banks", "Botiquín", "Agua", "Linternas", "Extensiones eléctricas", "Copias de contactos y JRV", "Cinta adhesiva y marcadores", "Bolsas impermeables", "Baterías de respaldo"],
 };
 
-function accessCode() {
-  return crypto.randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
-}
-
 function dayDMark(value: unknown, label: string) {
   return (
     <span
@@ -186,6 +186,7 @@ function DayDContent() {
   const totalJrv = centers.reduce((sum, center) => sum + center.jrv, 0);
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [assignments, setAssignments] = useState<CampaignModuleRecord[]>([]);
+  const [accessGrants, setAccessGrants] = useState<FiscalAccessGrantRecord[]>([]);
   const [resources, setResources] = useState<CampaignModuleRecord[]>([]);
   const [financeRecords, setFinanceRecords] = useState<CampaignModuleRecord[]>([]);
   const [selectedCenterId, setSelectedCenterId] = useState("");
@@ -245,8 +246,8 @@ function DayDContent() {
   useEffect(() => { if (!selectedCenterId && centers[0]) setSelectedCenterId(centers[0].id); }, [centers, selectedCenterId]);
   useEffect(() => {
     let cancelled = false; if (!campaign_id) return;
-    void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignContacts(campaign_id, token), loadCampaignRecords(campaign_id, "dia-d", token), loadCampaignRecords(campaign_id, "recursos", token), loadCampaignRecords(campaign_id, "finanzas", token)]))
-      .then(([people, records, resourceRecords, financialRecords]) => { if (!cancelled) { setContacts(people ?? []); setAssignments(records ?? []); setResources(resourceRecords ?? []); setFinanceRecords(financialRecords ?? []); } })
+    void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignContacts(campaign_id, token), loadCampaignRecords(campaign_id, "dia-d", token), loadFiscalAccessGrants(campaign_id, token), loadCampaignRecords(campaign_id, "recursos", token), loadCampaignRecords(campaign_id, "finanzas", token)]))
+      .then(([people, records, grants, resourceRecords, financialRecords]) => { if (!cancelled) { setContacts(people ?? []); setAssignments(records ?? []); setAccessGrants(grants ?? []); setResources(resourceRecords ?? []); setFinanceRecords(financialRecords ?? []); } })
       .catch((error: unknown) => { if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo cargar la operación Día D."); });
     return () => { cancelled = true; };
   }, [campaign_id]);
@@ -254,7 +255,6 @@ function DayDContent() {
   const selectedCenter = centers.find((center) => center.id === selectedCenterId) ?? centers[0];
   const selectedCenterJrvs = selectedCenter ? jrvNumbers(selectedCenter.jrvRange, selectedCenter.jrv) : [];
   const assignmentRows = assignments.filter((record) => record.category === "ASIGNACION_JRV");
-  const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
   const assignmentsForCenter = (centerId: string) => assignmentRows.filter((record) => String(record.payload.center_id) === centerId);
@@ -280,46 +280,18 @@ function DayDContent() {
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar la asignación."); }
   }
   const grantFor = (assignmentId: string) =>
-    accessRows.find(
-      (record) =>
-        String(record.payload.assignment_id || "") === assignmentId &&
-        record.status === "ACTIVO",
-    );
+    accessGrants.find((grant) => grant.assignment_id === assignmentId && grant.status === "active");
   async function generateAccess(assignment: CampaignModuleRecord) {
     if (!campaign_id) return;
     setBusyAccess(assignment.id);
     setMessage("");
     try {
-      const code = accessCode();
-      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
       const token = await ensureRadarAccessToken();
-      const current = grantFor(assignment.id);
-      const saved = await saveCampaignRecord(
-        campaign_id,
-        {
-          module_key: "dia-d",
-          category: "ACCESO_FISCAL",
-          title: `Acceso · ${String(assignment.payload.fiscal_name || "Fiscal")} · JRV ${String(assignment.payload.jrv || "—")}`,
-          details: "Acceso individual al portal fiscal",
-          status: "ACTIVO",
-          payload: {
-            assignment_id: assignment.id,
-            fiscal_id: assignment.payload.fiscal_id,
-            center_id: assignment.payload.center_id,
-            jrv: assignment.payload.jrv,
-            code,
-            expires_at: expiresAt,
-            issued_at: new Date().toISOString(),
-          },
-        },
-        token,
-        current?.id ?? null,
-      );
-      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
-      const link = `https://radar-portal-fiscal.carlos-mencos.chatgpt.site/?code=${encodeURIComponent(code)}`;
+      const issued = await issueFiscalAccess(campaign_id, assignment.id, token);
+      setAccessGrants((rows) => [issued.grant, ...rows.filter((item) => item.id !== issued.grant.id && item.assignment_id !== assignment.id)]);
       setIssuedAccess({
-        link,
-        code,
+        link: issued.access.link,
+        code: issued.access.code,
         name: String(assignment.payload.fiscal_name || "Fiscal"),
         jrv: String(assignment.payload.jrv || "—"),
       });
@@ -329,13 +301,13 @@ function DayDContent() {
       setBusyAccess("");
     }
   }
-  async function changeGrantStatus(grant: CampaignModuleRecord, status: "SUSPENDIDO" | "REVOCADO") {
+  async function changeGrantStatus(grant: FiscalAccessGrantRecord, status: "suspended" | "revoked") {
     if (!campaign_id) return;
     try {
       const token = await ensureRadarAccessToken();
-      const saved = await saveCampaignRecord(campaign_id, { module_key: "dia-d", category: grant.category, title: grant.title, details: grant.details, status, payload: { ...grant.payload, status_changed_at: new Date().toISOString() } }, token, grant.id);
-      setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
-      setMessage(status === "SUSPENDIDO" ? "Acceso suspendido." : "Acceso revocado.");
+      const saved = await setFiscalAccessStatus(campaign_id, grant.id, status, token);
+      setAccessGrants((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
+      setMessage(status === "suspended" ? "Acceso suspendido." : "Acceso revocado.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo actualizar el acceso."); }
   }
   function beginLogistics(category = "OTRA_PREVISION") {
@@ -623,7 +595,7 @@ function DayDContent() {
           <span>5 actas RTD</span>
           <span>Acceso / sincronización</span>
         </div>
-        {visibleFiscalRows.length ? visibleFiscalRows.map((record) => { const grant = grantFor(record.id); return <article key={record.id}><span><Link className="day-d-person-link" to={`/municipio/${municipality_code}/directorio?view=team&personId=${encodeURIComponent(String(record.payload.fiscal_id || ""))}`}>{String(record.payload.fiscal_name || record.details || "Fiscal")}</Link><small>{displayCenterName(String(record.payload.center_name || "Centro"))} · JRV {String(record.payload.jrv || "—")}</small>{record.payload.support_needed ? <em className="day-d-support-alert">Necesita apoyo</em> : null}</span>{dayDMark(record.payload.checked_in, "Check-in")}{dayDMark(record.payload.transport_ready, "Transporte")}{dayDMark(record.payload.food_ready, "Comida")}{dayDMark(record.payload.mobile_data_ready, "Datos")}{dayDMark(record.payload.table_closed, "Cierre")}{rtdActaProgress(record)}<span className="day-d-access-actions"><small>{record.payload.last_fiscal_sync_at ? `Sincronizado ${new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(record.payload.last_fiscal_sync_at)))}` : "Sin actividad fiscal"}</small>{grant ? <><b>Acceso activo · vence {new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(grant.payload.expires_at)))}</b><nav><button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Regenerar"}</button><button type="button" onClick={() => void changeGrantStatus(grant, "SUSPENDIDO")}>Suspender</button><button className="danger" type="button" onClick={() => void changeGrantStatus(grant, "REVOCADO")}>Revocar</button></nav></> : <button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Generar acceso"}</button>}</span></article>; }) : <p>No hay fiscales con este filtro.</p>}
+        {visibleFiscalRows.length ? visibleFiscalRows.map((record) => { const grant = grantFor(record.id); return <article key={record.id}><span><Link className="day-d-person-link" to={`/municipio/${municipality_code}/directorio?view=team&personId=${encodeURIComponent(String(record.payload.fiscal_id || ""))}`}>{String(record.payload.fiscal_name || record.details || "Fiscal")}</Link><small>{displayCenterName(String(record.payload.center_name || "Centro"))} · JRV {String(record.payload.jrv || "—")}</small>{record.payload.support_needed ? <em className="day-d-support-alert">Necesita apoyo</em> : null}</span>{dayDMark(record.payload.checked_in, "Check-in")}{dayDMark(record.payload.transport_ready, "Transporte")}{dayDMark(record.payload.food_ready, "Comida")}{dayDMark(record.payload.mobile_data_ready, "Datos")}{dayDMark(record.payload.table_closed, "Cierre")}{rtdActaProgress(record)}<span className="day-d-access-actions"><small>{record.payload.last_fiscal_sync_at ? `Sincronizado ${new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(String(record.payload.last_fiscal_sync_at)))}` : "Sin actividad fiscal"}</small>{grant ? <><b>Acceso activo · vence {new Intl.DateTimeFormat("es-GT", { dateStyle: "short", timeStyle: "short" }).format(new Date(grant.expires_at))}</b><nav><button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Regenerar"}</button><button type="button" onClick={() => void changeGrantStatus(grant, "suspended")}>Suspender</button><button className="danger" type="button" onClick={() => void changeGrantStatus(grant, "revoked")}>Revocar</button></nav></> : <button type="button" disabled={busyAccess === record.id} onClick={() => void generateAccess(record)}>{busyAccess === record.id ? "Generando…" : "Generar acceso"}</button>}</span></article>; }) : <p>No hay fiscales con este filtro.</p>}
       </div>
       {issuedAccess ? <div className="agenda-modal" role="dialog" aria-modal="true"><section className="day-d-access-modal"><header><div><small>ACCESO GENERADO · SE MUESTRA UNA VEZ</small><h2>{issuedAccess.name} · JRV {issuedAccess.jrv}</h2></div><button type="button" onClick={() => setIssuedAccess(null)}>×</button></header><label><span>Enlace individual</span><input readOnly value={issuedAccess.link} /></label><label><span>Código alterno</span><strong>{issuedAccess.code}</strong></label><p>Comparte este acceso únicamente con el fiscal asignado.</p><footer><button type="button" onClick={() => void navigator.clipboard.writeText(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}>Copiar acceso</button><a href={`https://wa.me/?text=${encodeURIComponent(`RADAR Portal Fiscal\n${issuedAccess.name} · JRV ${issuedAccess.jrv}\n${issuedAccess.link}\nCódigo alterno: ${issuedAccess.code}`)}`} target="_blank" rel="noreferrer">Compartir por WhatsApp</a></footer></section></div> : null}
     </section>

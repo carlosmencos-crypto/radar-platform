@@ -152,7 +152,8 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /day-d-center-jrv-list/);
   assert.match(dayD, /assignmentRows\.length/);
   assert.match(dayD, /Generar acceso/);
-  assert.match(dayD, /ACCESO_FISCAL/);
+  assert.match(dayD, /loadFiscalAccessGrants/);
+  assert.match(dayD, /issueFiscalAccess/);
   assert.match(dayD, /LOGISTICA/);
   assert.match(dayD, /saveLogistics/);
   assert.match(dayD, /Movilización de electores/);
