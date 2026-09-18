@@ -6,6 +6,8 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const migration = read("supabase/migrations/20260918183100_superadmin_national_control_plane_v1.sql");
+const hardening = read("supabase/migrations/20260918183200_superadmin_security_hardening_v1.sql");
+const performance = read("supabase/migrations/20260918183300_superadmin_performance_hardening_v1.sql");
 const edge = read("supabase/functions/radar-admin-api/index.ts");
 const client = read("src/admin/radarAdminApi.ts");
 const app = read("src/app/App.tsx");
@@ -17,7 +19,10 @@ test("superadmin route is a distinct authenticated control plane", () => {
   assert.doesNotMatch(app, /path="admin" element=\{<Navigate/);
   assert.match(edge, /userData\.user\.app_metadata\?\.platform_role/);
   assert.match(edge, /jwtPayload\(token\)\.aal !== "aal2"/);
-  assert.match(access, /beginRadarMfaChallenge/);
+  assert.match(access, /prepareRadarAdminMfa/);
+  assert.match(access, /Activa la seguridad administrativa/);
+  assert.match(auth, /factor_type: "totp"/);
+  assert.match(auth, /RADAR Administrador/);
   assert.match(auth, /\/factors\/\$\{factor\.id\}\/challenge/);
   assert.match(auth, /\/factors\/\$\{challenge\.factorId\}\/verify/);
 });
@@ -53,8 +58,11 @@ test("publication flow is versioned and never exposes direct browser writes", ()
   assert.match(migration, /rolled_back_from_release_id/);
   assert.match(edge, /radar-admin-staging/);
   assert.match(edge, /crypto\.subtle\.digest\("SHA-256"/);
+  assert.match(edge, /crypto\.randomUUID\(\).*safePathPart\(uploadedFile\.name\)/);
+  assert.match(edge, /upsert: false/);
   assert.match(migration, /blocking validation issues remain/);
-  assert.match(migration, /versioning_status='ENABLED'/);
+  assert.match(migration, /publication_batches \+ dataset_releases/);
+  assert.doesNotMatch(migration, /versioning_status='ENABLED'/);
 });
 
 test("the canonical Data Vault contract has exactly 17 seeded layers", () => {
@@ -78,7 +86,10 @@ test("Pulso preserves three scopes and requires preview before publication", () 
 
 test("support diagnostics are temporary and do not implement impersonation", () => {
   assert.match(migration, /access_mode in \('READ_ONLY','MINIMAL_DIAGNOSTIC'\)/);
-  assert.match(migration, /p_expires_at>now\(\)\+interval '8 hours'/);
+  assert.match(hardening, /p_expires_at<=now\(\) or p_expires_at>now\(\)\+interval '8 hours'/);
+  assert.match(hardening, /support campaign municipality mismatch/);
+  assert.match(hardening, /support territorial scope denied/);
+  assert.match(hardening, /revoke all on all functions in schema admin_vault from public,anon,authenticated/);
   assert.doesNotMatch(edge, /impersonat|suplant/i);
 });
 
@@ -89,4 +100,15 @@ test("scoped operators are filtered again before the snapshot reaches the browse
   assert.match(edge, /scope\.department_code !== department/);
   assert.match(edge, /scope\.campaign_id !== campaign/);
   assert.match(migration, /operator_has_scope/);
+});
+
+test("control-plane foreign keys are indexed and trigger helpers are not RPCs", () => {
+  assert.match(performance, /revoke all on function public\.handle_new_user\(\) from public,anon,authenticated/);
+  for (const index of [
+    "publication_batches_campaign_idx",
+    "dataset_releases_batch_idx",
+    "audit_events_actor_idx",
+    "support_sessions_campaign_idx",
+    "pulse_measurements_supersedes_idx",
+  ]) assert.match(performance, new RegExp(`create index if not exists ${index}`));
 });
