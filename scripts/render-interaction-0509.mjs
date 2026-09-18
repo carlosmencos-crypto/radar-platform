@@ -310,6 +310,12 @@ try {
       const openedFiscales = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.internal-view-tabs button')).find((item)=>item.textContent.trim()==='Fiscales'); if(!button)return false; button.click(); return true;})()`);
       if (!openedFiscales) throw new Error("Fiscales internal view is missing.");
       await waitFor(`Boolean(document.querySelector('.internal-view-content[data-view="fiscales"] .day-d-actas-tooltip')) && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('1 / 5 actas recibidas') && (document.querySelector('.day-d-actas-tooltip')?.innerText||'').includes('Faltan:')`, "fiscal RTD five-acta status");
+      const actaPoint = await evaluate(`(()=>{const item=document.querySelector('.day-d-actas-progress'); if(!item)return null; const rect=item.getBoundingClientRect(); return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};})()`);
+      if (!actaPoint) throw new Error("Fiscal RTD five-acta control is missing.");
+      await cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: actaPoint.x, y: actaPoint.y });
+      await waitFor(`getComputedStyle(document.querySelector('.day-d-actas-tooltip')).display==='block'`, "visible fiscal RTD hover detail");
+      const actaHoverScreenshotBytes = await capture("day-d-fiscal-actas-hover");
+      if (actaHoverScreenshotBytes < 10_000) throw new Error("Fiscal RTD hover screenshot is unexpectedly empty.");
       const generatedAccess = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.day-d-access-actions button')).find((item)=>item.textContent.trim()==='Generar acceso'); if(!button)return false; button.click(); return true;})()`);
       if (!generatedAccess) throw new Error("Fiscal access generation control is missing.");
       await waitFor(`Boolean(document.querySelector('.day-d-access-modal')) && (document.body?.innerText||'').includes('ACCESO GENERADO') && (document.body?.innerText||'').includes('Código alterno')`, "functional fiscal access generation");
