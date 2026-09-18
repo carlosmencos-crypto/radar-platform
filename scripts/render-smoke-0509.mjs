@@ -56,8 +56,8 @@ const municipality = {
 const geoFeatureCounts = {
   populated_place: mapFixture.features.filter((feature) => feature.feature_type === "populated_place").length,
   tse_voting_center: mapFixture.features.filter((feature) => feature.feature_type === "tse_voting_center").length,
-  school: 0,
-  health_facility: 0,
+  school: mapFixture.features.filter((feature) => feature.feature_type === "school").length,
+  health_facility: mapFixture.features.filter((feature) => feature.feature_type === "health_facility").length,
 };
 const runtime = {
   context: {
