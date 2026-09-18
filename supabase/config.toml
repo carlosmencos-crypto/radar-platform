@@ -1,0 +1,4 @@
+project_id = "radar-platform"
+
+[functions.radar-admin-api]
+verify_jwt = true

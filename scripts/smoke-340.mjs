@@ -10,6 +10,8 @@ const consumerSource = read("src/data/radarConsumer.ts");
 const dashboardSource = read("src/components/MunicipalDashboard.tsx");
 const contextSource = read("src/context/MunicipalityContext.tsx");
 const appSource = read("src/app/App.tsx");
+const superadminGateSource = read("src/admin/SuperAdminAccessGate.tsx");
+const superadminApiSource = read("src/admin/radarAdminApi.ts");
 const layoutSource = read("src/app/Layout.tsx");
 const nationalSource = read("src/app/pages.tsx");
 const catalogCssSource = read("src/styles/canonical-adapter.css");
@@ -175,7 +177,9 @@ assert(contract.nav["0509"].municipality_name === "San José" && contract.nav["0
 assert(contract.nav["1901"].municipality_name === "Zacapa" && contract.nav["1901"].department_name === "Zacapa", "Ruta externa 1901 incorrecta.");
 assert(consumerSource.includes("RUNTIME_GATE_340[municipalityCode]") && consumerSource.includes("gate.status !== \"PASS\""), "El consumer no aplica RUNTIME_GATE_340.");
 assert(consumerSource.includes("CANONICAL_LAYER_DEFINITIONS.map") && !consumerSource.includes("publicModules") && !consumerSource.includes("campaignModules"), "El consumer conserva aliases genéricos.");
-assert(appSource.includes('path="admin"') && appSource.includes('<Navigate to="/acceso-restringido" replace'), "/admin no está fail-closed.");
+assert(appSource.includes('path="admin/:section?" element={<SuperAdminAccessGate />}'), "/admin no usa el control-plane protegido.");
+assert(superadminGateSource.includes("loadAdminSnapshot") && superadminGateSource.includes("MFA_AAL2_REQUIRED"), "/admin no falla cerrado ante sesión o MFA inválido.");
+assert(superadminApiSource.includes("ensureRadarAccessToken") && !superadminApiSource.match(/service[_-]?role/i), "El cliente administrativo no conserva el límite de confianza.");
 assert(appSource.includes('path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />}'), "La ruta municipal V70 fue modificada.");
 
 const expectedSections = ["inicio", "inteligencia", "estrategia", "directorio", "agenda", "mapa", "dia-d", "recursos", "pulso", "ia-radar", "configuracion"];
@@ -262,5 +266,5 @@ for (const [file, expectedHash] of Object.entries(preservedUiHashes)) {
 }
 
 console.log(
-  `SMOKE_RECONCILED_OK ${pairKeys.size}/5780 pares · ${municipalityCodes.size}/340 municipios · catálogo ${municipalityCodes.size}/340 · ${departmentCodes.size}/22 departamentos · ${observedLayerIds.length}/17 layer_id · 0 duplicados · 0 cruces · 20 NOT_PUBLISHED · 178 NO_EXPLICIT_ASSOCIATION · 1 NO_RECORD_IN_SOURCE · 0509/1901 correctas · /admin fail-closed · V70 intacta`,
+  `SMOKE_RECONCILED_OK ${pairKeys.size}/5780 pares · ${municipalityCodes.size}/340 municipios · catálogo ${municipalityCodes.size}/340 · ${departmentCodes.size}/22 departamentos · ${observedLayerIds.length}/17 layer_id · 0 duplicados · 0 cruces · 20 NOT_PUBLISHED · 178 NO_EXPLICIT_ASSOCIATION · 1 NO_RECORD_IN_SOURCE · 0509/1901 correctas · /admin AAL2 fail-closed · V70 intacta`,
 );

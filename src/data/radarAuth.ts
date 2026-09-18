@@ -15,6 +15,19 @@ interface SupabaseTokenResponse {
   token_type?: string;
 }
 
+interface SupabaseFactor {
+  id: string;
+  factor_type: string;
+  status: string;
+  friendly_name?: string;
+}
+
+export interface RadarMfaChallenge {
+  factorId: string;
+  challengeId: string;
+  friendlyName: string;
+}
+
 function authConfig() {
   const url = String(import.meta.env.VITE_SUPABASE_URL ?? "").trim().replace(/\/$/, "");
   const publishableKey = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
@@ -92,6 +105,47 @@ export async function signInRadar(email: string, password: string) {
   const normalizedEmail = email.trim();
   if (!normalizedEmail || !password) throw new Error("RADAR_AUTH_CREDENTIALS_REQUIRED");
   return tokenRequest("password", { email: normalizedEmail, password });
+}
+
+async function authenticatedAuthRequest<T>(path: string, init?: RequestInit) {
+  const { url, publishableKey } = requireAuthConfig();
+  const accessToken = await ensureRadarAccessToken();
+  const response = await fetch(`${url}/auth/v1${path}`, {
+    ...init,
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+  if (!response.ok) throw new Error(`RADAR_MFA_${response.status}`);
+  return response.json() as Promise<T>;
+}
+
+export async function beginRadarMfaChallenge(): Promise<RadarMfaChallenge> {
+  const user = await authenticatedAuthRequest<{ factors?: SupabaseFactor[] }>("/user");
+  const factor = user.factors?.find((candidate) => candidate.factor_type === "totp" && candidate.status === "verified");
+  if (!factor) throw new Error("RADAR_MFA_NOT_ENROLLED");
+  const challenge = await authenticatedAuthRequest<{ id: string }>(`/factors/${factor.id}/challenge`, {
+    method: "POST",
+    body: "{}",
+  });
+  return {
+    factorId: factor.id,
+    challengeId: challenge.id,
+    friendlyName: factor.friendly_name || "Aplicación autenticadora",
+  };
+}
+
+export async function verifyRadarMfa(challenge: RadarMfaChallenge, code: string) {
+  const normalized = code.replace(/\s/g, "");
+  if (!/^\d{6}$/.test(normalized)) throw new Error("RADAR_MFA_CODE_REQUIRED");
+  const response = await authenticatedAuthRequest<SupabaseTokenResponse>(`/factors/${challenge.factorId}/verify`, {
+    method: "POST",
+    body: JSON.stringify({ challenge_id: challenge.challengeId, code: normalized }),
+  });
+  return persistRadarSession(response);
 }
 
 async function refreshRadarSession(refreshToken: string) {

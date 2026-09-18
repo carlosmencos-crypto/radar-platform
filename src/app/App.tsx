@@ -1,9 +1,10 @@
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
 import { RadarAccessPage } from "./RadarAccessPage";
 import { MunicipalityAccessGate as MunicipalDashboard } from "../components/MunicipalityAccessGate";
 import { V70DirectReportAccessGate0509 } from "../components/V70DirectReportAccessGate0509";
+import { SuperAdminAccessGate } from "../admin/SuperAdminAccessGate";
 
 function AccessDeniedPage() {
   return (
@@ -24,13 +25,13 @@ export function App() {
     <Routes>
       <Route path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />} />
       <Route path="reporte/:section" element={<V70DirectReportAccessGate0509 />} />
+      <Route path="admin/:section?" element={<SuperAdminAccessGate />} />
       <Route element={<Layout />}>
         <Route index element={<MunicipalitiesPage />} />
         <Route path="municipios" element={<MunicipalitiesPage />} />
         <Route path="departamento/:departmentCode" element={<DepartmentPage />} />
         <Route path="comparar" element={<ComparePage />} />
         <Route path="acceso" element={<RadarAccessPage />} />
-        <Route path="admin" element={<Navigate to="/acceso-restringido" replace />} />
         <Route path="acceso-restringido" element={<AccessDeniedPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
