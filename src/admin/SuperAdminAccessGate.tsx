@@ -59,7 +59,7 @@ export function SuperAdminAccessGate() {
 function AdminGateNotice({ title, detail, requestId, children }: {
   title: string; detail: string; requestId?: string; children?: ReactNode;
 }) {
-  const logo = `${import.meta.env.BASE_URL}brand/radar-electoral-logo-horizontal-oscuro-transparente.svg`;
+  const logo = `${import.meta.env.BASE_URL}brand/radar-electoral-logo-horizontal-claro.svg`;
   return (
     <main className="superadmin-gate">
       <img src={logo} alt="RADAR Inteligencia Electoral" />

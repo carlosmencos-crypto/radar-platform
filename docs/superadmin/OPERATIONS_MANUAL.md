@@ -12,6 +12,13 @@ Este manual corresponde a la rama `superadmin/v70-national-qa`. Ningún paso aut
 
 Nunca se usa `user_metadata` para autorizar. El `service_role` solo se configura como secreto del backend de la Edge Function.
 
+### Principio de operación de la consola
+
+- La interfaz usa la identidad canónica RADAR V70: logotipo oficial, sidebar grafito, encabezado blanco, marfil, azul petróleo y morado electoral.
+- Los identificadores internos de campaña, contrato, lote, medición y usuario no se solicitan manualmente. El operador selecciona objetos legibles y la consola envía sus identificadores al backend.
+- Las operaciones de alta y publicación se presentan como asistentes con contexto, alcance, motivo y confirmación.
+- Los contadores del resumen se derivan únicamente del snapshot administrativo. Las muestras visuales aisladas se marcan expresamente como `DATOS QA` y no representan avance nacional.
+
 ## 2. Orden de despliegue QA
 
 1. Crear una rama de base Supabase de desarrollo; no usar `main`.
@@ -32,16 +39,16 @@ Nunca se usa `user_metadata` para autorizar. El `service_role` solo se configura
 
 ## 4. Exclusividad y alta de campaña
 
-1. Crear una reserva con municipio, organización, vigencia, referencia y motivo.
+1. En `Exclusividad comercial`, seleccionar municipio, organización autorizada, vigencia, referencia y motivo.
 2. Intentar una segunda reserva solapada. PostgreSQL debe rechazarla por la restricción GiST, no por la UI.
-3. Crear la campaña solo después de una reserva `RESERVED` o `ACTIVE` vigente para la misma organización.
+3. En `Municipios y campañas`, crear la campaña seleccionando una reserva `RESERVED` o `ACTIVE`; la consola resuelve internamente municipio y organización.
 4. Activar la campaña únicamente cuando el contrato lo permita.
 
 No editar directamente `public.campaigns` para evitar el control contractual.
 
 ## 5. Publicación de Data Vault
 
-1. Cargar CSV o JSON. La API calcula SHA-256 y guarda el archivo en `radar-admin-staging` con versionado.
+1. Usar `Nueva carga`, seleccionar dataset, alcance territorial y fuente registrada, y cargar CSV o JSON. La API calcula SHA-256 y guarda el archivo en `radar-admin-staging` con versionado.
 2. Revisar `diff_summary`, `validation_summary` y `publication_issues`.
 3. Corregir cualquier `ERROR` o `BLOCKER`; un lote con bloqueos no puede aprobarse.
 4. QA transiciona `PREVALIDATED → APPROVED` con motivo.
@@ -59,6 +66,8 @@ Cada borrador requiere folio, elección, territorio, fechas de campo, muestra, m
 - `PRESIDENTE`, `DIP_NAC`, `PARLACEN`: `NATIONAL`, `country_code = GT`.
 
 Flujo: `BORRADOR → PREVALIDADA → APROBADA → PUBLICADA`. Una versión aprobada o publicada es inmutable. La gráfica cliente recibe los valores almacenados; no los recalcula.
+
+El operador captura esos campos mediante el asistente `Nueva encuesta`. La consola construye la medición y sus resultados; no se admite pegar JSON en la interfaz.
 
 ## 7. Usuarios y revocación
 
