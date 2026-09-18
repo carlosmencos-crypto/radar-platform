@@ -312,21 +312,32 @@ html[data-theme="dark"] .canonical-vault-notice {
 .map-fullscreen-frame:fullscreen .operational-map-toolbar,.map-fullscreen-frame:fullscreen .map-selection-strip{flex:0 0 auto}
 .map-fullscreen-frame:fullscreen .smart-map-shell{flex:1 1 auto;min-height:0;height:auto;margin:0}
 .map-fullscreen-frame:fullscreen .map-stage,.map-fullscreen-frame:fullscreen .smart-map-canvas{height:100%;min-height:0}
+.operational-map-toolbar{grid-template-columns:minmax(290px,1.7fr) 34px 112px auto auto auto}
+.operational-map-toolbar>.map-fullscreen-button{justify-self:center}
+.intelligence-map-toolbar{grid-template-columns:auto 34px minmax(0,1fr)}
+.intelligence-map-toolbar>.map-fullscreen-button{justify-self:center}
 .map-workspace:fullscreen{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:12px;padding-top:62px}
 .map-workspace:fullscreen .directory,.map-workspace:fullscreen .map-panel{min-height:0;height:calc(100vh - 76px)}
+.map-workspace:fullscreen .directory{overflow:hidden}
+.map-workspace:fullscreen .center-list{flex:1 1 auto;height:auto;min-height:0}
+.map-workspace:fullscreen .directory-note{flex:0 0 auto}
 .map-workspace:fullscreen .map-panel{display:flex;flex-direction:column}
 .map-workspace:fullscreen .intelligence-map-toolbar{padding-right:112px}
 .map-workspace:fullscreen .real-map{flex:1;min-height:360px}
 html[data-theme="dark"] :is(.map-fullscreen-frame:fullscreen,.map-workspace:fullscreen){background:var(--radar-fondo-oscuro)}
 html[data-theme="dark"] .map-fullscreen-button:not(.active){background:var(--radar-fondo-oscuro);border-color:var(--radar-municipal);color:var(--radar-marfil)}
-@media(max-width:760px){.map-workspace:fullscreen{grid-template-columns:1fr}.map-workspace:fullscreen .directory{display:none}.map-workspace:fullscreen .map-panel{height:calc(100vh - 76px)}}
+@media(max-width:1180px){.operational-map-toolbar{grid-template-columns:minmax(230px,1fr) 34px 100px auto auto auto}}
+@media(max-width:1100px){.intelligence-map-toolbar{grid-template-columns:minmax(max-content,1fr) 34px}.intelligence-map-toolbar .layer-switch{grid-column:1/-1}}
+@media(max-width:760px){.operational-map-toolbar{grid-template-columns:34px minmax(0,1fr) 92px auto}.map-toolbar-search{grid-column:1/-1}.operational-map-toolbar>.map-satellite-toggle{grid-column:1/-1}.map-workspace:fullscreen{grid-template-columns:1fr}.map-workspace:fullscreen .directory{display:none}.map-workspace:fullscreen .map-panel{height:calc(100vh - 76px)}}
 
-/* Día D: separa el progreso RTD de los controles de acceso del fiscal. */
-.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(190px,1.3fr) repeat(5,minmax(48px,.36fr)) minmax(96px,.55fr) minmax(280px,1.75fr);min-width:920px}
+/* Día D: una retícula equilibrada para asignación, operación, RTD y acceso. */
+.day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(190px,1.45fr) repeat(5,minmax(54px,.5fr)) minmax(118px,.8fr) minmax(250px,1.35fr);column-gap:8px;min-width:920px}
 .day-d-fiscal-table.extended .head span:last-child{text-align:center}
-.day-d-access-actions{justify-self:stretch;justify-items:center;width:100%;padding-inline:6px;text-align:center}
-.day-d-access-actions nav{justify-content:center;flex-wrap:nowrap}
-.day-d-access-actions>button{min-width:128px}
+.day-d-access-actions{justify-self:stretch;justify-items:center;align-content:center;width:100%;padding-inline:4px;text-align:center}
+.day-d-access-actions>small,.day-d-access-actions>b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day-d-access-actions nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));justify-content:center;width:100%;max-width:300px;gap:6px}
+.day-d-access-actions nav button{width:100%;min-width:0;padding-inline:6px}
+.day-d-access-actions>button{width:min(100%,200px);min-width:128px}
 
 /* Pulso mantiene los cinco alcances electorales en una sola fila de escritorio. */
 .pulse-election-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}

@@ -171,8 +171,9 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(dayD, /logisticsFilterGroups/);
   assert.match(dayD, /Material de cada fiscal/);
   assert.match(dayD, /Fiscal del CRM…/);
-  assert.match(styles, /minmax\(280px,1\.75fr\);min-width:920px/);
-  assert.match(styles, /\.day-d-access-actions\{justify-self:stretch;justify-items:center;width:100%/);
+  assert.match(styles, /minmax\(190px,1\.45fr\) repeat\(5,minmax\(54px,\.5fr\)\) minmax\(118px,\.8fr\) minmax\(250px,1\.35fr\);column-gap:8px;min-width:920px/);
+  assert.match(styles, /\.day-d-access-actions\{justify-self:stretch;justify-items:center;align-content:center;width:100%/);
+  assert.match(styles, /\.day-d-access-actions nav\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
 
 test("Pulso keeps all five election types on one desktop row", () => {

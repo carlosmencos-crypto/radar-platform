@@ -934,6 +934,7 @@ export function V70OperationalMap() {
             </div>
           ) : null}
         </div>
+        <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
         <label className="toolbar-select">
           <span>Actividades programadas</span>
           <select
@@ -1050,7 +1051,6 @@ export function V70OperationalMap() {
         >
           {satellite ? "Vista mapa" : "Vista satelital"}
         </button>
-        <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
       </section>
 
       {selectedCommunity ? (

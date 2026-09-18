@@ -32,6 +32,7 @@ export function V70ElectoralTerritoryUnavailable({
         <div className="map-panel">
           <div className="intelligence-map-toolbar" aria-label="Controles del mapa de Inteligencia Municipal">
             <div className="metric-switch"><button className="active" disabled>Ganador</button><button disabled>Participación</button><button disabled>Margen</button><button disabled>Actas</button></div>
+            <V70MapFullscreen targetRef={fullscreenNode} />
             <div className="layer-switch">
               <button className="layer-electoral on" disabled><i className="electoral-dot" />Electoral <b>{state}</b></button>
               <button className="layer-schools on" disabled><i className="school-dot" />Escuelas <b>{schools || "SIN_REGISTRO"}</b></button>
@@ -39,7 +40,6 @@ export function V70ElectoralTerritoryUnavailable({
               <button className="layer-health on" disabled><i className="health-dot" />Salud <b>{health || "SIN_REGISTRO"}</b></button>
               <button className="layer-works on" disabled><i className="works-dot" />Obras <b>NO_PUBLICADO</b></button>
             </div>
-            <V70MapFullscreen targetRef={fullscreenNode} />
           </div>
           <div className="active-reading"><span>Visualizando</span><b>Alcaldía · Partido ganador</b><small>{state}</small></div>
           <div className="real-map canonical-map-pending" aria-label={`Mapa interactivo de centros de votación de ${municipalityName}`}><span>{state}</span><h2>Inteligencia electoral territorial en preparación</h2><p>RADAR no inventa centros, resultados ni asociaciones geográficas faltantes.</p></div>

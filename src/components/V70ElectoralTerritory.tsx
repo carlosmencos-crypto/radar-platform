@@ -296,6 +296,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
         <div className="map-panel">
           <div className="intelligence-map-toolbar" aria-label="Controles del mapa de Inteligencia Municipal">
             <div className="metric-switch">{(["leader", "turnout", "margin", "coverage"] as Metric[]).map((item) => <button key={item} className={metric === item ? "active" : ""} onClick={() => setMetric(item)}>{item === "leader" ? "Ganador" : item === "turnout" ? "Participación" : item === "margin" ? "Margen" : "Actas"}</button>)}</div>
+            <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
             <div className="layer-switch">
               <button className={`layer-electoral ${layers.electoral ? "on" : ""}`} aria-pressed={layers.electoral} onClick={() => setLayers((value) => ({ ...value, electoral: !value.electoral }))}><i className="electoral-dot" />Electoral</button>
               <button className={`layer-schools ${layers.schools ? "on" : ""}`} aria-pressed={layers.schools} onClick={() => setLayers((value) => ({ ...value, schools: !value.schools }))}><i className="school-dot" />Escuelas <b>{schoolCount || "SIN_REGISTRO"}</b></button>
@@ -303,7 +304,6 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
               <button className={`layer-health ${layers.health ? "on" : ""}`} aria-pressed={layers.health} onClick={() => setLayers((value) => ({ ...value, health: !value.health }))}><i className="health-dot" />Salud <b>{healthCount || "SIN_REGISTRO"}</b></button>
               <button className={`layer-works ${layers.works ? "on" : ""}`} aria-pressed={layers.works} onClick={() => setLayers((value) => ({ ...value, works: !value.works }))}><i className="works-dot" />Obras <b>NO_PUBLICADO</b></button>
             </div>
-            <V70MapFullscreen targetRef={fullscreenNode} onChange={() => window.setTimeout(() => mapRef.current?.invalidateSize(), 100)} />
           </div>
           <div className="active-reading"><span>Visualizando</span><b>{election.shortName} · {metricNames[metric]}</b><small>Los colores y valores de los {viewModel.centers.length} nodos responden a esta selección.</small></div>
           <div ref={mapNode} className="real-map" role="img" aria-label={`Mapa interactivo de centros de votación de ${viewModel.municipalityName}`} />
