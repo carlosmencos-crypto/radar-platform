@@ -1,0 +1,68 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v1",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "1207",
+  "municipality_code": "1207",
+  "municipality_name": "Tacaná",
+  "department_code": "12",
+  "department_name": "San Marcos",
+  "status": "COMPLETE_6_OF_6",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-18T06:55:43.740127+00:00",
+    "artifact_sha256": "45be79aed63c5fc8b72cbf51ab15c112c5000f84fd0528af40a7d4f1b7174232",
+    "artifact_file_sha256": "4b1f3c71a0aba66a3caf9966dd9be614d9c06732953d18be5e162db1eccbb87f",
+    "layers": 6,
+    "physical_centers": 19,
+    "expected_jrv": 115,
+    "registered_voters": 40987,
+    "geo_exact": 19,
+    "geo_held": 0,
+    "dense_rows": 2242,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_isolation_failures": 0
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 174,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_contracts": 176,
+    "zero_of_6": 164,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "next_batch": {
+    "municipality_code": "1208",
+    "municipality_name": "Sibinal",
+    "state": "PREVALIDATED_NOT_LIVE",
+    "centers": 8,
+    "expected_jrv": 27,
+    "registered_voters": 9941,
+    "dense_rows_expected": 832,
+    "geo_exact": 8,
+    "geo_held": 0
+  }
+}

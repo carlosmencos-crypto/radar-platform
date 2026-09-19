@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1221-1302",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "9c1ee66f1c8d6110d9011fd3cd091d6bb610e8f3",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1221",
+      "municipality_name": "La Reforma",
+      "checkpoint": "SCALE_340_CHECKPOINT_1221_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:02.560713+00:00",
+      "artifact_file": "RADAR_V70_1221_STAGE_CANONICAL_dbc3f423.json",
+      "artifact_sha256": "dbc3f423ab0cb0f7b8f7c661c7aa34f71dd0613639f0f688b6fff55564c110c0",
+      "artifact_file_sha256": "8f9e4a9472d4954cb312e37042b9223ed29a20e3a3a8ff68ce9260c62511e6dd",
+      "drive_id": "1X0Vtn_nL_QDw82DIryBERkVoDJnOb2yB",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1222",
+      "municipality_name": "Pajapita",
+      "checkpoint": "SCALE_340_CHECKPOINT_1222_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:04.224029+00:00",
+      "artifact_file": "RADAR_V70_1222_STAGE_CANONICAL_0a31d2f6.json",
+      "artifact_sha256": "0a31d2f6de18d2921f8f489a3aaa16f908cb91022d128e2a9caf82b629404b94",
+      "artifact_file_sha256": "2b0fe358b875b854a40669aec52c88f594c835a17f413de1379a11e36c17a01a",
+      "drive_id": "1zDvKeYX5N01ARU1A4-Jf1vCvG-JgFN59",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1223",
+      "municipality_name": "Ixchiguán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1223_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:07.285029+00:00",
+      "artifact_file": "RADAR_V70_1223_STAGE_CANONICAL_fc6c4a83.json",
+      "artifact_sha256": "fc6c4a836f8036772bd4941c07e915cbf39926fd1987a68cbdd954f3bce70726",
+      "artifact_file_sha256": "47f6e69cf5a35ce78c9b4ec271d758f5cad59b7e4320490f0a99a3e2f03e6b55",
+      "drive_id": "1HwhF5Q9Lqg9DfWruhkviKvOamB12IuTq",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1224",
+      "municipality_name": "San José Ojetenam",
+      "checkpoint": "SCALE_340_CHECKPOINT_1224_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:09.132297+00:00",
+      "artifact_file": "RADAR_V70_1224_STAGE_CANONICAL_a3d20448.json",
+      "artifact_sha256": "a3d204486ef13db2a322fef0fec192c9146e3e91475ad85fca98eb11886c216c",
+      "artifact_file_sha256": "3af22c45cc4944a162f185194e9863a96da272318ec9c46435ade4fd56c0115e",
+      "drive_id": "1o_mYYcy98Pqy0hNYrbwWYaHs0U9DmhPt",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1225",
+      "municipality_name": "San Cristóbal Cucho",
+      "checkpoint": "SCALE_340_CHECKPOINT_1225_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:11.097235+00:00",
+      "artifact_file": "RADAR_V70_1225_STAGE_CANONICAL_b6ff6f42.json",
+      "artifact_sha256": "b6ff6f427f3d54f03b09b5d1c0c3e854f00143e6424da7d53482873927a885ab",
+      "artifact_file_sha256": "659be84cb7bd96181c35298d32e3ff03a5ec34de0a67b525521fb90743d4f356",
+      "drive_id": "1vP4yT_vzPMPVgoSyaP88jcmMT6-r-wH0",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1226",
+      "municipality_name": "Sipacapa",
+      "checkpoint": "SCALE_340_CHECKPOINT_1226_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:12.930752+00:00",
+      "artifact_file": "RADAR_V70_1226_STAGE_CANONICAL_426a006c.json",
+      "artifact_sha256": "426a006cfe3c19a8151cf68897c79376fc25e5c7e7a1e29de01c9348184274e0",
+      "artifact_file_sha256": "061a371393bf12c5494d4d93041fd22eeb5eeed201c87b2e4604ec1e7cb69698",
+      "drive_id": "1-xJlxBKJiG0TIJQicZfImyxriD7cK9Gz",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1227",
+      "municipality_name": "Esquipulas Palo Gordo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1227_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:14.741926+00:00",
+      "artifact_file": "RADAR_V70_1227_STAGE_CANONICAL_1ce7788c.json",
+      "artifact_sha256": "1ce7788cf8457c2fe4143c61110d61eacf23a5a787c6f416de045457d74fa7e9",
+      "artifact_file_sha256": "d59ca5954d905b9171d5fe8f103238d61ee6b3a21d75fe907302f897dd6f8c99",
+      "drive_id": "1shsPDfpwXo5b0sq-yLprOAqItOm5bitc",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1228",
+      "municipality_name": "Río Blanco",
+      "checkpoint": "SCALE_340_CHECKPOINT_1228_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:16.432447+00:00",
+      "artifact_file": "RADAR_V70_1228_STAGE_CANONICAL_7bae9da6.json",
+      "artifact_sha256": "7bae9da66acc037fb82d78c310cfc3c39ebef1f1de5fc3e5d62ea88612d16b6e",
+      "artifact_file_sha256": "b96a8072525c99f8d56e7bd12667ee0b91c111094b4dbf93bb2a3abc11102ca5",
+      "drive_id": "1xPXxMsdJVcpReA24g_bivawSSezEKU6K",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1229",
+      "municipality_name": "San Lorenzo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1229_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:18.078468+00:00",
+      "artifact_file": "RADAR_V70_1229_STAGE_CANONICAL_3d6c992b.json",
+      "artifact_sha256": "3d6c992b2b61bf3db02a503cf66ece24e69d6d4ced82a0d8770b67ee10f77d21",
+      "artifact_file_sha256": "1b43db8f9a7a8ddf15daa2cb273882a36e97ea89e0ba0a33525723da099ab76a",
+      "drive_id": "1DSMrIcvYLfQ6D6bma7QnnYyfVwlQywd8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1230",
+      "municipality_name": "La Blanca",
+      "checkpoint": "SCALE_340_CHECKPOINT_1230_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:19.792775+00:00",
+      "artifact_file": "RADAR_V70_1230_STAGE_CANONICAL_1445c0fe.json",
+      "artifact_sha256": "1445c0feae63009e0fa7fee1c2b64193f5c3e3161eb81c99f139919c333e0a1e",
+      "artifact_file_sha256": "7167fd1dc4888e7fca2fbcb45d34b3c2138f77f19ab53ce30f27276bd463ab29",
+      "drive_id": "18funf1kmYOAdc4wMejaBhYGcsyLEgHeH",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1301",
+      "municipality_name": "Huehuetenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1301_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:21.945202+00:00",
+      "artifact_file": "RADAR_V70_1301_STAGE_CANONICAL_177ff8a5.json",
+      "artifact_sha256": "177ff8a50456800b1b80affa24672dc106fed1dbe290381cd06cd4eb3d0760b5",
+      "artifact_file_sha256": "b498e20e4883aebcef0822364fe4f5d77654bbe322fd89c250f8a9fefe8c7044",
+      "drive_id": "1L9a6_9vk9XXP96SM3Y42DMJD2QmVvuJ-",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1302",
+      "municipality_name": "Chiantla",
+      "checkpoint": "SCALE_340_CHECKPOINT_1302_COMPLETE.json",
+      "generated_at": "2026-09-19T14:13:24.161802+00:00",
+      "artifact_file": "RADAR_V70_1302_STAGE_CANONICAL_d04919bf.json",
+      "artifact_sha256": "d04919bf8e786a0092aeb436b65a9720dd3073f5834a7ef29bec7636aa59408a",
+      "artifact_file_sha256": "b7719d6ebf0338ae6d1541eab066cead9c446d4dde317b7e4f4b695c47db4462",
+      "drive_id": "1YSt3CgXdqDW4nfPRyuGarsE5veK_0TCT",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 131,
+    "geo_held": 1
+  },
+  "national_after": {
+    "complete_6_of_6": 199,
+    "semantic_special": 2,
+    "zero_of_6": 139
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1303",
+      "1304",
+      "1305",
+      "1306",
+      "1307",
+      "1308",
+      "1309",
+      "1310",
+      "1311",
+      "1312",
+      "1313",
+      "1314"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}
