@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1418-1508",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "6bc00e04cb59255d45eebdebbd09977bb0c280ae",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1418",
+      "municipality_name": "Canillá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1418_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:10.192554+00:00",
+      "artifact_file": "RADAR_V70_1418_STAGE_CANONICAL_cc9c0c62.json",
+      "artifact_sha256": "cc9c0c6271e05673f7abbf4612b52448b8c3ae854f0865ea05ef3d883fef0bc6",
+      "artifact_file_sha256": "b1a5e3be34a467bfac213455c61c7c813791177f22f89d4fb97a79d09f9fc0b9",
+      "drive_id": "1pGJNGu804j9O-aW_aZfABPCY_nsa_VOE",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1419",
+      "municipality_name": "Chicamán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1419_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:11.870215+00:00",
+      "artifact_file": "RADAR_V70_1419_STAGE_CANONICAL_a8a93619.json",
+      "artifact_sha256": "a8a93619f1943914d2c006fcd2f236713264f5decba643bec836b0bb0c6af4c1",
+      "artifact_file_sha256": "03547385d9352d64dc0e4a56a0003f347acf4f2df0f02a0854f5dc11d6fe18b2",
+      "drive_id": "1cOt2XgOxHKTUpTfjbD071S7MFezzxA-J",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1420",
+      "municipality_name": "Playa Grande Ixcán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1420_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:13.415614+00:00",
+      "artifact_file": "RADAR_V70_1420_STAGE_CANONICAL_27462dac.json",
+      "artifact_sha256": "27462dace4dd5079c3eb6a6b458c20009b064b12cffb5a56db970e715d078924",
+      "artifact_file_sha256": "87824e2f770747cc165cab32dc81acf4de444e43db922c5dc8cebd7c13952996",
+      "drive_id": "1bs6IZJU0FG41_bmAxYGxJVhctfIPswSW",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1421",
+      "municipality_name": "Pachalum",
+      "checkpoint": "SCALE_340_CHECKPOINT_1421_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:14.953205+00:00",
+      "artifact_file": "RADAR_V70_1421_STAGE_CANONICAL_4fadcac3.json",
+      "artifact_sha256": "4fadcac3784d568ebdb093ad322958beb27ff769e2170affcddc4d8fa782879f",
+      "artifact_file_sha256": "6cc9124b68e6561c94ad33363bc4e6ae5197376e611ea9125752f9739678f5a0",
+      "drive_id": "1kaKh1sBseM15TBhBTaT4P4YzYGy07waO",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1501",
+      "municipality_name": "Salamá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1501_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:16.677323+00:00",
+      "artifact_file": "RADAR_V70_1501_STAGE_CANONICAL_c874f46a.json",
+      "artifact_sha256": "c874f46a7debd27b15cfe49c97f3a30171824e40e1ebda76195949feaa45b42b",
+      "artifact_file_sha256": "1ebc607acf8f6e6f78e3b13cf75060e451eb4aa5a7336ea53f1ceffa1505010a",
+      "drive_id": "1FTAX63-YzvS7C_dlLRMv8bZhWg5P6vud",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1502",
+      "municipality_name": "San Miguel Chicaj",
+      "checkpoint": "SCALE_340_CHECKPOINT_1502_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:17.984894+00:00",
+      "artifact_file": "RADAR_V70_1502_STAGE_CANONICAL_463f019a.json",
+      "artifact_sha256": "463f019a3360544c6f880dd393ebf9d8139793bbf421e3a3a54adfff94955d4a",
+      "artifact_file_sha256": "29e1c3d97a9691f25092ec71fa7195fbaa710093c9393bbbafd053f692bd8e42",
+      "drive_id": "1luDA4ZXXw8Xv1aSbzCSsKx4msUpjPWDO",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1503",
+      "municipality_name": "Rabinal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1503_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:19.394908+00:00",
+      "artifact_file": "RADAR_V70_1503_STAGE_CANONICAL_bf59d744.json",
+      "artifact_sha256": "bf59d7445128472b1040ee07cd2905766afee3162bd04b02875f464ce699f884",
+      "artifact_file_sha256": "ba24b865d8123491b8faff6b181af533a715c3aa5d05f580f23ee4bb27ceff56",
+      "drive_id": "1po9kXPtPAdFQzih8S6q0-05IcuUqqfRW",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1504",
+      "municipality_name": "Cubulco",
+      "checkpoint": "SCALE_340_CHECKPOINT_1504_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:20.844986+00:00",
+      "artifact_file": "RADAR_V70_1504_STAGE_CANONICAL_206ae0ac.json",
+      "artifact_sha256": "206ae0ac9a242a829fe9628eed56226077a795471e3c10cfb741437c2cee50d1",
+      "artifact_file_sha256": "77ff81b2a25d81e8ea4e8b795c93b3e58d5dd4bd7edc412fdfce36fc416e05d6",
+      "drive_id": "188qoDnopH1aMeq6MjHRhNbZnr4jOcCtu",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1505",
+      "municipality_name": "Granados",
+      "checkpoint": "SCALE_340_CHECKPOINT_1505_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:22.251564+00:00",
+      "artifact_file": "RADAR_V70_1505_STAGE_CANONICAL_43780c9a.json",
+      "artifact_sha256": "43780c9a6b54c22efe71607f49003728973affc6021a5be44496b36d2ee21b76",
+      "artifact_file_sha256": "f12994623240ad702a97f8022fa8e4a3861ac842e90a48aa8a2443d862ad358c",
+      "drive_id": "1cSgz0K2oJckKUxYd-uX_da698Kc2Yilp",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1506",
+      "municipality_name": "Santa Cruz El Chol",
+      "checkpoint": "SCALE_340_CHECKPOINT_1506_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:23.485625+00:00",
+      "artifact_file": "RADAR_V70_1506_STAGE_CANONICAL_43e7858a.json",
+      "artifact_sha256": "43e7858a11399871fe40e4717a574376d0957168e6771f2fd0e4a8f299fff1b3",
+      "artifact_file_sha256": "ddb912469646b54bc544c0a81698c14bc7a603b7f40c217ab47a77908ade4e94",
+      "drive_id": "1FNwiOVGx_GhjWI2WMGRBNkmnNWW-PVdL",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1507",
+      "municipality_name": "San Jerónimo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1507_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:24.634366+00:00",
+      "artifact_file": "RADAR_V70_1507_STAGE_CANONICAL_6f9cbc74.json",
+      "artifact_sha256": "6f9cbc74c9e1cecb0758e4ac3aad83923642087d19567cdae0ac5c19af044162",
+      "artifact_file_sha256": "daa5fac2495eb53b99e4ec699e3bd08e064c9868ca056877f7cc3ac4858a6716",
+      "drive_id": "1eW6kYugzlbNtnbvVz7DJllKfxGmrec98",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1508",
+      "municipality_name": "Purulhá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1508_COMPLETE.json",
+      "generated_at": "2026-09-19T19:15:25.956513+00:00",
+      "artifact_file": "RADAR_V70_1508_STAGE_CANONICAL_1181bc07.json",
+      "artifact_sha256": "1181bc075f58ddb1f7bd1d6550dd21799374f21a0d886976e3684f9151056562",
+      "artifact_file_sha256": "957ed50ea7df5d29b9f0e6943091c88e16405a0f384ffa32b1a1ed7a013122e4",
+      "drive_id": "1BogADYdoy3E4Glb2iANl_jYqDVe2bT1K",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 123,
+    "geo_held": 0
+  },
+  "national_after": {
+    "complete_6_of_6": 259,
+    "semantic_special": 2,
+    "zero_of_6": 79
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1602",
+      "1603",
+      "1604",
+      "1605",
+      "1606",
+      "1607",
+      "1608",
+      "1609",
+      "1610",
+      "1611",
+      "1612",
+      "1613"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}
