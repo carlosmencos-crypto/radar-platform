@@ -448,7 +448,7 @@ try {
   await waitFor(`!document.querySelector('.report-builder')`, "generic ReportBuilder Escape close");
 
   // Render and print the exact municipio-360 report route opened by the canonical Intelligence export panel.
-  const reportRoute = "/reporte/municipio-360?blocks=electoral,center,territory,indicators,finance";
+  const reportRoute = "/reporte/municipio-360?municipality=0509&blocks=electoral,center,territory,indicators,finance";
   await navigate(reportRoute);
   await waitFor(`Boolean(document.querySelector('.report-shell'))`, "report shell DOM", 12000);
   await delay(900);
@@ -468,7 +468,7 @@ try {
   if (!reportOk) throw new Error("Report screenshot/PDF output is unexpectedly empty.");
 
   // Prove the general PDF is a useful executive report populated from live campaign modules.
-  const executiveRoute = "/reporte/inicio?parts=summary,metrics,charts,sections,records,trace&activities=all";
+  const executiveRoute = "/reporte/inicio?municipality=0509&parts=summary,metrics,charts,sections,records,trace&activities=all";
   await navigate(executiveRoute);
   await waitFor(`Boolean(document.querySelector('.report-shell')) && (document.body?.innerText||'').includes('Ana María Pérez') && (document.body?.innerText||'').includes('INTELIGENCIA MUNICIPAL') && (document.body?.innerText||'').includes('Plan de campaña vigente') && (document.body?.innerText||'').includes('Todas las actividades') && (document.body?.innerText||'').includes('Asamblea territorial realizada') && (document.body?.innerText||'').includes('Recorrido reprogramado')`, "populated executive report with all activities", 12000);
   await delay(900);
