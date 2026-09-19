@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1709-1902",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "b54b148d7085ce3b9461affc9e091ee41c8b98cd",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1709",
+      "municipality_name": "San Luis",
+      "checkpoint": "SCALE_340_CHECKPOINT_1709_COMPLETE.json",
+      "generated_at": "2026-09-19T22:15:59.594446+00:00",
+      "artifact_file": "RADAR_V70_1709_STAGE_CANONICAL_63b4f490.json",
+      "artifact_sha256": "63b4f490abd60a5394647c5506bba2b91adebedecfdbdbb539f54fed3e020296",
+      "artifact_file_sha256": "a302d2d74a59cf72f355c8cafc8651a517e6af8081f28fefc49f0b72848c77a6",
+      "drive_id": "1HgwePxyKXlS4lxyBQj0S-3KeUI1ZyDXy",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1710",
+      "municipality_name": "Sayaxché",
+      "checkpoint": "SCALE_340_CHECKPOINT_1710_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:01.910857+00:00",
+      "artifact_file": "RADAR_V70_1710_STAGE_CANONICAL_d4285843.json",
+      "artifact_sha256": "d428584305f15720b1d3e52aebfe5c3b20412e09255172c95ea8a05ca428ba32",
+      "artifact_file_sha256": "930be31e4e5b6ef1fedb3bc1d1f20644ee0c97d7e236d2e7d356b67334844dd6",
+      "drive_id": "1daXdwQDG-D9_-gGf-qFNEPiESFcZ2O2U",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1711",
+      "municipality_name": "Melchor de Mencos",
+      "checkpoint": "SCALE_340_CHECKPOINT_1711_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:03.902404+00:00",
+      "artifact_file": "RADAR_V70_1711_STAGE_CANONICAL_ed161163.json",
+      "artifact_sha256": "ed16116397a137b95ae4616fd5a105375824370262c4c03f8f1a3bf8672296bd",
+      "artifact_file_sha256": "237f184a18c6fe575561278ec6b002b035b06584b4d4d8e2afe63709935cebc7",
+      "drive_id": "1Dxq0C6KowhsXW-afjZo3Hvksj9yB7-53",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1712",
+      "municipality_name": "Poptún",
+      "checkpoint": "SCALE_340_CHECKPOINT_1712_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:05.810904+00:00",
+      "artifact_file": "RADAR_V70_1712_STAGE_CANONICAL_9db60491.json",
+      "artifact_sha256": "9db60491f5d9feb8992aba662b4eca7984d65dbc9df94873f04f85022d1759df",
+      "artifact_file_sha256": "019756873e3d7a75f03f8bfc4f9040acdf26335fc4a7457782dc7b3724d1a198",
+      "drive_id": "1d7ZjHeetfOjZWD1_yBD8EoAahENwYj4M",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1713",
+      "municipality_name": "Las Cruces",
+      "checkpoint": "SCALE_340_CHECKPOINT_1713_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:07.634302+00:00",
+      "artifact_file": "RADAR_V70_1713_STAGE_CANONICAL_6026e9b3.json",
+      "artifact_sha256": "6026e9b3cc5bbff87d75a1664749a492d129127a83884ca2109b0407867db5ba",
+      "artifact_file_sha256": "65fbfb9a526647399ab2777b9ff79e449b8ba5eecdccfbc3c7a6badfce0b32e9",
+      "drive_id": "1RXCoKXmrhdNuHccnWRloqrafTJulGCdT",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1714",
+      "municipality_name": "El Chal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1714_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:09.492200+00:00",
+      "artifact_file": "RADAR_V70_1714_STAGE_CANONICAL_d02398a7.json",
+      "artifact_sha256": "d02398a741d93474b6b52db6a04154c9310cfebe801053700d1bc22abd86f162",
+      "artifact_file_sha256": "661903bec16a3fef04c5b512840ba0d6d16902d151f82cf222b25bf5eec55a93",
+      "drive_id": "1qn9bjBkXCiASKcH0Vzd0_gZ72gf6G8q4",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1801",
+      "municipality_name": "Puerto Barrios",
+      "checkpoint": "SCALE_340_CHECKPOINT_1801_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:11.624111+00:00",
+      "artifact_file": "RADAR_V70_1801_STAGE_CANONICAL_88e4aea2.json",
+      "artifact_sha256": "88e4aea2ef85f00fcf2b11437ceb7b7e51f04bf10f013ff702e1ffc98b9b3971",
+      "artifact_file_sha256": "7c04ce9b2a60cbb94971c0b45c149ec0303037446b32aebd0ea7667d40d8d3b5",
+      "drive_id": "1ma-Y1iRwgWzLvNkEyU0Ya7vn7YbSo3iR",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1802",
+      "municipality_name": "Livingston",
+      "checkpoint": "SCALE_340_CHECKPOINT_1802_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:13.630583+00:00",
+      "artifact_file": "RADAR_V70_1802_STAGE_CANONICAL_42249a1c.json",
+      "artifact_sha256": "42249a1c84e5db784a922817a8fdebb820801efafe8b715d6929462e219ba4f4",
+      "artifact_file_sha256": "2a5e09840afbed5ba1dd8f3e4d38965acaaf4ca2820b462b07139829587fd454",
+      "drive_id": "1x_smcuOpVbfNOzbh5Dkvp80O7VK23gUH",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1803",
+      "municipality_name": "El Estor",
+      "checkpoint": "SCALE_340_CHECKPOINT_1803_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:16.662137+00:00",
+      "artifact_file": "RADAR_V70_1803_STAGE_CANONICAL_a5d98ecf.json",
+      "artifact_sha256": "a5d98ecf1fb336310645d009c434c9aad393dc497313b21546640ad132e2ef60",
+      "artifact_file_sha256": "7e6cacdb1d3eb38e0776adec1b8c9438adbceaa201da0a3cbe492bc0bc7cdd3c",
+      "drive_id": "13l1dExvZjeAafSP-P23PHy50ramvpw8S",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1804",
+      "municipality_name": "Morales",
+      "checkpoint": "SCALE_340_CHECKPOINT_1804_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:19.154296+00:00",
+      "artifact_file": "RADAR_V70_1804_STAGE_CANONICAL_c24912b8.json",
+      "artifact_sha256": "c24912b8fbc2ee90076f58589ab9504789f3b49dc29443ff1974d58c4b70a2cf",
+      "artifact_file_sha256": "fc66a6007645c13676d76cbd0992cf374a2dd361d5c38d0c4457af45495cb069",
+      "drive_id": "1W2i02EyE4L35qFxwii5h3lgUg977f3sB",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1805",
+      "municipality_name": "Los Amates",
+      "checkpoint": "SCALE_340_CHECKPOINT_1805_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:21.455533+00:00",
+      "artifact_file": "RADAR_V70_1805_STAGE_CANONICAL_a4e24d24.json",
+      "artifact_sha256": "a4e24d243fd71d4356ebdfb3b2775d2912bca32b546c2b25facafff08c1cda78",
+      "artifact_file_sha256": "92da09e6e565555f264806ff53e7a854ec6cb2e89fafb0505013fd2d2db92085",
+      "drive_id": "1Wx3H_RFBADW6tUJMmq9AVahU0xD8IZeU",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1902",
+      "municipality_name": "Estanzuela",
+      "checkpoint": "SCALE_340_CHECKPOINT_1902_COMPLETE.json",
+      "generated_at": "2026-09-19T22:16:23.148395+00:00",
+      "artifact_file": "RADAR_V70_1902_STAGE_CANONICAL_b8da69e3.json",
+      "artifact_sha256": "b8da69e3702f97ef37bd17c0edbaadf08b6d1241e92a93467bfbc4aa284fd0a4",
+      "artifact_file_sha256": "bbec1af214d75a8e988ca8760bcc32cd21ddad3e87ecef47f12ff35e1a1307ee",
+      "drive_id": "18qXW6Lgrux0fnwsq7XyoGdGAH-l5DXBH",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 138,
+    "geo_held": 2
+  },
+  "national_after": {
+    "complete_6_of_6": 295,
+    "semantic_special": 2,
+    "zero_of_6": 43
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1903",
+      "1904",
+      "1905",
+      "1906",
+      "1907",
+      "1908",
+      "1909",
+      "1910",
+      "1911",
+      "2001",
+      "2002",
+      "2003"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}
