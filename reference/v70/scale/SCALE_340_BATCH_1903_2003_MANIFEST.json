@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1903-2003",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "04886991129016a1431f74372bd5fa89d6a1b966",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1903",
+      "municipality_name": "Río Hondo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1903_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:23.706392+00:00",
+      "artifact_file": "RADAR_V70_1903_STAGE_CANONICAL_06a6a100.json",
+      "artifact_sha256": "06a6a100d1e423eb065fab70dc4b16b1e0baa5f95868400c87a5a0c74cbf0118",
+      "artifact_file_sha256": "85086aff2463b5ee5cd8a4b4e4eaab8e51c33cece33e25cde1fb3906448677c4",
+      "drive_id": "1Rm7P6QSh--sh6JOqrWYV6wWxH_O8wI92",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1904",
+      "municipality_name": "Gualán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1904_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:25.139822+00:00",
+      "artifact_file": "RADAR_V70_1904_STAGE_CANONICAL_e41a6581.json",
+      "artifact_sha256": "e41a65815c1b003f163d459c48853bab150a717e5c93ee3c167e4332191e11de",
+      "artifact_file_sha256": "de55db8d2166e925e571d3f4e9d5ec19a8ac65b7f525a8202031fa02c4abe278",
+      "drive_id": "1ABWlHTyVZLC3uRA-mJVX5eH2I76XmZAW",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1905",
+      "municipality_name": "Teculután",
+      "checkpoint": "SCALE_340_CHECKPOINT_1905_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:26.404029+00:00",
+      "artifact_file": "RADAR_V70_1905_STAGE_CANONICAL_643944d6.json",
+      "artifact_sha256": "643944d6019c1157ff85d0a162b5e07bc34064f84150e7f564006f730b9f77f4",
+      "artifact_file_sha256": "779cd14ff840f957612efeae69a3e7bd0cdc6884f15131c90786b2c7935724e0",
+      "drive_id": "1TIG7yY77BYL7SIVhELRfuXac4tL9esv2",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1906",
+      "municipality_name": "Usumatlán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1906_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:27.772698+00:00",
+      "artifact_file": "RADAR_V70_1906_STAGE_CANONICAL_ca3c1d91.json",
+      "artifact_sha256": "ca3c1d91d06a8f3f424fef78acd0cce0b920bf7067bed66c38296dd1edd588e8",
+      "artifact_file_sha256": "43a15c6f3a074c036d228d63447b751e65ab551510229271211ea0c56041c198",
+      "drive_id": "1-jz_kDtONhu7A4IxE5ltD1DLm3QKr2Hi",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1907",
+      "municipality_name": "Cabañas",
+      "checkpoint": "SCALE_340_CHECKPOINT_1907_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:29.573850+00:00",
+      "artifact_file": "RADAR_V70_1907_STAGE_CANONICAL_1ce7344a.json",
+      "artifact_sha256": "1ce7344afda83fa73dd381719d64ad4960ce44b635847cd0c9c3bc8754b0a40f",
+      "artifact_file_sha256": "9eeaee4b459333e9a6dfc3a5e175989e4ee15df5e662033c2da0085be78c6a48",
+      "drive_id": "1p8qc-sWJkqdJHmwjUFCYVNkqn1d3L6gE",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1908",
+      "municipality_name": "San Diego",
+      "checkpoint": "SCALE_340_CHECKPOINT_1908_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:31.924168+00:00",
+      "artifact_file": "RADAR_V70_1908_STAGE_CANONICAL_d3703429.json",
+      "artifact_sha256": "d3703429b14b7864ee6edf51b70d60e08509722d37d9b7da6d8505b01dfa24da",
+      "artifact_file_sha256": "57416601a2296a523addff9603a191246637a06282d1181f852b8b4ebca512f3",
+      "drive_id": "1gHTNc34JslfndOuCzeOm8SXS1Cr6iihP",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1909",
+      "municipality_name": "La Unión",
+      "checkpoint": "SCALE_340_CHECKPOINT_1909_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:33.537382+00:00",
+      "artifact_file": "RADAR_V70_1909_STAGE_CANONICAL_c0963846.json",
+      "artifact_sha256": "c096384656f15ec3baaa288d0560b82506aea3cd32dab466b820dd0f14965195",
+      "artifact_file_sha256": "6a49a20e1a22438681fed016a3f5e0f35c5b9ff2f9467a1eaf049bba98af4a9d",
+      "drive_id": "1kSFoin9gkZms9qTk_O9Oc8_Vd1W4HcMf",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1910",
+      "municipality_name": "Huité",
+      "checkpoint": "SCALE_340_CHECKPOINT_1910_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:35.072104+00:00",
+      "artifact_file": "RADAR_V70_1910_STAGE_CANONICAL_7b9ec84e.json",
+      "artifact_sha256": "7b9ec84ef2c61a14e608564581ab4c1510cceb3cfc7f0d1ee3c0be34a75a7054",
+      "artifact_file_sha256": "2303a9cfa323c86f16a6fc2bb66ed37568e5cf9ff5eb4a85fc7bfaf1d0cd4224",
+      "drive_id": "1AQBfa97Zkz_7diJ5MqqhT-AMTgFGqU-h",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1911",
+      "municipality_name": "San Jorge",
+      "checkpoint": "SCALE_340_CHECKPOINT_1911_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:36.344776+00:00",
+      "artifact_file": "RADAR_V70_1911_STAGE_CANONICAL_342ba3be.json",
+      "artifact_sha256": "342ba3beff896d3e404443cf9dd2371412c46323e053c41de1d27f6bd22f461f",
+      "artifact_file_sha256": "9a8294f7f4f02a7c33e1a16239e556428c744f15fb0a3812c5c60774a2de120e",
+      "drive_id": "1p1foI14173qe4mfIewaTZwr4vySm89Xb",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2001",
+      "municipality_name": "Chiquimula",
+      "checkpoint": "SCALE_340_CHECKPOINT_2001_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:38.154121+00:00",
+      "artifact_file": "RADAR_V70_2001_STAGE_CANONICAL_f74c4f51.json",
+      "artifact_sha256": "f74c4f51c6ba34bb10b19ce1e393b4b488730763d5728eb093859118dc1d17f3",
+      "artifact_file_sha256": "56eb783bf80cc5a15e0d83ff40139ecb2814aa362d773b7046b2e31ea6bdc0bc",
+      "drive_id": "183RXnNnbGIboY7EvrIoJh7UoF45nVBBm",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2002",
+      "municipality_name": "San José La Arada",
+      "checkpoint": "SCALE_340_CHECKPOINT_2002_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:39.659777+00:00",
+      "artifact_file": "RADAR_V70_2002_STAGE_CANONICAL_23cbbf5b.json",
+      "artifact_sha256": "23cbbf5b1c44ce7fd7f54d2946c1ca1c07fc5a425f5e92876bc5d6f5fb2d4515",
+      "artifact_file_sha256": "8e8cc59dc7c16ae5a27acfe5cff5545fec636a5e0684e177090de73395dfbcc0",
+      "drive_id": "1nsvMp0D3-Qy9uOur5ewVHHe-YvZTbOQV",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2003",
+      "municipality_name": "San Juan Ermita",
+      "checkpoint": "SCALE_340_CHECKPOINT_2003_COMPLETE.json",
+      "generated_at": "2026-09-19T23:07:41.429046+00:00",
+      "artifact_file": "RADAR_V70_2003_STAGE_CANONICAL_1a363ddf.json",
+      "artifact_sha256": "1a363ddf5f3a08696d8777a7095acce324b4bb0382fc82d174fa525236a0e52e",
+      "artifact_file_sha256": "380db9707abb21446e983770f6fcff656d1fc3debed3926dcd119a2c3171d4b0",
+      "drive_id": "1LMAwz5hPFaOXStzFZSBBd6T5DXSPF0h_",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 101,
+    "geo_held": 2
+  },
+  "national_after": {
+    "complete_6_of_6": 307,
+    "semantic_special": 2,
+    "zero_of_6": 31
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "2004",
+      "2005",
+      "2006",
+      "2007",
+      "2008",
+      "2009",
+      "2010",
+      "2011",
+      "2101",
+      "2102",
+      "2103",
+      "2104"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}
