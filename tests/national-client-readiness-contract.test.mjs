@@ -16,6 +16,7 @@ const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
 const genericRich = read("src/components/V70CanonicalRichMunicipality.tsx");
 const territory = read("src/components/V70ElectoralTerritory.tsx");
 const unavailableTerritory = read("src/components/V70ElectoralTerritoryUnavailable.tsx");
+const fullscreen = read("src/components/V70MapFullscreen.tsx");
 const css = read("src/styles/canonical-adapter.css");
 const dataMigrations = fs.readdirSync(path.join(root, "supabase/migrations"))
   .filter((name) => /^20260919(?:10|11)\d{4}_load_national_intelligence_profiles_part_\d+\.sql$/.test(name));
@@ -105,4 +106,6 @@ test("fullscreen intelligence preserves election tabs and keeps every layer cont
   assert.match(css, /intelligence-fullscreen-frame:fullscreen>\.election-switch/);
   assert.match(css, /intelligence-fullscreen-frame:fullscreen \.intelligence-map-toolbar \.layer-switch\{justify-content:flex-end;overflow-x:auto\}/);
   assert.match(css, /map-fullscreen-frame:fullscreen \.operational-map-toolbar\{grid-template-columns:minmax\(210px,\.72fr\)/);
+  assert.match(fullscreen, /event\.key === "Escape"/);
+  assert.match(fullscreen, /document\.exitFullscreen\(\)/);
 });

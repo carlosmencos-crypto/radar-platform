@@ -18,8 +18,15 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
       window.setTimeout(() => window.dispatchEvent(new Event("resize")), 80);
       window.setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
     };
+    const exitWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && document.fullscreenElement === targetRef.current) void document.exitFullscreen();
+    };
     document.addEventListener("fullscreenchange", sync);
-    return () => document.removeEventListener("fullscreenchange", sync);
+    document.addEventListener("keydown", exitWithEscape);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("keydown", exitWithEscape);
+    };
   }, [onChange, targetRef]);
 
   async function toggle() {
