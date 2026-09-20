@@ -14,6 +14,7 @@ const profile = read("src/data/radarRuntimeProfile.ts");
 const model = read("src/data/v70MunicipalIntelligence.ts");
 const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
 const directory = read("src/components/V70DirectDirectory0509.tsx");
+const operationalMap = read("src/components/V70OperationalMap.tsx");
 const genericRich = read("src/components/V70CanonicalRichMunicipality.tsx");
 const territory = read("src/components/V70ElectoralTerritory.tsx");
 const unavailableTerritory = read("src/components/V70ElectoralTerritoryUnavailable.tsx");
@@ -98,6 +99,9 @@ test("client readiness distinguishes public intelligence from private voter dire
   assert.match(directory, /readiness\?\.status === "CLIENT_READY" && readiness\.possible_voters_loaded/);
   assert.match(directory, /Módulo listo para una campaña autorizada/);
   assert.match(directory, /no existe una fuente autorizada con nombres y DPI/);
+  assert.match(operationalMap, /const mapAvailable = Boolean\(runtime\?\.geo\.bbox\)/);
+  assert.match(operationalMap, /Mapa operativo aún no publicado/);
+  assert.match(operationalMap, /RADAR mantiene la estructura sin inventar ubicaciones/);
   assert.match(schema, /private\.can_read_data_vault\(country_code, municipality_id\)/);
   assert.match(schema, /revoke all on data_vault\.municipality_intelligence_profiles_v1 from public, anon, authenticated/);
   assert.doesNotMatch(schema, /grant select on data_vault\.municipality_intelligence_profiles_v1 to anon/);

@@ -383,8 +383,14 @@ try {
     const snapshot = JSON.parse(evaluated.result?.value ?? "{}");
     const text = snapshot.text ?? "";
     const html = snapshot.html ?? "";
+    const mapGeographyOk = html.includes("leaflet-container") || (
+      !runtime.geo.bbox
+      && html.includes("smart-map-unavailable")
+      && text.includes("Mapa operativo aún no publicado")
+      && text.includes("RADAR mantiene la estructura sin inventar ubicaciones")
+    );
     const mapRouteOk = slug !== "mapa" || (
-      html.includes("leaflet-container")
+      mapGeographyOk
       && (!isGolden || html.includes("agenda-map-marker"))
       && html.includes("map-layer-agenda on")
       && !html.includes("map-layer-concentracion on")

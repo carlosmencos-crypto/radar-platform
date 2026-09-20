@@ -821,6 +821,7 @@ export function V70OperationalMap() {
       <em>{layers[key] ? "✓" : "—"}</em>
     </button>
   );
+  const mapAvailable = Boolean(runtime?.geo.bbox);
   return (
     <>
       <section className="section-banner">
@@ -850,6 +851,7 @@ export function V70OperationalMap() {
             <span aria-hidden="true">⌕</span>
             <input
               value={query}
+              disabled={!mapAvailable}
               onFocus={() => {
                 setSearchOpen(true);
                 setCreateMode(false);
@@ -1029,6 +1031,7 @@ export function V70OperationalMap() {
         <button
           type="button"
           className={`map-new-activity ${createMode ? "active" : ""}`}
+          disabled={!mapAvailable}
           onClick={() => {
             setCreateMode((value) => {
               const next = !value;
@@ -1047,6 +1050,7 @@ export function V70OperationalMap() {
         <button
           type="button"
           className="map-satellite-toggle"
+          disabled={!mapAvailable}
           onClick={() => setSatellite((value) => !value)}
         >
           {satellite ? "Vista mapa" : "Vista satelital"}
@@ -1197,11 +1201,15 @@ export function V70OperationalMap() {
               <Link to={`/municipio/${municipality_code}/agenda?activity=${selectedActivity.id}`}>Abrir en Agenda →</Link>
             </article>
           ) : null}
-          <div
+          {mapAvailable ? <div
             ref={mapNode}
             className="smart-map-canvas"
             aria-label={`Mapa operativo limitado al municipio de ${municipality_name}`}
-          />
+          /> : <div className="smart-map-canvas smart-map-unavailable canonical-map-pending" role="status">
+            <span>GEOLOCALIZACIÓN PENDIENTE</span>
+            <h2>Mapa operativo aún no publicado</h2>
+            <p>Las fuentes nacionales conservan los centros y comunidades de {municipality_name}, pero no publican coordenadas municipales verificables. RADAR mantiene la estructura sin inventar ubicaciones.</p>
+          </div>}
           <div className="map-boundary-note">
             Municipio {municipality_code} · navegación limitada
           </div>
