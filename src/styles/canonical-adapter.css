@@ -138,6 +138,17 @@
   box-shadow: 0 12px 34px color-mix(in srgb, var(--radar-grafito) 6%, transparent);
 }
 
+.directory-readiness-page{max-width:none;margin-top:16px}
+.directory-readiness-page>h2{margin:8px 0 10px;font-size:24px}
+.directory-readiness-page>p{max-width:820px;margin:0;color:var(--radar-muted);line-height:1.6}
+.directory-readiness-requirements{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.directory-readiness-requirements article{display:grid;gap:5px;min-height:112px;padding:16px;border:1px solid var(--radar-line);border-radius:12px;background:var(--radar-marfil)}
+.directory-readiness-requirements article.ready{border-color:color-mix(in srgb,var(--radar-salvia) 55%,var(--radar-line));background:color-mix(in srgb,var(--radar-salvia) 9%,var(--radar-marfil))}
+.directory-readiness-requirements small{color:var(--radar-petroleo);font-size:8px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.directory-readiness-requirements b{font-size:14px}
+.directory-readiness-requirements span{color:var(--radar-muted);font-size:10px;line-height:1.45}
+@media(max-width:760px){.directory-readiness-requirements{grid-template-columns:1fr}}
+
 .canonical-lockmark {
   display: grid;
   place-items: center;

@@ -162,6 +162,23 @@ function readPrivateImage(file: File) {
 }
 
 function ElectorsDirectoryCanonical() {
+  const { municipality_code, municipality_name } = useMunicipalityContext();
+  const readiness = getInstalledRadarRuntime(municipality_code)?.client_readiness;
+  const directoryReady = readiness?.status === "CLIENT_READY" && readiness.possible_voters_loaded;
+  if (!directoryReady) return <section className="canonical-protected-page directory-readiness-page" role="status">
+    <small>{readiness?.status ?? "BLOCKED"}</small>
+    <h2>Módulo listo para una campaña autorizada</h2>
+    <p>La Inteligencia Municipal pública de {municipality_name} está disponible. El directorio privado de posibles votantes permanece cerrado porque todavía no existe una fuente autorizada con nombres y DPI para esta campaña.</p>
+    <div className="directory-readiness-requirements">
+      <article className="ready"><small>Inteligencia pública</small><b>Disponible</b><span>El perfil municipal nacional continúa accesible.</span></article>
+      <article><small>Campaña autorizada</small><b>{readiness?.campaign_connected ? "Conectada" : "Requisito pendiente"}</b><span>Debe asociarse una campaña válida al municipio.</span></article>
+      <article><small>Directorio privado</small><b>{readiness?.possible_voters_loaded ? "Cargado" : "Requisito pendiente"}</b><span>Se requiere una carga autorizada, aislada y verificable.</span></article>
+    </div>
+  </section>;
+  return <ElectorsDirectoryReady />;
+}
+
+function ElectorsDirectoryReady() {
   const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
   const municipalRuntime = getInstalledRadarRuntime(municipality_code);
   const communityOptions =
