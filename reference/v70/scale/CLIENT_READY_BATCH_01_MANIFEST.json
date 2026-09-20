@@ -1,0 +1,74 @@
+{
+  "schema": "radar_v70_client_ready_batch_manifest_v1",
+  "batch": "CLIENT_READY_01_RUNTIME_PERMISSION_RLS",
+  "status": "IMPLEMENTED_AWAITING_GITHUB_QUALITY",
+  "generated_at": "2026-09-20T03:15:13Z",
+  "branch": "scale/v70-340-runtime",
+  "pr": 34,
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "38a46b78c19f179a60b501028446d87cc618ecfe",
+  "scope": {
+    "runtime": "radar_authorized_runtime_v8",
+    "municipal_routes": 340,
+    "departments": 22,
+    "parameters": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "changes": [
+      "Consume y valida el estado semántico client_readiness del runtime v8.",
+      "Filtra navegación municipal por campaña, rol y permisos.",
+      "Mantiene Pulso fuera del carril general salvo pulse:read explícito.",
+      "Conserva estado limpio de Data Vault cuando no existe Campaign Vault.",
+      "Añade smoke client-ready 340/340 y 22/22 departamentos.",
+      "Cambia radar_authorized_voter_communities a SECURITY INVOKER con RLS del llamador."
+    ]
+  },
+  "supabase_verification": {
+    "municipalities": 340,
+    "departments": 22,
+    "intelligence_ready": 15,
+    "without_intelligence_profile": 325,
+    "with_active_campaign": 2,
+    "clean_without_campaign": 338,
+    "runtime_v8_authenticated_execute": true,
+    "runtime_v8_anon_execute": false,
+    "community_rpc_security_definer": false,
+    "community_rpc_0509_rows": 148,
+    "community_rpc_0509_cross_municipality_rows": 0,
+    "unaffiliated_authenticated_contexts": 0,
+    "unaffiliated_campaign_rows": 0,
+    "unaffiliated_membership_rows": 0,
+    "unaffiliated_campaign_vault_rows": 0,
+    "unaffiliated_data_vault_rows": 0
+  },
+  "quality_local": {
+    "npm_ci": "PASS",
+    "lint": "PASS_0_WARNINGS_0_ERRORS",
+    "typecheck": "PASS",
+    "tests": "PASS_61_OF_61",
+    "xlsx": "PASS_3_SHEETS",
+    "smoke_340": "PASS_340_OF_340",
+    "smoke_client_ready": "PASS_340_OF_340_22_OF_22",
+    "v70_parity": "PASS_11_OF_11",
+    "build": "PASS",
+    "preview": "PASS_340_OF_340",
+    "bundle_audit": "PASS_0_SECRETS_0_PII",
+    "browser_render": "DEFERRED_TO_GITHUB_ACTIONS_NO_LOCAL_CHROME"
+  },
+  "remaining_before_final_client_ready": [
+    "Complete and verify the remaining 325 municipal intelligence profiles without inventing source data.",
+    "Exercise authenticated browser sessions for platform admin, campaign admin/editor/viewer and clean new-client contexts.",
+    "Complete stratified visual QA across all 22 departments.",
+    "Enable Supabase Auth leaked-password protection through the authorized project setting."
+  ],
+  "constraints": {
+    "merge": false,
+    "deploy": false,
+    "production_write": false,
+    "hostinger_write": false,
+    "golden_redesign": false
+  }
+}
