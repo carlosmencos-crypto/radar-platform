@@ -455,6 +455,10 @@ try {
 
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/2 fullscreen interactions · national profile isolated`);
+} catch (error) {
+  const failure = error instanceof Error ? error.message : String(error);
+  fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "FAIL", error: failure, routes: results, interactions, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
+  throw error;
 } finally {
   cdp?.close();
   server.close();
