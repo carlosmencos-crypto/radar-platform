@@ -1,0 +1,63 @@
+{
+  "schema": "radar_v70_client_ready_batch_manifest_v1",
+  "batch": "CLIENT_READY_03_AUTHENTICATED_ROLE_RLS",
+  "status": "IMPLEMENTED_AWAITING_GITHUB_QUALITY",
+  "generated_at": "2026-09-20T04:57:05Z",
+  "branch": "scale/v70-340-runtime",
+  "pr": 34,
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "88787fead955160b8af4344187bb8bc7a2f6430c",
+  "scope": {
+    "application_instances": 1,
+    "municipalities": 340,
+    "departments": 22,
+    "real_campaign_municipalities": ["0509", "1208"],
+    "authenticated_roles": [
+      "campaign_admin",
+      "campaign_editor",
+      "campaign_viewer",
+      "platform_admin",
+      "clean_client"
+    ],
+    "live_assertions": 14,
+    "live_assertions_passed": 14,
+    "assertions": [
+      "Los roles admin, editor y viewer reciben únicamente sus permisos canónicos.",
+      "Campaign Vault queda aislado entre las campañas reales de 0509 y 1208.",
+      "Admin y editor escriben; editor no elimina; viewer no escribe.",
+      "Viewer conserva lectura autorizada de Data Vault.",
+      "Un cliente nuevo sin membresía no ve contextos, campañas, contactos ni perfiles de inteligencia.",
+      "Platform admin obtiene contexto territorial limpio sin acceso implícito a Campaign Vault.",
+      "Todos los usuarios y contactos QA efímeros se eliminan dentro de la transacción comprobada."
+    ]
+  },
+  "supabase_snapshot": {
+    "municipalities": 340,
+    "departments": 22,
+    "intelligence_ready": 15,
+    "intelligence_pending": 325,
+    "active_campaign_municipalities": 2,
+    "clean_without_campaign": 338,
+    "ephemeral_qa_users_after_run": 0,
+    "ephemeral_qa_contacts_after_run": 0,
+    "leaked_password_protection": "DISABLED_REQUIRES_AUTH_CONFIGURATION_AUTHORITY",
+    "note": "La prueba usa datos efímeros determinísticos, valida RLS bajo rol authenticated y confirma limpieza; no imputa evidencia."
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "new_gate": "client-ready-role-isolation.test.mjs",
+    "live_sql_gate": "supabase/qa/client_ready_role_isolation_v1.sql"
+  },
+  "remaining_before_final_client_ready": [
+    "Completar 325 perfiles municipales de inteligencia únicamente cuando exista evidencia fuente.",
+    "Habilitar protección de contraseñas filtradas en Supabase Auth mediante configuración autorizada."
+  ],
+  "constraints": {
+    "merge": false,
+    "deploy": false,
+    "production_write": false,
+    "hostinger_write": false,
+    "golden_redesign": false,
+    "persistent_synthetic_data": false
+  }
+}
