@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1406-1417",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "3da304008641725fb62c051db35ed65add6cf194",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1406",
+      "municipality_name": "Santo Tomás Chichicastenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1406_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:09.873079+00:00",
+      "artifact_file": "RADAR_V70_1406_STAGE_CANONICAL_65164398.json",
+      "artifact_sha256": "651643981c97221a51eb4a22ced71826abcd37eebc048f21b2ddf1ca1b3a463a",
+      "artifact_file_sha256": "2fda401a1c8530eb3b60d723d2333390e138ca7b1b84a9f01118bdf9ef58fbea",
+      "drive_id": "1cZ7rT6-ZX3R9ufzNynF9kjUWNsb-UnHa",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1407",
+      "municipality_name": "Patzité",
+      "checkpoint": "SCALE_340_CHECKPOINT_1407_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:11.268610+00:00",
+      "artifact_file": "RADAR_V70_1407_STAGE_CANONICAL_92955a57.json",
+      "artifact_sha256": "92955a57bef4e3c1053346ed84f583c413dde6c1b74eb788576d966960da2ad0",
+      "artifact_file_sha256": "41386c81a1b39a566c6a0073d0bd486e17e11bfadbe1e7633c457bdc35cbdf2a",
+      "drive_id": "1LZHJZum8SjQVeeZn2VYOVlqzQtoGBqws",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1408",
+      "municipality_name": "San Antonio Ilotenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1408_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:12.814994+00:00",
+      "artifact_file": "RADAR_V70_1408_STAGE_CANONICAL_907e3f21.json",
+      "artifact_sha256": "907e3f21415edba59a6851ac2556253599131b9d0a5f40bd997a2c1fcfc3ccdb",
+      "artifact_file_sha256": "b54cff32bf670453e2808ee0d69b9fe363245f5339a9f4f8d4cf7df7e4f75eb0",
+      "drive_id": "1P3ZL7AXCF86ioQk7tv1Gv5sH2Jvk3UgQ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1409",
+      "municipality_name": "San Pedro Jocopilas",
+      "checkpoint": "SCALE_340_CHECKPOINT_1409_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:14.307364+00:00",
+      "artifact_file": "RADAR_V70_1409_STAGE_CANONICAL_7a77e595.json",
+      "artifact_sha256": "7a77e59516edc8c89851a9d6cf9ca4b2009500aaeb48a12aed1f704d0eff104c",
+      "artifact_file_sha256": "15fb8ea32c7ba5193b374f29623e9872321c5ee29f89cd6269474dbefc5f07b9",
+      "drive_id": "1ckGSKHS4zAXD0QKnOqn1TEPtFnHtQLDC",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1410",
+      "municipality_name": "Cunén",
+      "checkpoint": "SCALE_340_CHECKPOINT_1410_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:15.802625+00:00",
+      "artifact_file": "RADAR_V70_1410_STAGE_CANONICAL_0090f3af.json",
+      "artifact_sha256": "0090f3af35421d6a36f02756fceb40d90def68d12e6b72c2e504d2c8e8bfc7bb",
+      "artifact_file_sha256": "2109f6502751e1d357b5258a11cfa0b86eda3474266260299825b68fc721a4f4",
+      "drive_id": "1BGA1KTv2pVWxeJir6DbyganFPNMMV5zw",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1411",
+      "municipality_name": "San Juan Cotzal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1411_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:17.293398+00:00",
+      "artifact_file": "RADAR_V70_1411_STAGE_CANONICAL_82cc73ab.json",
+      "artifact_sha256": "82cc73abca450626c8b308c304f3b393d5e1abd9d9aafe18b37fc948d5b49f3c",
+      "artifact_file_sha256": "1bd8c75082376cc84ad5c22350db8c91d710ef6c843442103ce1a3c176c04fa1",
+      "drive_id": "1R1otRZgSzTsXlP6FDDGzYRfdIJBO12md",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1412",
+      "municipality_name": "Joyabaj",
+      "checkpoint": "SCALE_340_CHECKPOINT_1412_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:18.908513+00:00",
+      "artifact_file": "RADAR_V70_1412_STAGE_CANONICAL_8af7417a.json",
+      "artifact_sha256": "8af7417a250987be311dcf66f79c4192b779c732cd92003d20a6bb59db379866",
+      "artifact_file_sha256": "a8659c9c73fb0ab2af8e0df6b8e1d3eb4a7ecac3ff1e52b61a973d673b1096ad",
+      "drive_id": "1R4irRQ6WhOzYxiO7vc9ddhvTS9wvnEiC",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1413",
+      "municipality_name": "Santa María Nebaj",
+      "checkpoint": "SCALE_340_CHECKPOINT_1413_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:20.581500+00:00",
+      "artifact_file": "RADAR_V70_1413_STAGE_CANONICAL_e1dbe13f.json",
+      "artifact_sha256": "e1dbe13fb94a834dcd2ce12ae8f6d7ba885792bfca86ce92a943eff4bdb53608",
+      "artifact_file_sha256": "a50105aea3649445878e63b56fb105ae794a5288cd51c4becc2ea69289fe8279",
+      "drive_id": "1hqtwjMsm5IYnvwuKwxDUXfdAkzJUFfjr",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1414",
+      "municipality_name": "San Andrés Sajcabajá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1414_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:21.878150+00:00",
+      "artifact_file": "RADAR_V70_1414_STAGE_CANONICAL_c5d222fd.json",
+      "artifact_sha256": "c5d222fd9e2cf9fe1af2f22ac6bfd23fc8a019992da4f23435fc8023a7e5f575",
+      "artifact_file_sha256": "3b2b6ca4e2eca3f7dc391ab38d2be7a346f0046b5d8685c14b37e18ec93b872d",
+      "drive_id": "1TB0ewrKWNYRe9-AEBZ_rWhcPIhKIKkrv",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1415",
+      "municipality_name": "San Miguel Uspantán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1415_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:23.465944+00:00",
+      "artifact_file": "RADAR_V70_1415_STAGE_CANONICAL_edc824a1.json",
+      "artifact_sha256": "edc824a1648429ce88298e71b4a1c6caa7b7a987ededc5f90d27eafa4252f445",
+      "artifact_file_sha256": "a6b60cbe5c5eabe8cd5b3883243e5bc20379a1e067e111f112c8ec3b1fb93f57",
+      "drive_id": "1cDi-8wyezasrtetUpW97FRWxHhEQZjHj",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1416",
+      "municipality_name": "Sacapulas",
+      "checkpoint": "SCALE_340_CHECKPOINT_1416_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:24.927648+00:00",
+      "artifact_file": "RADAR_V70_1416_STAGE_CANONICAL_6a8b9619.json",
+      "artifact_sha256": "6a8b96199f2a4fa4cb071b23786d1e06a1630b0735b652c601f9a1aa10ca02fe",
+      "artifact_file_sha256": "667116019bfd0232945676f47b55ce77995d524ac5f434852448dd6543e1e190",
+      "drive_id": "1hwmGFEcTwczjwIHDn-ux4bAGQujeC7rx",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1417",
+      "municipality_name": "San Bartolomé Jocotenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1417_COMPLETE.json",
+      "generated_at": "2026-09-19T18:07:26.274005+00:00",
+      "artifact_file": "RADAR_V70_1417_STAGE_CANONICAL_79ea57a7.json",
+      "artifact_sha256": "79ea57a75c4614ac7e9e2606ce288f51a289b6509e18a40b28d014c7cb96549f",
+      "artifact_file_sha256": "ebd3557d0c4a97f80b67874190d8f536bbda492e2231073962aa6ed9d7371276",
+      "drive_id": "1HPHJL3AMUMCJtAvOpWJoDRpvEdGBKBzV",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 142,
+    "geo_held": 4
+  },
+  "national_after": {
+    "complete_6_of_6": 247,
+    "semantic_special": 2,
+    "zero_of_6": 91
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1418",
+      "1419",
+      "1420",
+      "1421",
+      "1501",
+      "1502",
+      "1503",
+      "1504",
+      "1505",
+      "1506",
+      "1507",
+      "1508"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

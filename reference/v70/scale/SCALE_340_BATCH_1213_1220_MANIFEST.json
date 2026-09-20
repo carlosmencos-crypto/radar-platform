@@ -1,0 +1,173 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1213-1220",
+  "protocol": "ACCELERATED_BATCH_8",
+  "status": "COMPLETE_QUALITY_SUCCESS",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "5008485899631b186f00c3594db1eb9a2d139e3b",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1213",
+      "municipality_name": "El Tumbador",
+      "checkpoint": "SCALE_340_CHECKPOINT_1213_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:05.406474+00:00",
+      "artifact_file": "RADAR_V70_1213_STAGE_CANONICAL_2061007b.json",
+      "artifact_sha256": "2061007ba08d2fcc88b436bf48af8959939af3d7b7efaf1c9f8022d250777dfb",
+      "artifact_file_sha256": "c862bac9ceed61acccd69f6adc4abc30fcffca361ed4d09c5d4259e163d8329d",
+      "drive_id": "1azcmA1LbJ6_ZpflXiQ2jObt8I3XRxgwc",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1214",
+      "municipality_name": "El Rodeo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1214_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:07.260534+00:00",
+      "artifact_file": "RADAR_V70_1214_STAGE_CANONICAL_add3f2a5.json",
+      "artifact_sha256": "add3f2a5bce8eb1a547fe20d3d0b2978dc4428fb6382e86a3edf5318e324f9eb",
+      "artifact_file_sha256": "6daf187e95ba590e9ace278ffaacc45b75284ec8e99d551c6fd48768238e6769",
+      "drive_id": "1cWHQSZn-O6u13wekmjrt_pu7z6gQ9eIV",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1215",
+      "municipality_name": "Malacatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1215_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:09.171716+00:00",
+      "artifact_file": "RADAR_V70_1215_STAGE_CANONICAL_d9b4d486.json",
+      "artifact_sha256": "d9b4d486d37febf53d26b9d90b0ad13e420836542c03616a7121adc79936e64a",
+      "artifact_file_sha256": "4748a04d48580e61a45eaafdb2b11765b214f0c8bf41f8ba2e16218ccfd27325",
+      "drive_id": "1D3rH1afmzx9BMvUP21koZLi3_WEwQHjP",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1216",
+      "municipality_name": "Catarina",
+      "checkpoint": "SCALE_340_CHECKPOINT_1216_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:11.025313+00:00",
+      "artifact_file": "RADAR_V70_1216_STAGE_CANONICAL_87cf959d.json",
+      "artifact_sha256": "87cf959dab246e836139a2aa8cae5c9647cfe85c5ab38dc809aafbaf4e9aad15",
+      "artifact_file_sha256": "88561f98c63e87c6ce6685fb2690475c589c3562dcad85c4cfe15199a065300e",
+      "drive_id": "1dEvRjtw4ljSGkdqZWwECHTEBHbJxUr5l",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1217",
+      "municipality_name": "Ayutla",
+      "checkpoint": "SCALE_340_CHECKPOINT_1217_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:12.876886+00:00",
+      "artifact_file": "RADAR_V70_1217_STAGE_CANONICAL_5560b327.json",
+      "artifact_sha256": "5560b327e96da864b3a56d0006da921c1dfd39358f5438533109091e761900bb",
+      "artifact_file_sha256": "45c290157162a41a1d59742bb6854e267585c310322d4256cbab00711b4c5169",
+      "drive_id": "1DO5EjrVPCGxz8cySNEcvBZ-h5A-gJ55v",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1218",
+      "municipality_name": "Ocós",
+      "checkpoint": "SCALE_340_CHECKPOINT_1218_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:14.629653+00:00",
+      "artifact_file": "RADAR_V70_1218_STAGE_CANONICAL_3c566aa3.json",
+      "artifact_sha256": "3c566aa3c2953fe7ae05e14a2b5dc4e59a023d8b9880716bd9e554ee53168ee6",
+      "artifact_file_sha256": "421cd819d9b8419d58b8689f9e767d49da724451c32f6268a6aaa4fc0b9e8285",
+      "drive_id": "135uk5P1TJgv3DAoIYEbJdVotqH3FtRDj",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1219",
+      "municipality_name": "San Pablo",
+      "checkpoint": "SCALE_340_CHECKPOINT_1219_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:17.197076+00:00",
+      "artifact_file": "RADAR_V70_1219_STAGE_CANONICAL_ec31665c.json",
+      "artifact_sha256": "ec31665c335289fb1c222b3905421568f4bb7166bf583f676653e66ac326c33c",
+      "artifact_file_sha256": "6190b52c7a8b9e950468366866e366c5412a7abc9a38c79b34093444b0b6b24a",
+      "drive_id": "10s5dk5_zmSP71kCVShT_EdhaPD8Gb3QJ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1220",
+      "municipality_name": "El Quetzal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1220_COMPLETE.json",
+      "generated_at": "2026-09-19T13:13:19.147340+00:00",
+      "artifact_file": "RADAR_V70_1220_STAGE_CANONICAL_064a5456.json",
+      "artifact_sha256": "064a54563bf6f2f83c70cabebcae3c3ff5f65ca00668d75c582e475f806755bc",
+      "artifact_file_sha256": "482fb485c82d3ad673f724488e9447a0640585ce645a3071fc40f9a5ba83e589",
+      "drive_id": "1vkKe1IHpbRNBbbQ91jWlo7aJTmyb1qy8",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 8,
+    "prevalidated": 8,
+    "promoted": 8,
+    "quarantined": 0,
+    "six_of_six": 8,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 67,
+    "geo_held": 1
+  },
+  "national_after": {
+    "complete_6_of_6": 187,
+    "semantic_special": 2,
+    "zero_of_6": 151
+  },
+  "quality": {
+    "status": "SUCCESS",
+    "github_actions": {
+      "workflow": "Quality",
+      "run_id": 35444679326,
+      "commit_sha": "5008485899631b186f00c3594db1eb9a2d139e3b",
+      "conclusion": "success",
+      "note": "Same application code; this batch adds checkpoint JSON only."
+    },
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1221",
+      "1222",
+      "1223",
+      "1224",
+      "1225",
+      "1226",
+      "1227",
+      "1228",
+      "1229",
+      "1230",
+      "1301",
+      "1302"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

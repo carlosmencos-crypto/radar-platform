@@ -1,0 +1,209 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "2105-2210",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "e2944a4ce6411d6a64acbe7b383a9f06c19e41f7",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "2105",
+      "municipality_name": "San Carlos Alzatate",
+      "checkpoint": "SCALE_340_CHECKPOINT_2105_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:40.441450+00:00",
+      "artifact_file": "RADAR_V70_2105_STAGE_CANONICAL_4935f8f9.json",
+      "artifact_sha256": "4935f8f9c5b9a72c4f08ba6cb781ace8f701da4d12f6eab2557a73912b591f43",
+      "artifact_file_sha256": "f865735d4800a87e9031677c64aca538cf59ce506b24926e62fc8fb2b8fa5279",
+      "drive_id": "1NFKqlngjCzIsMs3GDAODgskoHCPNJvGY",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2106",
+      "municipality_name": "Monjas",
+      "checkpoint": "SCALE_340_CHECKPOINT_2106_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:41.848293+00:00",
+      "artifact_file": "RADAR_V70_2106_STAGE_CANONICAL_382042de.json",
+      "artifact_sha256": "382042de69d952a3b0f6f8c4bb2c0ca1d79d1e3f59eee717faa3b3a7fb254c16",
+      "artifact_file_sha256": "236a975c23f16a39529bff2b036b63fa407980c2ab9c4aa964ff2ba736944a95",
+      "drive_id": "1bgVEJgAO8o_x2kJRcE33_EyGogDZojFe",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2107",
+      "municipality_name": "Mataquescuintla",
+      "checkpoint": "SCALE_340_CHECKPOINT_2107_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:43.758192+00:00",
+      "artifact_file": "RADAR_V70_2107_STAGE_CANONICAL_bd0480d4.json",
+      "artifact_sha256": "bd0480d4c694d8f59ee349733911a462feb92b4a2f29b1264535eeda1ba45980",
+      "artifact_file_sha256": "30bfbc279fa388919a909a918bdd7a5010e19de8a8723c359227207dcd3cfe94",
+      "drive_id": "1Dk8XSReCP_UaXz8DU2bJVPIYJ3r6lqpp",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2202",
+      "municipality_name": "El Progreso",
+      "checkpoint": "SCALE_340_CHECKPOINT_2202_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:45.306282+00:00",
+      "artifact_file": "RADAR_V70_2202_STAGE_CANONICAL_bce8902b.json",
+      "artifact_sha256": "bce8902bfbef37b04fb4f7743ee642085fc213afb3cbaea814d61105929367f4",
+      "artifact_file_sha256": "3fb2d4a5fa4aae34c688e7c2ce9c502c795147a13961dea95d637290c39a1090",
+      "drive_id": "1t7cPevbdPN715HRD8wgOgt9qkK2lmsZU",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2203",
+      "municipality_name": "Santa Catarina Mita",
+      "checkpoint": "SCALE_340_CHECKPOINT_2203_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:46.784653+00:00",
+      "artifact_file": "RADAR_V70_2203_STAGE_CANONICAL_7f73c91f.json",
+      "artifact_sha256": "7f73c91f52486091017d3935c895376d69fc6ca5fc260a4cc54c4ee9c9b51ddd",
+      "artifact_file_sha256": "cbe60b2f098e04b839e2834765c4d2032c018e34fc7f48cc0af856486d0f8265",
+      "drive_id": "1URrfINVp9NKKFEl4AY4SxLei5NOV5G6v",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2204",
+      "municipality_name": "Agua Blanca",
+      "checkpoint": "SCALE_340_CHECKPOINT_2204_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:48.192002+00:00",
+      "artifact_file": "RADAR_V70_2204_STAGE_CANONICAL_8a00e0af.json",
+      "artifact_sha256": "8a00e0afb8b38ee1abbf921a3b2f6f10427c858d3e8c1ef081625e8a962af3f4",
+      "artifact_file_sha256": "2c04dc828754f3c980b4e465a16a80191dae50660ee38a70d87f3f395175b4f5",
+      "drive_id": "1IJmE7_QwFIRMvZx7mSJPrAk15IabVIPD",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2205",
+      "municipality_name": "Asunción Mita",
+      "checkpoint": "SCALE_340_CHECKPOINT_2205_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:49.768081+00:00",
+      "artifact_file": "RADAR_V70_2205_STAGE_CANONICAL_d08d6296.json",
+      "artifact_sha256": "d08d629687d2e9b70b0de246c052204a1c9601c9871f8e9a5feb86b155240b70",
+      "artifact_file_sha256": "28edc4361145f078ee114d5d6a27bee41a61a5339eeca61df846b27dfab21673",
+      "drive_id": "1TA48VBHWrJ1xKUPXficVGFBug0CgKD41",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2206",
+      "municipality_name": "Yupiltepeque",
+      "checkpoint": "SCALE_340_CHECKPOINT_2206_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:51.247285+00:00",
+      "artifact_file": "RADAR_V70_2206_STAGE_CANONICAL_b2fbe4f5.json",
+      "artifact_sha256": "b2fbe4f5a550496d2d51cf433b2b2fe4437b69020cf74c785f8815e037f8520e",
+      "artifact_file_sha256": "2737429f1ffd208b9c963445977968e00bc209834ba0efbcacfd634f5e18d02b",
+      "drive_id": "1COUF3fIXDpTvPHLXjhAoFcGzX9U8K-i8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2207",
+      "municipality_name": "Atescatempa",
+      "checkpoint": "SCALE_340_CHECKPOINT_2207_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:52.866575+00:00",
+      "artifact_file": "RADAR_V70_2207_STAGE_CANONICAL_3814ebba.json",
+      "artifact_sha256": "3814ebbac263fda191da48d8fbe2664365dcc0fa778378fa576f85908c6d0391",
+      "artifact_file_sha256": "23a1aae4bf04c01afb1305e81fc8ce5a57127cd47da48e5c711e82c98d637676",
+      "drive_id": "1I7JwouLHOEyLPt2rykaa5qLjxMIKAYve",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2208",
+      "municipality_name": "Jerez",
+      "checkpoint": "SCALE_340_CHECKPOINT_2208_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:54.261652+00:00",
+      "artifact_file": "RADAR_V70_2208_STAGE_CANONICAL_d648ff32.json",
+      "artifact_sha256": "d648ff327abe82579dbc842931b6b9fc2bae11f592fefc0edc1ee683fa1fbdf8",
+      "artifact_file_sha256": "1f0a4b4c1a104550a3f542246564bc2fc4161646b1cd2090a0298a53d9838e67",
+      "drive_id": "1I1MEdlG7WJLh_DaS7P1mU6EATmGldXS8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2209",
+      "municipality_name": "El Adelanto",
+      "checkpoint": "SCALE_340_CHECKPOINT_2209_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:55.724459+00:00",
+      "artifact_file": "RADAR_V70_2209_STAGE_CANONICAL_e33d0a64.json",
+      "artifact_sha256": "e33d0a6498b9645421eb7c61e7aed3fc4523232e8b2ff3e2e3b95b93a98ca3b6",
+      "artifact_file_sha256": "d9fb0db9c3861b11009d785f173dde6458cc03104ff5fd14d1d3c39fd79140a8",
+      "drive_id": "1IMz7dM-h7smb490Luff1YqIsSxLcgBNi",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2210",
+      "municipality_name": "Zapotitlán",
+      "checkpoint": "SCALE_340_CHECKPOINT_2210_COMPLETE.json",
+      "generated_at": "2026-09-20T01:10:57.245459+00:00",
+      "artifact_file": "RADAR_V70_2210_STAGE_CANONICAL_53b44165.json",
+      "artifact_sha256": "53b44165b9504bd96d447c19b765760d232455d65d121a283467991a40594c09",
+      "artifact_file_sha256": "eb907395e3edcdd5d362804c4529fcde21fd0bdbd87619028f39507112251ba4",
+      "drive_id": "1Jd-aTLMYO8X_vj8pRBbZB6L-6i2Ioc34",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 58,
+    "geo_held": 2
+  },
+  "national_after": {
+    "complete_6_of_6": 331,
+    "semantic_special": 2,
+    "zero_of_6": 7
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "2211",
+      "2212",
+      "2213",
+      "2214",
+      "2215",
+      "2216",
+      "2217"
+    ],
+    "size": 7,
+    "eligible_after_quality_success": true
+  }
+}

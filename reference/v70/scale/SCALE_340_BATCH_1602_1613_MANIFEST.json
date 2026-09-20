@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1602-1613",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "51a86f380313ab8dc89240c287d369f49a90752e",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1602",
+      "municipality_name": "Santa Cruz Verapaz",
+      "checkpoint": "SCALE_340_CHECKPOINT_1602_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:13.038124+00:00",
+      "artifact_file": "RADAR_V70_1602_STAGE_CANONICAL_be34faf6.json",
+      "artifact_sha256": "be34faf6c2e7a31c24885ee6b33cc7b2315e245f3a2df771757cb2b6ba1b79d9",
+      "artifact_file_sha256": "16034fbf3537995c31ec7e8668aa9a8cf4d6d51d994bad246641d156d97bb4ba",
+      "drive_id": "1jqlpEZRIN9emgJCAEbkVAICxwbV-Cmq-",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1603",
+      "municipality_name": "San Cristóbal Verapaz",
+      "checkpoint": "SCALE_340_CHECKPOINT_1603_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:14.503016+00:00",
+      "artifact_file": "RADAR_V70_1603_STAGE_CANONICAL_b7186f2c.json",
+      "artifact_sha256": "b7186f2cf3ac0ce0edd42df2972b3be921f74005438145af32a3e96856d4aaf1",
+      "artifact_file_sha256": "57ea32ef1bee2b4f16487bfdf1740d179e287b0cbf082239df697ec3e5c85514",
+      "drive_id": "1GdH32Z6LGuZhelhjbBenkt_Fr-mNVdgi",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1604",
+      "municipality_name": "Tactic",
+      "checkpoint": "SCALE_340_CHECKPOINT_1604_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:15.996542+00:00",
+      "artifact_file": "RADAR_V70_1604_STAGE_CANONICAL_864afb39.json",
+      "artifact_sha256": "864afb3924d8eb4ac9ecc6e4f52156eb85e393a049e925d14bbc0ef75e447c3a",
+      "artifact_file_sha256": "09398b467025f981fc50142be259648386c74927ca2300d6dc49d6e530742c70",
+      "drive_id": "1oEGywYFxImGFka-ngpYHHhel3TGri458",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1605",
+      "municipality_name": "Tamahú",
+      "checkpoint": "SCALE_340_CHECKPOINT_1605_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:17.272110+00:00",
+      "artifact_file": "RADAR_V70_1605_STAGE_CANONICAL_55cdc279.json",
+      "artifact_sha256": "55cdc2791db9dd897fb05341043781810666231cc523b031eb75463b8e713555",
+      "artifact_file_sha256": "f365e870b0a95ebaa874a092551ebac826f2a1851bad8765f175da5f0d66d0a8",
+      "drive_id": "1mVEyLIrIwbI8KZrfxbJQ5G5IvyiNY0rs",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1606",
+      "municipality_name": "San Miguel Tucurú",
+      "checkpoint": "SCALE_340_CHECKPOINT_1606_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:18.776070+00:00",
+      "artifact_file": "RADAR_V70_1606_STAGE_CANONICAL_20b85206.json",
+      "artifact_sha256": "20b8520620d316c10b98965cb60da3d6256ee0f69d95fc1afab22d490ee09149",
+      "artifact_file_sha256": "fb3866fcf2fffc24c258b16276a00c1e7007ce1763018db27e0593a9edeb23be",
+      "drive_id": "1JBxq01w6p4UTJ139D5KJOkVBO7CV0wK9",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1607",
+      "municipality_name": "Panzós",
+      "checkpoint": "SCALE_340_CHECKPOINT_1607_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:20.336364+00:00",
+      "artifact_file": "RADAR_V70_1607_STAGE_CANONICAL_3c684a3d.json",
+      "artifact_sha256": "3c684a3d09bb27cba4f967c1888e03e5912db75abadd51570dccefeb0984b16c",
+      "artifact_file_sha256": "b5ee8ae5a83c3c55d5e7bffb1add1919cbbeae1bef789b8ad67384591a61c47b",
+      "drive_id": "1fW4YH0M8dmoLGeoRhPrW6M3SdH3dDYy3",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1608",
+      "municipality_name": "Senahú",
+      "checkpoint": "SCALE_340_CHECKPOINT_1608_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:21.947210+00:00",
+      "artifact_file": "RADAR_V70_1608_STAGE_CANONICAL_d22edddf.json",
+      "artifact_sha256": "d22edddf82d942f0ee51000ea0d4cb6f866c28144092c5aca59b5f29ae1c61fd",
+      "artifact_file_sha256": "e280359571db056df497101fe6056f9478e108cbda497567eead965f62cbeae0",
+      "drive_id": "1VHU21dHjgnbXYV7ihAcXd3GrdOFSMZSk",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1609",
+      "municipality_name": "San Pedro Carchá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1609_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:23.641439+00:00",
+      "artifact_file": "RADAR_V70_1609_STAGE_CANONICAL_290a9c75.json",
+      "artifact_sha256": "290a9c75ea6b63e471455e4c8d32d7931d58997be3c55addca1a8c8959b80b23",
+      "artifact_file_sha256": "b24c5e084c451e60c37047c1e160cce3825ce2f05425fa82437c478e129ee216",
+      "drive_id": "1Pu4mbGmbZ5YulwzJOr5CXoZmJ3GAP2Ve",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1610",
+      "municipality_name": "San Juan Chamelco",
+      "checkpoint": "SCALE_340_CHECKPOINT_1610_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:25.455827+00:00",
+      "artifact_file": "RADAR_V70_1610_STAGE_CANONICAL_7da2ec92.json",
+      "artifact_sha256": "7da2ec92cf6575bbbbbbcafdc5d787f25be076e969d501107eb11713e3df34fc",
+      "artifact_file_sha256": "1c95cb4ae70dd780e9e2c07b0721982e938d3bbbbb170b740abe3ee78db10485",
+      "drive_id": "1yJTG2-72rLmpnHhSw9NXGD-bj0eHYmtR",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1611",
+      "municipality_name": "San Agustín Lanquín",
+      "checkpoint": "SCALE_340_CHECKPOINT_1611_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:27.040441+00:00",
+      "artifact_file": "RADAR_V70_1611_STAGE_CANONICAL_2845dd63.json",
+      "artifact_sha256": "2845dd63bf0598dcd2186249e231f337e70a4f09d76ddb2b6b7e09a87e933d65",
+      "artifact_file_sha256": "2a4649b120699ffff43ed1b8f3325787ab014fea76fe83e7a8523b5cb98be121",
+      "drive_id": "1rVqN1Wwr6W-Q1-VFPl7aCHWFTakZTXoe",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1612",
+      "municipality_name": "Santa María Cahabón",
+      "checkpoint": "SCALE_340_CHECKPOINT_1612_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:28.751053+00:00",
+      "artifact_file": "RADAR_V70_1612_STAGE_CANONICAL_209868c1.json",
+      "artifact_sha256": "209868c12166cdc2f5c183b1193c4c9e4852aec159587ef7d7503671beffc34b",
+      "artifact_file_sha256": "77d8b52fcf53e56d3591126d14f5bc416b326329ab9418389c316c995f5be8bc",
+      "drive_id": "1biPmEoeeLfYRUy8XZrKk3AOzYwN3SLuc",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1613",
+      "municipality_name": "Chisec",
+      "checkpoint": "SCALE_340_CHECKPOINT_1613_COMPLETE.json",
+      "generated_at": "2026-09-19T20:07:30.449567+00:00",
+      "artifact_file": "RADAR_V70_1613_STAGE_CANONICAL_4e4773c5.json",
+      "artifact_sha256": "4e4773c5c017682de00bc0cff89340b4fca17a308f8e8f1552fab34a16fe87df",
+      "artifact_file_sha256": "852afa350153b56af33bf850d3799de105a2a7854ff11aa50c43be29b07fabcf",
+      "drive_id": "180pADCm_Vja-FAjzJhMHy8Iy4BHkCX8s",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 206,
+    "geo_held": 4
+  },
+  "national_after": {
+    "complete_6_of_6": 271,
+    "semantic_special": 2,
+    "zero_of_6": 67
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1614",
+      "1615",
+      "1616",
+      "1617",
+      "1701",
+      "1702",
+      "1703",
+      "1704",
+      "1705",
+      "1706",
+      "1707",
+      "1708"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

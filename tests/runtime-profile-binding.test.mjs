@@ -64,13 +64,15 @@ test("municipal profile derives rich intelligence and map metrics from authorize
   assert.doesNotMatch(runtimeProfile, /localStorage|sessionStorage|service[_-]?role/i);
 });
 
-test("V70 gate loads compact authorized runtime v6 while retaining point bundle on demand", () => {
+test("V70 gate loads client-ready authorized runtime v8 while retaining point bundle on demand", () => {
   assert.match(runtime, /radar_municipality_geo_summary/);
   assert.match(runtime, /loadAuthorizedGeoSummary/);
   assert.match(runtime, /loadAuthorizedGeoBundle/);
-  assert.match(runtime, /radar_authorized_runtime_v6/);
+  assert.match(runtime, /radar_authorized_runtime_v8/);
   const loader = runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "";
-  assert.match(loader, /radar_authorized_runtime_v6/);
+  assert.match(loader, /radar_authorized_runtime_v8/);
+  assert.match(loader, /client_readiness/);
+  assert.match(loader, /missing_requirements/);
   assert.doesNotMatch(loader, /Promise\.all/);
   assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
   assert.match(demographicRuntimeMigration, /radar_authorized_runtime_v5/);

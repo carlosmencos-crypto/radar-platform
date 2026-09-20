@@ -118,12 +118,30 @@ export interface AuthorizedDemographicSummary {
   source_label: string;
 }
 
+export type RadarClientReadinessStatus =
+  | "CLIENT_READY"
+  | "INTELLIGENCE_READY"
+  | "BLOCKED";
+
+export interface RadarClientReadiness {
+  municipality_code: string;
+  status: RadarClientReadinessStatus;
+  public_data_ready: boolean;
+  trep_ready: boolean;
+  campaign_connected: boolean;
+  possible_voters_loaded: boolean;
+  possible_voters_count: number;
+  missing_requirements: string[];
+}
+
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
   geo: MunicipalityGeoSummary;
   voter_roll: AuthorizedVoterRollSummary;
   demographics: AuthorizedDemographicSummary | null;
+  intelligence_profile: Record<string, unknown> | null;
+  client_readiness: RadarClientReadiness;
 }
 
 export interface CampaignIdentityRecord {
@@ -464,7 +482,7 @@ export async function loadRadarRuntimeBundle(
 ): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
   const bundle = await rpc<RadarRuntimeBundle | null>(
-    "radar_authorized_runtime_v6",
+    "radar_authorized_runtime_v8",
     {
       p_municipality_code: municipalityCode,
     },
@@ -479,6 +497,11 @@ export async function loadRadarRuntimeBundle(
     !Array.isArray(bundle.context.permissions) ||
     !Array.isArray(bundle.layers) ||
     !Array.isArray(bundle.voter_roll.aggregates) ||
+    bundle.client_readiness?.municipality_code !== municipalityCode ||
+    !["CLIENT_READY", "INTELLIGENCE_READY", "BLOCKED"].includes(
+      bundle.client_readiness?.status,
+    ) ||
+    !Array.isArray(bundle.client_readiness?.missing_requirements) ||
     (bundle.demographics !== null &&
       bundle.demographics?.municipality_code !== municipalityCode)
   ) {
