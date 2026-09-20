@@ -330,6 +330,11 @@ html[data-theme="dark"] .canonical-vault-notice {
 .map-fullscreen-frame:fullscreen,.intelligence-fullscreen-frame:fullscreen{width:100vw;height:100vh;max-width:none;margin:0;padding:14px;background:var(--radar-marfil);overflow:auto}
 .map-fullscreen-frame:fullscreen{display:flex;flex-direction:column;gap:8px;overflow:hidden}
 .map-fullscreen-frame:fullscreen .operational-map-toolbar{grid-template-columns:minmax(210px,.72fr) 34px minmax(180px,1fr) auto auto auto;margin:0;padding-right:118px}
+.map-fullscreen-frame:fullscreen .map-toolbar-search{grid-column:1}
+.map-fullscreen-frame:fullscreen .toolbar-select{grid-column:3;min-width:180px}
+.map-fullscreen-frame:fullscreen .map-more-filters{grid-column:4}
+.map-fullscreen-frame:fullscreen .map-new-activity{grid-column:5}
+.map-fullscreen-frame:fullscreen .map-satellite-toggle{grid-column:6}
 .map-fullscreen-frame:fullscreen .operational-map-toolbar,.map-fullscreen-frame:fullscreen .map-selection-strip{flex:0 0 auto}
 .map-fullscreen-frame:fullscreen .smart-map-shell{flex:1 1 auto;min-height:0;height:auto;margin:0}
 .map-fullscreen-frame:fullscreen .map-stage,.map-fullscreen-frame:fullscreen .smart-map-canvas{height:100%;min-height:0}
