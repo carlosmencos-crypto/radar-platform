@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
-import { getInstalledRadarElectoralLayers, getInstalledRadarVoterCommunities } from "../data/radarRuntimeCache";
+import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import {
   buildMunicipalIntelligenceModel,
   finite,
@@ -32,12 +32,33 @@ export function V70CanonicalRichMunicipality() {
   );
   const [historyYear, setHistoryYear] = useState<2011 | 2015 | 2019 | 2023>(2023);
   const [communitySearch, setCommunitySearch] = useState("");
-  const communities = getInstalledRadarVoterCommunities(municipality_code) ?? [];
+  const [communityGroup, setCommunityGroup] = useState("ALL");
+  const communities = model.communityCatalog;
   const normalizedSearch = communitySearch.trim().toLocaleLowerCase("es-GT");
-  const filteredCommunities = communities.filter((item) =>
-    !normalizedSearch || item.community_label.toLocaleLowerCase("es-GT").includes(normalizedSearch),
-  );
+  const filteredCommunities = communities.filter((item) => {
+    const matchesGroup = communityGroup === "ALL" || item.groupCode === communityGroup;
+    const matchesSearch = !normalizedSearch || [item.name, item.category, item.group, item.reference ?? ""]
+      .join(" ")
+      .toLocaleLowerCase("es-GT")
+      .includes(normalizedSearch);
+    return matchesGroup && matchesSearch;
+  });
   const history = model.historicalElections.find((item) => item.year === historyYear) ?? model.historicalElections[3];
+  const council = model.councils.find((item) => item.year === historyYear);
+  const communitySummary = record(model.communitySummary);
+  const communityGroups = records(communitySummary.groups);
+  const communityCategories = records(communitySummary.categories);
+  const communityRecords = finite(communitySummary.records) ?? communities.length;
+  const communityUrban = finite(communitySummary.urban) ?? 0;
+  const communityRural = finite(communitySummary.rural) ?? 0;
+  const firstHistoricalRegister = model.historicalElections.find((item) => item.year === 2011)?.registeredVoters ?? null;
+  const lastHistoricalRegister = model.historicalElections.find((item) => item.year === 2023)?.registeredVoters ?? model.registered2023;
+  const registerGrowth = firstHistoricalRegister !== null && lastHistoricalRegister !== null
+    ? lastHistoricalRegister - firstHistoricalRegister
+    : null;
+  const registerGrowthShare = registerGrowth !== null && firstHistoricalRegister
+    ? registerGrowth / firstHistoricalRegister
+    : null;
   const census = model.payload("INE_CENSO_B2_B6");
   const services = model.payload("RGM_SERVICIOS");
   const health = model.payload("MSPAS_SALUD");
@@ -66,28 +87,50 @@ export function V70CanonicalRichMunicipality() {
 
   return <>
     <section id="historico" className="section historical-section exportable include-print">
-      <div className="section-head"><div><p className="eyebrow">HISTÓRICO ELECTORAL MUNICIPAL · TSE</p><h2>Cuatro elecciones, una trayectoria política</h2></div><p>Los ganadores se muestran para 2011–2023. Votos y participación solo aparecen cuando la capa oficial municipal los publica; los vacíos no se estiman.</p></div>
-      <div className="history-tabs">
+      <div className="section-head"><div><p className="eyebrow">HISTÓRICO ELECTORAL MUNICIPAL · TSE</p><h2>Cuatro elecciones, una trayectoria política</h2></div><p>Compara padrón, competencia, fuerzas políticas y alcalde electo con el mismo contrato nacional. Un vacío documental permanece visible y nunca se estima.</p></div>
+      <div className="history-tabs" role="tablist" aria-label="Año electoral">
         {model.historicalElections.map((item) => <button type="button" key={item.year} className={item.year === historyYear ? "active" : ""} onClick={() => setHistoryYear(item.year)}><b>{item.year}</b><span>{item.winner ?? "No publicado"}{item.winnerVotes === null ? "" : ` · ${formatInteger(item.winnerVotes)}`}</span></button>)}
       </div>
       <div className="history-workspace">
-        <div className="history-profile"><span className="history-year">CORPORACIÓN MUNICIPAL · {history.year}</span><h3>{history.winner ?? "No publicado"}</h3><p>{history.winnerVotes === null ? "Votos no publicados en la capa histórica" : `${formatInteger(history.winnerVotes)} votos para la fuerza ganadora`}</p><div className="history-kpis"><div><small>Participación</small><b>{formatPercent(history.turnout)}</b></div><div><small>Margen</small><b>{formatInteger(history.marginVotes)}</b></div></div><div className="history-quality"><span>Calidad de la fuente</span><b>{history.year === 2023 ? "TREP municipal publicado" : "Ganador histórico publicado"}</b><small>{history.votesCast === null ? "Los totales no se completan ni estiman." : `${formatInteger(history.votesCast)} votos emitidos · universo 2023.`}</small></div></div>
-        <div className="history-ranking"><div className="history-ranking-head"><b>Resultado municipal publicado</b><span>{history.year}</span></div><div className="history-row"><span>1</span><b>{history.winner ?? "No publicado"}</b><i><em style={{ width: "100%", background: "var(--radar-petroleo-diagonal)" }} /></i><strong>{formatInteger(history.winnerVotes)}</strong><small>Ganador</small></div><div className="history-row"><span>2</span><b>{history.runnerUp ?? "No publicado"}</b><i><em style={{ width: history.winnerVotes && history.runnerUpVotes ? `${Math.min(100, history.runnerUpVotes / history.winnerVotes * 100)}%` : "0%", background: "var(--radar-electoral)" }} /></i><strong>{formatInteger(history.runnerUpVotes)}</strong><small>Segundo</small></div><p className="trace-note">Los votos de segundo lugar y la participación solo están disponibles para 2023 en el contrato TREP actual.</p></div>
+        <div className="history-profile">
+          <span className="history-year">ELECCIÓN {history.year}</span>
+          <h3>{history.mayor ?? "Alcalde no publicado"}</h3><p>Alcalde electo · {history.winner ?? "organización no publicada"}</p>
+          <div className="history-kpis"><div><small>Padrón</small><b>{formatInteger(history.registeredVoters)}</b></div><div><small>Votos por organización</small><b>{formatInteger(history.partyVotes)}</b></div><div><small>Organizaciones</small><b>{formatInteger(history.organizations)}</b></div><div><small>Margen ganador</small><b>{formatInteger(history.marginVotes)}</b></div></div>
+          <div className="history-quality"><span>Participación</span><b>{formatPercent(history.turnout)}</b><small>{history.votesCast === null ? "Total emitido no publicado para este año." : `${formatInteger(history.votesCast)} emitidos · ${formatInteger(history.nullVotes)} nulos · ${formatInteger(history.blankVotes)} blancos`}</small></div>
+        </div>
+        <div className="history-ranking"><div className="history-ranking-head"><b>Resultado completo</b><span>Porcentaje sobre votos por organización</span></div>{history.results.map((result) => <div className="history-row" key={`${history.year}-${result.party}-${result.rank}`}><span>{result.rank}</span><b>{result.party}</b><i><em style={{ width: `${Math.max(0, Math.min(100, result.share * 100))}%`, background: "var(--radar-petroleo-diagonal)" }} /></i><strong>{formatInteger(result.votes)}</strong><small>{formatPercent(result.share)}</small></div>)}{!history.results.length ? <p className="trace-note">La fuente histórica no publicó el ranking completo para este corte.</p> : null}</div>
       </div>
       <div className="history-timeline">{model.historicalElections.map((item, index) => <article key={item.year}><i /><small>{item.year}</small><b>{item.winner ?? "No publicado"}</b><span>{item.winnerVotes === null ? "sin cifra publicada" : `${formatInteger(item.winnerVotes)} votos`}</span>{index < model.historicalElections.length - 1 && <em>→</em>}</article>)}</div>
-      <p className="trace-note">Fuente: TSE · núcleo electoral 2011–2026 y TREP 2023 del municipio {municipality_code}. La captura preliminar y el padrón oficial conservan sus universos separados.</p>
+      <div className="continuity-panel"><div><span>PADRÓN 2011 → 2023</span><b>{registerGrowth === null ? "No publicado" : `${registerGrowth >= 0 ? "+" : "−"}${formatInteger(Math.abs(registerGrowth))} personas`}</b><small>{registerGrowthShare === null ? "Universos oficiales conservados por año" : `${registerGrowthShare >= 0 ? "+" : "−"}${formatPercent(Math.abs(registerGrowthShare))} en doce años`}</small></div><div><span>CONTINUIDADES DOCUMENTADAS</span><ul>{model.politicalTrajectories.slice(0, 4).map((item) => <li key={`continuity-${item.name}`}>{item.name} · {item.years.join(" / ")}</li>)}{!model.politicalTrajectories.length ? <li>No se publicaron coincidencias nominales validadas.</li> : null}</ul></div><p>Las coincidencias corresponden a nombres y candidaturas documentadas en memorias electorales. Se presentan como trayectoria pública, no como afiliación vigente.</p></div>
+      <div className="political-intelligence-grid">
+        <article className="council-card">
+          <div className="premium-label"><span>CONCEJO MUNICIPAL ADJUDICADO</span><b>{historyYear}</b></div>
+          {council ? <><div className="seat-summary"><div><strong>{council.total}</strong><span>cargos o escaños documentados</span></div><div className="seat-bar">{council.groups.map((group) => <i key={group.party} title={`${group.party}: ${group.seats}`} style={{ width: council.total ? `${group.seats / council.total * 100}%` : "0%", background: "var(--radar-petroleo-diagonal)" }} />)}</div></div><div className="seat-legend">{council.groups.map((group) => <span key={group.party}><i style={{ background: "var(--radar-petroleo-diagonal)" }} /><b>{group.party}</b>{group.seats}</span>)}</div><div className="council-list">{council.members.map((member) => <div key={`${member.office}-${member.name}`}><span>{member.office}</span><b>{member.name}</b><em>{member.party}</em></div>)}</div>{!council.members.length ? <p>La fuente disponible para {historyYear} publica distribución de escaños, pero no el listado nominal completo.</p> : null}</> : <div className="canonical-vault-notice"><span>NO PUBLICADO</span><h3>Integración nominal no disponible</h3><p>RADAR no asigna cargos sin adjudicación oficial documentada para este año.</p></div>}
+          <p>RADAR muestra la adjudicación oficial documentada y no recalcula ni simula cargos.</p>
+        </article>
+        <article className="trajectory-card">
+          <div className="premium-label"><span>TRAYECTORIAS PÚBLICAS DETECTADAS</span><b>{model.politicalTrajectories.length}</b></div>
+          <div className="trajectory-list">{model.politicalTrajectories.map((person) => <div key={person.name}><span>{person.elections} ELECCIONES</span><div><b>{person.name}</b><p>{person.route}</p><small>{person.caution}</small></div></div>)}{!model.politicalTrajectories.length ? <p>No se encontraron coincidencias nominales repetidas en las memorias disponibles.</p> : null}</div>
+          <p className="method-note">Regla nacional: cruza nombres normalizados, cargo, año y organización dentro de las memorias oficiales del municipio. Toda coincidencia queda marcada para revisión antes de usarse en una decisión sensible.</p>
+        </article>
+      </div>
+      <p className="trace-note">Fuentes: memorias oficiales TSE 2011, 2015, 2019 y 2023 · municipio {municipality_code}. Cada año conserva su propio universo y estado documental.</p>
     </section>
 
     <section className="section territory-section exportable include-print">
-      <div className="section-head"><div><p className="eyebrow">ORGANIZACIÓN COMUNITARIA TSE · 2023</p><h2>El municipio más allá de la cabecera</h2></div><p>Directorio territorial para organizar recorridos y prioridades. No se asignan coordenadas que la fuente comunitaria no contiene.</p></div>
-      <div className="territory-grid"><div className="territory-overview"><div><b>{formatInteger(model.communities)}</b><span>comunidades y localidades</span></div><div><b>{formatInteger(model.territorialGroups)}</b><span>agrupaciones territoriales</span></div><div><b>{formatInteger(model.registered2023)}</b><span>electores · universo 2023</span></div><div><b>{formatInteger(model.centers)}</b><span>centros · {formatInteger(model.jrv)} JRV</span></div></div><div className="group-list">{communities.slice(0, 4).map((item, index) => <article key={`territory-${item.community_normalized}`}><span>{String(index + 1).padStart(2, "0")}</span><div><b>{item.community_label}</b><small>{formatInteger(item.elector_count)} electores · agregado 2023</small></div></article>)}</div><div className="category-list"><h3>Composición del padrón comunitario</h3>{[["18–29", communities.reduce((sum, item) => sum + (item.age_18_29 ?? 0), 0)],["30–44", communities.reduce((sum, item) => sum + (item.age_30_44 ?? 0), 0)],["45–59", communities.reduce((sum, item) => sum + (item.age_45_59 ?? 0), 0)],["60+", communities.reduce((sum, item) => sum + (item.age_60_plus ?? 0), 0)]].map(([label, count]) => <div key={String(label)}><span>{label}</span><i><em style={{ width: model.registered2023 && typeof count === "number" ? `${count / model.registered2023 * 100}%` : "0%" }} /></i><b>{formatInteger(typeof count === "number" ? count : null)}</b></div>)}</div></div>
-      <div className="community-directory">
-        <div className="community-directory-head"><div><p className="eyebrow">DIRECTORIO OFICIAL</p><h3>{formatInteger(model.communities)} comunidades y localidades consultables</h3></div><span>{filteredCommunities.length} resultados</span></div>
-        <div className="community-filters"><label className="search"><span>⌕</span><input value={communitySearch} onChange={(event) => setCommunitySearch(event.target.value)} placeholder="Buscar comunidad o localidad" /></label><select aria-label="Universo del directorio" value="2023" disabled><option value="2023">Padrón comunitario 2023</option></select></div>
-        <div className="community-table"><div className="community-table-head"><span>Comunidad / localidad</span><span>Cobertura</span><span>Universo</span><span>Electores / edad promedio</span><span>Trazabilidad</span></div><div className="community-scroll">{filteredCommunities.map((item) => <article key={item.community_normalized}><div><b>{item.community_label}</b><small>{item.community_normalized}</small></div><span>{stateLabel(item.coverage_band)}</span><span>Padrón detallado 2023</span><span>{formatInteger(item.elector_count)} electores · edad {item.average_age_base === null ? "no publicada" : formatDecimal(item.average_age_base)}</span><small>TSE · agregado</small></article>)}</div></div>
-        {!communities.length ? <div className="canonical-vault-notice"><span>NO PUBLICADO</span><h3>Detalle comunitario pendiente</h3><p>El total municipal se conserva, pero esta sesión no recibió filas comunitarias autorizadas.</p></div> : null}
+      <div className="section-head"><div><p className="eyebrow">ORGANIZACIÓN COMUNITARIA TSE · 2023</p><h2>El municipio más allá de la cabecera</h2></div><p>Catálogo oficial para organizar recorridos y prioridades. La estructura es idéntica en los 340 municipios; el contenido se filtra por código municipal.</p></div>
+      <div className="territory-grid">
+        <div className="territory-overview"><div><b>{formatInteger(communityRecords)}</b><span>registros comunitarios</span></div><div><b>{formatInteger(communityGroups.length)}</b><span>agrupaciones territoriales</span></div><div><b>{formatInteger(model.centers)}</b><span>centros de votación</span></div><div className="urban-rural"><span><i style={{ width: communityRecords ? `${communityUrban / communityRecords * 100}%` : "0%" }} /></span><small>{formatInteger(communityUrban)} urbanos · {formatInteger(communityRural)} rurales</small></div></div>
+        <div className="group-list">{communityGroups.map((group) => <article key={textValue(group.code) ?? `${textValue(group.name)}-${textValue(group.scope)}`}><span>{textValue(group.code) ?? "—"}</span><div><b>{textValue(group.name) ?? "Sin nombre publicado"}</b><small>{stateLabel(textValue(group.scope))} · {formatInteger(finite(group.records))} comunidades/localidades</small></div></article>)}</div>
+        <div className="category-list"><h3>Composición del catálogo</h3>{communityCategories.map((category) => <div key={textValue(category.name) ?? "SIN_CATEGORIA"}><span>{textValue(category.name) ?? "Sin categoría"}</span><i><em style={{ width: communityRecords ? `${(finite(category.count) ?? 0) / communityRecords * 100}%` : "0%" }} /></i><b>{formatInteger(finite(category.count))}</b></div>)}</div>
       </div>
-      <div className="territory-caveat"><b>Universos protegidos</b><p>El total de comunidades del núcleo electoral y las filas del padrón comunitario provienen de productos distintos. RADAR conserva ambos conteos y no inventa filas para completar la diferencia.</p><span>La agenda, responsables y observaciones privadas se almacenan aparte en Campaign Vault.</span></div>
+      <div className="community-directory">
+        <div className="community-directory-head"><div><p className="eyebrow">DIRECTORIO OFICIAL</p><h3>{formatInteger(communityRecords)} comunidades y localidades consultables</h3></div><span>{filteredCommunities.length} resultados</span></div>
+        <div className="community-filters"><label className="search"><span>⌕</span><input value={communitySearch} onChange={(event) => setCommunitySearch(event.target.value)} placeholder="Buscar comunidad, categoría o referencia" /></label><select aria-label="Agrupación territorial" value={communityGroup} onChange={(event) => setCommunityGroup(event.target.value)}><option value="ALL">Todas las agrupaciones</option>{communityGroups.map((group) => <option key={textValue(group.code) ?? `${textValue(group.name)}-${textValue(group.scope)}`} value={textValue(group.code) ?? ""}>{textValue(group.code) ?? "—"} · {textValue(group.name) ?? "Sin nombre"}</option>)}</select></div>
+        <div className="community-table"><div className="community-table-head"><span>Comunidad / localidad</span><span>Categoría</span><span>Agrupación</span><span>Referencia oficial</span><span>Trazabilidad</span></div><div className="community-scroll">{filteredCommunities.map((item, index) => <article key={`${item.groupCode}-${item.name}-${index}`}><div><b>{item.name}</b><small>{stateLabel(item.scope)}{item.zone ? ` · Zona ${item.zone}` : ""}</small></div><span>{item.category}</span><span>{item.groupCode} · {item.group}</span><span>{item.reference ?? "Sin referencia publicada"}</span><small>{item.sourcePage === null ? "página no publicada" : `p. ${item.sourcePage}`}</small></article>)}</div></div>
+        {!communities.length ? <div className="canonical-vault-notice"><span>NO PUBLICADO</span><h3>Detalle comunitario pendiente</h3><p>El municipio no recibió filas comunitarias del producto nacional autorizado; no se inventan sustitutos.</p></div> : null}
+      </div>
+      <div className="territory-caveat"><b>Qué representan las agrupaciones CEM</b><p>Son referencias organizativas de la fuente, no límites geográficos oficiales. La fuente aporta nombres, categoría y agrupación; RADAR no inventa población, hogares, coordenadas ni polígonos por comunidad.</p><span>La agenda, responsables, acuerdos y observaciones privadas se almacenan aparte en Campaign Vault.</span></div>
     </section>
 
     <section className="section municipal-photo exportable include-print">

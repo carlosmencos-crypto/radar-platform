@@ -7,3 +7,8 @@ dist
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+__pycache__/
+*.pyc
+dist-render/
+render-smoke-*/
+render-interaction-*/

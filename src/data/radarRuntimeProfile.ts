@@ -96,6 +96,12 @@ function moduleFrom(
 }
 
 function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
+  const activeProfile = runtime.elector_profile;
+  const nationalProfile = runtime.intelligence_profile;
+  const census2018 = nationalProfile?.census_2018;
+  const nationalElections = nationalProfile?.electoral_history.elections ?? [];
+  const electionFor = (year: number) => asRecord(nationalElections.find((item) => asNumber(item.year) === year));
+  const election2023 = electionFor(2023);
   const census = layer(runtime, "INE_CENSO_B2_B6");
   const censusPayload = asRecord(census?.payload);
   const electoral = layer(runtime, "NUCLEO_ELECTORAL");
@@ -147,6 +153,9 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
         metric("Proyección 2026", formatInteger(runtime.demographics?.population_total), "INE · población municipal proyectada"),
         metric("Mujeres proyectadas", formatInteger(runtime.demographics?.population_female), "INE · proyección por sexo"),
         metric("Hombres proyectados", formatInteger(runtime.demographics?.population_male), "INE · proyección por sexo"),
+        metric("Población censada 2018", formatInteger(census2018?.population_total), "INE · Censo 2018"),
+        metric("Población urbana 2018", formatInteger(census2018?.urban), "INE · Censo 2018"),
+        metric("Población rural 2018", formatInteger(census2018?.rural), "INE · Censo 2018"),
         metric("Hogares", formatInteger(censusPayload?.total_households), "Censo 2018"),
         metric("Red eléctrica", formatRatio(censusPayload?.electric_grid_pct), "proporción de hogares"),
         metric("Agua entubada dentro", formatRatio(censusPayload?.water_pipe_inside_pct), "proporción de hogares"),
@@ -161,24 +170,26 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
       "Padrón actual, competencia e histórico municipal se mantienen dentro de sus universos TSE trazables.",
       [electoral, centers],
       compactMetrics([
-        metric("Padrón activo 2026", formatInteger(voterActive2026?.elector_count ?? electoralMunicipality?.active_voters_2026), "TSE · núcleo electoral 2026"),
-        metric("Mujeres 2026", formatInteger(electoralMunicipality?.women_2026), "TSE · núcleo electoral"),
-        metric("18–35 años", formatInteger(electoralMunicipality?.age_18_35_2026), "TSE · núcleo electoral"),
-        metric("Alfabetismo registrado", formatRatio(electoralMunicipality?.literacy_share_2026), "TSE · núcleo electoral"),
+        metric("Padrón activo 2026", formatInteger(activeProfile?.total_active ?? voterActive2026?.elector_count ?? electoralMunicipality?.active_voters_2026), "TSE · padrón activo 2026"),
+        metric("Mujeres 2026", formatInteger(activeProfile?.women_active ?? electoralMunicipality?.women_2026), "TSE · padrón activo"),
+        metric("Hombres 2026", formatInteger(activeProfile?.men_active), "TSE · padrón activo"),
+        metric("18–35 años", formatInteger(activeProfile?.age_total ? ["18_25", "26_30", "31_35"].reduce((sum, key) => sum + (activeProfile.age_total?.[key] ?? 0), 0) : electoralMunicipality?.age_18_35_2026), "TSE · padrón activo"),
+        metric("Alfabetismo registrado", formatRatio(activeProfile?.total_active && activeProfile.women_literate !== null && activeProfile.men_literate !== null ? (activeProfile.women_literate + activeProfile.men_literate) / activeProfile.total_active : electoralMunicipality?.literacy_share_2026), "TSE · padrón activo"),
         metric("Empadronados oficiales 2023", formatInteger(electoralMunicipality?.registered_voters_2023), "TSE · total municipal oficial; universo separado"),
         metric("Registros detallados 2023", formatInteger(voterDetailed2023?.elector_count), "padrón detallado agregado"),
-        metric("Ganador 2023", asText(electoralMunicipality?.winner_2023), "corporación municipal"),
-        metric("Segundo lugar 2023", asText(electoralMunicipality?.runner_up_2023), "corporación municipal"),
+        metric("Alcalde electo 2023", asText(election2023?.winner_candidate), "memoria electoral municipal"),
+        metric("Ganador 2023", asText(election2023?.winner_party ?? electoralMunicipality?.winner_2023), "corporación municipal"),
+        metric("Segundo lugar 2023", asText(election2023?.runner_up_party ?? electoralMunicipality?.runner_up_2023), "corporación municipal"),
         metric("Margen 2023", formatInteger(electoralMunicipality?.margin_votes_2023), "votos frente al segundo lugar"),
         metric("Margen sobre válidos", formatRatio(electoralMunicipality?.margin_share_valid_2023), "corporación municipal 2023"),
         metric("Organizaciones 2023", formatInteger(electoralMunicipality?.organizations_2023), "competencia registrada"),
-        metric("Ganador 2019", asText(electoralMunicipality?.winner_2019), "corporación municipal"),
-        metric("Ganador 2015", asText(electoralMunicipality?.winner_2015), "corporación municipal"),
-        metric("Ganador 2011", asText(electoralMunicipality?.winner_2011), "corporación municipal"),
+        metric("Ganador 2019", asText(electionFor(2019)?.winner_party ?? electoralMunicipality?.winner_2019), "corporación municipal"),
+        metric("Ganador 2015", asText(electionFor(2015)?.winner_party ?? electoralMunicipality?.winner_2015), "corporación municipal"),
+        metric("Ganador 2011", asText(electionFor(2011)?.winner_party ?? electoralMunicipality?.winner_2011), "corporación municipal"),
         metric("Ganadores distintos 2011–2023", formatInteger(electoralMunicipality?.distinct_winners_2011_2023), "rotación política municipal"),
         metric("Centros", formatInteger(centersPayload?.center_count), "TSE 2023 · geolocalización canónica"),
       ]),
-      voterSources,
+      [...voterSources, "TSE · memorias electorales 2011–2023"],
     ),
     moduleFrom(
       "territorio",
@@ -281,26 +292,47 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
   const activeAggregate = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026");
   const detailed = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023");
 
-  const active = asNumber(activeAggregate?.elector_count ?? municipality?.active_voters_2026);
-  const women = asNumber(municipality?.women_2026);
-  const men = active === undefined || women === undefined ? undefined : Math.max(active - women, 0);
+  const activeProfile = runtime.elector_profile;
+  const nationalProfile = runtime.intelligence_profile;
+  const census2018 = nationalProfile?.census_2018;
+  const active = asNumber(activeProfile?.total_active ?? activeAggregate?.elector_count ?? municipality?.active_voters_2026);
+  const women = asNumber(activeProfile?.women_active ?? municipality?.women_2026);
+  const men = asNumber(activeProfile?.men_active) ?? (active === undefined || women === undefined ? undefined : Math.max(active - women, 0));
   const registered2023 = asNumber(municipality?.registered_voters_2023);
   const growth = active === undefined || registered2023 === undefined ? undefined : active - registered2023;
-  const literacyShare = asNumber(municipality?.literacy_share_2026);
-  const literate = active === undefined || literacyShare === undefined ? undefined : Math.round(active * literacyShare);
-  const unregisteredLiteracy = active === undefined || literate === undefined ? undefined : Math.max(active - literate, 0);
+  const womenLiterate = asNumber(activeProfile?.women_literate);
+  const menLiterate = asNumber(activeProfile?.men_literate);
+  const womenIlliterate = asNumber(activeProfile?.women_illiterate);
+  const menIlliterate = asNumber(activeProfile?.men_illiterate);
+  const literate = womenLiterate !== undefined && menLiterate !== undefined
+    ? womenLiterate + menLiterate
+    : undefined;
+  const unregisteredLiteracy = womenIlliterate !== undefined && menIlliterate !== undefined
+    ? womenIlliterate + menIlliterate
+    : undefined;
+  const literacyShare = active && literate !== undefined
+    ? literate / active
+    : asNumber(municipality?.literacy_share_2026);
   const detailedTotal = asNumber(detailed?.elector_count) ?? 0;
-  const ageRows: Array<[string, number | undefined]> = [
-    ["18–29", asNumber(detailed?.age_18_29)],
-    ["30–44", asNumber(detailed?.age_30_44)],
-    ["45–59", asNumber(detailed?.age_45_59)],
-    ["60+", asNumber(detailed?.age_60_plus)],
+  const detailedAgeRows: Array<[string, number | undefined]> = [
+    ["18–29", asNumber(detailed?.age_18_29)], ["30–44", asNumber(detailed?.age_30_44)],
+    ["45–59", asNumber(detailed?.age_45_59)], ["60+", asNumber(detailed?.age_60_plus)],
   ];
-  const ages = detailedTotal > 0
+  const activeAgeRows: Array<[string, number | undefined]> = [
+    ["18–25", asNumber(activeProfile?.age_total?.["18_25"])], ["26–30", asNumber(activeProfile?.age_total?.["26_30"])],
+    ["31–35", asNumber(activeProfile?.age_total?.["31_35"])], ["36–40", asNumber(activeProfile?.age_total?.["36_40"])],
+    ["41–45", asNumber(activeProfile?.age_total?.["41_45"])], ["46–50", asNumber(activeProfile?.age_total?.["46_50"])],
+    ["51–55", asNumber(activeProfile?.age_total?.["51_55"])], ["56–60", asNumber(activeProfile?.age_total?.["56_60"])],
+    ["61–65", asNumber(activeProfile?.age_total?.["61_65"])], ["66–70", asNumber(activeProfile?.age_total?.["66_70"])],
+    ["70+", asNumber(activeProfile?.age_total?.["70_plus"])],
+  ];
+  const ageRows = activeProfile?.age_total ? activeAgeRows : detailedAgeRows;
+  const ageTotal = activeProfile?.age_total ? active ?? 0 : detailedTotal;
+  const ages = ageTotal > 0
     ? ageRows.flatMap(([label, value]) => value === undefined ? [] : [{
       label,
       value: formatInteger(value) ?? "0",
-      share: value / detailedTotal * 100,
+      share: value / ageTotal * 100,
     }])
     : base?.ages ?? [];
 
@@ -318,15 +350,15 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
     registerGrowthRate: formatSignedRatio(asNumber(municipality?.electorate_change_2023_2026)) || base?.registerGrowthRate || "",
     literacyRate: formatRatio(literacyShare) ?? base?.literacyRate ?? "",
     literatePeople: formatInteger(literate) ?? base?.literatePeople ?? "",
-    womenLiteracy: base?.womenLiteracy ?? "",
-    menLiteracy: base?.menLiteracy ?? "",
+    womenLiteracy: women && womenLiterate !== undefined ? formatRatio(womenLiterate / women) ?? "" : base?.womenLiteracy ?? "",
+    menLiteracy: men && menLiterate !== undefined ? formatRatio(menLiterate / men) ?? "" : base?.menLiteracy ?? "",
     literacyUnregistered: formatInteger(unregisteredLiteracy) ?? base?.literacyUnregistered ?? "",
     ages,
-    censusPopulation: base?.censusPopulation ?? "",
-    censusUrban: base?.censusUrban ?? "",
-    censusUrbanShare: base?.censusUrbanShare ?? 0,
-    censusRural: base?.censusRural ?? "",
-    censusRuralShare: base?.censusRuralShare ?? 0,
+    censusPopulation: formatInteger(census2018?.population_total) ?? base?.censusPopulation ?? "",
+    censusUrban: formatInteger(census2018?.urban) ?? base?.censusUrban ?? "",
+    censusUrbanShare: census2018 ? census2018.urban_share * 100 : base?.censusUrbanShare ?? 0,
+    censusRural: formatInteger(census2018?.rural) ?? base?.censusRural ?? "",
+    censusRuralShare: census2018 ? census2018.rural_share * 100 : base?.censusRuralShare ?? 0,
     projectionMen: formatInteger(runtime.demographics?.population_male) ?? base?.projectionMen ?? "",
     projectionWomen: formatInteger(runtime.demographics?.population_female) ?? base?.projectionWomen ?? "",
   };

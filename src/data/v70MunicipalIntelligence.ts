@@ -18,6 +18,41 @@ export type MunicipalHistoricalElection = {
   votesCast: number | null;
   validVotes: number | null;
   marginVotes: number | null;
+  mayor: string | null;
+  registeredVoters: number | null;
+  organizations: number | null;
+  partyVotes: number | null;
+  nullVotes: number | null;
+  blankVotes: number | null;
+  results: Array<{ rank: number; party: string; candidate: string | null; votes: number; share: number }>;
+};
+
+export type MunicipalCouncil = {
+  year: 2011 | 2015 | 2019 | 2023;
+  total: number;
+  detailStatus: string;
+  groups: Array<{ party: string; seats: number }>;
+  members: Array<{ office: string; name: string; party: string; sourcePage: number | null }>;
+};
+
+export type MunicipalPoliticalTrajectory = {
+  name: string;
+  years: number[];
+  elections: number;
+  route: string;
+  caution: string;
+};
+
+export type MunicipalCommunityCatalogRecord = {
+  name: string;
+  category: string;
+  group: string;
+  groupCode: string;
+  scope: string;
+  zone: string | null;
+  reference: string | null;
+  markedCemCenter: boolean;
+  sourcePage: number | null;
 };
 
 export type MunicipalIntelligenceModel = {
@@ -42,6 +77,10 @@ export type MunicipalIntelligenceModel = {
   populationMen: number | null;
   projectionYear: number | null;
   historicalElections: MunicipalHistoricalElection[];
+  councils: MunicipalCouncil[];
+  politicalTrajectories: MunicipalPoliticalTrajectory[];
+  communityCatalog: MunicipalCommunityCatalogRecord[];
+  communitySummary: Record<string, unknown>;
   priorities: MunicipalSignal[];
   opportunities: MunicipalSignal[];
   payload: (layerId: string) => Record<string, unknown>;
@@ -143,10 +182,10 @@ export function buildMunicipalIntelligenceModel(
   const communitiesPayload = record(nucleus.communities);
   const activeAggregate = runtime.voter_roll.aggregates.find((item) => item.universe === "NUCLEO_ELECTORAL_2026");
   const detailedAggregate = runtime.voter_roll.aggregates.find((item) => item.universe === "PADRON_DETALLADO_2023");
-  const activeElectors = finite(municipality.active_voters_2026) ?? activeAggregate?.elector_count ?? null;
+  const activeElectors = finite(runtime.elector_profile?.total_active) ?? finite(municipality.active_voters_2026) ?? activeAggregate?.elector_count ?? null;
   const registered2023 = finite(municipality.registered_voters_2023) ?? detailedAggregate?.elector_count ?? null;
-  const women = finite(municipality.women_2026);
-  const men = activeElectors !== null && women !== null ? Math.max(0, activeElectors - women) : null;
+  const women = finite(runtime.elector_profile?.women_active) ?? finite(municipality.women_2026);
+  const men = finite(runtime.elector_profile?.men_active) ?? (activeElectors !== null && women !== null ? Math.max(0, activeElectors - women) : null);
   const growth = annualElectorGrowth(activeElectors, registered2023);
   const projectedElectors2027 = activeElectors !== null && growth !== null
     ? Math.floor(activeElectors * growth)
@@ -161,17 +200,110 @@ export function buildMunicipalIntelligenceModel(
       : null,
   );
 
-  const historicalElections: MunicipalHistoricalElection[] = ([2011, 2015, 2019, 2023] as const).map((year) => ({
-    year,
-    winner: textValue(municipality[`winner_${year}`]),
-    winnerVotes: year === 2023 ? finite(municipalElection.leader_votes) ?? finite(municipality.winner_votes_2023) : null,
-    runnerUp: year === 2023 ? textValue(municipalElection.runner_up) ?? textValue(municipality.runner_up_2023) : null,
-    runnerUpVotes: year === 2023 ? finite(municipalElection.runner_up_votes) ?? finite(municipality.runner_up_votes_2023) : null,
-    turnout: year === 2023 ? participationReference : null,
-    votesCast: year === 2023 ? finite(municipalElection.votes_cast_counted) : null,
-    validVotes: year === 2023 ? finite(municipalElection.valid_votes) : null,
-    marginVotes: year === 2023 ? finite(municipalElection.margin_votes) ?? finite(municipality.margin_votes_2023) : null,
-  }));
+  const nationalProfile = runtime.intelligence_profile;
+  const nationalElections = nationalProfile?.electoral_history.elections ?? [];
+  const historicalElections: MunicipalHistoricalElection[] = ([2011, 2015, 2019, 2023] as const).map((year) => {
+    const national = record(nationalElections.find((item) => finite(item.year) === year));
+    const rawResults = Array.isArray(national.results) ? national.results.map(record) : [];
+    const results = rawResults.flatMap((item, index) => {
+      const party = textValue(item.party);
+      const votes = finite(item.votes);
+      if (!party || votes === null) return [];
+      return [{
+        rank: finite(item.rank) ?? index + 1,
+        party,
+        candidate: textValue(item.candidate),
+        votes,
+        share: finite(item.share) ?? 0,
+      }];
+    });
+    const votesCast = year === 2023 ? finite(municipalElection.votes_cast_counted) : finite(national.votes_cast);
+    const validVotes = year === 2023 ? finite(municipalElection.valid_votes) : finite(national.party_votes);
+    return {
+      year,
+      winner: textValue(national.winner_party) ?? textValue(municipality[`winner_${year}`]),
+      winnerVotes: finite(national.winner_votes) ?? (year === 2023 ? finite(municipalElection.leader_votes) ?? finite(municipality.winner_votes_2023) : null),
+      runnerUp: textValue(national.runner_up_party) ?? (year === 2023 ? textValue(municipalElection.runner_up) ?? textValue(municipality.runner_up_2023) : null),
+      runnerUpVotes: finite(national.runner_up_votes) ?? (year === 2023 ? finite(municipalElection.runner_up_votes) ?? finite(municipality.runner_up_votes_2023) : null),
+      turnout: year === 2023
+        ? participationReference
+        : finite(national.registered_voters) && votesCast !== null
+          ? votesCast / finite(national.registered_voters)!
+          : null,
+      votesCast,
+      validVotes,
+      marginVotes: finite(national.margin_votes) ?? (year === 2023 ? finite(municipalElection.margin_votes) ?? finite(municipality.margin_votes_2023) : null),
+      mayor: textValue(national.winner_candidate),
+      registeredVoters: finite(national.registered_voters),
+      organizations: finite(national.organizations),
+      partyVotes: finite(national.party_votes),
+      nullVotes: year === 2023 ? finite(municipalElection.null_votes) : finite(national.null_votes),
+      blankVotes: year === 2023 ? finite(municipalElection.blank_votes) : finite(national.blank_votes),
+      results,
+    };
+  });
+
+  const councils: MunicipalCouncil[] = (nationalProfile?.electoral_history.councils ?? []).flatMap((raw) => {
+    const item = record(raw);
+    const year = finite(item.year);
+    if (year !== 2011 && year !== 2015 && year !== 2019 && year !== 2023) return [];
+    const groups = (Array.isArray(item.groups) ? item.groups : []).map(record).flatMap((group) => {
+      const party = textValue(group.party);
+      const seats = finite(group.seats);
+      return party && seats !== null ? [{ party, seats }] : [];
+    });
+    const members = (Array.isArray(item.members) ? item.members : []).map(record).flatMap((member) => {
+      const office = textValue(member.office);
+      const name = textValue(member.name);
+      const party = textValue(member.party);
+      return office && name && party ? [{ office, name, party, sourcePage: finite(member.source_page) }] : [];
+    });
+    return [{
+      year,
+      total: finite(item.total) ?? members.length,
+      detailStatus: textValue(item.detail_status) ?? "NO_PUBLICADO",
+      groups,
+      members,
+    }];
+  });
+  for (const election of historicalElections) {
+    if (election.mayor) continue;
+    const mayor = councils
+      .find((item) => item.year === election.year)
+      ?.members.find((member) => member.office.toLocaleUpperCase("es-GT").startsWith("ALCALDE"));
+    if (mayor) election.mayor = mayor.name;
+  }
+  const politicalTrajectories: MunicipalPoliticalTrajectory[] = (nationalProfile?.electoral_history.trajectories ?? []).map(record).flatMap((item) => {
+    const name = textValue(item.name);
+    const route = textValue(item.route);
+    if (!name || !route) return [];
+    const years = Array.isArray(item.years) ? item.years.flatMap((value) => {
+      const parsed = finite(value);
+      return parsed === null ? [] : [parsed];
+    }) : [];
+    return [{
+      name,
+      years,
+      elections: finite(item.elections) ?? years.length,
+      route,
+      caution: textValue(item.caution) ?? "Requiere verificación nominal antes de uso sensible",
+    }];
+  });
+  const communityCatalog: MunicipalCommunityCatalogRecord[] = (nationalProfile?.community_catalog.records ?? []).map(record).flatMap((item) => {
+    const name = textValue(item.name);
+    if (!name) return [];
+    return [{
+      name,
+      category: textValue(item.category) ?? "SIN CATEGORÍA",
+      group: textValue(item.group) ?? "SIN AGRUPACIÓN",
+      groupCode: textValue(item.group_code) ?? "—",
+      scope: textValue(item.scope) ?? "NO PUBLICADO",
+      zone: textValue(item.zone),
+      reference: textValue(item.reference),
+      markedCemCenter: item.marked_cem_center === true,
+      sourcePage: finite(item.source_page),
+    }];
+  });
 
   const census = payload("INE_CENSO_B2_B6");
   const nutrition = payload("SESAN_TALLA");
@@ -222,17 +354,27 @@ export function buildMunicipalIntelligenceModel(
     magicNumber,
     women,
     men,
-    age18To35: finite(municipality.age_18_35_2026),
-    literacyShare: finite(municipality.literacy_share_2026),
+    age18To35: runtime.elector_profile?.age_total
+      ? ["18_25", "26_30", "31_35"].reduce((sum, key) => sum + (finite(runtime.elector_profile?.age_total?.[key]) ?? 0), 0)
+      : finite(municipality.age_18_35_2026),
+    literacyShare: activeElectors && runtime.elector_profile
+      ? ((runtime.elector_profile.women_literate ?? 0) + (runtime.elector_profile.men_literate ?? 0)) / activeElectors
+      : finite(municipality.literacy_share_2026),
     centers: finite(centersJrv.physical_locations),
     jrv: finite(centersJrv.jrv),
-    communities: communityCount,
-    territorialGroups: finite(communitiesPayload.group_count),
+    communities: finite(nationalProfile?.community_catalog.summary.records) ?? communityCount,
+    territorialGroups: Array.isArray(nationalProfile?.community_catalog.summary.groups)
+      ? nationalProfile.community_catalog.summary.groups.length
+      : finite(communitiesPayload.group_count),
     population: runtime.demographics?.population_total ?? null,
     populationWomen: runtime.demographics?.population_female ?? null,
     populationMen: runtime.demographics?.population_male ?? null,
     projectionYear: runtime.demographics?.projection_year ?? null,
     historicalElections,
+    councils,
+    politicalTrajectories,
+    communityCatalog,
+    communitySummary: nationalProfile?.community_catalog.summary ?? {},
     priorities: priorityPool.sort((a, b) => b.score - a.score).slice(0, 3).map((item) => item.signal),
     opportunities: opportunityPool.sort((a, b) => b.score - a.score).slice(0, 3).map((item) => item.signal),
     payload,

@@ -3,7 +3,7 @@ name: Quality
 on:
   pull_request:
   push:
-    branches: [main, qa/v70-golden-electoral-runtime, qa/v70-sibinal-client-preview]
+    branches: [main, qa/v70-golden-electoral-runtime, qa/v70-sibinal-client-preview, qa/v70-national-client-readiness]
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
       - run: npm test
       - run: npm run test:xlsx
       - run: npm run smoke:340
-      - run: node scripts/smoke-v70-parity.mjs
+      - run: npm run smoke-v70-parity
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
@@ -33,6 +33,10 @@ jobs:
         run: node scripts/render-smoke-0509.mjs
       - name: Render all 1208 routes with municipal isolation checks
         run: RADAR_RENDER_MUNICIPALITY_CODE=1208 node scripts/render-smoke-0509.mjs
+      - name: Render stratified large municipality sample 0101
+        run: RADAR_RENDER_MUNICIPALITY_CODE=0101 node scripts/render-smoke-0509.mjs
+      - name: Render stratified medium municipality sample 1901
+        run: RADAR_RENDER_MUNICIPALITY_CODE=1901 node scripts/render-smoke-0509.mjs
       - name: Exercise 0509 SPA navigation, report modal and printable report
         run: node scripts/render-interaction-0509-canonical.mjs
       - uses: actions/upload-artifact@v4
@@ -47,6 +51,15 @@ jobs:
         with:
           name: v70-render-smoke-1208
           path: render-smoke-1208
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-render-smoke-stratified
+          path: |
+            render-smoke-0101
+            render-smoke-1901
           if-no-files-found: error
           retention-days: 1
       - uses: actions/upload-artifact@v4

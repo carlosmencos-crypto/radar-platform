@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "generated_at": "2026-09-19T00:25:45.867766+00:00",
+  "municipalities": 340,
+  "active_profiles": 340,
+  "census_profiles": 340,
+  "electoral_histories": 340,
+  "community_records": 32438,
+  "voting_centers": 3445,
+  "sibinal": {
+    "active": 11067,
+    "age_bands": 11,
+    "census_total": 15733,
+    "urban": 2517,
+    "rural": 13216,
+    "history_years": [
+      2011,
+      2015,
+      2019,
+      2023
+    ],
+    "communities": 53,
+    "centers": 8
+  }
+}

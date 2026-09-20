@@ -13,6 +13,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint src scripts tests",
     "smoke:340": "node scripts/smoke-340.mjs",
+    "smoke-v70-parity": "node scripts/smoke-v70-parity.mjs",
     "audit:bundle": "node scripts/audit-bundle.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:xlsx": "node --experimental-strip-types scripts/validate-xlsx-export.mjs",

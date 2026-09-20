@@ -281,10 +281,11 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
   return <>
     <section id="mapa" className="map-section exportable include-print">
       <div className="section-head map-heading"><div><p className="eyebrow">INTELIGENCIA ELECTORAL TERRITORIAL</p><h2>El voto centro por centro</h2></div><p>No mostramos únicamente al ganador: cambia la elección, compara participación, margen, cobertura de actas y las cinco fuerzas principales de cada centro.</p></div>
-      <div className="election-switch" role="tablist" aria-label="Tipo de elección">
-        {viewModel.elections.map((item) => <button key={item.code} className={item.code === electionCode ? "active" : ""} onClick={() => setElectionCode(item.code)}><span>{item.shortName}</span><small>{item.counted ?? "—"}/{item.expected ?? "—"} actas</small></button>)}
-      </div>
-      <div ref={fullscreenNode} className="map-workspace">
+      <div ref={fullscreenNode} className="intelligence-fullscreen-frame">
+        <div className="election-switch" role="tablist" aria-label="Tipo de elección">
+          {viewModel.elections.map((item) => <button key={item.code} className={item.code === electionCode ? "active" : ""} onClick={() => setElectionCode(item.code)}><span>{item.shortName}</span><small>{item.counted ?? "—"}/{item.expected ?? "—"} actas</small></button>)}
+        </div>
+        <div className="map-workspace">
         <aside className="directory">
           <div className="directory-head"><div><p className="eyebrow">DIRECTORIO ELECTORAL</p><h3>{viewModel.centers.length} centros · {viewModel.centers.reduce((total, center) => total + center.jrv, 0)} JRV</h3></div><span>{filtered.length}</span></div>
           <label className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar centro o comunidad" /></label>
@@ -316,6 +317,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
             <div className="mini-ranking">{selectedResult.top.map((result) => <div key={result.party}><span><b>{result.rank}. {result.party}</b><small>{fmt.format(result.votes)} · {pct(result.share)}</small></span><i><em style={{ width: `${Math.max(result.share * 100, 2)}%`, background: partyColors[result.party] ?? "#6d7d84" }} /></i></div>)}</div>
             <div className="vote-quality"><span>Votos por opción <b>{number(selectedResult.optionVotes)}</b></span><span>Blancos <b>{number(selectedResult.blankVotes)}</b></span><span>Nulos <b>{number(selectedResult.nullVotes)}</b></span></div>
           </article> : null}
+        </div>
         </div>
       </div>
     </section>

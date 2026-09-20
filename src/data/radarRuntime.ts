@@ -136,6 +136,43 @@ export interface AuthorizedActiveVoterProfile {
   source_status: string | null;
 }
 
+export interface NationalMunicipalityIntelligenceProfile {
+  municipality_code: string;
+  active_voter_profile: Omit<AuthorizedActiveVoterProfile, "municipality_code" | "cutoff_at" | "source_id" | "source_label" | "source_status">;
+  census_2018: {
+    population_total: number;
+    population_men: number;
+    population_women: number;
+    urban: number;
+    rural: number;
+    urban_share: number;
+    rural_share: number;
+    age_groups: Record<string, number>;
+  };
+  electoral_history: {
+    elections: Array<Record<string, unknown>>;
+    councils: Array<Record<string, unknown>>;
+    trajectories: Array<Record<string, unknown>>;
+  };
+  community_catalog: {
+    summary: Record<string, unknown>;
+    records: Array<Record<string, unknown>>;
+  };
+  voting_centers: Array<Record<string, unknown>>;
+  source_manifest: Record<string, unknown>;
+}
+
+export interface AuthorizedClientReadiness {
+  municipality_code: string;
+  status: "BLOCKED" | "INTELLIGENCE_READY" | "CLIENT_READY";
+  public_data_ready: boolean;
+  trep_ready: boolean;
+  campaign_connected: boolean;
+  possible_voters_loaded: boolean;
+  possible_voters_count: number;
+  missing_requirements: string[];
+}
+
 export interface RadarRuntimeBundle {
   context: AuthorizedRadarContext;
   layers: AuthorizedLayerRecord[];
@@ -144,6 +181,8 @@ export interface RadarRuntimeBundle {
   demographics: AuthorizedDemographicSummary | null;
   elector_profile?: AuthorizedActiveVoterProfile | null;
   voting_centers?: unknown;
+  intelligence_profile?: NationalMunicipalityIntelligenceProfile | null;
+  client_readiness?: AuthorizedClientReadiness | null;
 }
 
 export interface CampaignIdentityRecord {
@@ -484,7 +523,7 @@ export async function loadRadarRuntimeBundle(
 ): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
   const bundle = await rpc<RadarRuntimeBundle | null>(
-    "radar_authorized_runtime_v6",
+    "radar_authorized_runtime_v8",
     {
       p_municipality_code: municipalityCode,
     },
@@ -502,7 +541,11 @@ export async function loadRadarRuntimeBundle(
     (bundle.demographics !== null &&
       bundle.demographics?.municipality_code !== municipalityCode) ||
     (bundle.elector_profile != null &&
-      bundle.elector_profile?.municipality_code !== municipalityCode)
+      bundle.elector_profile?.municipality_code !== municipalityCode) ||
+    (bundle.intelligence_profile != null &&
+      bundle.intelligence_profile?.municipality_code !== municipalityCode) ||
+    (bundle.client_readiness != null &&
+      bundle.client_readiness?.municipality_code !== municipalityCode)
   ) {
     throw new Error("La sesión no tiene un runtime municipal autorizado.");
   }

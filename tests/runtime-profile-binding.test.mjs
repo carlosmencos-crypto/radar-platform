@@ -22,6 +22,7 @@ const voterRuntimeMigration = read("supabase/migrations/20260909220500_radar_vot
 const demographicRuntimeMigration = read("supabase/migrations/20260912001500_add_demographic_projection_runtime_v5.sql");
 const assetsDataMigration = read("supabase/migrations/20260912044000_promote_validated_activos_resumen_5.sql");
 const runtimeV6Migration = read("supabase/migrations/20260912044100_radar_authorized_runtime_v6_optional_assets.sql");
+const runtimeV8Migration = read("supabase/migrations/20260919090000_add_national_intelligence_profile_runtime_v8.sql");
 const voterCanonicalCodeFix = read("supabase/migrations/20260909232000_fix_padron_2023_canonical_department_codes.sql");
 
 test("authorized runtime is installed before the approved V70 renders", () => {
@@ -66,13 +67,13 @@ test("municipal profile derives rich intelligence and map metrics from authorize
   assert.doesNotMatch(runtimeProfile, /localStorage|sessionStorage|service[_-]?role/i);
 });
 
-test("V70 gate loads compact authorized runtime v6 while retaining point bundle on demand", () => {
+test("V70 gate loads national intelligence runtime v8 while retaining point bundle on demand", () => {
   assert.match(runtime, /radar_municipality_geo_summary/);
   assert.match(runtime, /loadAuthorizedGeoSummary/);
   assert.match(runtime, /loadAuthorizedGeoBundle/);
-  assert.match(runtime, /radar_authorized_runtime_v6/);
+  assert.match(runtime, /radar_authorized_runtime_v8/);
   const loader = runtime.match(/export async function loadRadarRuntimeBundle[\s\S]*$/)?.[0] ?? "";
-  assert.match(loader, /radar_authorized_runtime_v6/);
+  assert.match(loader, /radar_authorized_runtime_v8/);
   assert.doesNotMatch(loader, /Promise\.all/);
   assert.doesNotMatch(loader, /loadAuthorizedGeoBundle\(municipalityCode, accessToken\)/);
   assert.match(demographicRuntimeMigration, /radar_authorized_runtime_v5/);
@@ -81,6 +82,11 @@ test("V70 gate loads compact authorized runtime v6 while retaining point bundle 
   assert.match(runtimeV6Migration, /ACTIVOS_RESUMEN/);
   assert.match(runtimeV6Migration, /data_present/);
   assert.match(runtimeV6Migration, /grant execute on function public\.radar_authorized_runtime_v6\(text\) to authenticated/);
+  assert.match(runtimeV8Migration, /municipality_intelligence_profiles_v1/);
+  assert.match(runtimeV8Migration, /radar_authorized_client_readiness_v1/);
+  assert.match(runtimeV8Migration, /radar_authorized_runtime_v7\(p_municipality_code\)/);
+  assert.match(runtimeV8Migration, /radar_authorized_runtime_v8/);
+  assert.match(runtimeV8Migration, /grant execute on function public\.radar_authorized_runtime_v8\(text\) to authenticated/);
 });
 
 test("detailed public geography loads for intelligence and mapa and reconciles fail closed", () => {

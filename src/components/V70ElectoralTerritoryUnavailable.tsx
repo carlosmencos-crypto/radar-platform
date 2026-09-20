@@ -19,10 +19,11 @@ export function V70ElectoralTerritoryUnavailable({
   return <>
     <section id="mapa" className="map-section exportable include-print" data-electoral-state={state}>
       <div className="section-head map-heading"><div><p className="eyebrow">INTELIGENCIA ELECTORAL TERRITORIAL</p><h2>El voto centro por centro</h2></div><p>No mostramos únicamente al ganador: cambia la elección, compara participación, margen, cobertura de actas y las cinco fuerzas principales de cada centro.</p></div>
-      <div className="election-switch" role="tablist" aria-label="Tipo de elección">
-        {elections.map((label, index) => <button key={label} className={index === 3 ? "active" : ""} disabled><span>{label}</span><small>{state}</small></button>)}
-      </div>
-      <div ref={fullscreenNode} className="map-workspace">
+      <div ref={fullscreenNode} className="intelligence-fullscreen-frame">
+        <div className="election-switch" role="tablist" aria-label="Tipo de elección">
+          {elections.map((label, index) => <button key={label} className={index === 3 ? "active" : ""} disabled><span>{label}</span><small>{state}</small></button>)}
+        </div>
+        <div className="map-workspace">
         <aside className="directory">
           <div className="directory-head"><div><p className="eyebrow">DIRECTORIO ELECTORAL</p><h3>{state}</h3></div><span>0</span></div>
           <label className="search"><span>⌕</span><input value="" readOnly placeholder="Buscar centro o comunidad" aria-label="Buscar centro o comunidad" /></label>
@@ -45,6 +46,7 @@ export function V70ElectoralTerritoryUnavailable({
           <div className="real-map canonical-map-pending" aria-label={`Mapa interactivo de centros de votación de ${municipalityName}`}><span>{state}</span><h2>Inteligencia electoral territorial en preparación</h2><p>RADAR no inventa centros, resultados ni asociaciones geográficas faltantes.</p></div>
           <div className="map-source"><span>Mapa base y estructura V70 preservados</span><span>TREP 2023 · {state}</span></div>
           <article className="center-card include-print" aria-live="polite"><div className="center-card-head"><span>CV —</span><div><b>{state}</b><small>{municipalityName}</small></div></div><div className="center-stats"><div><small>Empadronados</small><b>—</b></div><div><small>JRV</small><b>—</b></div><div><small>Actas computadas</small><b>—/—</b></div><div><small>Participación</small><b>—</b></div></div><div className="result-heading"><span>Resultado · Alcaldía</span><b>{state}</b></div><div className="mini-ranking" /><div className="vote-quality"><span>Votos por opción <b>—</b></span><span>Blancos <b>—</b></span><span>Nulos <b>—</b></span></div></article>
+        </div>
         </div>
       </div>
     </section>
