@@ -351,6 +351,8 @@ html[data-theme="dark"] .canonical-vault-notice {
 .intelligence-fullscreen-frame:fullscreen .directory-note{flex:0 0 auto}
 .intelligence-fullscreen-frame:fullscreen .map-panel{display:flex;flex-direction:column;min-width:0}
 .intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar{grid-template-columns:max-content 34px minmax(0,1fr);padding-right:112px;overflow:visible}
+.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .metric-switch{grid-column:1}
+.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .layer-switch{grid-column:3}
 .intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .layer-switch{justify-content:flex-end;overflow-x:auto}
 .intelligence-fullscreen-frame:fullscreen .real-map{flex:1;min-height:360px}
 html[data-theme="dark"] :is(.map-fullscreen-frame:fullscreen,.intelligence-fullscreen-frame:fullscreen){background:var(--radar-fondo-oscuro)}
