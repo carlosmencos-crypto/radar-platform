@@ -422,8 +422,10 @@ try {
   await waitFor(`Boolean(document.fullscreenElement?.querySelector('.map-fullscreen-button.active'))`, "Smart Map fullscreen active state");
   const mapLayout = await evaluate(`(()=>{const frame=document.fullscreenElement,stage=frame?.querySelector('.map-stage'),search=frame?.querySelector('.map-toolbar-search'),activity=frame?.querySelector('.toolbar-select'),button=frame?.querySelector('.map-fullscreen-button.active');if(!frame||!stage||!search||!activity||!button)return null;const s=stage.getBoundingClientRect(),q=search.getBoundingClientRect(),a=activity.getBoundingClientRect();return{stageWidth:s.width,stageHeight:s.height,searchWidth:q.width,activityWidth:a.width,buttonLabel:button.getAttribute('aria-label')}})()`);
   const mapScreenshotBytes = await capture("mapa-fullscreen");
-  if (!mapLayout || mapLayout.stageWidth < 900 || mapLayout.stageHeight < 600 || mapLayout.searchWidth > 520 || mapLayout.activityWidth < 170 || mapLayout.buttonLabel !== "Salir de pantalla completa" || mapScreenshotBytes < 10_000) throw new Error(`Smart Map fullscreen failed for ${municipalityCode}: ${JSON.stringify(mapLayout)}`);
-  interactions.push({ kind: "map-fullscreen", ...mapLayout, screenshotBytes: mapScreenshotBytes, ok: true });
+  const mapLayoutOk = Boolean(mapLayout && mapLayout.stageWidth >= 900 && mapLayout.stageHeight >= 600 && mapLayout.searchWidth <= 520 && mapLayout.activityWidth >= 170 && mapLayout.buttonLabel === "Salir de pantalla completa" && mapScreenshotBytes >= 10_000);
+  interactions.push({ kind: "map-fullscreen", ...mapLayout, screenshotBytes: mapScreenshotBytes, ok: mapLayoutOk });
+  fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: mapLayoutOk ? "RUNNING" : "FAIL", routes: results, interactions, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
+  if (!mapLayoutOk) throw new Error(`Smart Map fullscreen failed for ${municipalityCode}: ${JSON.stringify(mapLayout)}`);
   await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await waitFor(`!document.fullscreenElement`, "Smart Map fullscreen Escape exit");
