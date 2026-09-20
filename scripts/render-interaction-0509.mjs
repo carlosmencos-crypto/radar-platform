@@ -70,6 +70,16 @@ const runtime = {
     coverage: { detailed_2023: true, active_2026: true, community_detail_2023: true },
   },
   demographics: null,
+  client_readiness: {
+    municipality_code: "0509",
+    status: "CLIENT_READY",
+    public_data_ready: true,
+    trep_ready: true,
+    campaign_connected: true,
+    possible_voters_loaded: true,
+    possible_voters_count: 36_878,
+    missing_requirements: [],
+  },
 };
 const geoBundle = { municipality, feature_counts: geoFeatureCounts, features: mapFixture.features };
 const voterCommunities = mapFixture.communities;
