@@ -1,0 +1,107 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "2004-2104",
+  "municipality_code": "2005",
+  "municipality_name": "Camotán",
+  "department_code": "20",
+  "department_name": "Chiquimula",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-20T00:07:04.356403+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_2005_STAGE_CANONICAL_de7da771.json",
+    "artifact_drive_id": "1SvRyc8UU1uYGE5jBY-kmOBB561D9y-mB",
+    "artifact_sha256": "de7da7713f2f071eda401d223ac78d4816d0430529a134359763c3155e14e0fe",
+    "artifact_file_sha256": "6408734052cd6401f7ca2ecffdc344db4b56ac2f9699e5a5bb7d4cfaad48b0c8",
+    "layers": 6,
+    "physical_centers": 26,
+    "expected_jrv": 85,
+    "registered_voters": 31252,
+    "geo_exact": 26,
+    "geo_held": 0,
+    "dense_rows": 2730,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 319,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 321,
+    "zero_of_6": 19,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [
+      "2105",
+      "2106",
+      "2107",
+      "2202",
+      "2203",
+      "2204",
+      "2205",
+      "2206",
+      "2207",
+      "2208",
+      "2209",
+      "2210"
+    ],
+    "size": 12,
+    "started": false
+  }
+}
