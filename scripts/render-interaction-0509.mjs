@@ -70,6 +70,7 @@ const runtime = {
     coverage: { detailed_2023: true, active_2026: true, community_detail_2023: true },
   },
   demographics: null,
+  intelligence_profile: {municipality_code: "0509", electoral_basis_2027: JSON.parse(fs.readFileSync(path.join(root, "supabase/fixtures/tse-agreement-327-bases.json"), "utf8")).find((basis) => basis.municipality_code === "0509"), electoral_history: {elections: [], councils: [], trajectories: []}, community_catalog: {records: [], summary: {}}, source_manifest: {}},
   client_readiness: {
     municipality_code: "0509",
     status: "CLIENT_READY",

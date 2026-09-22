@@ -1,3 +1,4 @@
+import { attachRecoveredElectoralData } from "./qa-national-profile.mjs";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -42,7 +43,7 @@ function bboxFor(features) {
   };
 }
 
-const nationalProfile = loadNationalProfile(municipalityCode);
+const nationalProfile = attachRecoveredElectoralData(loadNationalProfile(municipalityCode));
 const goldenMapFixture = JSON.parse(fs.readFileSync(path.join(root, "scripts/fixtures/v70-0509-map-render.json"), "utf8"));
 const sibinalFeatures = [
   ["populated_place", "1208001", "Sibinal", 15.149219, -92.04861],
@@ -398,7 +399,14 @@ try {
       && (!isGolden || html.includes("Actividad territorial QA"))
     );
     const readinessOk = isGolden || slug !== "directorio" || text.includes("Módulo listo para una campaña autorizada");
-    const routeSpecificOk = mapRouteOk && readinessOk;
+    const slateOk = slug !== "inicio" || (html.match(/class="slate-member"/g) ?? []).length === nationalProfile.electoral_basis_2027.all_positions;
+    const council2023 = nationalProfile.electoral_history.councils.find((item) => item.year === 2023);
+    const officialIntelligenceOk = slug !== "inteligencia" || (
+      text.includes(new Intl.NumberFormat("es-GT").format(nationalProfile.electoral_basis_2027.published_population_total))
+      && text.includes(council2023.mayor)
+      && html.includes(council2023.source_url)
+    );
+    const routeSpecificOk = mapRouteOk && readinessOk && slateOk && officialIntelligenceOk;
     const domOk = html.includes("portal-shell")
       && text.includes(marker)
       && routeSpecificOk

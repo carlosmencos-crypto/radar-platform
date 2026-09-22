@@ -1,3 +1,4 @@
+import { municipalSlateSlots } from "../data/municipalSlate";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -33,7 +34,6 @@ import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { V70PhotoEditor } from "./V70PhotoEditor";
 import {
   announceV70CampaignUpdate,
-  candidatePositions,
 } from "./useV70CampaignBrand";
 
 const electorStatuses = [
@@ -1109,6 +1109,7 @@ async function carnetPng(
 
 function TeamDirectoryCanonical() {
   const { campaign_id, municipality_code } = useMunicipalityContext();
+  const candidatePositions = municipalSlateSlots(getInstalledRadarRuntime(municipality_code)?.intelligence_profile?.electoral_basis_2027, municipality_code).map((slot) => slot[1]);
   const [query, setQuery] = useState("");
   const [contactFilter, setContactFilter] = useState("all");
   const [view, setView] = useState<"cards" | "table">("cards");
