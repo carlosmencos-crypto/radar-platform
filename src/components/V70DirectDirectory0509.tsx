@@ -789,7 +789,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         <div className="agenda-modal elector-modal" role="dialog" aria-modal="true">
           <section className="elector-sheet">
             <header>
-              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(detail.elector.id).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {municipality_name}</p></span></div>
+              <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(Math.abs(detail.elector.id)).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {municipality_name}</p></span></div>
               <button type="button" onClick={() => setDetail(null)}>×</button>
             </header>
             <div className="elector-base-data">

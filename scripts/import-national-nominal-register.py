@@ -5,6 +5,7 @@ Requires a validated source report and an explicitly provisioned import job.
 Neither raw payloads nor the expiring token belong in the Git repository.
 """
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import gzip
 import hashlib
 import json
@@ -46,44 +47,67 @@ def plan(directory):
     print(json.dumps({"batches": len(batches), "rows": sum(b["expected_rows"] for b in batches), "max_payload_bytes": max(b["bytes"] for b in batches)}))
 
 
-def upload(directory, source_id, endpoint, limit):
+def upload(directory, source_id, endpoint, limit, workers, pack):
     manifest = json.loads((directory / "batch-manifest.json").read_text())
     token = (directory / "import-token").read_text().strip()
     receipt_file = directory / "upload-receipts.jsonl"
     # Receipts are written only after the server confirms the expected count.
     completed = {r["batch"] for line in receipt_file.read_text().splitlines() if (r := json.loads(line)).get("source_id") == source_id} if receipt_file.exists() else set()
-    sent = 0
-    for batch in manifest["batches"]:
-        number = batch["batch_number"]
-        if number in completed:
-            continue
-        payload = gzip.decompress((directory / "batches" / f"{number:04d}.json.gz").read_bytes())
-        if hashlib.sha256(payload).hexdigest() != batch["payload_sha256"]:
-            raise ValueError(f"Local payload changed: batch {number}")
-        body = json.dumps({"source_id": source_id, "batch_number": number, "payload": payload.decode()}, ensure_ascii=False).encode()
+    pending = [batch for batch in manifest["batches"] if batch["batch_number"] not in completed]
+    if limit:
+        pending = pending[:limit]
+
+    def send(group):
+        payloads = []
+        expected = {batch["batch_number"]: batch["expected_rows"] for batch in group}
+        number = group[0]["batch_number"]
+        for batch in group:
+            batch_number = batch["batch_number"]
+            payload = gzip.decompress((directory / "batches" / f"{batch_number:04d}.json.gz").read_bytes())
+            if hashlib.sha256(payload).hexdigest() != batch["payload_sha256"]:
+                raise ValueError(f"Local payload changed: batch {batch_number}")
+            payloads.append({"batch_number": batch_number, "payload": payload.decode()})
+        body = json.dumps({"source_id": source_id, "batches": payloads}, ensure_ascii=False).encode()
+        if len(body) > 10_000_000:
+            raise ValueError("Transport group exceeds bounded request size")
+        body = gzip.compress(body, compresslevel=5, mtime=0)
         for attempt in range(4):
             try:
-                request = urllib.request.Request(endpoint, data=body, headers={"content-type":"application/json", "x-radar-import-token":token})
+                request = urllib.request.Request(endpoint, data=body, headers={"content-type":"application/json", "content-encoding":"gzip", "x-radar-import-token":token})
                 with urllib.request.urlopen(request, timeout=90) as response:
-                    receipt = json.load(response)
-                if receipt.get("batch") != number or receipt.get("rows") != batch["expected_rows"]:
+                    receipts = json.load(response).get("receipts", [])
+                if len(receipts) != len(expected) or {r.get("batch"): r.get("rows") for r in receipts} != expected:
                     raise ValueError(f"Server count mismatch: batch {number}")
                 break
             except urllib.error.HTTPError as error:
-                if error.code < 500 or attempt == 3:
-                    raise RuntimeError(f"Batch {number} rejected: HTTP {error.code}; no private payload logged") from None
+                try:
+                    error_code = json.loads(error.read(300)).get("code", "UNKNOWN")
+                except (ValueError, AttributeError):
+                    error_code = "UNKNOWN"
+                if (error.code < 500 and error_code not in ("57014", "55P03")) or attempt == 3:
+                    raise RuntimeError(f"Batch {number} rejected: HTTP {error.code}; code {error_code}; no private payload logged") from None
                 time.sleep(2 ** attempt)
             except (TimeoutError, urllib.error.URLError):
                 if attempt == 3:
                     raise RuntimeError(f"Batch {number} network failure; retry is idempotent") from None
                 time.sleep(2 ** attempt)
-        receipt["source_id"] = source_id
-        with receipt_file.open("a") as output:
-            output.write(json.dumps(receipt)+"\n")
-        print(json.dumps({"batch":number,"rows":receipt["rows"],"completed":len(completed)+sent+1,"total_batches":len(manifest["batches"])}), flush=True)
-        sent += 1
-        if limit and sent >= limit:
-            break
+        for receipt in receipts:
+            receipt["source_id"] = source_id
+        return receipts
+
+    sent = 0
+    # Bounded windows: on rejection, only the other in-flight batches can
+    # finish. Server-side acknowledgements make every retry idempotent.
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        groups = [pending[offset:offset+pack] for offset in range(0, len(pending), pack)]
+        for offset in range(0, len(groups), workers):
+            for receipts in pool.map(send, groups[offset:offset+workers]):
+                for receipt in receipts:
+                    with receipt_file.open("a") as output:
+                        output.write(json.dumps(receipt)+"\n")
+                    sent += 1
+                    if sent % 10 == 0 or sent == len(pending):
+                        print(json.dumps({"completed":len(completed)+sent,"total_batches":len(manifest["batches"])}), flush=True)
 
 
 if __name__ == "__main__":
@@ -93,10 +117,12 @@ if __name__ == "__main__":
     parser.add_argument("--source-id")
     parser.add_argument("--endpoint")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--workers", type=int, choices=range(1, 7), default=1)
+    parser.add_argument("--pack", type=int, choices=[1, 2, 3], default=1)
     args = parser.parse_args()
     if args.action == "plan":
         plan(args.directory)
     else:
         if not args.source_id or not args.endpoint or not args.endpoint.startswith("https://"):
             parser.error("upload requires source-id and HTTPS endpoint")
-        upload(args.directory, args.source_id, args.endpoint, args.limit)
+        upload(args.directory, args.source_id, args.endpoint, args.limit, args.workers, args.pack)

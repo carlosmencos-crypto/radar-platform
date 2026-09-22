@@ -72,7 +72,7 @@ by fuzzy name matching. `national-nominal-source-report.json` contains aggregate
 and provenance only. Private rows, original workbooks and import tokens are not
 in this repository or the public build.
 
-Three additive migrations were applied. New private staging tables have RLS enabled,
+Five additive migrations have now been applied for the nominal recovery and query estimate correction. New private staging tables have RLS enabled,
 no anonymous/authenticated direct table access, and an inactive source by default.
 New authenticated read RPCs require an active platform administrator plus
 `private.can_read_data_vault` authorization for the requested municipality. Existing
@@ -82,19 +82,41 @@ after activation. Campaign editing remains on the existing campaign directory.
 
 895 immutable import batches have hashes registered on the server. The temporary
 ingest endpoint requires a strong expiring token and the exact registered payload
-hash; its service RPC is unavailable to anon/authenticated. Before any private
-records were transferred, automatic approval review rejected the first upload
-because it requires explicit authorization to transfer names and DPI to this
-Supabase destination. Verification after rejection: **0 staged records, 0 loaded
-batches, 0 active sources**. The import job was closed immediately. Do not retry
-upload or activate the source until the user explicitly authorizes that transfer.
-There is no alternative upload path approved by this checkpoint.
+hash; its service RPC is unavailable to anon/authenticated.
 
-Local validation: 84 tests, typecheck, lint (zero errors/warnings), XLSX, smoke 340,
-V70 parity and build passed. Private live-data browsing and performance acceptance
-remain pending the authorized import. Source recovery is complete; live directory
-coverage is not yet complete. The universal platform-admin account was verified
-read-only across all 340 municipal contexts. This is not a browser login test.
+The initial automatic approval rejection was resolved by the user's subsequent
+explicit authorization to execute this transfer and the required loads. The import
+job was reopened for this private Supabase destination. At 2026-09-22 22:24 UTC,
+more than 1.7 million records had server acknowledgements. The source remains
+inactive until all 895 batches and all 340 municipal counts reconcile. Do not infer
+completion from this intermediate checkpoint; query the manifest on resume.
+
+Transport uses bounded gzip requests with up to three independently validated,
+transactional batches. A repeated acknowledged batch returns its receipt without
+reinserting records. Six concurrent requests encountered SQLSTATE 57014; the active
+loader uses two workers. Incomplete receipts never mark a local batch complete.
+The prepared activation transaction independently checks the full manifest, total,
+municipal identity/counts, retained duplicate groups and age quality flags before
+building summaries, closing ingestion and activating the source atomically.
+
+The authenticated browser reproduced a runtime 500. EXPLAIN showed the default
+1000-row context estimate caused a nationwide layer scan before municipal filtering.
+Only the public context function's ROWS estimate was changed to 1; no function body,
+permission or V7 dependency was replaced. The resulting plan uses the existing
+municipal index. Runtime JSON hashes for 1208, 0509, 0101 and 1901 were unchanged.
+Sibinal subsequently opened in an authenticated browser without a runtime-load error.
+After query plans refreshed, authenticated V8 for Sibinal measured 553.52 ms
+(compared with 4502.64 ms before the estimate correction). Final nationwide
+performance acceptance remains pending.
+
+Privileged nominal implementations now reside in the private schema behind public
+SECURITY INVOKER wrappers. Active-admin, municipal authorization and source-active
+checks remain inside the private functions. No anonymous execution was granted.
+
+Local validation: 85 tests (including four synthetic transport checks), typecheck, lint (zero errors/warnings), XLSX, smoke 340,
+V70 parity and build passed. Final private browsing, persistence, isolation and
+performance acceptance remain pending full activation. Universal admin municipal
+contexts were verified for all 340 municipalities; the live browser also authenticated.
 
 Advisors were executed: security reports leaked-password protection disabled and
 informational RLS-without-policy notices on private staging tables. Performance

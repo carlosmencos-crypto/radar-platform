@@ -418,6 +418,13 @@ async function rpc<T>(
   });
 
   if (!response.ok) {
+    const failure: unknown = await response.json().catch(() => null);
+    const code = failure && typeof failure === "object" && "code" in failure &&
+      typeof failure.code === "string" && /^[A-Z0-9]{5,12}$/.test(failure.code)
+      ? failure.code : "UNKNOWN";
+    // Log only the RPC identifier, status and database code, never its payload,
+    // credentials, database message or details (which may contain private rows).
+    console.error("RADAR_RPC_REQUEST_FAILED", functionName, response.status, code);
     throw new Error(`RADAR runtime rechazó la solicitud (${response.status}).`);
   }
 

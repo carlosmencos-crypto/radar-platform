@@ -34,7 +34,7 @@ test("directory search updates the canonical result list without an overlay", ()
   assert.match(directory, /className="crm-row crm-head"/);
   assert.match(directory, /className="agenda-create-link"/);
   assert.match(directory, /createRadarXlsx/);
-  assert.match(directory, /FICHA DE CONTACTO · \{municipality_code\}-\{String\(detail\.elector\.id\)\.padStart\(6, "0"\)\}/);
+  assert.match(directory, /FICHA DE CONTACTO · \{municipality_code\}-\{String\(Math\.abs\(detail\.elector\.id\)\)\.padStart\(6, "0"\)\}/);
   assert.match(directory, /\{municipality_name\}/);
   assert.match(directory, /"Guardar contacto"/);
 });
