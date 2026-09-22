@@ -1033,4 +1033,4 @@ html[data-theme="dark"] :is(.agenda-list-actions button, .agenda-list-actions a,
 
 /* Viewport fallback for browsers that deny the native Fullscreen API. */
 :is(.map-fullscreen-frame,.intelligence-fullscreen-frame).is-fullscreen{position:fixed;inset:0;z-index:10000}
-.portal-shell:has(.is-fullscreen){zoom:1}
+html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
