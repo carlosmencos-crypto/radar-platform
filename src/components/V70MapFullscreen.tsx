@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 type Props = {
   targetRef: RefObject<HTMLElement | null>;
@@ -7,32 +7,51 @@ type Props = {
 
 export function V70MapFullscreen({ targetRef, onChange }: Props) {
   const [active, setActive] = useState(false);
-  const [supported, setSupported] = useState(true);
+  const [fallback, setFallback] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
-    setSupported(typeof document !== "undefined" && "fullscreenEnabled" in document && document.fullscreenEnabled);
+    const node = targetRef.current;
+    const previousOverflow = document.body.style.overflow;
+    node?.classList.toggle("is-fullscreen", fallback);
+    if (fallback) document.body.style.overflow = "hidden";
     const sync = () => {
-      const next = document.fullscreenElement === targetRef.current;
+      const next = document.fullscreenElement === targetRef.current || fallback;
       setActive(next);
-      onChange?.(next);
+      onChangeRef.current?.(next);
       window.setTimeout(() => window.dispatchEvent(new Event("resize")), 80);
       window.setTimeout(() => window.dispatchEvent(new Event("resize")), 320);
     };
     const exitWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && document.fullscreenElement === targetRef.current) void document.exitFullscreen();
+      if (event.key !== "Escape") return;
+      if (fallback) setFallback(false);
+      else if (document.fullscreenElement === targetRef.current) void document.exitFullscreen().catch(() => undefined);
     };
+    sync();
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("keydown", exitWithEscape);
     return () => {
       document.removeEventListener("fullscreenchange", sync);
       document.removeEventListener("keydown", exitWithEscape);
+      node?.classList.remove("is-fullscreen");
+      if (fallback) document.body.style.overflow = previousOverflow;
     };
-  }, [onChange, targetRef]);
+  }, [fallback, targetRef]);
 
   async function toggle() {
-    if (!targetRef.current || !supported) return;
-    if (document.fullscreenElement === targetRef.current) await document.exitFullscreen();
-    else await targetRef.current.requestFullscreen();
+    if (!targetRef.current) return;
+    if (fallback) { setFallback(false); return; }
+    if (document.fullscreenElement === targetRef.current) {
+      await document.exitFullscreen().catch(() => undefined);
+      return;
+    }
+    if (!document.fullscreenEnabled || !targetRef.current.requestFullscreen) {
+      setFallback(true);
+      return;
+    }
+    try { await targetRef.current.requestFullscreen(); }
+    catch { setFallback(true); }
   }
 
   return <button
@@ -40,7 +59,6 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
     className={`map-fullscreen-button ${active ? "active" : ""}`}
     aria-label={active ? "Salir de pantalla completa" : "Ver mapa en pantalla completa"}
     title={active ? "Salir de pantalla completa (Esc)" : "Pantalla completa"}
-    disabled={!supported}
     onClick={() => void toggle()}
   >
     <span className="map-fullscreen-icon" aria-hidden="true">{active ? "×" : "⛶"}</span>

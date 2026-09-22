@@ -131,8 +131,8 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /viewBox="0 0 36 42"/);
   assert.doesNotMatch(styles, /\.agenda-map-marker\{[^}]*rotate\(-45deg\)/);
   assert.match(styles, /\.map-fullscreen-button:not\(\.active\)\{width:34px/);
-  assert.match(styles, /\.map-fullscreen-frame:fullscreen\{display:flex;flex-direction:column/);
-  assert.match(styles, /\.map-fullscreen-frame:fullscreen \.smart-map-shell\{flex:1 1 auto/);
+  assert.match(styles, /\.map-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\)\{display:flex;flex-direction:column/);
+  assert.match(styles, /\.map-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\) \.smart-map-shell\{flex:1 1 auto/);
 });
 
 test("the executive report includes commitments stored by the current Agenda flow", () => {

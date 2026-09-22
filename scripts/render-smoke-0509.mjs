@@ -465,8 +465,29 @@ try {
   await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await waitFor(`!document.fullscreenElement`, "Intelligence fullscreen Escape exit");
 
+  // A denied native request must still offer a usable viewport map and exits.
+  for (const [route, frameClass] of [["mapa", "map-fullscreen-frame"], ["inteligencia", "intelligence-fullscreen-frame"]]) {
+    await navigate(`/municipio/${municipalityCode}/${route}`);
+    await waitFor(`Boolean(document.querySelector('.${frameClass} .map-fullscreen-button'))`, `${route} fallback control`);
+    await evaluate(`document.querySelector('.${frameClass}').requestFullscreen=()=>Promise.reject(new Error('QA native fullscreen denied'))`);
+    await clickSelector(`.${frameClass} .map-fullscreen-button`);
+    await waitFor(`Boolean(document.querySelector('.${frameClass}.is-fullscreen .map-fullscreen-button.active'))`, `${route} fallback entry`);
+    const bounds = await evaluate(`(()=>{const f=document.querySelector('.${frameClass}.is-fullscreen'),r=f.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,viewportWidth:innerWidth,viewportHeight:innerHeight,scrollLocked:document.body.style.overflow==='hidden'}})()`);
+    const ok = bounds && Math.abs(bounds.x)<2 && Math.abs(bounds.y)<2 && bounds.width>=bounds.viewportWidth-2 && bounds.height>=bounds.viewportHeight-2 && bounds.scrollLocked;
+    interactions.push({ kind: `${route}-fullscreen-fallback`, ...bounds, ok });
+    if (!ok) throw new Error(`Viewport fullscreen failed: ${JSON.stringify(bounds)}`);
+    await capture(`${route}-fullscreen-fallback`);
+    await clickSelector(`.${frameClass} .map-fullscreen-button.active`);
+    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && document.body.style.overflow!=='hidden'`, `${route} fallback button exit`);
+    await clickSelector(`.${frameClass} .map-fullscreen-button`);
+    await waitFor(`Boolean(document.querySelector('.${frameClass}.is-fullscreen'))`, `${route} fallback reentry`);
+    await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+    await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && document.body.style.overflow!=='hidden'`, `${route} fallback Escape exit`);
+  }
+
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
-  console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/2 fullscreen interactions · national profile isolated`);
+  console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/4 fullscreen interactions · national profile isolated`);
 } catch (error) {
   const failure = error instanceof Error ? error.message : String(error);
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "FAIL", error: failure, routes: results, interactions, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));

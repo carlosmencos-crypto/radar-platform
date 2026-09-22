@@ -338,39 +338,39 @@ html[data-theme="dark"] .canonical-vault-notice {
 .map-fullscreen-button:not(.active) .map-fullscreen-label{display:none}
 .map-fullscreen-icon{font-size:15px;line-height:1}
 .map-fullscreen-button.active{position:fixed;z-index:2500;top:14px;right:16px;border-color:rgba(255,255,255,.28);background:var(--radar-grafito);color:#fff;box-shadow:0 8px 28px rgba(20,25,28,.22)}
-.map-fullscreen-frame:fullscreen,.intelligence-fullscreen-frame:fullscreen{width:100vw;height:100vh;max-width:none;margin:0;padding:14px;background:var(--radar-marfil);overflow:auto}
-.map-fullscreen-frame:fullscreen{display:flex;flex-direction:column;gap:8px;overflow:hidden}
-.map-fullscreen-frame:fullscreen .operational-map-toolbar{grid-template-columns:minmax(210px,.72fr) 34px minmax(180px,1fr) auto auto auto;margin:0;padding-right:118px}
-.map-fullscreen-frame:fullscreen .map-toolbar-search{grid-column:1}
-.map-fullscreen-frame:fullscreen .toolbar-select{grid-column:3;min-width:180px}
-.map-fullscreen-frame:fullscreen .map-more-filters{grid-column:4}
-.map-fullscreen-frame:fullscreen .map-new-activity{grid-column:5}
-.map-fullscreen-frame:fullscreen .map-satellite-toggle{grid-column:6}
-.map-fullscreen-frame:fullscreen .operational-map-toolbar,.map-fullscreen-frame:fullscreen .map-selection-strip{flex:0 0 auto}
-.map-fullscreen-frame:fullscreen .smart-map-shell{flex:1 1 auto;min-height:0;height:auto;margin:0}
-.map-fullscreen-frame:fullscreen .map-stage,.map-fullscreen-frame:fullscreen .smart-map-canvas{height:100%;min-height:0}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen),.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen){width:100vw;height:100vh;max-width:none;margin:0;padding:14px;background:var(--radar-marfil);overflow:auto}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen){display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .operational-map-toolbar{grid-template-columns:minmax(210px,.72fr) 34px minmax(180px,1fr) auto auto auto;margin:0;padding-right:118px}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-toolbar-search{grid-column:1}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .toolbar-select{grid-column:3;min-width:180px}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-more-filters{grid-column:4}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-new-activity{grid-column:5}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-satellite-toggle{grid-column:6}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .operational-map-toolbar,.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-selection-strip{flex:0 0 auto}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .smart-map-shell{flex:1 1 auto;min-height:0;height:auto;margin:0}
+.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-stage,.map-fullscreen-frame:is(:fullscreen,.is-fullscreen) .smart-map-canvas{height:100%;min-height:0}
 .operational-map-toolbar{grid-template-columns:minmax(290px,1.7fr) 34px 112px auto auto auto}
 .operational-map-toolbar>.map-fullscreen-button{justify-self:center}
 .intelligence-map-toolbar{grid-template-columns:auto 34px minmax(0,1fr)}
 .intelligence-map-toolbar>.map-fullscreen-button{justify-self:center}
-.intelligence-fullscreen-frame:fullscreen{display:flex;flex-direction:column;gap:8px;overflow:hidden}
-.intelligence-fullscreen-frame:fullscreen>.election-switch{flex:0 0 auto;width:calc(100% - 112px);margin:0;overflow-x:auto}
-.intelligence-fullscreen-frame:fullscreen>.map-workspace{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:12px;width:100%;max-width:none;min-height:0;flex:1 1 auto;margin:0}
-.intelligence-fullscreen-frame:fullscreen .directory,.intelligence-fullscreen-frame:fullscreen .map-panel{min-height:0;height:auto}
-.intelligence-fullscreen-frame:fullscreen .directory{overflow:hidden}
-.intelligence-fullscreen-frame:fullscreen .center-list{flex:1 1 auto;height:auto;min-height:0}
-.intelligence-fullscreen-frame:fullscreen .directory-note{flex:0 0 auto}
-.intelligence-fullscreen-frame:fullscreen .map-panel{display:flex;flex-direction:column;min-width:0}
-.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar{grid-template-columns:max-content 34px minmax(0,1fr);padding-right:112px;overflow:visible}
-.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .metric-switch{grid-column:1}
-.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .layer-switch{grid-column:3}
-.intelligence-fullscreen-frame:fullscreen .intelligence-map-toolbar .layer-switch{justify-content:flex-end;overflow-x:auto}
-.intelligence-fullscreen-frame:fullscreen .real-map{flex:1;min-height:360px}
-html[data-theme="dark"] :is(.map-fullscreen-frame:fullscreen,.intelligence-fullscreen-frame:fullscreen){background:var(--radar-fondo-oscuro)}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen){display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen)>.election-switch{flex:0 0 auto;width:calc(100% - 112px);margin:0;overflow-x:auto}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen)>.map-workspace{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:12px;width:100%;max-width:none;min-height:0;flex:1 1 auto;margin:0}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .directory,.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-panel{min-height:0;height:auto}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .directory{overflow:hidden}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .center-list{flex:1 1 auto;height:auto;min-height:0}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .directory-note{flex:0 0 auto}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-panel{display:flex;flex-direction:column;min-width:0}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .intelligence-map-toolbar{grid-template-columns:max-content 34px minmax(0,1fr);padding-right:112px;overflow:visible}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .intelligence-map-toolbar .metric-switch{grid-column:1}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .intelligence-map-toolbar .layer-switch{grid-column:3}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .intelligence-map-toolbar .layer-switch{justify-content:flex-end;overflow-x:auto}
+.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .real-map{flex:1;min-height:360px}
+html[data-theme="dark"] :is(.map-fullscreen-frame:is(:fullscreen,.is-fullscreen),.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen)){background:var(--radar-fondo-oscuro)}
 html[data-theme="dark"] .map-fullscreen-button:not(.active){background:var(--radar-fondo-oscuro);border-color:var(--radar-municipal);color:var(--radar-marfil)}
 @media(max-width:1180px){.operational-map-toolbar{grid-template-columns:minmax(230px,1fr) 34px 100px auto auto auto}}
 @media(max-width:1100px){.intelligence-map-toolbar{grid-template-columns:minmax(max-content,1fr) 34px}.intelligence-map-toolbar .layer-switch{grid-column:1/-1}}
-@media(max-width:760px){.operational-map-toolbar{grid-template-columns:34px minmax(0,1fr) 92px auto}.map-toolbar-search{grid-column:1/-1}.operational-map-toolbar>.map-satellite-toggle{grid-column:1/-1}.intelligence-fullscreen-frame:fullscreen>.map-workspace{grid-template-columns:1fr}.intelligence-fullscreen-frame:fullscreen .directory{display:none}.intelligence-fullscreen-frame:fullscreen .map-panel{height:auto}}
+@media(max-width:760px){.operational-map-toolbar{grid-template-columns:34px minmax(0,1fr) 92px auto}.map-toolbar-search{grid-column:1/-1}.operational-map-toolbar>.map-satellite-toggle{grid-column:1/-1}.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen)>.map-workspace{grid-template-columns:1fr}.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .directory{display:none}.intelligence-fullscreen-frame:is(:fullscreen,.is-fullscreen) .map-panel{height:auto}}
 
 /* Día D: una retícula equilibrada para asignación, operación, RTD y acceso. */
 .day-d-fiscal-table.extended .head,.day-d-fiscal-table.extended article{grid-template-columns:minmax(190px,1.45fr) repeat(5,minmax(54px,.5fr)) minmax(118px,.8fr) minmax(250px,1.35fr);column-gap:8px;min-width:920px}
@@ -1030,3 +1030,6 @@ html[data-theme="dark"] :is(.agenda-list-actions button, .agenda-list-actions a,
   .agenda-list-activity > em { grid-column: 3; }
   .agenda-list-actions { grid-column: 1 / -1; flex-wrap: wrap; }
 }
+
+/* Viewport fallback for browsers that deny the native Fullscreen API. */
+:is(.map-fullscreen-frame,.intelligence-fullscreen-frame).is-fullscreen{position:fixed;inset:0;z-index:10000}

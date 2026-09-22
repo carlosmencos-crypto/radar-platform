@@ -113,11 +113,11 @@ test("fullscreen intelligence preserves election tabs and keeps every layer cont
   assert.match(territory, /className="intelligence-fullscreen-frame"/);
   assert.match(territory, /className="election-switch"/);
   assert.match(unavailableTerritory, /className="intelligence-fullscreen-frame"/);
-  assert.match(css, /intelligence-fullscreen-frame:fullscreen>\.election-switch/);
-  assert.match(css, /intelligence-fullscreen-frame:fullscreen \.intelligence-map-toolbar \.layer-switch\{justify-content:flex-end;overflow-x:auto\}/);
-  assert.match(css, /map-fullscreen-frame:fullscreen \.operational-map-toolbar\{grid-template-columns:minmax\(210px,\.72fr\)/);
-  assert.match(css, /intelligence-fullscreen-frame:fullscreen \.intelligence-map-toolbar \.metric-switch\{grid-column:1\}/);
-  assert.match(css, /intelligence-fullscreen-frame:fullscreen \.intelligence-map-toolbar \.layer-switch\{grid-column:3\}/);
-  assert.match(fullscreen, /event\.key === "Escape"/);
+  assert.match(css, /intelligence-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\)>\.election-switch/);
+  assert.match(css, /intelligence-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\) \.intelligence-map-toolbar \.layer-switch\{justify-content:flex-end;overflow-x:auto\}/);
+  assert.match(css, /map-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\) \.operational-map-toolbar\{grid-template-columns:minmax\(210px,\.72fr\)/);
+  assert.match(css, /intelligence-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\) \.intelligence-map-toolbar \.metric-switch\{grid-column:1\}/);
+  assert.match(css, /intelligence-fullscreen-frame:is\(:fullscreen,\.is-fullscreen\) \.intelligence-map-toolbar \.layer-switch\{grid-column:3\}/);
+  assert.match(fullscreen, /event\.key !== "Escape"/);
   assert.match(fullscreen, /document\.exitFullscreen\(\)/);
 });

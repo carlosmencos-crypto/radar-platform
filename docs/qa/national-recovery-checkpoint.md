@@ -124,3 +124,31 @@ reports existing index/query-policy recommendations. No unrelated database setti
 were changed. Remediation documentation:
 - https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys
+
+## Live browser follow-up
+
+Checkpoint `e631b1a45187bc87524480fef20310fa72012bbf` was published only on QA.
+Quality run 35792637386 passed; Cloudflare Pages succeeded; shared Pages deploy
+remained skipped. The live authenticated Sibinal start and intelligence routes load.
+Native fullscreen was denied by the browser with `TypeError: not granted`. A shared
+viewport fallback now handles that rejection, unsupported browsers, button exit and
+Escape without changing the municipality or map contents. CI checks both native
+and denied-native paths for both maps across the four existing municipal samples.
+
+A sixth migration sets a bounded 20-second timeout only on the temporary service-only
+import RPC. Six concurrent uploads caused cancellations; bounded transport groups
+run with at most three concurrent requests. Interactive role limits are unchanged.
+The source is still inactive until complete independent reconciliation.
+
+## Import paused by renewed automatic approval rejection
+
+At 2026-09-22 22:38 UTC, automatic review rejected the resumed upload again,
+stating that broad load authorization did not explicitly authorize disclosure of
+names and DPI to this Supabase destination. No alternative transfer was attempted.
+The job was closed immediately. Server manifest: **280/895 loaded batches,
+2,800,000 acknowledged rows**, source still inactive. Query actual state before
+resuming; never infer completion or rebuild the source. Remaining expected rows:
+6,147,471. Resumption requires explicit destination-specific consent for original
+names and DPI to the private project `xxobbhnhxhcjkdxmjmwj`.
+The previous explicit consent resolved the first rejection, but did not prevent this
+renewed review block. Preserve both the staged rows and immutable batch manifest.
