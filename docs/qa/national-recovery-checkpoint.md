@@ -164,3 +164,35 @@ the enclosing shell zoom only while expanded and restore the page scroll on exit
 The CI fallback reentry check now waits for the inactive button state before clicking
 again, avoiding the React layout transition. Final CI result must be checked for the
 latest checkpoint, rather than inferred from prior passing runs.
+
+## Checkpoint after capacity recovery — 2026-09-22 23:07 UTC
+
+Published QA commit `5d32dcd05b7ee55c4a2c48e55eabf6970550602e` passed
+Quality run 35794355435 and Cloudflare Pages. Native fullscreen and denied-native
+fallback checks passed across 0509, 1208, 0101 and 1901, with interaction checks.
+The live authenticated fallback also covered viewport dimensions and Escape.
+
+The private import stopped safely after PGRST002 and SQLSTATE 53100. Reconciliation
+found 418 committed batches, including transactions completed after the first
+failure response. Supabase's infrastructure dashboard subsequently showed 8 GB
+provisioned, 1.93 GB used and spend cap enabled. No billing, compute or disk setting
+was changed by this task. Upload resumed only after capacity was verified, first
+with one worker and then three bounded workers. At 23:07 UTC the server confirmed
+**476/895 batches**, with database size 1413 MB. These are intermediate counts;
+query the manifest on resume. Source remains inactive. Explicit names/DPI upload
+consent remains valid; no renewed approval block is present.
+
+A measured name search in Guatemala scanned 816,683 records and took 47 seconds
+while loading. Migrations `index_nominal_name_search` and
+`index_nominal_identity_search` are prepared but **not yet applied**: build them
+after import, before activation. They preserve substring matching, municipal scope
+and private permissions. QA's nominal name input waits for at least three letters;
+campaign input behavior remains unchanged. Short-query guidance clears when a
+cached valid result is restored.
+
+Transport now retries the transient schema-cache restart code with the existing
+bounded retry policy. Capacity errors still stop immediately, without receipts or
+blind retries. Six synthetic transport scenarios pass, including these two cases.
+Lint (zero warnings), typecheck and all 85 tests pass after this adjustment.
+Full source reconciliation, activation, live nominal browsing/search/detail/DPI
+isolation, final advisors and the final build/smokes remain pending.

@@ -68,6 +68,22 @@ class Transport(unittest.TestCase):
             self.run_upload()
         self.assertEqual(len(self.receipts.read_text().splitlines()), 3)
 
+    def test_schema_cache_restart_is_retried_without_duplicate_receipts(self):
+        error = module.urllib.error.HTTPError("https://example.invalid", 422, "", {}, io.BytesIO(b'{"code":"PGRST002"}'))
+        response = io.BytesIO(b'{"receipts":[{"batch":1,"rows":1},{"batch":2,"rows":1},{"batch":3,"rows":1}]}')
+        with patch.object(module.urllib.request, "urlopen", side_effect=[error, response]), patch.object(module.time, "sleep"):
+            self.run_upload()
+        self.assertEqual(len(self.receipts.read_text().splitlines()), 3)
+
+    def test_capacity_error_stops_without_retry_or_receipt(self):
+        error = module.urllib.error.HTTPError("https://example.invalid", 422, "", {}, io.BytesIO(b'{"code":"53100"}'))
+        with patch.object(module.urllib.request, "urlopen", side_effect=error) as network, patch.object(module.time, "sleep") as sleep:
+            with self.assertRaisesRegex(RuntimeError, "code 53100"):
+                self.run_upload()
+            network.assert_called_once()
+            sleep.assert_not_called()
+        self.assertFalse(self.receipts.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

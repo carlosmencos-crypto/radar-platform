@@ -283,11 +283,19 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
       page,
       pageSize,
     });
+    if (nationalRegister && query.trim().length > 0 && query.trim().length < 3) {
+      setItems([]);
+      setTotal(0);
+      setLoading(false);
+      setError("Escribí al menos 3 letras para buscar por nombre.");
+      return;
+    }
     const cached = directoryCache.get(cacheKey);
     if (cached) {
       setItems(cached.items);
       setTotal(cached.total);
       setLoading(false);
+      setError("");
       return;
     }
     const hasFilters = Boolean(
@@ -562,7 +570,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               onChange={(event) => {
                 setFilter(setQuery, event.target.value);
               }}
-              placeholder="Nombre o palabras aproximadas"
+              placeholder={nationalRegister ? "Nombre o apellido · mínimo 3 letras" : "Nombre o palabras aproximadas"}
               autoComplete="off"
             />
           </label>

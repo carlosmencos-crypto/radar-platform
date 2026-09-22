@@ -84,7 +84,7 @@ def upload(directory, source_id, endpoint, limit, workers, pack):
                     error_code = json.loads(error.read(300)).get("code", "UNKNOWN")
                 except (ValueError, AttributeError):
                     error_code = "UNKNOWN"
-                if (error.code < 500 and error_code not in ("57014", "55P03")) or attempt == 3:
+                if (error.code < 500 and error_code not in ("57014", "55P03", "PGRST002")) or attempt == 3:
                     raise RuntimeError(f"Batch {number} rejected: HTTP {error.code}; code {error_code}; no private payload logged") from None
                 time.sleep(2 ** attempt)
             except (TimeoutError, urllib.error.URLError):
