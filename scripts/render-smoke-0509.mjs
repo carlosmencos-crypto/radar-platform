@@ -1,4 +1,4 @@
-import { attachRecoveredElectoralData } from "./qa-national-profile.mjs";
+import { attachRecoveredElectoralData, loadRecoveredManagementBenchmark } from "./qa-national-profile.mjs";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -101,7 +101,7 @@ const visibleLayers = layerIds.filter((_, index) => actions[index] !== "HIDE_POS
     },
     centers_jrv: { physical_locations: nationalProfile.voting_centers.length, jrv: centerJrv },
     communities: { communities_count: nationalProfile.community_catalog.records.length },
-  } : layer_id === "TSE_CENTROS_GEO" ? { center_count: nationalProfile.voting_centers.length } : null,
+  } : layer_id === "RGM_SERVICIOS" ? { management_benchmark: loadRecoveredManagementBenchmark(municipalityCode) } : layer_id === "TSE_CENTROS_GEO" ? { center_count: nationalProfile.voting_centers.length } : null,
   source_status: "QA_RENDER_MOCK",
   source_label: "V70 isolated render smoke",
   synthetic_notice: "QA-only browser render fixture; never shipped in the client bundle.",
@@ -448,6 +448,8 @@ try {
   await waitFor(`Boolean(document.querySelector('.intelligence-fullscreen-frame .map-fullscreen-button'))`, "Intelligence fullscreen control");
   const publicDepth = await evaluate(`(()=>{const text=document.body?.innerText||'';return{municipality:text.includes(${JSON.stringify(municipalityName)}),active:text.includes(new Intl.NumberFormat('es-GT').format(${activeProfile.total_active})),census:text.includes(new Intl.NumberFormat('es-GT').format(${nationalProfile.census_2018.population_total})),history:[2011,2015,2019,2023].every((year)=>text.includes(String(year)))}})()`);
   if (!publicDepth?.municipality || !publicDepth.active || !publicDepth.census || !publicDepth.history) throw new Error(`National intelligence depth failed for ${municipalityCode}: ${JSON.stringify(publicDepth)}`);
+  const benchmarkRows = await evaluate(`document.querySelectorAll(".management-benchmark .benchmark-list article").length`);
+  if (benchmarkRows !== 6) throw new Error(`RGM dimensions missing for ${municipalityCode}: ${benchmarkRows}`);
   await clickSelector(".intelligence-fullscreen-frame .map-fullscreen-button");
   await waitFor(`document.fullscreenElement?.classList.contains('intelligence-fullscreen-frame')`, "Intelligence fullscreen entry");
   await waitFor(`Boolean(document.fullscreenElement?.querySelector('.map-fullscreen-button.active'))`, "Intelligence fullscreen active state");

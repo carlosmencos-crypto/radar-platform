@@ -1,3 +1,4 @@
+import { municipalManagementBenchmark } from "../data/municipalManagementBenchmark";
 import { electoralPartyColor } from "../data/electoralPartyColors";
 import { useMemo, useState } from "react";
 import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
@@ -62,6 +63,7 @@ export function V70CanonicalRichMunicipality() {
     : null;
   const census = model.payload("INE_CENSO_B2_B6");
   const services = model.payload("RGM_SERVICIOS");
+  const benchmark = municipalManagementBenchmark(services.management_benchmark, municipality_code);
   const health = model.payload("MSPAS_SALUD");
   const schools = model.payload("MINEDUC_ESCUELAS");
   const risk = model.payload("CONRED_INFORM");
@@ -150,6 +152,14 @@ export function V70CanonicalRichMunicipality() {
     <section className="section fiscal-management-depth exportable include-print">
       <div className="section-head"><div><p className="eyebrow">CAPACIDAD FISCAL Y GESTIÓN MUNICIPAL</p><h2>De dónde vienen los recursos y cómo se comparan</h2></div><p>El corte 2026 YTD se separa de la serie cerrada 2016–2025 para evitar comparaciones engañosas.</p></div>
       <div className="fiscal-kpis"><article><small>PRESUPUESTO 2026 YTD</small><b>{formatCurrency(finite(finance.current_budget_amount))}</b><span>vigente</span><em>Corte parcial oficial</em></article><article><small>INVERSIÓN VIGENTE</small><b>{formatCurrency(finite(finance.investment_current_amount))}</b><span>{formatCurrency(finite(finance.investment_accrued_amount))} devengado</span><em>Universo presupuestario</em></article><article><small>CIERRE 2025</small><b>{formatPercent(finite(latestFinance.pct_ejecucion_egresos))}</b><span>{formatCurrency(finite(latestFinance.egresos_devengado))} devengados</span><em>Serie histórica validada</em></article><article><small>HISTÓRICO</small><b>{formatInteger(finite(financeHistory.years_available))} años</b><span>{formatCurrency(finite(financeHistory.ingresos_percibidos_10y))} percibidos</span><em>2016–2025</em></article></div>
+      <div className="management-benchmark">
+        <div className="benchmark-head"><div><span>BENCHMARK NACIONAL · 2020–2021</span><h3>Seis dimensiones comparables</h3></div><p>La barra principal representa {model.municipalityName}; las marcas muestran el promedio de {model.departmentName} y el nacional. Es una línea base histórica, no una medición de la administración actual.</p></div>
+        {benchmark ? <>
+          <div className="benchmark-list">{benchmark.dimensions.map((indicator) => <article key={indicator.code}><div><span>{indicator.code}</span><b>{indicator.name}</b><small>{indicator.category} · posición {indicator.national_rank}/340 · departamental {indicator.department_rank}</small></div><div className="benchmark-track"><i style={{ width: `${indicator.score * 100}%` }} /><em className="department-marker" style={{ left: `${indicator.department_average * 100}%` }} title={`Promedio ${model.departmentName}: ${formatDecimal(indicator.department_average, 4)}`} /><em className="national-marker" style={{ left: `${indicator.national_average * 100}%` }} title={`Promedio nacional: ${formatDecimal(indicator.national_average, 4)}`} /></div><strong>{formatDecimal(indicator.score, 4)}</strong></article>)}</div>
+          <div className="benchmark-legend"><span><i />{model.municipalityName}</span><span><i />Promedio {model.departmentName}</span><span><i />Promedio nacional</span>{benchmark.source_url?.startsWith("https://docs.google.com/spreadsheets/") ? <a href={benchmark.source_url} target="_blank" rel="noreferrer">Consultar Ranking oficial ↗</a> : null}</div>
+          {benchmark.zero_reported_by_source ? <p className="trace-note">La fuente reporta valores cero. No se interpretan como ausencia de servicios ni como evaluación de la administración actual.</p> : null}
+        </> : <p className="trace-note">Comparación municipal no publicada: faltan las seis dimensiones oficiales verificadas para este municipio.</p>}
+      </div>
       <p className="trace-note">Fuentes: MINFIN · ejecución municipal 2016–2025 y egresos municipales 2026 YTD. Montos redondeados solo para presentación.</p>
     </section>
 

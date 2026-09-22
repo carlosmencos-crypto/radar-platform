@@ -18,3 +18,13 @@ export function attachRecoveredElectoralData(profile) {
   if (!profile.electoral_basis_2027 || !profile.electoral_history.councils.some((c) => c.year === 2023)) throw new Error(`Missing recovered QA evidence for ${code}`);
   return profile;
 }
+
+export function loadRecoveredManagementBenchmark(code) {
+  for (const file of fs.readdirSync(path.join(root, "supabase/migrations")).filter((name) => /enrich_rgm_management_benchmark_part_/.test(name))) {
+    const row = fs.readFileSync(path.join(root, "supabase/migrations", file), "utf8").split("\n").find((line) => line.startsWith(`    ('${code}',`));
+    if (!row) continue;
+    const fields = [...row.matchAll(/'((?:[^']|'')*)'/g)].map((match) => match[1].replaceAll("''", "'"));
+    return JSON.parse(fields[1]);
+  }
+  throw new Error(`Missing recovered RGM evidence for ${code}`);
+}
