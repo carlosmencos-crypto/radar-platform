@@ -96,9 +96,11 @@ test("client readiness distinguishes public intelligence from private voter dire
   assert.match(schema, /'INTELLIGENCE_READY'/);
   assert.match(schema, /CAMPAIGN_VOTER_DIRECTORY/);
   assert.match(schema, /possible_voters_loaded/);
-  assert.match(directory, /readiness\?\.status === "CLIENT_READY" && readiness\.possible_voters_loaded/);
+  assert.match(directory, /readiness\?\.campaign_connected && readiness\.possible_voters_loaded/);
+  assert.match(directory, /loadNominalDirectoryAvailability/);
   assert.match(directory, /Módulo listo para una campaña autorizada/);
-  assert.match(directory, /no existe una fuente autorizada con nombres y DPI/);
+  assert.doesNotMatch(directory, /no existe una fuente autorizada con nombres y DPI/);
+  assert.match(directory, /complete y verifique la carga correspondiente a este municipio/);
   assert.match(operationalMap, /const mapAvailable = Boolean\(runtime\?\.geo\.bbox\)/);
   assert.match(operationalMap, /Mapa operativo aún no publicado/);
   assert.match(operationalMap, /RADAR mantiene la estructura sin inventar ubicaciones/);

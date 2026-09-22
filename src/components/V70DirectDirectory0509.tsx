@@ -1,5 +1,5 @@
 import { municipalSlateSlots } from "../data/municipalSlate";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
@@ -12,6 +12,7 @@ import {
   createManualVoter,
   loadAuthorizedVoterDetail,
   loadAuthorizedVoterDirectory,
+  loadNominalDirectoryAvailability,
   loadCampaignBundle,
   loadCampaignContacts,
   loadCampaignRecords,
@@ -19,6 +20,7 @@ import {
   saveAuthorizedVoterProfile,
   saveCampaignContact,
   type AuthorizedVoterDetail,
+  type NominalDirectoryAvailability,
   type AuthorizedVoterDirectoryRow,
   type CampaignIdentityRecord,
   type CampaignModuleRecord,
@@ -65,10 +67,6 @@ const contactTypePrefixes: Record<string, string> = {
 const fmt = new Intl.NumberFormat("es-GT");
 const DIRECTORY_ADD_EVENT = "radar:v70-directory-add";
 const DIRECTORY_EXPORT_EVENT = "radar:v70-directory-export";
-const directoryCache = new Map<
-  string,
-  { items: AuthorizedVoterDirectoryRow[]; total: number }
->();
 
 type VoterProfileForm = {
   photo_url: string;
@@ -164,25 +162,46 @@ function readPrivateImage(file: File) {
 function ElectorsDirectoryCanonical() {
   const { municipality_code, municipality_name } = useMunicipalityContext();
   const readiness = getInstalledRadarRuntime(municipality_code)?.client_readiness;
-  const directoryReady = readiness?.status === "CLIENT_READY" && readiness.possible_voters_loaded;
-  if (!directoryReady) return <section className="canonical-protected-page directory-readiness-page" role="status">
+  const directoryReady = Boolean(readiness?.campaign_connected && readiness.possible_voters_loaded);
+  const [nominal, setNominal] = useState<NominalDirectoryAvailability | null>(null);
+  const [checking, setChecking] = useState(!directoryReady);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    setNominal(null);
+    setAvailabilityError(false);
+    if (directoryReady) { setChecking(false); return; }
+    setChecking(true);
+    void ensureRadarAccessToken().then((token) => loadNominalDirectoryAvailability(municipality_code, token))
+      .then((result) => { if (!cancelled) setNominal(result); })
+      .catch(() => { if (!cancelled) setAvailabilityError(true); })
+      .finally(() => { if (!cancelled) setChecking(false); });
+    return () => { cancelled = true; };
+  }, [municipality_code, directoryReady, availabilityAttempt]);
+  if (directoryReady) return <ElectorsDirectoryReady key={municipality_code} />;
+  if (nominal?.municipality_code === municipality_code && nominal.available) return <ElectorsDirectoryReady key={municipality_code} nationalRegister nominalCommunities={nominal.communities} />;
+  if (checking) return <section className="canonical-protected-page" role="status">Verificando acceso al padrón municipal…</section>;
+  if (availabilityError) return <section className="canonical-protected-page" role="alert"><p>No se pudo verificar el acceso al padrón de {municipality_name}.</p><button type="button" onClick={() => setAvailabilityAttempt((value) => value + 1)}>Reintentar</button></section>;
+  return <section className="canonical-protected-page directory-readiness-page" role="status">
     <small>{readiness?.status ?? "BLOCKED"}</small>
     <h2>Módulo listo para una campaña autorizada</h2>
-    <p>La Inteligencia Municipal pública de {municipality_name} está disponible. El directorio privado de posibles votantes permanece cerrado porque todavía no existe una fuente autorizada con nombres y DPI para esta campaña.</p>
+    <p>La Inteligencia Municipal pública de {municipality_name} está disponible. La consulta del directorio privado se habilitará cuando se complete y verifique la carga correspondiente a este municipio y su acceso autorizado.</p>
     <div className="directory-readiness-requirements">
       <article className="ready"><small>Inteligencia pública</small><b>Disponible</b><span>El perfil municipal nacional continúa accesible.</span></article>
       <article><small>Campaña autorizada</small><b>{readiness?.campaign_connected ? "Conectada" : "Requisito pendiente"}</b><span>Debe asociarse una campaña válida al municipio.</span></article>
       <article><small>Directorio privado</small><b>{readiness?.possible_voters_loaded ? "Cargado" : "Requisito pendiente"}</b><span>Se requiere una carga autorizada, aislada y verificable.</span></article>
     </div>
   </section>;
-  return <ElectorsDirectoryReady />;
 }
 
-function ElectorsDirectoryReady() {
+function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities = [] }: { nationalRegister?: boolean; nominalCommunities?: string[] }) {
+  const directoryCache = useRef(new Map<string, { items: AuthorizedVoterDirectoryRow[]; total: number }>()).current;
   const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
   const municipalRuntime = getInstalledRadarRuntime(municipality_code);
-  const communityOptions =
-    getInstalledRadarVoterCommunities(municipality_code) ?? [];
+  const communityOptions = nationalRegister
+    ? nominalCommunities.map((name) => ({ community_normalized: name, community_label: name }))
+    : getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const initialCommunity =
     new URLSearchParams(window.location.search).get("community") ?? "";
   const [items, setItems] = useState<AuthorizedVoterDirectoryRow[]>([]);
@@ -252,6 +271,7 @@ function ElectorsDirectoryReady() {
     let cancelled = false;
     const cacheKey = JSON.stringify({
       municipality_code,
+      nationalRegister,
       query,
       dpi,
       community,
@@ -293,6 +313,7 @@ function ElectorsDirectoryReady() {
               limit: pageSize,
             },
             token,
+            nationalRegister,
           ),
         )
         .then((rows) => {
@@ -333,6 +354,8 @@ function ElectorsDirectoryReady() {
     role,
     status,
     revision,
+    nationalRegister,
+    directoryCache,
   ]);
 
   async function openDetail(voterId: number) {
@@ -362,7 +385,7 @@ function ElectorsDirectoryReady() {
 
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
-    if (!campaign_id || !detail) return;
+    if (!campaign_id || !detail || detail.read_only) return;
     setSaving(true);
     setMessage("");
     try {
@@ -400,7 +423,7 @@ function ElectorsDirectoryReady() {
 
   async function createManual(event: FormEvent) {
     event.preventDefault();
-    if (!campaign_id) return;
+    if (!campaign_id || nationalRegister) return;
     setSaving(true);
     setMessage("");
     try {
@@ -452,7 +475,7 @@ function ElectorsDirectoryReady() {
 
   async function addInteraction(event: FormEvent) {
     event.preventDefault();
-    if (!campaign_id || !detail) return;
+    if (!campaign_id || !detail || detail.read_only) return;
     setSaving(true);
     try {
       const token = await ensureRadarAccessToken();
@@ -511,6 +534,7 @@ function ElectorsDirectoryReady() {
 
   return (
     <>
+      {nationalRegister ? <p className="agenda-message">Padrón nominal 2023 · Consulta autorizada de {municipality_name}. Edad estimada a 2026. El seguimiento y la edición requieren vincular los registros a una campaña.</p> : null}
       <section className="elector-kpis" aria-label="Resumen del Directorio">
         <span>
           <b>{fmt.format(total)}</b>
@@ -525,7 +549,7 @@ function ElectorsDirectoryReady() {
           <small>Líderes</small>
         </span>
         <span>
-          <b>{fmt.format(communityOptions.length || 148)}</b>
+          <b>{communityOptions.length ? fmt.format(communityOptions.length) : "—"}</b>
           <small>Comunidades</small>
         </span>
       </section>
@@ -566,7 +590,7 @@ function ElectorsDirectoryReady() {
                 key={item.community_normalized}
                 value={item.community_label}
               >
-                {item.community_label} · {fmt.format(item.elector_count)}
+                {item.community_label}{"elector_count" in item && typeof item.elector_count === "number" ? ` · ${fmt.format(item.elector_count)}` : ""}
               </option>
             ))}
           </select>
@@ -637,6 +661,7 @@ function ElectorsDirectoryReady() {
         <button
           type="button"
           className="primary"
+          disabled={nationalRegister || !campaign_id}
           onClick={() => {
             setMessage("");
             setManualOpen(true);
@@ -771,7 +796,8 @@ function ElectorsDirectoryReady() {
               <span><small>DPI</small><b>{dpiRevealed || detail.elector.masked_identification || "No disponible"}</b>{detail.elector.masked_identification ? <button type="button" onClick={() => void revealDpi()}>{dpiRevealed ? "Visible hasta cerrar" : "Revelar"}</button> : null}</span>
               <span><small>Edad estimada</small><b>{detail.elector.estimated_age_2026 ?? "—"}</b></span>
             </div>
-            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link><Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link></div>
+            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : null}</div>
+            {detail.read_only ? <p className="agenda-message">Fuente: padrón nominal 2023. Esta ficha muestra el registro original en modo consulta; todavía no tiene seguimiento de campaña asociado.</p> : <>
             <form className="elector-private-form" onSubmit={saveProfile}>
               <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
               <div className="agenda-form-grid">
@@ -804,6 +830,7 @@ function ElectorsDirectoryReady() {
               </form>
               <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Aún no hay interacciones registradas.</p>}</div>
             </section>
+            </>}
           </section>
         </div>
       ) : null}

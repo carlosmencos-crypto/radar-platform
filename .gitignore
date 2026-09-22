@@ -12,3 +12,9 @@ __pycache__/
 dist-render/
 render-smoke-*/
 render-interaction-*/
+*.sqlite
+*.sqlite-*
+Departamentos.zip
+import-token
+batch-manifest.json
+upload-receipts.jsonl

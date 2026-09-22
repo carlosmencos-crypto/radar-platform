@@ -200,6 +200,8 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_pulse_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_nominal_availability_v1")) return new Response(JSON.stringify({municipality_code:runtime.context.municipality_code,available:true,total_count:1,source_year:2023,read_only:true,communities:["Comunidad sintética QA"]}),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_nominal_directory_v1")) return new Response(JSON.stringify({municipality_code:runtime.context.municipality_code,source_year:2023,total_count:1,items:[{id:-1,municipality_code:runtime.context.municipality_code,full_name:"Registro sintético QA",community:"Comunidad sintética QA",estimated_age_2026:40,masked_identification:"•••••••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:1}]}),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("nominatim.openstreetmap.org/search")) return new Response(JSON.stringify([{place_id:1,name:${JSON.stringify(`Municipalidad de ${municipalityName}`)},display_name:${JSON.stringify(`Municipalidad de ${municipalityName}, ${departmentName}, Guatemala`)},lat:${JSON.stringify(isSibinal ? "15.149219" : "13.939")},lon:${JSON.stringify(isSibinal ? "-92.04861" : "-90.821")},addresstype:"townhall"}]),{status:200,headers:{"Content-Type":"application/json"}});
@@ -398,7 +400,7 @@ try {
       && html.includes("Todas")
       && (!isGolden || html.includes("Actividad territorial QA"))
     );
-    const readinessOk = isGolden || slug !== "directorio" || text.includes("Módulo listo para una campaña autorizada");
+    const readinessOk = isGolden || slug !== "directorio" || (text.includes("Padrón nominal 2023") && text.includes("Registro sintético QA"));
     const slateOk = slug !== "inicio" || (html.match(/class="slate-member"/g) ?? []).length === nationalProfile.electoral_basis_2027.all_positions;
     const council2023 = nationalProfile.electoral_history.councils.find((item) => item.year === 2023);
     const officialIntelligenceOk = slug !== "inteligencia" || (

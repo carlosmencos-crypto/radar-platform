@@ -249,6 +249,7 @@ export interface CampaignBundle {
 }
 
 export interface AuthorizedVoterDirectoryRow {
+  municipality_code?: string;
   id: number;
   full_name: string;
   community: string | null;
@@ -300,6 +301,8 @@ export interface AuthorizedVoterSuggestion {
 }
 
 export interface AuthorizedVoterDetail {
+  read_only?: boolean;
+  source_year?: number;
   elector: {
     id: number;
     full_name: string;
@@ -738,7 +741,7 @@ export async function loadAuthorizedVoterDetail(
 ) {
   assertMunicipalityCode(municipalityCode);
   const detail = await rpc<AuthorizedVoterDetail | null>(
-    "radar_authorized_voter_detail_v1",
+    voterId < 0 ? "radar_authorized_nominal_detail_v1" : "radar_authorized_voter_detail_v1",
     { p_municipality_code: municipalityCode, p_voter_id: voterId },
     accessToken,
   );
@@ -755,7 +758,7 @@ export async function revealAuthorizedVoterIdentification(
 ) {
   assertMunicipalityCode(municipalityCode);
   return rpc<string | null>(
-    "radar_reveal_voter_identification_v1",
+    voterId < 0 ? "radar_reveal_nominal_identification_v1" : "radar_reveal_voter_identification_v1",
     { p_municipality_code: municipalityCode, p_voter_id: voterId },
     accessToken,
   );
@@ -938,10 +941,13 @@ export async function loadAuthorizedVoterDirectory(
   municipalityCode: string,
   filters: VoterDirectoryFilters,
   accessToken: string,
+  nationalRegister = false,
 ) {
   assertMunicipalityCode(municipalityCode);
-  const rows = await rpc<AuthorizedVoterDirectoryRow[]>(
-    "radar_authorized_voter_directory_v1",
+  const result = await rpc<AuthorizedVoterDirectoryRow[] | {
+    municipality_code: string; items: AuthorizedVoterDirectoryRow[];
+  }>(
+    nationalRegister ? "radar_authorized_nominal_directory_v1" : "radar_authorized_voter_directory_v1",
     {
       p_municipality_code: municipalityCode,
       p_query: filters.query?.trim() || null,
@@ -958,5 +964,36 @@ export async function loadAuthorizedVoterDirectory(
     },
     accessToken,
   );
-  return rows;
+  if (nationalRegister) {
+    if (Array.isArray(result) || result?.municipality_code !== municipalityCode ||
+      !Array.isArray(result.items) || result.items.some((row) => row.municipality_code !== municipalityCode || row.id >= 0)) {
+      throw new Error("El padrón nominal no corresponde al municipio autorizado.");
+    }
+    return result.items;
+  }
+  if (!Array.isArray(result)) throw new Error("El directorio de campaña no tiene un formato válido.");
+  return result;
+}
+
+export interface NominalDirectoryAvailability {
+  municipality_code: string;
+  available: boolean;
+  total_count: number;
+  source_year: number;
+  read_only: boolean;
+  communities: string[];
+}
+
+export async function loadNominalDirectoryAvailability(municipalityCode: string, accessToken: string) {
+  assertMunicipalityCode(municipalityCode);
+  const result = await rpc<NominalDirectoryAvailability | null>(
+    "radar_authorized_nominal_availability_v1", { p_municipality_code: municipalityCode }, accessToken,
+  );
+  if (result && (result.municipality_code !== municipalityCode || result.source_year !== 2023 ||
+    result.read_only !== true || typeof result.available !== "boolean" ||
+    !Number.isSafeInteger(result.total_count) || result.total_count < 0 ||
+    !Array.isArray(result.communities) || result.communities.some((name) => typeof name !== "string"))) {
+    throw new Error("La disponibilidad del padrón no corresponde al municipio autorizado.");
+  }
+  return result;
 }

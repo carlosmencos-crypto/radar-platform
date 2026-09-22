@@ -1,0 +1,10 @@
+{
+  "purpose": "Source-label spelling differences only; never changes municipality codes or elector records.",
+  "source_sha256": "f40a375207e45335f3a9e5c2ca38dbc2a992b152c649f1ba2391f28ad75416e2",
+  "reviewed_against": "Original department/local codes, matching department names and src/data/municipalities.ts",
+  "pairs": [
+    ["SAN RAIMUNDO", "SAN RAYMUNDO"],
+    ["SAN JOSE OJETENAM", "SAN JOSE OJETENAN"],
+    ["QUEZALTEPEQUE", "QUETZALTEPEQUE"]
+  ]
+}
