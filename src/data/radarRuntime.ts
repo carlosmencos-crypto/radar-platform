@@ -136,7 +136,28 @@ export interface AuthorizedActiveVoterProfile {
   source_status: string | null;
 }
 
+export interface MunicipalElectoralBasis {
+  municipality_code: string;
+  source_id: string;
+  source_label: string;
+  source_status: string;
+  reference_date: string;
+  published_population_total: number;
+  reconciled_population_total: number;
+  population_male: number;
+  population_female: number;
+  arithmetic_delta: number;
+  mayor: number;
+  syndics_titular: number;
+  syndics_substitute: number;
+  councilors_titular: number;
+  councilors_substitute: number;
+  titular_positions: number;
+  all_positions: number;
+}
+
 export interface NationalMunicipalityIntelligenceProfile {
+  electoral_basis_2027?: MunicipalElectoralBasis | null;
   municipality_code: string;
   active_voter_profile: Omit<AuthorizedActiveVoterProfile, "municipality_code" | "cutoff_at" | "source_id" | "source_label" | "source_status">;
   census_2018: {
@@ -544,6 +565,8 @@ export async function loadRadarRuntimeBundle(
       bundle.elector_profile?.municipality_code !== municipalityCode) ||
     (bundle.intelligence_profile != null &&
       bundle.intelligence_profile?.municipality_code !== municipalityCode) ||
+    (bundle.intelligence_profile?.electoral_basis_2027 != null &&
+      bundle.intelligence_profile.electoral_basis_2027.municipality_code !== municipalityCode) ||
     (bundle.client_readiness != null &&
       bundle.client_readiness?.municipality_code !== municipalityCode)
   ) {

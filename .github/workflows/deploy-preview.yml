@@ -37,6 +37,8 @@ jobs:
           path: dist
 
   deploy:
+    # National QA is hosted on its dedicated Cloudflare project.
+    if: github.ref != 'refs/heads/qa/v70-national-client-readiness'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

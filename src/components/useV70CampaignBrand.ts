@@ -1,3 +1,5 @@
+import { getInstalledRadarRuntime } from "../data/radarRuntimeCache";
+import { municipalSlateSlots, type MunicipalSlateSlot } from "../data/municipalSlate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
@@ -25,9 +27,12 @@ export const candidatePositions = [
   "Concejal VI",
   "Concejal VII",
   "Concejal VIII",
+  "Concejal IX",
+  "Concejal X",
   "Concejal suplente I",
   "Concejal suplente II",
   "Concejal suplente III",
+  "Concejal suplente IV",
 ] as const;
 
 export const canonicalSlate = [
@@ -59,11 +64,11 @@ export function announceV70CampaignUpdate() {
   window.dispatchEvent(new CustomEvent(V70_CAMPAIGN_UPDATED));
 }
 
-export function buildV70Slate(contacts: CampaignContactRecord[]): V70SlateMember[] {
+export function buildV70Slate(contacts: CampaignContactRecord[], slots: readonly MunicipalSlateSlot[] = []): V70SlateMember[] {
   const candidates = contacts.filter(
     (person) => person.active && person.contact_type === "Candidato",
   );
-  return canonicalSlate.map(([code, positionKey, positionLabel, group]) => {
+  return slots.map(([code, positionKey, positionLabel, group]) => {
     const contact =
       candidates.find((person) => person.candidate_position === positionKey) ??
       null;
@@ -80,7 +85,8 @@ export function buildV70Slate(contacts: CampaignContactRecord[]): V70SlateMember
 }
 
 export function useV70CampaignBrand() {
-  const { campaign_id } = useMunicipalityContext();
+  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const basis = getInstalledRadarRuntime(municipality_code)?.intelligence_profile?.electoral_basis_2027;
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [identity, setIdentity] = useState<CampaignIdentityRecord>({});
   const [loading, setLoading] = useState(true);
@@ -122,7 +128,7 @@ export function useV70CampaignBrand() {
     return () => window.removeEventListener(V70_CAMPAIGN_UPDATED, reload);
   }, [load]);
 
-  const slate = useMemo(() => buildV70Slate(contacts), [contacts]);
+  const slate = useMemo(() => buildV70Slate(contacts, municipalSlateSlots(basis, municipality_code)), [contacts, basis, municipality_code]);
   const candidates = useMemo(
     () => contacts.filter((person) => person.contact_type === "Candidato"),
     [contacts],

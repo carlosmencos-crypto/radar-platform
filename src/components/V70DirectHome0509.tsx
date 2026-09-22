@@ -159,6 +159,7 @@ function HomeContent() {
             </p>
           </div>
         </header>
+        {!slate.length ? <p className="trace-note">La composición de la planilla requiere una base demográfica oficial validada para este municipio.</p> : <p className="trace-note">Titulares y suplentes · TSE, Acuerdo 327-2026. Los nombres se completan con el equipo de la campaña.</p>}
         <div className="slate-groups slate-groups-compact">
           <section className="slate-group-mayor">
             <header>

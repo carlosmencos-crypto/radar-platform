@@ -99,6 +99,7 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
   const activeProfile = runtime.elector_profile;
   const nationalProfile = runtime.intelligence_profile;
   const census2018 = nationalProfile?.census_2018;
+  const basis = nationalProfile?.electoral_basis_2027?.municipality_code === runtime.context.municipality_code ? nationalProfile.electoral_basis_2027 : null;
   const nationalElections = nationalProfile?.electoral_history.elections ?? [];
   const electionFor = (year: number) => asRecord(nationalElections.find((item) => asNumber(item.year) === year));
   const election2023 = electionFor(2023);
@@ -150,9 +151,9 @@ function buildModules(runtime: RadarRuntimeBundle): ProfileModule[] {
       "Proyección poblacional oficial y condiciones de los hogares se mantienen por período y universo.",
       [census],
       compactMetrics([
-        metric("Proyección 2026", formatInteger(runtime.demographics?.population_total), "INE · población municipal proyectada"),
-        metric("Mujeres proyectadas", formatInteger(runtime.demographics?.population_female), "INE · proyección por sexo"),
-        metric("Hombres proyectados", formatInteger(runtime.demographics?.population_male), "INE · proyección por sexo"),
+        metric(basis ? "Población base TSE 2027" : "Proyección 2026", formatInteger(basis?.published_population_total ?? runtime.demographics?.population_total), basis?.source_label ?? "INE · población municipal proyectada"),
+        metric("Mujeres proyectadas", formatInteger(basis?.population_female ?? runtime.demographics?.population_female), "INE · proyección por sexo"),
+        metric("Hombres proyectados", formatInteger(basis?.population_male ?? runtime.demographics?.population_male), "INE · proyección por sexo"),
         metric("Población censada 2018", formatInteger(census2018?.population_total), "INE · Censo 2018"),
         metric("Población urbana 2018", formatInteger(census2018?.urban), "INE · Censo 2018"),
         metric("Población rural 2018", formatInteger(census2018?.rural), "INE · Censo 2018"),
@@ -295,6 +296,7 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
   const activeProfile = runtime.elector_profile;
   const nationalProfile = runtime.intelligence_profile;
   const census2018 = nationalProfile?.census_2018;
+  const basis = nationalProfile?.electoral_basis_2027?.municipality_code === runtime.context.municipality_code ? nationalProfile.electoral_basis_2027 : null;
   const active = asNumber(activeProfile?.total_active ?? activeAggregate?.elector_count ?? municipality?.active_voters_2026);
   const women = asNumber(activeProfile?.women_active ?? municipality?.women_2026);
   const men = asNumber(activeProfile?.men_active) ?? (active === undefined || women === undefined ? undefined : Math.max(active - women, 0));
@@ -337,7 +339,7 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
     : base?.ages ?? [];
 
   return {
-    populationProjection: formatInteger(runtime.demographics?.population_total) ?? base?.populationProjection ?? "",
+    populationProjection: formatInteger(basis?.published_population_total ?? runtime.demographics?.population_total) ?? base?.populationProjection ?? "",
     voterRegister: formatInteger(active) ?? base?.voterRegister ?? "",
     voterWomen: formatInteger(women) ?? base?.voterWomen ?? "",
     voterMen: formatInteger(men) ?? base?.voterMen ?? "",
@@ -359,8 +361,8 @@ function buildIntelligence(runtime: RadarRuntimeBundle, base?: MunicipalProfile[
     censusUrbanShare: census2018 ? census2018.urban_share * 100 : base?.censusUrbanShare ?? 0,
     censusRural: formatInteger(census2018?.rural) ?? base?.censusRural ?? "",
     censusRuralShare: census2018 ? census2018.rural_share * 100 : base?.censusRuralShare ?? 0,
-    projectionMen: formatInteger(runtime.demographics?.population_male) ?? base?.projectionMen ?? "",
-    projectionWomen: formatInteger(runtime.demographics?.population_female) ?? base?.projectionWomen ?? "",
+    projectionMen: formatInteger(basis?.population_male ?? runtime.demographics?.population_male) ?? base?.projectionMen ?? "",
+    projectionWomen: formatInteger(basis?.population_female ?? runtime.demographics?.population_female) ?? base?.projectionWomen ?? "",
   };
 }
 

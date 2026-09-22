@@ -31,6 +31,9 @@ export type MunicipalCouncil = {
   year: 2011 | 2015 | 2019 | 2023;
   total: number;
   detailStatus: string;
+  titularTotal: number;
+  sourceUrl: string | null;
+  warnings: string[];
   groups: Array<{ party: string; seats: number }>;
   members: Array<{ office: string; name: string; party: string; sourcePage: number | null }>;
 };
@@ -73,6 +76,8 @@ export type MunicipalIntelligenceModel = {
   communities: number | null;
   territorialGroups: number | null;
   population: number | null;
+  populationSource: string | null;
+  populationOfficialBasis: boolean;
   populationWomen: number | null;
   populationMen: number | null;
   projectionYear: number | null;
@@ -201,6 +206,7 @@ export function buildMunicipalIntelligenceModel(
   );
 
   const nationalProfile = runtime.intelligence_profile;
+  const basis = nationalProfile?.electoral_basis_2027?.municipality_code === runtime.context.municipality_code ? nationalProfile.electoral_basis_2027 : null;
   const nationalElections = nationalProfile?.electoral_history.elections ?? [];
   const historicalElections: MunicipalHistoricalElection[] = ([2011, 2015, 2019, 2023] as const).map((year) => {
     const national = record(nationalElections.find((item) => finite(item.year) === year));
@@ -262,6 +268,9 @@ export function buildMunicipalIntelligenceModel(
       year,
       total: finite(item.total) ?? members.length,
       detailStatus: textValue(item.detail_status) ?? "NO_PUBLICADO",
+      titularTotal: finite(item.titular_total) ?? groups.reduce((sum, group) => sum + group.seats, 0),
+      sourceUrl: textValue(item.source_url),
+      warnings: Array.isArray(item.warnings) ? item.warnings.filter((value): value is string => typeof value === "string") : [],
       groups,
       members,
     }];
@@ -366,9 +375,11 @@ export function buildMunicipalIntelligenceModel(
     territorialGroups: Array.isArray(nationalProfile?.community_catalog.summary.groups)
       ? nationalProfile.community_catalog.summary.groups.length
       : finite(communitiesPayload.group_count),
-    population: runtime.demographics?.population_total ?? null,
-    populationWomen: runtime.demographics?.population_female ?? null,
-    populationMen: runtime.demographics?.population_male ?? null,
+    population: basis?.published_population_total ?? runtime.demographics?.population_total ?? null,
+    populationSource: basis?.source_label ?? runtime.demographics?.source_label ?? null,
+    populationOfficialBasis: Boolean(basis),
+    populationWomen: basis?.population_female ?? runtime.demographics?.population_female ?? null,
+    populationMen: basis?.population_male ?? runtime.demographics?.population_male ?? null,
     projectionYear: runtime.demographics?.projection_year ?? null,
     historicalElections,
     councils,
