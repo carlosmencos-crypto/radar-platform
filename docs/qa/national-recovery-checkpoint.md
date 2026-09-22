@@ -196,3 +196,27 @@ blind retries. Six synthetic transport scenarios pass, including these two cases
 Lint (zero warnings), typecheck and all 85 tests pass after this adjustment.
 Full source reconciliation, activation, live nominal browsing/search/detail/DPI
 isolation, final advisors and the final build/smokes remain pending.
+
+## Import checkpoint — 2026-09-22 23:28 UTC
+
+QA `e7931f87bea6d54e625bd7cf19a0ed46422fffe8` passed Quality run 35796021996
+and Cloudflare Pages; shared Pages deploy remained skipped. All local required
+checks also passed (lint, typecheck, 85 tests, XLSX, smoke 340, V70 parity, build).
+The existing 0509 campaign directory still renders 25 rows per page, 36,878 total
+records and 148 communities in the authenticated browser.
+
+Two bounded 90-batch windows completed successfully with two workers after a
+transient network interruption. **734/895 batches / 7,340,000 records** are now
+acknowledged. The next window is running. No source activation has occurred.
+No billing, compute, spend-cap, Golden, main or production-host change was made.
+The remaining source count is 1,607,471; always query current server state on resume.
+
+The prepared identity index now starts with source_id, allowing source-scoped
+DPI grouping without fetching every heap row solely to filter its source. Both
+new indexes remain pending until all imports finish. Activation has a transaction-
+local bounded 10-minute timeout and 32 MB work memory for the full reconciliation;
+interactive limits remain unchanged. `verify-national-register-runtime.sql` is
+prepared for authenticated checks of all 340 availability scopes plus four sampled
+directories, pagination, masked details, name/DPI lookup and cross-municipal denial.
+It returns no personal values and is executed in a rollback transaction after
+activation. These post-load tests have not yet run.

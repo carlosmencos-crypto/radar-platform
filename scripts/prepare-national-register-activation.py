@@ -17,6 +17,8 @@ assert all(isinstance(count, int) and count > 0 for count in counts.values())
 assert sum(counts.values()) == report["total_rows"]
 
 print(f"""begin;
+set local statement_timeout = '10min';
+set local work_mem = '32MB';
 do $activate$
 declare
   source campaign_vault.national_register_sources%rowtype;
