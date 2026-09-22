@@ -14,6 +14,7 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
   useEffect(() => {
     const node = targetRef.current;
     const previousOverflow = document.body.style.overflow;
+    const previousScroll = { left: window.scrollX, top: window.scrollY };
     node?.classList.toggle("is-fullscreen", fallback);
     if (fallback) document.body.style.overflow = "hidden";
     const sync = () => {
@@ -35,7 +36,10 @@ export function V70MapFullscreen({ targetRef, onChange }: Props) {
       document.removeEventListener("fullscreenchange", sync);
       document.removeEventListener("keydown", exitWithEscape);
       node?.classList.remove("is-fullscreen");
-      if (fallback) document.body.style.overflow = previousOverflow;
+      if (fallback) {
+        document.body.style.overflow = previousOverflow;
+        if (node?.isConnected) window.scrollTo({ ...previousScroll, behavior: "instant" });
+      }
     };
   }, [fallback, targetRef]);
 

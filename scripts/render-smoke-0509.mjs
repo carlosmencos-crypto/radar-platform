@@ -473,17 +473,17 @@ try {
     await clickSelector(`.${frameClass} .map-fullscreen-button`);
     await waitFor(`Boolean(document.querySelector('.${frameClass}.is-fullscreen .map-fullscreen-button.active'))`, `${route} fallback entry`);
     const bounds = await evaluate(`(()=>{const f=document.querySelector('.${frameClass}.is-fullscreen'),r=f.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,viewportWidth:innerWidth,viewportHeight:innerHeight,scrollLocked:document.body.style.overflow==='hidden'}})()`);
-    const ok = bounds && Math.abs(bounds.x)<2 && Math.abs(bounds.y)<2 && bounds.width>=bounds.viewportWidth-2 && bounds.height>=bounds.viewportHeight-2 && bounds.scrollLocked;
+    const ok = bounds && Math.abs(bounds.x)<2 && Math.abs(bounds.y)<2 && Math.abs(bounds.width-bounds.viewportWidth)<2 && Math.abs(bounds.height-bounds.viewportHeight)<2 && bounds.scrollLocked;
     interactions.push({ kind: `${route}-fullscreen-fallback`, ...bounds, ok });
     if (!ok) throw new Error(`Viewport fullscreen failed: ${JSON.stringify(bounds)}`);
     await capture(`${route}-fullscreen-fallback`);
     await clickSelector(`.${frameClass} .map-fullscreen-button.active`);
-    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && document.body.style.overflow!=='hidden'`, `${route} fallback button exit`);
+    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && !document.querySelector('.${frameClass} .map-fullscreen-button.active') && document.body.style.overflow!=='hidden'`, `${route} fallback button exit`);
     await clickSelector(`.${frameClass} .map-fullscreen-button`);
     await waitFor(`Boolean(document.querySelector('.${frameClass}.is-fullscreen'))`, `${route} fallback reentry`);
     await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
     await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
-    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && document.body.style.overflow!=='hidden'`, `${route} fallback Escape exit`);
+    await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && !document.querySelector('.${frameClass} .map-fullscreen-button.active') && document.body.style.overflow!=='hidden'`, `${route} fallback Escape exit`);
   }
 
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));

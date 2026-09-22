@@ -152,3 +152,15 @@ resuming; never infer completion or rebuild the source. Remaining expected rows:
 names and DPI to the private project `xxobbhnhxhcjkdxmjmwj`.
 The previous explicit consent resolved the first rejection, but did not prevent this
 renewed review block. Preserve both the staged rows and immutable batch manifest.
+
+The user subsequently provided explicit consent again: "la autorizacion es expresa
+para subir los datos de nombres y dpi" in direct response to the named private
+Supabase destination. Import resumed at 22:43 UTC from retained batches; at 22:44 UTC
+298 batches / 2,980,000 records were confirmed. This supersedes the preceding paused
+state. Never re-request the same authorization without a new specific review block.
+
+Native-denial visual checks confirmed both live map fallbacks. Follow-up fixes reset
+the enclosing shell zoom only while expanded and restore the page scroll on exit.
+The CI fallback reentry check now waits for the inactive button state before clicking
+again, avoiding the React layout transition. Final CI result must be checked for the
+latest checkpoint, rather than inferred from prior passing runs.
