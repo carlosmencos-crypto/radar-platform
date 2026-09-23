@@ -21,7 +21,12 @@ export function V70MunicipalPublicIndicators({ model }: { model: MunicipalIntell
   const health = model.payload("MSPAS_SALUD");
   const services = model.payload("RGM_SERVICIOS");
   const pdm = model.payload("PDM_PDMOT");
-  const period = (id: string) => model.layer(id)?.period || "Período no publicado";
+  const period = (id: string) => {
+    const value = model.layer(id)?.period;
+    if (value === "current_partial_scope") return "Directorio parcial · corte no publicado";
+    if (value === "current_directory") return "Directorio · corte no publicado";
+    return value || "Período no publicado";
+  };
   const documentUrl = textValue(pdm.drive_url);
   const verifiedDocumentUrl = documentUrl?.startsWith("https://drive.google.com/file/d/") ? documentUrl : null;
   const cards = [

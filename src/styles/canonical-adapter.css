@@ -1036,6 +1036,10 @@ html[data-theme="dark"] :is(.agenda-list-actions button, .agenda-list-actions a,
 html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
 
 /* National public indicators reuse the V70 hierarchy with source-bound values. */
+.agenda-modal .elector-sheet > .elector-private-form { width: auto; max-width: none; max-height: none; overflow: visible; padding: 0; box-shadow: none; }
+.agenda-modal .elector-sheet .elector-history > form { width: 100%; max-width: none; max-height: none; overflow: visible; padding: 0; box-shadow: none; background: transparent; border-radius: 0; }
+.elector-private-form .agenda-form-grid > .wide { grid-column: 1/-1; }
+.municipal-photo,.municipal-finance-series { scroll-margin-top: 100px; }
 .national-insight-grid .insight { min-width: 0; display: flex; flex-direction: column; }
 .national-insight-grid .insight > b { font-size: clamp(23px, 2.4vw, 34px); overflow-wrap: anywhere; }
 .national-insight-grid .insight > em { margin-top: auto; padding-top: 12px; color: var(--radar-municipal); }

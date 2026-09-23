@@ -295,3 +295,9 @@ Base: `ad6cdb944402ae87f53c2ab6934f2ef82a7c6fb7`, QA branch only.
 - Local: 97/97 tests PASS; lint zero warnings/errors; typecheck PASS; XLSX PASS; 340 municipal smoke + V70 parity PASS; production build PASS; bundle security and 340 deep-link checks PASS.
 - Supabase advisors: no new security warning; preexisting leaked-password-protection warning remains. Newly detected municipal FK index was added; remaining workspace unused-index notices are expected for new tables. Existing unrelated permissive-policy notices were not modified.
 - Browser limitation in this session: local preview blocked by the cloud browser; deployed QA requires fresh sign-in. CI render fixtures now include actual public layers and exercise national contact-sheet save/reopen. CI results and screenshots must be reviewed before final visual signoff.
+
+### Visual review follow-up
+
+Published checkpoint `951caed989ae249b62fd6923efba2c5fa9ddd001`: Quality run `35811189569`, Deploy preview run `35811189661` and Cloudflare Pages check all succeeded. CI covered 44 route renders (0509, 1208, 0101, 1901), native/fallback fullscreen and Escape, exports, navigation, and national contact profile save/reopen. Downloaded and inspected the 0509/1208 screenshots.
+
+Visual inspection found inherited agenda form styles restricting the contact sheet to 680 px inside its wider dialog. Scoped adapter overrides restore full available width, remove nested scrolling/shadow, and span document fields across the form. The render gate now measures actual form/document width to detect recurrence. Public source periods use readable Spanish directory labels; indicator/fiscal anchors leave room for the fixed toolbar. Local lint, typecheck, 97 tests, XLSX, national smoke, V70 parity, build and bundle audit passed again. A real authenticated browser walkthrough still requires a fresh QA sign-in; fixture-based CI is not represented as that walkthrough.
