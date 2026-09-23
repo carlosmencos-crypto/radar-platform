@@ -1080,3 +1080,7 @@ html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
 @media(max-width:1100px) { .national-insight-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media(max-width:760px) { .national-insight-grid,.household-indicator-grid,.procurement-periods { grid-template-columns: 1fr; } .municipal-households > header,.municipal-finance-series > header,.municipal-document-source { flex-direction: column; align-items: stretch; } }
 @media print { .center-card .mini-ranking,.full-ranking,.finance-series-scroll { max-height: none; overflow: visible; } .finance-series-scroll table { font-size: 8px; } .finance-series-scroll th,.finance-series-scroll td { padding: 7px 4px; } }
+
+/* Keep the approved contact action row even when a campaign is unavailable. */
+.elector-sheet-links > button { border: 1px solid var(--radar-grafito); border-radius: 8px; padding: 8px 10px; background: var(--radar-grafito); color: var(--radar-blanco); font-size: 8px; font-weight: 850; }
+.elector-sheet-links > button:disabled { opacity: .6; cursor: not-allowed; }

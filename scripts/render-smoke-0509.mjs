@@ -495,6 +495,8 @@ try {
     await waitFor(`Boolean(document.querySelector('.elector-private-form'))`, "complete private contact sheet");
     const controls = await evaluate(`({photo:!!document.querySelector('.photo-editor-field'),documents:document.querySelectorAll('.elector-document-grid input[type=file]').length,history:!!document.querySelector('.elector-history form')})`);
     if (!controls.photo || controls.documents!==2 || !controls.history) throw new Error('Incomplete private contact sheet');
+    const pilotControls = await evaluate(`({responsible:!!document.querySelector('select[aria-label="Responsable del contacto"]'),actions:document.querySelector('.elector-sheet-links')?.children.length})`);
+    if (!pilotControls.responsible || pilotControls.actions!==2) throw new Error('Approved contact controls are missing');
     const layout = await evaluate(`(() => { const sheet=document.querySelector('.elector-sheet'); const form=document.querySelector('.elector-private-form'); const style=getComputedStyle(form); return {sheet:sheet.clientWidth,width:parseFloat(style.width),padding:style.padding,shadow:style.boxShadow,maxHeight:style.maxHeight,overflow:style.overflow}; })()`);
     if (layout.sheet>=800 && (Math.abs(layout.width-680)>1 || layout.padding!=='24px' || layout.shadow==='none' || layout.overflow!=='auto')) throw new Error(`Contact sheet differs from approved pilot: ${JSON.stringify(layout)}`);
     interactions.push({kind:"contact-sheet-approved-pilot-layout",...layout,ok:true});
@@ -503,6 +505,10 @@ try {
     await waitFor(`document.querySelector('.elector-document-preview[open] img')?.naturalWidth===1`, "inline private document preview");
     await clickSelector('.elector-document-preview summary');
     interactions.push({kind:"contact-document-inline-preview",ok:true});
+    await evaluate(`(() => { const select=document.querySelector('select[aria-label="Responsable del contacto"]'); select.value='__new_responsible__'; select.dispatchEvent(new Event('change',{bubbles:true})); })()`);
+    await waitFor(`Boolean(document.querySelector('input[placeholder="Nombre del responsable"]'))`, "manual responsible person input");
+    await clickSelector('input[placeholder="Nombre del responsable"]');
+    await cdp.send("Input.insertText", {text:"Responsable sintético QA"});
     await clickSelector('.elector-private-form textarea');
     await cdp.send("Input.insertText", {text:"Nota de prueba sintética QA"});
     await clickSelector('.elector-private-form footer button');
@@ -510,6 +516,7 @@ try {
     await clickSelector('.elector-sheet > header > button');
     await clickSelector('button.elector-row');
     await waitFor(`document.querySelector('.elector-private-form textarea')?.value==='Nota de prueba sintética QA'`, "private profile reopen");
+    await waitFor(`document.querySelector('select[aria-label="Responsable del contacto"]')?.value==='Responsable sintético QA'`, "saved responsible person select");
     await evaluate(`document.querySelector('.elector-history')?.scrollIntoView({block:'center',behavior:'instant'})`);
     await capture('directorio-historial');
     interactions.push({kind:"contact-sheet-save-reopen",...controls,ok:true});

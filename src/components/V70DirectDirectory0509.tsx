@@ -232,6 +232,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [detail, setDetail] = useState<AuthorizedVoterDetail | null>(null);
   const [profile, setProfile] = useState<VoterProfileForm>(emptyProfile);
+  const [editingResponsible, setEditingResponsible] = useState(false);
   const [dpiRevealed, setDpiRevealed] = useState("");
   const [saving, setSaving] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
@@ -377,6 +378,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
       if (!loaded) throw new Error("No se pudo abrir la ficha.");
       setDetail(loaded);
       setProfile(profileFromDetail(loaded));
+      setEditingResponsible(false);
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -821,7 +823,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               <span><small>DPI</small><b>{dpiRevealed || detail.elector.masked_identification || "No disponible"}</b>{detail.elector.masked_identification ? <button type="button" onClick={() => void revealDpi()}>{dpiRevealed ? "Visible hasta cerrar" : "Revelar"}</button> : null}</span>
               <span><small>Edad estimada</small><b>{detail.elector.estimated_age_2026 ?? "—"}</b></span>
             </div>
-            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : null}</div>
+            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : <button type="button" disabled title="Requiere una campaña vinculada a este municipio." aria-label="Crear actividad en Agenda: requiere una campaña vinculada">Crear actividad en Agenda</button>}</div>
             {detail.read_only ? <p className="agenda-message">La sesión actual permite consultar esta ficha, pero no modificarla.</p> : <>
             <form className="elector-private-form" onSubmit={saveProfile}>
               <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
@@ -829,7 +831,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
                 <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={profile.photo_url} onChange={(photo_url) => setProfile({ ...profile, photo_url })} onError={setMessage} /></div>
                 <label><span>Estado de contacto</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
                 <label><span>Afiliado al partido</span><select value={profile.party_affiliation} onChange={(event) => setProfile({ ...profile, party_affiliation: event.target.value })}><option value="">—</option><option value="SI">Sí</option><option value="NO">No</option></select></label>
-                {nationalRegister ? <label><span>Responsable</span><input value={profile.assigned_person_name} onChange={(event) => setProfile({ ...profile, assigned_person_name: event.target.value })} placeholder="Nombre del responsable" /></label> : <label><span>Responsable</span><select value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select></label>}
+                <label><span>Responsable</span>{nationalRegister ? editingResponsible ? <input autoFocus value={profile.assigned_person_name} onChange={(event) => setProfile({ ...profile, assigned_person_name: event.target.value })} onBlur={() => setEditingResponsible(false)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); setEditingResponsible(false); } }} placeholder="Nombre del responsable" /> : <select aria-label="Responsable del contacto" value={profile.assigned_person_name} onChange={(event) => { if (event.target.value === "__new_responsible__") setEditingResponsible(true); else setProfile({ ...profile, assigned_person_name: event.target.value }); }}><option value="">Sin asignar</option>{[...new Set([profile.assigned_person_name, ...contacts.map((item) => item.full_name)])].filter(Boolean).map((name) => <option key={name} value={name}>{name}</option>)}<option value="__new_responsible__">Agregar responsable…</option></select> : <select aria-label="Responsable del contacto" value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select>}</label>
                 <label><span>Teléfono principal</span><input value={profile.phone_primary} onChange={(event) => setProfile({ ...profile, phone_primary: event.target.value })} /></label>
                 <label><span>Teléfono secundario</span><input value={profile.phone_secondary} onChange={(event) => setProfile({ ...profile, phone_secondary: event.target.value })} /></label>
                 <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} placeholder="Dirección proporcionada por el contacto" /></label>
