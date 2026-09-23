@@ -586,7 +586,11 @@ try {
   const reportOk = [...planning.priorities.map((p) => p.label), ...planning.indicators.map((p) => p.label)].every((label) => reportText.includes(label));
   if (!reportOk) throw new Error("Recovered report omitted validated entries");
   const pdf = await cdp.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true });
-  fs.writeFileSync(path.join(out, "recovered-public-report.pdf"), Buffer.from(pdf.data, "base64"));
+  const pdfBuffer = Buffer.from(pdf.data, "base64");
+  fs.writeFileSync(path.join(out, "recovered-public-report.pdf"), pdfBuffer);
+  const actualPages = (pdfBuffer.toString("latin1").match(/\/Type\s*\/Page\b/g) ?? []).length;
+  const expectedPages = await evaluate("document.querySelectorAll('.report-sheet').length");
+  if (actualPages !== expectedPages) throw new Error(`Public report overflow: ${actualPages} PDF pages for ${expectedPages} numbered sheets`);
   interactions.push({ kind: "recovered-public-report", ok: reportOk });
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/4 fullscreen interactions · national profile isolated`);

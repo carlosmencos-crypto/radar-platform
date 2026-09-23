@@ -189,7 +189,7 @@ function CanonicalV70Report(){
   const summaryIncluded=parts.includes("summary")||parts.includes("metrics")||parts.includes("trace");
   const consolidated=definition.key==="inicio";
   const visibleSections=consolidated?[]:definition.sections.filter((item)=>(parts.includes("sections")||parts.includes("records"))&&(!item.key||definition.key!=="municipio-360"||!blocks.length||blocks.includes(item.key)));
-  const sectionPages=chunks(visibleSections,definition.landscape?4:3);
+  const sectionPages=chunks(visibleSections,definition.landscape?4:definition.key==="municipio-360"&&municipalModel?.publicDepth?2:3);
   const municipalProfile=findMunicipalProfile(municipality_code);
   if(!municipalProfile?.intelligence)return <main className="report-shell"><div className="page page--compact"><h1>Preparando inteligencia municipal…</h1></div></main>;
   const intelligence=municipalProfile.intelligence;
