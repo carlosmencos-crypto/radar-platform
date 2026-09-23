@@ -309,6 +309,11 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     const hasFilters = Boolean(
       query || dpi || community || ageRange || status || affiliation || responsible || role,
     );
+    setItems([]);
+    setTotal(null);
+    setHasMore(false);
+    setLoading(true);
+    setError("");
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
@@ -330,12 +335,16 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           directoryCache.set(cacheKey, { items: result.items, total: result.total_count, hasMore: result.has_more });
         })
         .catch((loadError: unknown) => {
-          if (!cancelled)
+          if (!cancelled) {
+            setItems([]);
+            setTotal(null);
+            setHasMore(false);
             setError(
-              loadError instanceof Error
+              loadError instanceof Error && !/\(500\)|\(504\)/.test(loadError.message)
                 ? loadError.message
-                : "No se pudo consultar el Directorio.",
+                : "No se pudo completar la consulta del directorio. Intentá de nuevo.",
             );
+          }
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -696,13 +705,13 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           + Agregar contacto
         </button>
       </section>
-      {error ? <div className="agenda-message error">{error}</div> : null}
+      {error ? <div className="agenda-message error" role="alert">{error} <button type="button" onClick={() => setRevision((value) => value + 1)}>Reintentar consulta</button></div> : null}
       <section className="elector-results">
         <header>
           <div>
             <small>RESULTADOS</small>
-            <h2>{total === null ? "Coincidencias" : `${fmt.format(total)} personas`}</h2>
-            {nationalRegister && total === null ? <button type="button" onClick={() => void countMatches()} disabled={counting}>{counting ? "Calculando total…" : "Calcular total exacto"}</button> : null}
+            <h2>{error ? "Consulta no disponible" : loading ? "Buscando coincidencias…" : total === null ? "Coincidencias" : `${fmt.format(total)} personas`}</h2>
+            {nationalRegister && total === null && !error && !loading ? <button type="button" onClick={() => void countMatches()} disabled={counting}>{counting ? "Calculando total…" : "Calcular total exacto"}</button> : null}
           </div>
           <label>
             Por página
@@ -774,16 +783,16 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         </div>
         <footer>
           <button
-            disabled={page <= 1 || loading}
+            disabled={page <= 1 || loading || Boolean(error)}
             onClick={() => setPage((value) => value - 1)}
           >
             ← Anterior
           </button>
           <span>
-            Página <b>{fmt.format(page)}</b>{pages === null ? "" : ` de ${fmt.format(pages)}`}
+            {error ? "Consulta pendiente" : <>Página <b>{fmt.format(page)}</b>{pages === null ? "" : ` de ${fmt.format(pages)}`}</>}
           </span>
           <button
-            disabled={(pages === null ? !hasMore : page >= pages) || loading}
+            disabled={(pages === null ? !hasMore : page >= pages) || loading || Boolean(error)}
             onClick={() => setPage((value) => value + 1)}
           >
             Siguiente →

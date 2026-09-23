@@ -201,6 +201,10 @@ const injection = `<script>(function(){
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const url=String(typeof input==="string"?input:input?.url||"");
+    if(window.__qaFailDirectoryOnce && url.includes('/mock/rest/v1/rpc/radar_authorized_contact_directory_page_v1')) {
+      window.__qaFailDirectoryOnce=false;
+      return new Response(JSON.stringify({message:'Synthetic QA timeout'}),{status:500,headers:{'Content-Type':'application/json'}});
+    }
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_runtime_v8")) return new Response(JSON.stringify(runtime),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response(JSON.stringify(electoralLayers),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
@@ -526,6 +530,15 @@ try {
     await evaluate(`document.querySelector('.elector-history')?.scrollIntoView({block:'center',behavior:'instant'})`);
     await capture('directorio-historial');
     interactions.push({kind:"contact-sheet-save-reopen",...controls,ok:true});
+    await clickSelector('.elector-sheet > header > button');
+    await evaluate(`(() => { window.__qaFailDirectoryOnce=true; const select=document.querySelector('.elector-filters select'); select.value='Comunidad sintética QA'; select.dispatchEvent(new Event('change',{bubbles:true})); })()`);
+    await waitFor(`document.querySelector('.elector-results h2')?.textContent==='Consulta no disponible'`, "community error without stale totals");
+    const failedCommunityState = await evaluate(`({rows:document.querySelectorAll('button.elector-row').length,disabled:[...document.querySelectorAll('.elector-results footer button')].every(button=>button.disabled),oldCount:document.querySelector('.elector-results header')?.textContent.includes('personas'),retry:!![...document.querySelectorAll('button')].find(button=>button.textContent==='Reintentar consulta')})`);
+    if (failedCommunityState.rows!==0 || !failedCommunityState.disabled || failedCommunityState.oldCount || !failedCommunityState.retry) throw new Error('Community failure left stale results or pagination');
+    await clickSelector('.agenda-message.error button');
+    await waitFor(`document.querySelectorAll('button.elector-row').length===1 && !document.querySelector('.agenda-message.error')`, "community query retry");
+    interactions.push({kind:"community-query-error-and-retry",...failedCommunityState,ok:true});
+    await capture('directorio-comunidad-recuperada');
   }
 
   // A denied native request must still offer a usable viewport map and exits.
