@@ -824,7 +824,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
             <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : null}</div>
             {detail.read_only ? <p className="agenda-message">La sesión actual permite consultar esta ficha, pero no modificarla.</p> : <>
             <form className="elector-private-form" onSubmit={saveProfile}>
-              <header><div><small>DIRECTORIO RADAR · PRIVADO</small><h3>Contacto</h3></div></header>
+              <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
               <div className="agenda-form-grid">
                 <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={profile.photo_url} onChange={(photo_url) => setProfile({ ...profile, photo_url })} onError={setMessage} /></div>
                 <label><span>Estado de contacto</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>

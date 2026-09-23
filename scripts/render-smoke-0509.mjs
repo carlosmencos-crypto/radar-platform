@@ -495,9 +495,9 @@ try {
     await waitFor(`Boolean(document.querySelector('.elector-private-form'))`, "complete private contact sheet");
     const controls = await evaluate(`({photo:!!document.querySelector('.photo-editor-field'),documents:document.querySelectorAll('.elector-document-grid input[type=file]').length,history:!!document.querySelector('.elector-history form')})`);
     if (!controls.photo || controls.documents!==2 || !controls.history) throw new Error('Incomplete private contact sheet');
-    const layout = await evaluate(`(() => { const sheet=document.querySelector('.elector-sheet'); const form=document.querySelector('.elector-private-form'); const grid=form.querySelector('.agenda-form-grid'); const documents=form.querySelector('.elector-document-grid'); return {sheet:sheet.getBoundingClientRect().width,form:form.getBoundingClientRect().width,grid:grid.clientWidth,documents:documents.getBoundingClientRect().width,maxHeight:getComputedStyle(form).maxHeight}; })()`);
-    if (layout.sheet-layout.form>70 || layout.grid-layout.documents>40 || layout.maxHeight!=='none') throw new Error(`Contact sheet layout is clipped: ${JSON.stringify(layout)}`);
-    interactions.push({kind:"contact-sheet-layout",...layout,ok:true});
+    const layout = await evaluate(`(() => { const sheet=document.querySelector('.elector-sheet'); const form=document.querySelector('.elector-private-form'); const style=getComputedStyle(form); return {sheet:sheet.clientWidth,width:parseFloat(style.width),padding:style.padding,shadow:style.boxShadow,maxHeight:style.maxHeight,overflow:style.overflow}; })()`);
+    if (layout.sheet>=800 && (Math.abs(layout.width-680)>1 || layout.padding!=='24px' || layout.shadow==='none' || layout.overflow!=='auto')) throw new Error(`Contact sheet differs from approved pilot: ${JSON.stringify(layout)}`);
+    interactions.push({kind:"contact-sheet-approved-pilot-layout",...layout,ok:true});
     await capture('directorio-ficha-completa');
     await clickSelector('.elector-document-preview summary');
     await waitFor(`document.querySelector('.elector-document-preview[open] img')?.naturalWidth===1`, "inline private document preview");
