@@ -27,5 +27,8 @@ export function municipalPublicDepthReport(value: MunicipalPublicDepth | null) {
     planning.document.source_qa === "FAIL_CLOSED" ? planning.document.source_observation ?? "Observación documental pendiente." : "Se conservan los períodos y universos originales del plan.",
     planning.document.url ?? "Ausencia documental no resuelta.",
   ]});
+  for (let index = 0; index < (planning.review_notes?.length ?? 0); index += 2) {
+    sections.push({key: "indicators", eyebrow: "ALCANCE DE LA REVISIÓN", title: "Datos excluidos y observaciones", text: "Se preservan las discrepancias; el diagnóstico no acredita hechos actuales ni ejecución de metas.", items: planning.review_notes!.slice(index, index + 2)});
+  }
   return sections;
 }

@@ -9,6 +9,9 @@ export type MunicipalPoverty = Provenance & {
 export type PlanningPriority = Provenance & {
   municipality_code: string; kind: "PROBLEMA" | "POTENCIALIDAD";
   label: string; pdf_page: number; status: "SOURCE_VERIFIED";
+  evidence_kind?: "DIRECT_PDF_REVIEW";
+  source_pdf_sha256?: string;
+  evidence_scope?: "HISTORICAL_PLAN_DIAGNOSIS";
 };
 export type PlanningIndicator = Provenance & {
   municipality_code: string; id: string; theme: string; label: string;
@@ -26,6 +29,7 @@ export type MunicipalPlanning = {
     coverage_status: string;
   };
   priorities: PlanningPriority[]; indicators: PlanningIndicator[];
+  review_notes?: string[];
 };
 export type MunicipalPublicDepth = { municipality_code: string; poverty: MunicipalPoverty | null; planning: MunicipalPlanning | null };
 
@@ -60,8 +64,14 @@ export function municipalPublicDepth(value: unknown, code: string): MunicipalPub
   const missing = planning.review_status === "NO_DOCUMENT_IN_INVENTORY";
   const priorityValid = (value: unknown) => {
     const row = object(value);
+    const directPdf = row.evidence_kind === "DIRECT_PDF_REVIEW"
+      && row.evidence_scope === "HISTORICAL_PLAN_DIAGNOSIS"
+      && row.product_id === "RADAR-PDM-SEMANTIC-REVIEW-V1"
+      && documentValid && row.product_url === document.url
+      && typeof row.source_pdf_sha256 === "string" && /^[a-f0-9]{64}$/.test(row.source_pdf_sha256)
+      && typeof row.readable_export_sha256 === "string" && /^[a-f0-9]{64}$/.test(row.readable_export_sha256);
     return row.municipality_code === code && row.source_id === `GT-SEGEPLAN-PDMOT-${code}-001`
-      && row.status === "SOURCE_VERIFIED" && provenance(row) && text(row.label)
+      && row.status === "SOURCE_VERIFIED" && (row.evidence_kind === undefined ? provenance(row) : directPdf) && text(row.label)
       && (row.kind === "PROBLEMA" || row.kind === "POTENCIALIDAD")
       && number(row.pdf_page) && Number.isInteger(row.pdf_page) && row.pdf_page > 0;
   };
@@ -78,6 +88,7 @@ export function municipalPublicDepth(value: unknown, code: string): MunicipalPub
     && text(document.source_qa) && (document.source_observation === null || text(document.source_observation)) && text(document.horizon_status)
     && year(document.publication_year) && year(document.plan_start) && year(document.plan_end)
     && priorities !== null && indicators !== null && priorities.every(priorityValid) && indicators.every(indicatorValid)
+    && (planning.review_notes === undefined || (Array.isArray(planning.review_notes) && planning.review_notes.every(text)))
     && new Set(indicators.map((v) => object(v).id)).size === indicators.length
     && (missing ? document.file_id === null && document.url === null && !hasContent : documentValid)
     && (missing || planning.review_status === (hasContent ? "PARTIAL_VALIDATED_CONTENT" : "PENDING_SEMANTIC_REVIEW"));

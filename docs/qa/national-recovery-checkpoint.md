@@ -428,3 +428,42 @@ National acceptance remains OPEN: deep PDM semantic review is not complete;
 five missing documents, 128 catalog discrepancies and center-result sources
 0104/1104 are unresolved. Neither these tests nor the sample visual routes
 constitute integral visual/functional acceptance for all 340 municipalities.
+
+## 2026-09-23 · Direct review of historical plan diagnoses
+
+EGM publication f6902d19a79fc4dc80030ef9260ee75907bc39b1 completed Quality
+35909291434 successfully (115 tests and the four municipal render samples),
+Deploy Preview 35909291488 successfully, and Cloudflare published the same SHA:
+https://4a02de96.radar-v70-national-qa.pages.dev. Reviewed the 0509 mobile EGM
+capture and generated PDF: ten physical pages, with readable administrative
+records. Found a site-wide footer style leaking into report pages; this increment
+removes that inherited background/padding on white report pages so page numbers
+are legible. The frozen canonical stylesheet remains unchanged.
+
+The reusable direct-PDF review path imports explicit reviewed diagnoses into
+the existing shared planning component; it does not branch the UI by code.
+The review ledger binds the original Vault file ID, PDF hash, layout-text hash,
+page number, historical scope and exclusions. Anchor checks only verify the
+location of a reviewed statement; they never generate or validate a claim.
+
+Initial reviewed content:
+- 0102: nine plan diagnoses/potentialities. PDF pp. 34–35 and 45–46. The national
+  employment percentages in the right-hand MED column are excluded. The
+  2018/2020 editorial inconsistency is not resolved by these content checks.
+- 1208: nineteen diagnoses/potentialities from PDF pp. 76–88. The plan itself
+  describes this section as qualitative/perception-based. No current factual
+  measurement or campaign recommendation is inferred. Conflicting diversified
+  education coverage (18.42% on PDF p. 82 versus 56.75% on p. 88) is excluded.
+  The original unresolved DR-68A observation stays visible.
+
+One guarded migration changes only these plans' priorities, review notes and
+partial-content status, refusing unexpected existing reviews or foreign source
+IDs. Read-back: 340 profiles, 64 priorities, six PARTIAL_VALIDATED_CONTENT plans,
+128 unresolved catalog discrepancies and five missing documents. No readiness
+or acceptance flag changes. The separate 12 prior baseline/target indicators
+remain unchanged. Both source observations and review exclusions appear in the
+shared screen and PDF. Local tests: 116 passed, typecheck/build/lint passed.
+QA publication and render evidence for this increment remain to be verified.
+
+The national semantic review is still incomplete. This is not a closure or a
+claim that inspecting two additional plans homologates all 340 municipalities.

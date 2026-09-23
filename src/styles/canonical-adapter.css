@@ -1108,3 +1108,7 @@ html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
 /* Keep the approved contact action row even when a campaign is unavailable. */
 .elector-sheet-links > button { border: 1px solid var(--radar-grafito); border-radius: 8px; padding: 8px 10px; background: var(--radar-grafito); color: var(--radar-blanco); font-size: 8px; font-weight: 850; }
 .elector-sheet-links > button:disabled { opacity: .6; cursor: not-allowed; }
+
+/* The site-wide footer background/padding must not obscure PDF page numbers. */
+.report-sheet:not(.cover) .report-page-footer { background: transparent; padding: 3mm 0 0; color: #52616a; }
+.report-sheet:not(.cover) .report-page-footer b { color: #27323a; }

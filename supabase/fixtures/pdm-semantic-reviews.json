@@ -1,0 +1,50 @@
+[
+  {
+    "municipality_code": "0102",
+    "file_id": "1kH_pUM09DYVQtltMWsuGM6lFYJLznz_4",
+    "pdf_sha256": "44484df07960fc8ec65b7bbdfbe0bf04cd65323287d94b8faef8d5a050777be1",
+    "layout_sha256": "c72676565c34cf68147664fc141eb8afab061efac4a69b2817b94f9a5456396c",
+    "review_scope": "HISTORICAL_PLAN_DIAGNOSIS",
+    "exclusions": ["Las tasas 16.9%, 69.2% y 3.2% aparecen en la columna de metas nacionales; no se importan como mediciones municipales.", "No se resuelve la discrepancia editorial 2018/portada 2020 ni se infiere horizonte integral.", "No se importan afirmaciones sobre actores criminales, comunidades o grupos etarios ni se elaboran recomendaciones de campaña."],
+    "priorities": [
+      ["PROBLEMA", "Dificultades de movilidad señaladas por el plan", 45, "DÉFICIT DE MOVILIDAD"],
+      ["PROBLEMA", "Limitaciones de inversión y empleo identificadas en el diagnóstico", 45, "INVERSION Y EMPLEO"],
+      ["PROBLEMA", "Seguridad civil incluida como problemática municipal", 45, "SEGURIDAD CIVIL"],
+      ["PROBLEMA", "Acceso a servicios de salud incluido entre las prioridades", 46, "SALUD"],
+      ["PROBLEMA", "Gestión del riesgo señalada en la matriz municipal", 46, "GESTION DE RIEGOS"],
+      ["PROBLEMA", "Déficit de agua y saneamiento descrito por el plan", 46, "COBERTURA DE AGUA Y"],
+      ["PROBLEMA", "Acceso a educación de calidad incluido en la matriz de necesidades", 46, "ACCESO A EDUCACIÓN DE"],
+      ["POTENCIALIDAD", "Conservación de los recursos naturales", 34, "Conservación de Recursos Naturales"],
+      ["POTENCIALIDAD", "Educación de calidad como capacidad reconocida por el plan", 35, "Acceso a educación de calidad"]
+    ]
+  },
+  {
+    "municipality_code": "1208",
+    "file_id": "1AdzgMmeQc7E_5acLQNSHPwO0HneuE7M3",
+    "pdf_sha256": "315f6a2a068d592d54d2ba951e2b3a005e6107bc410cf0dee9e277a037794f50",
+    "layout_sha256": "9c623924d04e77d3faf724922137fd35afb42b20343a8b5df9cb2130b78a0e7a",
+    "review_scope": "HISTORICAL_PLAN_DIAGNOSIS",
+    "exclusions": ["La sección 5.3 declara que su descripción es cualitativa y de percepción de actores territoriales; no equivale a mediciones actuales.", "Se preserva la observación de DR-68A hasta aclarar su causa.", "No se importan metas como logros. La cobertura diversificada presenta 18.42% en página PDF 82 y 56.75% en página PDF 88: ambas quedan excluidas de esta revisión.", "No se importan porcentajes ni se sustituyen las estimaciones de pobreza 2023 con cifras históricas del plan."],
+    "priorities": [
+      ["PROBLEMA", "Pobreza elevada identificada por los participantes del plan", 76, "Prevalencia de altos índice de pobreza"],
+      ["PROBLEMA", "Morbilidad señalada como problema municipal", 77, "Alta tasa de morbilidad"],
+      ["PROBLEMA", "Deficiencias de cobertura y calidad del agua", 77, "Escases y deficiencia en la cobertura"],
+      ["PROBLEMA", "Problemas de drenaje pluvial y basureros clandestinos", 78, "Colapso de tragantes"],
+      ["PROBLEMA", "Debilidades en la gobernanza del agua", 79, "Deficiencia en la gobernanza del agua"],
+      ["PROBLEMA", "Deforestación e incendios forestales descritos en el plan", 79, "Deforestación e incendios forestales"],
+      ["PROBLEMA", "Desempleo identificado en el diagnóstico participativo", 80, "Prevalencia de altos niveles de desempleo"],
+      ["PROBLEMA", "Desnutrición crónica y aguda señalada como problemática", 81, "Prevalencia de la desnutrición crónica y aguda"],
+      ["PROBLEMA", "Deficiencias de cobertura y calidad educativa", 81, "Deficiencias en cobertura y calidad"],
+      ["PROBLEMA", "Falta de centros de educación integral según el plan", 82, "Inexistencia de centros de educación integral"],
+      ["PROBLEMA", "Construcción de viviendas en zonas de riesgo", 83, "Construcción de viviendas en áreas de riesgo"],
+      ["POTENCIALIDAD", "Comisiones comunitarias de salud reconocidas por el plan", 83, "Existencia de comisiones de salud"],
+      ["POTENCIALIDAD", "Aprovechamiento de residuos orgánicos e inorgánicos", 84, "Gestión de desechos sólidos"],
+      ["POTENCIALIDAD", "Atractivos turísticos identificados en el documento", 84, "Atractivos turísticos"],
+      ["POTENCIALIDAD", "Condiciones de clima y suelo para diversificar la producción agropecuaria", 85, "Clima y suelos aptos para producción"],
+      ["POTENCIALIDAD", "Recursos hídricos para proyectos de agua y riego", 86, "Recurso agua para el desarrollo de proyectos"],
+      ["POTENCIALIDAD", "Cobertura forestal para conservación y manejo sostenible", 87, "Cobertura forestal para impulsar"],
+      ["POTENCIALIDAD", "Personal de salud y nutrición para educación alimentaria", 88, "Personal capacitado del MSPAS y SESAN"],
+      ["POTENCIALIDAD", "Infraestructura pública propuesta para un instituto tecnológico", 88, "Infraestructura pública para la creación"]
+    ]
+  }
+]
