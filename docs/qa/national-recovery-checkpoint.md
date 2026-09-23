@@ -220,3 +220,62 @@ prepared for authenticated checks of all 340 availability scopes plus four sampl
 directories, pagination, masked details, name/DPI lookup and cross-municipal denial.
 It returns no personal values and is executed in a rollback transaction after
 activation. These post-load tests have not yet run.
+
+## National nominal source activated — 2026-09-23 00:06 UTC
+
+This checkpoint supersedes every intermediate import count and pending activation
+status above. All **895/895 batches and 8,947,471 original records** are loaded.
+Activation reconciled all **340 municipal totals** against the retained original
+source, verified municipal foreign keys and zero cross-municipal associations,
+and atomically closed the import job. The source is active. Its 26,011 community
+labels belong to the nominal directory, not the separate public community catalog.
+All 11,013 duplicate-DPI groups, 36 missing ages and 16 age outliers were preserved;
+no person was invented or removed to make counts agree. The source is **2023**, with
+age explicitly estimated to 2026; it is not the active TSE 2026 aggregate register.
+
+Both prepared search indexes are applied, valid and analyzed. The broad Guatemala
+name search took 18.4 seconds with lossy bitmaps; scoped 32 MB work memory reduced
+the measured authenticated query to 4.2 seconds. Migration
+`bound_nominal_search_memory` changes only the private directory function. Global
+memory, interactive timeouts, billing and compute settings remain unchanged. One
+initial live broad-name request still timed out; subsequent MARI and MAR requests
+succeeded with 96,872 and 162,355 matches. Failed queries now show an unavailable
+total and explicit error state instead of presenting zero records/no matches.
+
+Authenticated contract verification passed for all 340 availability scopes and
+four sampled directories (0101, 0509, 1208, 1901): exact counts, disjoint pages,
+municipal binding, masked DPI, read-only detail, name/DPI searches, audited reveal
+and cross-municipal denial. The SQL test returned no personal values and rolled
+back its reveal audit. Separate anonymous and unauthorized-user denial checks
+passed. All five national tables retain RLS and deny direct SELECT to anon and
+authenticated; authorized private functions enforce active administrator status
+and `private.can_read_data_vault`.
+
+Live QA with the existing universal administrator verified:
+
+| Municipality | Directory total | Rows per page | Source behavior |
+| --- | ---: | ---: | --- |
+| Guatemala 0101 | 816,683 | 25 | National, read only; name search verified |
+| San José 0509 | 36,878 | 25 | Existing campaign retained |
+| Sibinal 1208 | 9,406 | 25 | National, read only; detail and audited DPI reveal |
+| Zacapa 1901 | 39,798 | 25 | National, read only |
+
+No private rows, names, DPI, credentials or import tokens are in this checkpoint.
+National consultation does not create campaign associations or claim CLIENT_READY.
+Existing 0509 campaign editing is preserved. Prior native/fallback fullscreen and
+Escape checks remain passed for the four-municipality sample.
+
+After the final UI adjustment, lint (zero errors/warnings), typecheck, 85 tests,
+six synthetic transport scenarios, XLSX, smoke:340 (5,780 pairs, zero crosses),
+V70 parity (11 routes and Golden lock) and build all passed. The existing bundle
+size warning remains. Final published SHA and its CI/deployment must be verified
+after this checkpoint is pushed only to `qa/v70-national-client-readiness`.
+
+Advisors rerun at 00:05 UTC: 17 informational closed-RLS tables, one existing
+[leaked-password protection warning](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection),
+15 informational [unindexed foreign keys](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys),
+14 informational unused indexes, 18 existing
+[multiple-permissive-policy warnings](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies),
+and one informational Auth connection allocation notice. No unrelated policy or
+Auth setting was changed. This closes nominal import/access verification, not all
+outstanding historical/PDM content and premium visual refinements.

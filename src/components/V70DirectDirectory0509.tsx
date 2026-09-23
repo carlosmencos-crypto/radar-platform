@@ -545,7 +545,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
       {nationalRegister ? <p className="agenda-message">Padrón nominal 2023 · Consulta autorizada de {municipality_name}. Edad estimada a 2026. El seguimiento y la edición requieren vincular los registros a una campaña.</p> : null}
       <section className="elector-kpis" aria-label="Resumen del Directorio">
         <span>
-          <b>{fmt.format(total)}</b>
+          <b>{error ? "—" : fmt.format(total)}</b>
           <small>Registros</small>
         </span>
         <span>
@@ -749,7 +749,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
             ))
           ) : (
             <div className="elector-loading">
-              No hay coincidencias con estos filtros.
+              {error ? "La consulta no está disponible. Revisá el mensaje y los filtros." : "No hay coincidencias con estos filtros."}
             </div>
           )}
         </div>
