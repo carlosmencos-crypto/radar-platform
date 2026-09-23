@@ -7,16 +7,15 @@ import {
   deleteCampaignRecord,
   deleteCampaignVaultFile,
   downloadCampaignVaultFile,
-  loadCampaignBundle,
   loadCampaignContacts,
   loadCampaignRecords,
   saveCampaignRecord,
   uploadCampaignVaultFile,
   type CampaignContactRecord,
-  type CampaignIdentityRecord,
   type CampaignModuleRecord,
 } from "../data/radarRuntime";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
+import { useV70CampaignBrand } from "./useV70CampaignBrand";
 import { V70LocationPicker } from "./V70LocationPicker";
 
 const materialFolders = [
@@ -149,8 +148,7 @@ function Physical() {
 
 function Official() {
   const store = useCampaignRecords("medios");
-  const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
-  const [identity, setIdentity] = useState<CampaignIdentityRecord>({});
+  const { contacts, identity } = useV70CampaignBrand();
   const [folder, setFolder] = useState("Todos");
   const [upload, setUpload] = useState(false);
   const [newFolder, setNewFolder] = useState(false);
@@ -159,7 +157,6 @@ function Official() {
   const [assetFolder, setAssetFolder] = useState(defaultOfficialFolders[0]);
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  useEffect(() => { if (!store.campaign_id) return; void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignContacts(store.campaign_id!, token), loadCampaignBundle(store.campaign_id!, token)])).then(([people, bundle]) => { setContacts(people); setIdentity(bundle.identity || {}); }).catch(() => undefined); }, [store.campaign_id]);
   const folderRecords = store.records.filter((record) => record.category === "Carpeta" && record.status !== "ARCHIVADO");
   const folders = useMemo(() => Array.from(new Set([...defaultOfficialFolders, ...folderRecords.map((record) => record.title)])), [folderRecords]);
   const assets = store.records.filter((record) => record.category !== "Carpeta" && record.status !== "ARCHIVADO" && (folder === "Todos" || record.category === folder));

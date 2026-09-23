@@ -588,7 +588,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               onChange={(event) => {
                 setFilter(setQuery, event.target.value);
               }}
-              placeholder={nationalRegister ? "Nombre o apellido · mínimo 3 letras" : "Nombre o palabras aproximadas"}
+              placeholder={nationalRegister ? "Nombre y apellido en cualquier orden · mín. 3 letras" : "Nombre o palabras aproximadas"}
               autoComplete="off"
             />
           </label>

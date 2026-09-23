@@ -107,7 +107,7 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_pulse_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_records_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(moduleRecords[body.p_module_key]||[]),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
-    if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
+    if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); campaignBundle.identity=body.p_identity||{}; return new Response(JSON.stringify(campaignBundle.identity),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_record_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:body.p_record_id||"qa-record-"+Date.now(),campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_record}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("nominatim.openstreetmap.org/search")) return new Response(JSON.stringify([{place_id:1,name:"Municipalidad de San José",display_name:"Municipalidad de San José, Escuintla, Guatemala",lat:"13.939",lon:"-90.821",addresstype:"townhall"}]),{status:200,headers:{"Content-Type":"application/json"}});
@@ -294,6 +294,15 @@ try {
   diagnostics.modals.push({ selector: ".party-signature-trigger", kind: "campaign-identity", opened: true, fullyVisible: true, portal: true, ok: true });
   await evaluate(`document.querySelector('.campaign-identity-modal [data-modal-close]')?.click()`);
   await waitFor(`!document.querySelector('.campaign-identity-modal')`, "campaign identity close");
+  await evaluate(`document.querySelector('.party-signature-trigger')?.click()`);
+  await waitFor(`Boolean(document.querySelector('.campaign-identity-modal'))`, "party logo removal modal");
+  const removedLogo = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.campaign-identity-modal button')).find(b=>b.textContent==='Quitar logo del partido');if(!button)return false;button.click();return true;})()`);
+  if (!removedLogo) throw new Error("Party logo removal button missing.");
+  await waitFor(`!document.querySelector('.campaign-identity-preview img')`, "empty logo preview");
+  await evaluate(`document.querySelector('.campaign-identity-modal').requestSubmit()`);
+  await waitFor(`!document.querySelector('.campaign-identity-modal') && !document.querySelector('.party-logo-button img') && document.body.innerText.includes('Identidad actualizada correctamente.')`, "persisted empty party logo");
+  const retainedParty = await evaluate(`document.querySelector('.party-signature strong')?.textContent`);
+  if (retainedParty !== "Movimiento Municipal") throw new Error("Removing logo changed the party name.");
   for (const [slug, route, marker] of routes.slice(1)) {
     const clicked = await evaluate(`(()=>{const a=document.querySelector('.portal-sidebar nav a[href="${route}"]'); if(!a)return false; a.click(); return true;})()`);
     if (!clicked) throw new Error(`Sidebar link missing: ${route}`);

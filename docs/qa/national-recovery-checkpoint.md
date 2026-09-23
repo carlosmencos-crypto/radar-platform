@@ -309,3 +309,17 @@ Document preview follow-up: uploaded document images now open inside the authori
 Carlos explicitly identified screenshot 1 (0301 contact sheet) as the approved design. The full-width form change in `1fd21349cb4fe6627a574022bd8144aa932692a0` was therefore not an approved redesign. Removed the three adapter overrides affecting form/history width, padding, shadow and document-grid span, restoring the existing canonical pilot CSS for every municipality. Restored the Campaign Vault private label. Kept saved fields, owner-scoped persistence, image preview, faster search and public municipal corrections. The CI layout assertion now checks the approved 680px card, 24px padding, shadow and internal scrolling instead of rewarding full-width expansion. This entry supersedes the earlier layout interpretation.
 
 Approved controls: responsible person uses the pilot select in all municipal directories; national manual names remain available through “Agregar responsable…”. Both map and Agenda actions remain visible; Agenda is disabled with an explicit campaign requirement when no campaign is linked. No campaign was created and no permission changed.
+
+### 2026-09-23 — unordered directory names
+
+- Applied migration `20260923042507_contact_directory_unordered_name_search`:
+  the shared authorized national page and exact count now require all literal
+  name fragments in any order. Municipal source and owner restrictions remain.
+- Existing trigram index is used for the first two longest fragments, with all
+  additional fragments checked. No national private source rows were changed.
+- Authenticated SQL checks passed for 0101, 0509 and 1208: reversed order,
+  spacing/case, count/page consistency, pagination, literal wildcard handling,
+  invalid municipality denial and no anonymous execution.
+- Measured database execution for the 0101 two-token sample: 127.762 ms.
+  This is one measurement, not an end-to-end latency guarantee.
+- Frontend hint updated locally; full QA release remains pending other work.

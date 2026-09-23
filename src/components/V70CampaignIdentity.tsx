@@ -38,6 +38,7 @@ export function V70CampaignIdentity() {
   const [open, setOpen] = useState(false);
   const [partyName, setPartyName] = useState("");
   const [partyLogo, setPartyLogo] = useState<File | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
@@ -55,7 +56,7 @@ export function V70CampaignIdentity() {
   async function save(event: FormEvent) {
     event.preventDefault();
     const normalizedName = partyName.trim();
-    if (!partyLogo && !normalizedName) {
+    if (!partyLogo && !normalizedName && !removeLogo) {
       setMessage("Cambia al menos un dato.");
       return;
     }
@@ -68,7 +69,7 @@ export function V70CampaignIdentity() {
     try {
       const logo = partyLogo
         ? await fileAsDataUrl(partyLogo)
-        : identity.party_logo_data_url;
+        : removeLogo ? null : identity.party_logo_data_url;
       const token = await ensureRadarAccessToken();
       const saved = await saveCampaignIdentity(
         campaign_id,
@@ -83,6 +84,7 @@ export function V70CampaignIdentity() {
       void saved;
       setPartyName("");
       setPartyLogo(null);
+      setRemoveLogo(false);
       setOpen(false);
       setSavedMessage("Identidad actualizada correctamente.");
       announceV70CampaignUpdate();
@@ -98,7 +100,7 @@ export function V70CampaignIdentity() {
     }
   }
 
-  const logo = logoPreview || identity.party_logo_data_url || "";
+  const logo = logoPreview || (removeLogo ? "" : identity.party_logo_data_url) || "";
   return (
     <>
       <aside
@@ -122,6 +124,9 @@ export function V70CampaignIdentity() {
             type="button"
             onClick={() => {
               setMessage("");
+              setPartyName("");
+              setPartyLogo(null);
+              setRemoveLogo(false);
               setSavedMessage("");
               setOpen(true);
             }}
@@ -192,13 +197,22 @@ export function V70CampaignIdentity() {
                 <b>{partyLogo?.name || "Seleccionar logotipo"}</b>
               </span>
               <input
+                key={removeLogo ? "removed" : "selected"}
                 type="file"
+                disabled={saving}
                 accept="image/jpeg,image/png,image/webp"
-                onChange={(event) =>
-                  setPartyLogo(event.target.files?.[0] ?? null)
-                }
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setPartyLogo(file);
+                  if (file) setRemoveLogo(false);
+                }}
               />
             </label>
+            {logo ? <button type="button" disabled={saving} onClick={() => {
+              setPartyLogo(null);
+              setRemoveLogo(true);
+            }}>Quitar logo del partido</button> : null}
+            {removeLogo ? <p role="status">Sin logotipo. Guarda los cambios para retirarlo de la identidad compartida de la campaña.</p> : null}
             <p>
               La fotografía y los datos de cada candidato se administran
               únicamente desde su tarjeta CRM.
