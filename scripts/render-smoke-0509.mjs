@@ -473,13 +473,18 @@ try {
   const planning = nationalProfile.public_context.planning;
   for (const width of [1440, 390]) {
     await cdp.send("Emulation.setDeviceMetricsOverride", { width, height: 1100, deviceScaleFactor: 1, mobile: width < 600 });
+    // Let the canonical sidebar/main responsive transition finish before measuring.
+    await delay(400);
     const recovered = await evaluate(`(()=>{const poverty=document.querySelector('.municipal-poverty-depth'),plan=document.querySelector('.municipal-planning-depth');return{cards:poverty?.querySelectorAll('.poverty-indicator-grid article').length,rows:plan?.querySelectorAll('tbody tr').length,priorities:plan?.querySelectorAll('.planning-priorities li').length,scoped:poverty?.innerText.includes(${JSON.stringify(municipalityName)}),withinViewport:[poverty,plan].every(el=>{const r=el?.getBoundingClientRect();return r&&r.left>=-1&&r.right<=innerWidth+1}),partial:plan?.innerText.includes('revisión integral del plan permanece pendiente'),missing:plan?.innerText.includes('Documento no disponible')}})()`);
     const ok = recovered.cards === 4 && recovered.rows === planning.indicators.length && recovered.priorities === planning.priorities.length && recovered.scoped && recovered.withinViewport && (!planning.indicators.length || recovered.partial) && (Boolean(planning.document.file_id) || recovered.missing);
     interactions.push({ kind: `recovered-vault-${width}`, ...recovered, ok });
-    if (!ok) throw new Error(`Recovered Vault layout failed: ${JSON.stringify(recovered)}`);
     for (const [selector, label] of [[".municipal-poverty-depth", "pobreza"], [".municipal-planning-depth", "pdm"]]) {
       await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'})`);
       await capture(`${label}-${width}`);
+    }
+    if (!ok) {
+      const bounds = await evaluate(`[...document.querySelectorAll('.municipal-poverty-depth,.municipal-planning-depth')].map(el=>({rect:el.getBoundingClientRect().toJSON(),viewport:innerWidth}))`);
+      throw new Error(`Recovered Vault layout failed at ${width}: ${JSON.stringify({recovered,bounds})}`);
     }
   }
   await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
