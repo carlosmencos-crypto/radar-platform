@@ -1,4 +1,5 @@
 import type { AuthorizedLayerRecord, RadarRuntimeBundle } from "./radarRuntime";
+import { municipalPublicDepth, type MunicipalPublicDepth } from "./municipalPublicDepth";
 
 export type MunicipalSignal = {
   title: string;
@@ -59,6 +60,7 @@ export type MunicipalCommunityCatalogRecord = {
 };
 
 export type MunicipalIntelligenceModel = {
+  publicDepth: MunicipalPublicDepth | null;
   municipalityCode: string;
   municipalityName: string;
   departmentName: string;
@@ -354,6 +356,7 @@ export function buildMunicipalIntelligenceModel(
 
   return {
     municipalityCode,
+    publicDepth: municipalPublicDepth(runtime.intelligence_profile?.public_context, municipalityCode),
     municipalityName: runtime.context.municipality_name,
     departmentName: runtime.context.department_name,
     activeElectors,

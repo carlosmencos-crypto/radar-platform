@@ -344,3 +344,49 @@ Approved controls: responsible person uses the pilot select in all municipal dir
 - `supabase/tests/community-directory.sql` passed authenticated community queries for 340/340 municipalities, checking every returned row's municipality/community. Maximum sampled query time was 107.565 ms. Miraflores returned 25 rows on its first page; second page was disjoint; exact count and nonexistent-community behavior passed. Only aggregate verification results were returned and the test transaction rolled back.
 - Shared directory clears stale rows/count/pagination on a new request and on failure, disables navigation on errors, uses a user-facing failure message and offers retry. Browser CI now simulates a community query 500 after successful results, checks stale-state removal and retries successfully for the three national directory samples. Its new published SHA must be checked after release; do not infer it from b728489.
 - Security advisor remains unchanged. Broader PDM semantic and authenticated final-review limits above still apply. Do not restart unrelated paused extraction/audit tasks.
+
+### 2026-09-23 — reuse of previously organized Vault products
+
+User authorized completing the remaining national stage and explicitly requested
+checking prior Vault work before repeating document processing. The current
+ETAPA2 control and Master Sources confirm 335 inventoried PDFs, five missing
+municipal documents, and earlier validated structured products. Inventory and
+DR-102 lexical signals are not semantic acceptance.
+
+Recovered without modifying or re-extracting original documents:
+
+- Poverty 2023 DASHBOARD_READY (`1ZiPFKH3sHWjKqgI7Hpzv4uuQw1PKIpac`), validated
+  against `1w14I2Or93U86ozKSaQBLToiS2scRo-SR`: all 340 municipalities, 23
+  unpublished extreme-poverty estimates preserved as null, modeled municipal
+  estimates never attributed to individuals, communities or JRV.
+- PDM priorities DASHBOARD_READY (`19lzoDvf9xQ8256mRGk7mqj-wsIEng2b9`), validation
+  `14ingI8BGz3ADPJonfN3b2sZH89NBbYKE`: 36 page-referenced priorities for
+  0501/0502/0513. Documented area/population conflicts were not imported as facts.
+- PDM infrastructure CLEAN (`17C8sS9MS0o1qdbdZeu6-KNaYa73gydmp`), validation
+  `1N5a-CjAr1lfEfltxQoEX-l3XN2yivULU`: 12 baseline/target indicators for 0509.
+  Historical years, source zeros, unknown years/magnitudes, rate-unit caveats,
+  and water index 0.178 (not household coverage) remain explicit.
+
+Four recover_validated_municipal_public_depth migrations were applied to the
+existing municipality intelligence profiles. Read-back: 340 profiles, zero
+municipal crossings, 23 null extreme estimates, five missing PDM documents,
+128 unresolved catalog discrepancies, 36 priorities, 12 indicators and only
+four PARTIAL_VALIDATED_CONTENT municipalities. Readiness flags and source
+records were not changed; existing authorization and RLS remain in force.
+
+One shared validator, municipal display and printable report consume these
+products for all municipalities. Nested wrong-code/source evidence fails closed.
+The recovery script, public fixture and SQL provide reproducible provenance;
+readable-export hashes identify the inputs, not the original binary hashes.
+
+Local checks: 111 tests pass, typecheck/build pass, lint clean, XLSX/national
+smoke/parity pass; bundle audit finds no secrets, source maps or private data.
+The known bundle size warning remains. Local Chrome download failed with a
+proxy timeout, so desktop/mobile public-content screenshots and report PDFs
+are required in the pushed SHA's CI artifacts before visual signoff.
+
+This is a recovered integration increment, not national stage closure. Deep PDM
+review remains incomplete; missing documents (0101/0115/0116/0201/1333), source
+conflicts and missing center results (0104/1104) are unresolved. No Hostinger,
+Golden, main, mobile, fiscal portal, superadministrator or paused extraction
+lane was changed. Next publication target is only the existing national QA.

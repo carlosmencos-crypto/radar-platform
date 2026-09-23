@@ -15,6 +15,7 @@ import { findMunicipalProfile } from "../data/municipalProfiles";
 import { getInstalledRadarElectoralLayers, getInstalledRadarRuntime } from "../data/radarRuntimeCache";
 import { buildMunicipalIntelligenceModel, finite, formatCurrency, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
 import { useV70CampaignBrand } from "./useV70CampaignBrand";
+import { municipalPublicDepthReport } from "../data/municipalPublicDepthReport";
 
 type ReportMetric = { label: string; value: string; note: string };
 type ReportSection = { key?: string; eyebrow: string; title: string; text?: string; items: string[] };
@@ -143,6 +144,9 @@ function CanonicalV70Report(){
         {key:"finance",eyebrow:"FINANZAS Y GESTIÓN",title:"Presupuesto, inversión y obras",items:[`${formatCurrency(finite(finance.current_budget_amount))} de presupuesto vigente 2026 YTD.`,`${formatPercent(finite(finance.budget_execution_pct),false)} de ejecución al corte.`,`${formatInteger(finite(projects.project_count))} proyectos SNIP; su universo permanece separado de Guatecompras.`]},
         {eyebrow:"REGLA DE DATOS",title:"Límites de interpretación",items:["Los vacíos nunca se convierten en cero.","No se mezclan escalas municipales, departamentales y nacionales.","No se suman universos oficiales incompatibles."]},
       ];
+    }
+    if(source.key==="municipio-360" && municipalModel){
+      dynamic.sections = [...(dynamic.sections ?? []), ...municipalPublicDepthReport(municipalModel.publicDepth)];
     }
     if(source.key==="estrategia"){
       dynamic.summary="Versión ejecutiva del plan guardado por la campaña, con sus campos vigentes, historial y estado de aprobación.";

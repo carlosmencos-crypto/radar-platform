@@ -470,6 +470,19 @@ try {
   if (!publicDepth?.municipality || !publicDepth.active || !publicDepth.census || !publicDepth.history) throw new Error(`National intelligence depth failed for ${municipalityCode}: ${JSON.stringify(publicDepth)}`);
   const benchmarkRows = await evaluate(`document.querySelectorAll(".management-benchmark .benchmark-list article").length`);
   if (benchmarkRows !== 6) throw new Error(`RGM dimensions missing for ${municipalityCode}: ${benchmarkRows}`);
+  const planning = nationalProfile.public_context.planning;
+  for (const width of [1440, 390]) {
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width, height: 1100, deviceScaleFactor: 1, mobile: width < 600 });
+    const recovered = await evaluate(`(()=>{const poverty=document.querySelector('.municipal-poverty-depth'),plan=document.querySelector('.municipal-planning-depth');return{cards:poverty?.querySelectorAll('.poverty-indicator-grid article').length,rows:plan?.querySelectorAll('tbody tr').length,priorities:plan?.querySelectorAll('.planning-priorities li').length,scoped:poverty?.innerText.includes(${JSON.stringify(municipalityName)}),withinViewport:[poverty,plan].every(el=>{const r=el?.getBoundingClientRect();return r&&r.left>=-1&&r.right<=innerWidth+1}),partial:plan?.innerText.includes('revisión integral del plan permanece pendiente'),missing:plan?.innerText.includes('Documento no disponible')}})()`);
+    const ok = recovered.cards === 4 && recovered.rows === planning.indicators.length && recovered.priorities === planning.priorities.length && recovered.scoped && recovered.withinViewport && (!planning.indicators.length || recovered.partial) && (Boolean(planning.document.file_id) || recovered.missing);
+    interactions.push({ kind: `recovered-vault-${width}`, ...recovered, ok });
+    if (!ok) throw new Error(`Recovered Vault layout failed: ${JSON.stringify(recovered)}`);
+    for (const [selector, label] of [[".municipal-poverty-depth", "pobreza"], [".municipal-planning-depth", "pdm"]]) {
+      await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'})`);
+      await capture(`${label}-${width}`);
+    }
+  }
+  await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
   await clickSelector(".intelligence-fullscreen-frame .map-fullscreen-button");
   await waitFor(`document.fullscreenElement?.classList.contains('intelligence-fullscreen-frame')`, "Intelligence fullscreen entry");
   await waitFor(`Boolean(document.fullscreenElement?.querySelector('.map-fullscreen-button.active'))`, "Intelligence fullscreen active state");
@@ -562,6 +575,14 @@ try {
     await waitFor(`!document.querySelector('.${frameClass}.is-fullscreen') && !document.querySelector('.${frameClass} .map-fullscreen-button.active') && document.body.style.overflow!=='hidden'`, `${route} fallback Escape exit`);
   }
 
+  await navigate(`/reporte/municipio-360?municipality=${municipalityCode}&blocks=indicators`);
+  await waitFor(`document.body.innerText.includes('Pobreza municipal estimada')`, "recovered public report");
+  const reportText = await evaluate("document.body.innerText");
+  const reportOk = [...planning.priorities.map((p) => p.label), ...planning.indicators.map((p) => p.label)].every((label) => reportText.includes(label));
+  if (!reportOk) throw new Error("Recovered report omitted validated entries");
+  const pdf = await cdp.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true });
+  fs.writeFileSync(path.join(out, "recovered-public-report.pdf"), Buffer.from(pdf.data, "base64"));
+  interactions.push({ kind: "recovered-public-report", ok: reportOk });
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/4 fullscreen interactions · national profile isolated`);
 } catch (error) {

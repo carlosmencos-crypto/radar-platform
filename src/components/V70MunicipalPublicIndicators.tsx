@@ -1,4 +1,5 @@
 import type { MunicipalIntelligenceModel } from "../data/v70MunicipalIntelligence";
+import { V70MunicipalPlanning, V70MunicipalPoverty } from "./V70MunicipalPlanning";
 import { finite, formatDecimal, formatInteger, formatPercent, textValue } from "../data/v70MunicipalIntelligence";
 
 const householdIndicators = [
@@ -51,6 +52,8 @@ export function V70MunicipalPublicIndicators({ model }: { model: MunicipalIntell
       {[["agua_cobertura_urbana", "AGUA · URBANA"], ["agua_cobertura_rural", "AGUA · RURAL"], ["residuos_recoleccion_urbana", "RESIDUOS · URBANA"], ["residuos_recoleccion_rural", "RESIDUOS · RURAL"]].map(([key, label]) => <article key={key}><span>{label}</span><b>{formatPercent(finite(services[key]))}</b><small>Indicador histórico RGM</small></article>)}
       <article><span>ÍNDICE DE SERVICIOS PÚBLICOS</span><b>{formatDecimal(finite(services.indice_servicios_publicos), 3)}</b><small>{textValue(services.indice_servicios_publicos_categoria) ?? "Categoría no publicada"}</small></article>
     </div></div>
-    <div className="municipal-document-source"><div><small>PLANIFICACIÓN MUNICIPAL · SEGEPLAN</small><b>{textValue(pdm.file_name) ?? "Documento municipal no vinculado"}</b><p>{verifiedDocumentUrl ? "Consultá el diagnóstico territorial, las metas y los proyectos documentados en el plan municipal." : "No hay un documento municipal vinculado para consulta."}</p></div>{verifiedDocumentUrl ? <a href={verifiedDocumentUrl} target="_blank" rel="noreferrer">Consultar PDM / PDM-OT ↗</a> : null}</div>
+    <V70MunicipalPoverty model={model} />
+    <V70MunicipalPlanning model={model} />
+    {!model.publicDepth?.planning ? <div className="municipal-document-source"><div><small>PLANIFICACIÓN MUNICIPAL · SEGEPLAN</small><b>{textValue(pdm.file_name) ?? "Documento municipal no vinculado"}</b><p>{verifiedDocumentUrl ? "Documento disponible; diagnóstico y metas pendientes de integración validada." : "No hay un documento municipal vinculado para consulta."}</p></div>{verifiedDocumentUrl ? <a href={verifiedDocumentUrl} target="_blank" rel="noreferrer">Consultar PDM / PDM-OT ↗</a> : null}</div> : null}
   </section>;
 }
