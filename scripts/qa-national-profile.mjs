@@ -5,6 +5,8 @@ export function attachRecoveredElectoralData(profile) {
   const code = profile.municipality_code;
   const publicDepth = JSON.parse(fs.readFileSync(path.join(root, "supabase/fixtures/municipal-public-depth.json"), "utf8"));
   profile.public_context = publicDepth.find((row) => row.municipality_code === code);
+  const egm = JSON.parse(fs.readFileSync(path.join(root, "supabase/fixtures/municipal-egm.json"), "utf8"));
+  profile.egm_2024 = egm.find((row) => row.municipality_code === code);
   const bases = JSON.parse(fs.readFileSync(path.join(root, "supabase/fixtures/tse-agreement-327-bases.json"), "utf8"));
   profile.electoral_basis_2027 = bases.find((basis) => basis.municipality_code === code);
   for (const file of fs.readdirSync(path.join(root, "supabase/migrations")).filter((name) => /load_tse_2023_municipal_corporations_part_/.test(name))) {

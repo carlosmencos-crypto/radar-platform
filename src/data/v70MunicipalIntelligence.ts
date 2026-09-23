@@ -165,6 +165,8 @@ export function buildMunicipalIntelligenceModel(
   if (
     runtime.geo.municipality.municipality_code !== municipalityCode ||
     runtime.voter_roll.municipality_code !== municipalityCode ||
+    (runtime.elector_profile && runtime.elector_profile.municipality_code !== municipalityCode) ||
+    (runtime.intelligence_profile && runtime.intelligence_profile.municipality_code !== municipalityCode) ||
     (runtime.demographics && runtime.demographics.municipality_code !== municipalityCode)
   ) {
     throw new Error("RADAR_CROSS_MUNICIPAL_RUNTIME_BLOCKED");

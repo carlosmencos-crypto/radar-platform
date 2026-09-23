@@ -390,3 +390,41 @@ review remains incomplete; missing documents (0101/0115/0116/0201/1333), source
 conflicts and missing center results (0104/1104) are unresolved. No Hostinger,
 Golden, main, mobile, fiscal portal, superadministrator or paused extraction
 lane was changed. Next publication target is only the existing national QA.
+
+## 2026-09-23 · Reused INE EGM 2024 national products
+
+The prior publication c29c2c1b03e46b1986f15dfc92a9db88635e3742 passed
+Quality 35907069609 and Deploy Preview 35907069711. Cloudflare published
+https://b580e8b1.radar-v70-national-qa.pages.dev for that SHA. Its recovered
+content report was reviewed as six correctly numbered PDF pages, not five
+numbered sheets overflowing onto six physical pages.
+
+The Vault already contained GT_INE_2024_EGM_340_CLEAN_v1.xlsx and its validation
+workbook. The shared security panel had not consumed them. This increment
+reuses their 23 indicator rows per municipality, with original units, year,
+source sheet/table/row, readable-export SHA256 and validation links. It does
+not use cached Dashboard Ready rate formulas: some turned missing counts
+into zero. Population projections remain distinct from electoral counts;
+transit affected people are not accident counts, phone lines are not internet
+coverage, and these historical finance values do not replace MINFIN.
+
+Four transactional migrations applied to the existing authorized profiles:
+340 municipalities, 7,820 indicators, 6,571 numeric records, 1,249 null values,
+zero crossed municipality codes, verified by a fresh aggregate SQL query.
+The 27 absent-table values and the three wrong-municipality transit values
+for 1201 remain null. The age/population source inconsistency for 1002 stays
+explicit. Readiness, RLS and original Vault products remain unchanged.
+
+Shared UI and municipio-360 report now consume the same source-bound contract.
+Tests execute the real shared municipal model for all 340 profiles, reject
+foreign runtime/layer codes and preserve null strategy references when the
+required election evidence is absent. This checks isolation, not the validity
+of a strategic prediction. Local tests: 115 passed; typecheck, build, lint,
+national smoke, parity and bundle security audit passed. The existing large
+bundle warning remains. New EGM desktop/mobile and actual PDF-page gates are
+included in CI; publication/visual evidence for this increment is pending.
+
+National acceptance remains OPEN: deep PDM semantic review is not complete;
+five missing documents, 128 catalog discrepancies and center-result sources
+0104/1104 are unresolved. Neither these tests nor the sample visual routes
+constitute integral visual/functional acceptance for all 340 municipalities.

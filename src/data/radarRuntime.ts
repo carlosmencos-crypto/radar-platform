@@ -158,6 +158,7 @@ export interface MunicipalElectoralBasis {
 
 export interface NationalMunicipalityIntelligenceProfile {
   public_context?: unknown;
+  egm_2024?: unknown;
   electoral_basis_2027?: MunicipalElectoralBasis | null;
   municipality_code: string;
   active_voter_profile: Omit<AuthorizedActiveVoterProfile, "municipality_code" | "cutoff_at" | "source_id" | "source_label" | "source_status">;

@@ -478,7 +478,9 @@ try {
     const recovered = await evaluate(`(()=>{const poverty=document.querySelector('.municipal-poverty-depth'),plan=document.querySelector('.municipal-planning-depth');return{cards:poverty?.querySelectorAll('.poverty-indicator-grid article').length,rows:plan?.querySelectorAll('tbody tr').length,priorities:plan?.querySelectorAll('.planning-priorities li').length,scoped:poverty?.innerText.includes(${JSON.stringify(municipalityName)}),withinViewport:[poverty,plan].every(el=>{const r=el?.getBoundingClientRect();return r&&r.left>=-1&&r.right<=innerWidth+1}),partial:plan?.innerText.includes('revisión integral del plan permanece pendiente'),missing:plan?.innerText.includes('Documento no disponible')}})()`);
     const ok = recovered.cards === 4 && recovered.rows === planning.indicators.length && recovered.priorities === planning.priorities.length && recovered.scoped && recovered.withinViewport && (!planning.indicators.length || recovered.partial) && (Boolean(planning.document.file_id) || recovered.missing);
     interactions.push({ kind: `recovered-vault-${width}`, ...recovered, ok });
-    for (const [selector, label] of [[".municipal-poverty-depth", "pobreza"], [".municipal-planning-depth", "pdm"]]) {
+    const egm = await evaluate(`(()=>{const el=document.querySelector('[data-egm-municipality]');return{code:el?.dataset.egmMunicipality,cards:el?.querySelectorAll('.security-grid article').length,rows:el?.querySelectorAll('tbody tr').length,text:el?.innerText}})()`);
+    if (egm.code !== municipalityCode || egm.cards !== 5 || egm.rows !== 23 || !egm.text.includes('2024')) throw new Error(`EGM contract failed for ${municipalityCode}`);
+    for (const [selector, label] of [[".municipal-poverty-depth", "pobreza"], [".municipal-planning-depth", "pdm"], [".security-panorama", "egm"]]) {
       await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'start',behavior:'instant'})`);
       await capture(`${label}-${width}`);
     }

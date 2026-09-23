@@ -1,4 +1,5 @@
 import { V70MunicipalPublicIndicators } from "./V70MunicipalPublicIndicators";
+import { V70MunicipalEgm } from "./V70MunicipalEgm";
 import { municipalManagementBenchmark } from "../data/municipalManagementBenchmark";
 import { buildElectoralPartyPalette } from "../data/electoralPartyColors";
 import { useMemo, useState } from "react";
@@ -175,19 +176,7 @@ export function V70CanonicalRichMunicipality() {
       <div className="social-grid"><article><small>RED EDUCATIVA</small><b>{formatInteger(finite(schools.records))}</b><span>{formatInteger(finite(schools.level_primaria))} primaria · {formatInteger(finite(schools.level_basico))} básico</span><em>MINEDUC · alcance documentado</em></article><article><small>RETARDO EN TALLA · 2024</small><b>{formatPercent(finite(nutrition.stunting_prevalence_pct), false)}</b><span>{formatInteger(finite(nutrition.analyzed_students))} escolares · {stateLabel(textValue(nutrition.nutritional_vulnerability_category))}</span><em>SESAN / MINEDUC</em></article><article><small>ESTABLECIMIENTOS DE SALUD</small><b>{formatInteger(finite(health.records))}</b><span>{formatInteger(finite(health.map_publishable))} puntos publicables</span><em>MSPAS</em></article><article><small>AGUA DENTRO DEL HOGAR · 2018</small><b>{formatPercent(finite(census.water_pipe_inside_pct))}</b><span>{formatInteger(finite(census.total_households))} hogares censados</span><em>INE · Censo 2018</em></article><article><small>DRENAJE SANITARIO · 2018</small><b>{formatPercent(finite(census.sanitary_drainage_pct))}</b><span>Universo de hogares</span><em>INE · Censo 2018</em></article><article><small>INTERNET EN EL HOGAR · 2018</small><b>{formatPercent(finite(census.internet_pct))}</b><span>Conectividad domiciliar</span><em>INE · Censo 2018</em></article></div>
     </section>
 
-    <section className="section security-panorama">
-      <div className="section-head"><div><p className="eyebrow">SEGURIDAD Y CONFLICTIVIDAD</p><h2>Señales municipales para prevención y territorio</h2></div><p>El bloque canónico permanece visible. Solo publica tasas cuando existe una capa oficial municipal comparable; una ausencia no se interpreta como cero incidentes.</p></div>
-      <div className="security-grid">
-        {[
-          ["HOMICIDIOS", "PNC · tasa municipal"],
-          ["VIOLENCIA CONTRA LA MUJER", "Ministerio Público · razón municipal"],
-          ["MUJERES AGRAVIADAS", "Ministerio Público · tasa municipal"],
-          ["FALTAS JUDICIALES", "Organismo Judicial · proporción municipal"],
-          ["ACCIDENTES DE TRÁNSITO", "PNC · concentración municipal"],
-        ].map(([label, source], index) => <article className={index < 2 ? "security-critical" : ""} key={label}><small>{label}</small><b>No publicado</b><span>Sin indicador municipal comparable en el contrato actual</span><em>{source}</em></article>)}
-      </div>
-      <div className="security-reading"><div><span>LECTURA RADAR</span><b>La prevención requiere evidencia local y verificación humana.</b><p>Antes de convertir señales administrativas en propuestas o mensajes, deben contrastarse con PNC local, Bomberos, liderazgos comunitarios y registros de atención.</p></div></div>
-    </section>
+    <V70MunicipalEgm heading="SEGURIDAD Y CONFLICTIVIDAD" value={runtime.intelligence_profile?.egm_2024} code={municipality_code} />
 
     <section className="section economy-panorama">
       <div className="section-head"><div><p className="eyebrow">ECONOMÍA Y EMPLEO LOCAL</p><h2>Qué mueve al municipio y dónde se concentra</h2></div><p>La arquitectura canónica conserva este espacio para el diagnóstico municipal. No atribuye tasas nacionales de empleo, informalidad o actividad económica al municipio.</p></div>
