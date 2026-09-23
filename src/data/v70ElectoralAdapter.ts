@@ -39,6 +39,8 @@ export interface V70ElectionSummary {
   top: V70PartyResult[];
   availability: V70Availability;
   resultStatus: string | null;
+  snapshot: string | null;
+  sourceNotice: string | null;
 }
 
 export interface V70CenterElectionResult {
@@ -173,6 +175,8 @@ function emptyElection(code: V70ElectionCode, availability: V70Availability): V7
     top: [],
     availability,
     resultStatus: null,
+    snapshot: null,
+    sourceNotice: null,
   };
 }
 
@@ -315,6 +319,8 @@ function buildElectionSummary(code: V70ElectionCode, layer: AuthorizedLayerRecor
     top: options,
     availability,
     resultStatus: asNullableString(election.result_status),
+    snapshot: asNullableString(election.snapshot),
+    sourceNotice: isDict(payload.source) ? asNullableString(payload.source.display_notice) : null,
   };
 }
 

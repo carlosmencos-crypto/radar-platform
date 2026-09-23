@@ -487,3 +487,39 @@ Current planning coverage: 329 pending reviews, six partial plans, five absent
 documents. The shared model isolates municipal runtime inputs; the strategy
 reference remains null when required local election inputs are absent. These
 technical checks do not validate a prediction or close national acceptance.
+
+## 2026-09-23 · User acceptance clarification and repeated municipal election
+
+The user explicitly accepts genuinely unavailable institutional data as listed
+gaps for later access-to-information requests; these gaps must not block all
+remaining implementation. This does NOT reclassify available but unreviewed PDM
+content as unavailable or completed. The user requires the missing municipal
+acta results and confirms the elections took place on the presidential-runoff day.
+
+Recovered original CSVs and official JSON from the August 20 TREP publication.
+The prior files were the June 29 cutoff with no captured acts for 0104/1104.
+The shared repeated-election recovery compares every mesa, party count, integrity
+hash and municipal total between CSV and JSON, then maps by retained JRV ranges.
+The August center code 3857 is kept separate from the June center identifiers.
+No held geographic coordinate is inferred and no official Memoria is overwritten.
+
+- 0104: 24 captured, 22 counted. Mesas 2318/2319 are `Acta en Blanco` in this
+  cutoff. Party sum 4,346 versus source-reported valid 4,345 is preserved explicitly.
+- 1104: 29 captured and counted; 6,671 party votes and 7,096 calculated emitted.
+- Only municipal repetition layers are added. Presidential runoff data cannot
+  replace first-round presidential/legislative data. Other missing layers remain.
+- Shared display now uses the selected election's cutoff and its source notice,
+  so the August result is not labelled with the index's retained June cutoff.
+- A guarded transactional rehearsal passed with rollback. The same data-only
+  transaction was applied. Readback through the real `radar_authorized_layers_v2`
+  RPC under the existing authorized administrator confirmed local codes and
+  counts (0104=22, 1104=29); that verification transaction rolled back.
+- Local: 119 tests passed, including original CSV/JSON/hash/JRV reconciliation,
+  real shared adapter, missing other elections, uncounted acts, geography holds
+  and cross-municipality rejection. Typecheck, lint, build, bundle audit, national
+  smoke (5,780 pairs; zero crossings) and frozen V70 parity passed. The existing
+  bundle-size warning remains. Published SHA CI/deployment must still be verified.
+
+National PDM semantics, remaining shared functional review and publication gates
+remain open. No Hostinger, Golden, main, private directory, portal fiscal,
+superadministrator or paused extraction task was modified.

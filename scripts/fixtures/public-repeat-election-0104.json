@@ -1,0 +1,556 @@
+{
+  "municipality_code": "0104",
+  "layers": [
+    {
+      "municipality_code": "0104",
+      "layer_id": "TREP_2023_CENTER_INDEX",
+      "period": "2023-06-29T08:48:00-06:00",
+      "source_id": "GT-TSE-TREP-2023-4C594249",
+      "source_label": "TSE TREP 2023 preliminary snapshot + official JRV/center association",
+      "source_status": "DASHBOARD_READY_WITH_1_GEO_ASSOCIATION_HELD",
+      "payload": {
+        "qa": {
+          "all": "PASS_NO_PUBLICADO",
+          "jrv_universe": "PASS",
+          "municipality": "PASS",
+          "source_hashes": "PASS",
+          "five_elections": "PASS_NO_PUBLISHED_ACTAS",
+          "geo_associations": {
+            "status": "PASS_FAIL_CLOSED",
+            "sin_asociacion": 1,
+            "associated_exact": 3
+          },
+          "center_election_rows": "NO_PUBLICADO_NOT_MATERIALIZED",
+          "trep_vs_memoria_scope": "PASS_SEPARATE_UNIVERSES_NO_RECONCILIATION",
+          "registered_voters_center_total": "PASS"
+        },
+        "source": {
+          "guardrail": "Resultados TREP preliminares; mostrar siempre corte y porcentaje de actas contabilizadas. No presentar como resultado final oficial.",
+          "geo_source": "GT-TSE-2023-CENTROS-VOTACION-COORD-340-001",
+          "source_package": "05_TREP_2023-20260717T182246Z-1-001.zip",
+          "raw_file_sha256": {
+            "DIP_NAC": "558f2d006d5f4aa3dac13b19be48ba0cca7f77ce5265d650fa2606b13e948cf7",
+            "DIP_PAR": "356fd292d8d0f14e5ac1c1c36ad0fbee1c645d1be0d6fe6e48fd2d909c8d6b1e",
+            "DIP_DIST": "f01192620f42904cd4eb19ab6c966444114587235784a6db436e23b8f4e9b14b",
+            "PRESIDENTE": "a608018cf8d846ebf1304e39638a853f81b2e8b4e58bcd0a328021a4c26be928",
+            "CORPORACION_MUNICIPAL": "240e82a31fead5c8ca598a4e768fba9fd796450de7354d8611e81f58e0a9245a"
+          },
+          "jrv_center_source": "GT_TSE_2023_JRV_CENTRO_CROSSWALK_24427_v1",
+          "source_validation": "PASS · fuentes oficiales presentes; municipio con 0/24 actas capturadas/contabilizadas en las cinco elecciones; no se materializan resultados inexistentes",
+          "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
+        },
+        "centers": [
+          {
+            "latitude": 14.76111111,
+            "center_id": "GT-2023-0104-CV-47E9F303B4",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": -90.37119444,
+            "total_jrv": 6,
+            "jrv_ranges": "2297-2302",
+            "geo_source_key": "TSE2023-0104-001",
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "190"
+            ],
+            "voting_center_code": "001",
+            "voting_center_name": "INSTITUTO NACIONAL DE EDUCACION BÁSICA NITO PALENCIA",
+            "geo_association_status": "ASSOCIATED_EXACT",
+            "registered_voters_center": 2400
+          },
+          {
+            "latitude": 14.76277778,
+            "center_id": "GT-2023-0104-CV-B85D14CA7D",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": -90.37444444,
+            "total_jrv": 11,
+            "jrv_ranges": "2303-2312; 2320-2320",
+            "geo_source_key": "TSE2023-0104-002",
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "191",
+              "192",
+              "194"
+            ],
+            "voting_center_code": "002",
+            "voting_center_name": "INSTITUTO NACIONAL DE EDUCACION DIVERSIFICADO NITO PALENCIA MAYEN",
+            "geo_association_status": "ASSOCIATED_EXACT",
+            "registered_voters_center": 4023
+          },
+          {
+            "latitude": 14.81877611,
+            "center_id": "GT-2023-0104-CV-3ED6526367",
+            "community": "CEM - PONTEZUELAS",
+            "longitude": -90.35689639,
+            "total_jrv": 4,
+            "jrv_ranges": "2313-2316",
+            "geo_source_key": "TSE2023-0104-004",
+            "institution_type": "COMUNAL",
+            "trep_center_codes": [
+              "193"
+            ],
+            "voting_center_code": "003",
+            "voting_center_name": "SALÓN COMUNAL PONTEZUELAS",
+            "geo_association_status": "ASSOCIATED_EXACT",
+            "registered_voters_center": 1520
+          },
+          {
+            "latitude": null,
+            "center_id": "GT-2023-0104-CV-43AE42510E",
+            "community": "CEM - PORTEZUELAS O PONTEZUELAS",
+            "longitude": null,
+            "total_jrv": 3,
+            "jrv_ranges": "2317-2319",
+            "geo_candidate": {
+              "name": "SALÓN COMUNAL PONTEZUELAS",
+              "reason": "center_correlative candidate is already the exact physical-site match for voting center 003; physical-site name/address differ; fail-closed",
+              "address": "CENTRO DE LA COMUNIDAD BOULEVARD PRINCIPAL ALDEA PONTEZUELAS",
+              "latitude": 14.81877611,
+              "longitude": -90.35689639,
+              "source_key": "TSE2023-0104-004"
+            },
+            "geo_source_key": null,
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "193"
+            ],
+            "voting_center_code": "004",
+            "voting_center_name": "ESCUELA OFICIAL RURAL MIXTA ALDEA PONTEZUELAS",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 790
+          }
+        ],
+        "snapshot": "2023-06-29T08:48:00-06:00",
+        "elections": [
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "PRESIDENTE",
+            "election_name": "Presidente y Vicepresidente",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 1,
+            "expected_actas": 24,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_NAC",
+            "election_name": "Diputados por Lista Nacional",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 2,
+            "expected_actas": 24,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_DIST",
+            "election_name": "Diputados Distritales",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 3,
+            "expected_actas": 24,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "CORPORACION_MUNICIPAL",
+            "election_name": "Corporación Municipal",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 4,
+            "expected_actas": 24,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_PAR",
+            "election_name": "Diputados al Parlamento Centroamericano",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 5,
+            "expected_actas": 24,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          }
+        ],
+        "result_status": "NO_PUBLICADO",
+        "department_name": "Guatemala",
+        "municipality_code": "0104",
+        "municipality_name": "San José del Golfo"
+      }
+    },
+    {
+      "layer_id": "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+      "period": "2023-08-20T23:12:00-06:00",
+      "source_id": "GT-TSE-TREP-2023-REPETICION-20230820",
+      "source_label": "TSE TREP · repetición municipal 20 agosto 2023 · corte 23:12 UTC-6",
+      "source_status": "DASHBOARD_READY",
+      "payload": {
+        "municipality_code": "0104",
+        "municipality_name": "San José del Golfo",
+        "department_code": "01",
+        "department_name": "Guatemala",
+        "election": {
+          "election_code": "CORPORACION_MUNICIPAL",
+          "election_name": "Corporación Municipal · repetición del 20 de agosto",
+          "election_order": 4,
+          "election_date": "2023-08-20",
+          "snapshot": "2023-08-20T23:12:00-06:00",
+          "result_status": "PRELIMINARY_SNAPSHOT",
+          "expected_actas": 24,
+          "captured_actas": 24,
+          "captured_share": 1,
+          "counted_actas": 22,
+          "counted_share": 0.9166666666666666,
+          "nominal_roll_counted": 8323,
+          "votes_cast_counted": 4584,
+          "turnout_counted": 0.5507629460531058,
+          "valid_votes": 4345,
+          "null_votes": 211,
+          "blank_votes": 27,
+          "ballot_option_votes": 4346,
+          "leader": "UNE",
+          "leader_votes": 1045,
+          "leader_share": 0.24045098941555454,
+          "runner_up": "VAMOS",
+          "runner_up_votes": 997,
+          "margin_votes": 48,
+          "margin_share": 0.011044638748274275
+        },
+        "source": {
+          "url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/GTM2023-segundaeleccion-20230820-231251.zip",
+          "csv_file": "gtm2023_e4d01m04.csv",
+          "csv_sha256": "ed4423bf6e1295b34477c9db38b708bd4c7d379187e29232504b5eb269226482",
+          "json_url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/gtm2023_tc4_e1.json",
+          "decoded_json_sha256": "b288175866886110b2232985023df3afb8505cba7c95144e94c542c0645a216e",
+          "event": "REPETICION_MUNICIPAL_2023_08_20",
+          "retrieved_on": "2026-09-23",
+          "center_crosswalk": [
+            {
+              "code": "001",
+              "jrv_ranges": "2297-2302",
+              "repeat_trep_center_codes": [
+                "190"
+              ]
+            },
+            {
+              "code": "002",
+              "jrv_ranges": "2303-2312; 2320-2320",
+              "repeat_trep_center_codes": [
+                "191",
+                "194"
+              ]
+            },
+            {
+              "code": "003",
+              "jrv_ranges": "2313-2316",
+              "repeat_trep_center_codes": [
+                "193"
+              ]
+            },
+            {
+              "code": "004",
+              "jrv_ranges": "2317-2319",
+              "repeat_trep_center_codes": [
+                "3857"
+              ]
+            }
+          ],
+          "uncounted_actas": [
+            {
+              "mesa": 2318,
+              "observation": "Acta en Blanco",
+              "integrity": "1522c4bc7dab41ffa696b691661d72a7d7d7a062e96c8baefdda16b9a723b3fc"
+            },
+            {
+              "mesa": 2319,
+              "observation": "Acta en Blanco",
+              "integrity": "41c8da416dfab836b44c67860ab9445961516b08a10bee5b8bddf666983726ca"
+            }
+          ],
+          "reported_valid_votes": 4345,
+          "calculated_valid_votes": 4346,
+          "guardrail": "Corte TREP preliminar de la repetición municipal. Solo actas contabilizadas; no sustituye la Memoria oficial. Válidos reportados y calculados se conservan separados. No corresponde a la primera vuelta presidencial ni a elecciones legislativas.",
+          "display_notice": "Repetición municipal del 20 de agosto de 2023. Corte preliminar: 22/24 actas contabilizadas. Mesas 2318 y 2319: el TREP las registra como «Acta en Blanco», sin contabilizar. Válidos reportados: 4,345; suma de votos por partido: 4,346. Se conserva la discrepancia de la fuente. Los resultados de junio y de otras elecciones no se sustituyen por estos datos."
+        },
+        "qa": {
+          "status": "PASS_CSV_JSON_JRV_RECONCILED"
+        },
+        "option_schema": [
+          "source",
+          "key",
+          "municipal_votes",
+          "municipal_share",
+          "municipal_rank"
+        ],
+        "options": [
+          [
+            "UNE",
+            "UNE",
+            1045,
+            0.24045098941555454,
+            1
+          ],
+          [
+            "VAMOS",
+            "VAMOS",
+            997,
+            0.22940635066728027,
+            2
+          ],
+          [
+            "SEMILLA",
+            "SEMILLA",
+            765,
+            0.17602393005062125,
+            3
+          ],
+          [
+            "VOS",
+            "VOS",
+            301,
+            0.06925908881730326,
+            4
+          ],
+          [
+            "BIEN",
+            "BIEN",
+            277,
+            0.06373676944316613,
+            5
+          ],
+          [
+            "PHG",
+            "PHG",
+            277,
+            0.06373676944316613,
+            5
+          ],
+          [
+            "CABAL",
+            "CABAL",
+            268,
+            0.061665899677864705,
+            7
+          ],
+          [
+            "PODEMOS",
+            "PODEMOS",
+            177,
+            0.04072710538426139,
+            8
+          ],
+          [
+            "PPN",
+            "PPN",
+            134,
+            0.030832949838932353,
+            9
+          ],
+          [
+            "VALOR",
+            "VALOR",
+            105,
+            0.024160147261849976,
+            10
+          ]
+        ],
+        "center_metric_schema": [
+          "code",
+          "captured",
+          "counted",
+          "nominal",
+          "cast",
+          "turnout",
+          "valid",
+          "null",
+          "blank",
+          "option_votes"
+        ],
+        "center_metrics": [
+          [
+            "001",
+            6,
+            6,
+            2400,
+            1431,
+            0.59625,
+            1375,
+            69,
+            7,
+            1355
+          ],
+          [
+            "002",
+            11,
+            11,
+            4023,
+            1945,
+            0.4834700472284365,
+            1858,
+            73,
+            14,
+            1858
+          ],
+          [
+            "003",
+            4,
+            4,
+            1520,
+            948,
+            0.6236842105263158,
+            864,
+            59,
+            4,
+            885
+          ],
+          [
+            "004",
+            3,
+            1,
+            380,
+            260,
+            0.6842105263157895,
+            248,
+            10,
+            2,
+            248
+          ]
+        ],
+        "votes_matrix": {
+          "rows": "center_metrics",
+          "columns": "options",
+          "values": [
+            [
+              344,
+              282,
+              268,
+              95,
+              95,
+              59,
+              112,
+              17,
+              54,
+              29
+            ],
+            [
+              443,
+              437,
+              347,
+              119,
+              142,
+              121,
+              110,
+              23,
+              60,
+              56
+            ],
+            [
+              201,
+              232,
+              121,
+              71,
+              35,
+              75,
+              36,
+              87,
+              14,
+              13
+            ],
+            [
+              57,
+              46,
+              29,
+              16,
+              5,
+              22,
+              10,
+              50,
+              6,
+              7
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

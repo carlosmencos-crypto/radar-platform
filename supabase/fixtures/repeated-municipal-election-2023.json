@@ -1,0 +1,599 @@
+[
+  {
+    "municipality_code": "0104",
+    "layer_id": "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+    "period": "2023-08-20T23:12:00-06:00",
+    "source_id": "GT-TSE-TREP-2023-REPETICION-20230820",
+    "source_label": "TSE TREP · repetición municipal 20 agosto 2023 · corte 23:12 UTC-6",
+    "source_status": "DASHBOARD_READY",
+    "payload": {
+      "municipality_code": "0104",
+      "municipality_name": "San José del Golfo",
+      "department_code": "01",
+      "department_name": "Guatemala",
+      "election": {
+        "election_code": "CORPORACION_MUNICIPAL",
+        "election_name": "Corporación Municipal · repetición del 20 de agosto",
+        "election_order": 4,
+        "election_date": "2023-08-20",
+        "snapshot": "2023-08-20T23:12:00-06:00",
+        "result_status": "PRELIMINARY_SNAPSHOT",
+        "expected_actas": 24,
+        "captured_actas": 24,
+        "captured_share": 1,
+        "counted_actas": 22,
+        "counted_share": 0.9166666666666666,
+        "nominal_roll_counted": 8323,
+        "votes_cast_counted": 4584,
+        "turnout_counted": 0.5507629460531058,
+        "valid_votes": 4345,
+        "null_votes": 211,
+        "blank_votes": 27,
+        "ballot_option_votes": 4346,
+        "leader": "UNE",
+        "leader_votes": 1045,
+        "leader_share": 0.24045098941555454,
+        "runner_up": "VAMOS",
+        "runner_up_votes": 997,
+        "margin_votes": 48,
+        "margin_share": 0.011044638748274275
+      },
+      "source": {
+        "url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/GTM2023-segundaeleccion-20230820-231251.zip",
+        "csv_file": "gtm2023_e4d01m04.csv",
+        "csv_sha256": "ed4423bf6e1295b34477c9db38b708bd4c7d379187e29232504b5eb269226482",
+        "json_url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/gtm2023_tc4_e1.json",
+        "decoded_json_sha256": "b288175866886110b2232985023df3afb8505cba7c95144e94c542c0645a216e",
+        "event": "REPETICION_MUNICIPAL_2023_08_20",
+        "retrieved_on": "2026-09-23",
+        "center_crosswalk": [
+          {
+            "code": "001",
+            "jrv_ranges": "2297-2302",
+            "repeat_trep_center_codes": [
+              "190"
+            ]
+          },
+          {
+            "code": "002",
+            "jrv_ranges": "2303-2312; 2320-2320",
+            "repeat_trep_center_codes": [
+              "191",
+              "194"
+            ]
+          },
+          {
+            "code": "003",
+            "jrv_ranges": "2313-2316",
+            "repeat_trep_center_codes": [
+              "193"
+            ]
+          },
+          {
+            "code": "004",
+            "jrv_ranges": "2317-2319",
+            "repeat_trep_center_codes": [
+              "3857"
+            ]
+          }
+        ],
+        "uncounted_actas": [
+          {
+            "mesa": 2318,
+            "observation": "Acta en Blanco",
+            "integrity": "1522c4bc7dab41ffa696b691661d72a7d7d7a062e96c8baefdda16b9a723b3fc"
+          },
+          {
+            "mesa": 2319,
+            "observation": "Acta en Blanco",
+            "integrity": "41c8da416dfab836b44c67860ab9445961516b08a10bee5b8bddf666983726ca"
+          }
+        ],
+        "reported_valid_votes": 4345,
+        "calculated_valid_votes": 4346,
+        "guardrail": "Corte TREP preliminar de la repetición municipal. Solo actas contabilizadas; no sustituye la Memoria oficial. Válidos reportados y calculados se conservan separados. No corresponde a la primera vuelta presidencial ni a elecciones legislativas.",
+        "display_notice": "Repetición municipal del 20 de agosto de 2023. Corte preliminar: 22/24 actas contabilizadas. Mesas 2318 y 2319: el TREP las registra como «Acta en Blanco», sin contabilizar. Válidos reportados: 4,345; suma de votos por partido: 4,346. Se conserva la discrepancia de la fuente. Los resultados de junio y de otras elecciones no se sustituyen por estos datos."
+      },
+      "qa": {
+        "status": "PASS_CSV_JSON_JRV_RECONCILED"
+      },
+      "option_schema": [
+        "source",
+        "key",
+        "municipal_votes",
+        "municipal_share",
+        "municipal_rank"
+      ],
+      "options": [
+        [
+          "UNE",
+          "UNE",
+          1045,
+          0.24045098941555454,
+          1
+        ],
+        [
+          "VAMOS",
+          "VAMOS",
+          997,
+          0.22940635066728027,
+          2
+        ],
+        [
+          "SEMILLA",
+          "SEMILLA",
+          765,
+          0.17602393005062125,
+          3
+        ],
+        [
+          "VOS",
+          "VOS",
+          301,
+          0.06925908881730326,
+          4
+        ],
+        [
+          "BIEN",
+          "BIEN",
+          277,
+          0.06373676944316613,
+          5
+        ],
+        [
+          "PHG",
+          "PHG",
+          277,
+          0.06373676944316613,
+          5
+        ],
+        [
+          "CABAL",
+          "CABAL",
+          268,
+          0.061665899677864705,
+          7
+        ],
+        [
+          "PODEMOS",
+          "PODEMOS",
+          177,
+          0.04072710538426139,
+          8
+        ],
+        [
+          "PPN",
+          "PPN",
+          134,
+          0.030832949838932353,
+          9
+        ],
+        [
+          "VALOR",
+          "VALOR",
+          105,
+          0.024160147261849976,
+          10
+        ]
+      ],
+      "center_metric_schema": [
+        "code",
+        "captured",
+        "counted",
+        "nominal",
+        "cast",
+        "turnout",
+        "valid",
+        "null",
+        "blank",
+        "option_votes"
+      ],
+      "center_metrics": [
+        [
+          "001",
+          6,
+          6,
+          2400,
+          1431,
+          0.59625,
+          1375,
+          69,
+          7,
+          1355
+        ],
+        [
+          "002",
+          11,
+          11,
+          4023,
+          1945,
+          0.4834700472284365,
+          1858,
+          73,
+          14,
+          1858
+        ],
+        [
+          "003",
+          4,
+          4,
+          1520,
+          948,
+          0.6236842105263158,
+          864,
+          59,
+          4,
+          885
+        ],
+        [
+          "004",
+          3,
+          1,
+          380,
+          260,
+          0.6842105263157895,
+          248,
+          10,
+          2,
+          248
+        ]
+      ],
+      "votes_matrix": {
+        "rows": "center_metrics",
+        "columns": "options",
+        "values": [
+          [
+            344,
+            282,
+            268,
+            95,
+            95,
+            59,
+            112,
+            17,
+            54,
+            29
+          ],
+          [
+            443,
+            437,
+            347,
+            119,
+            142,
+            121,
+            110,
+            23,
+            60,
+            56
+          ],
+          [
+            201,
+            232,
+            121,
+            71,
+            35,
+            75,
+            36,
+            87,
+            14,
+            13
+          ],
+          [
+            57,
+            46,
+            29,
+            16,
+            5,
+            22,
+            10,
+            50,
+            6,
+            7
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "municipality_code": "1104",
+    "layer_id": "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+    "period": "2023-08-20T23:12:00-06:00",
+    "source_id": "GT-TSE-TREP-2023-REPETICION-20230820",
+    "source_label": "TSE TREP · repetición municipal 20 agosto 2023 · corte 23:12 UTC-6",
+    "source_status": "DASHBOARD_READY",
+    "payload": {
+      "municipality_code": "1104",
+      "municipality_name": "San Martín Zapotitlán",
+      "department_code": "11",
+      "department_name": "Retalhuleu",
+      "election": {
+        "election_code": "CORPORACION_MUNICIPAL",
+        "election_name": "Corporación Municipal · repetición del 20 de agosto",
+        "election_order": 4,
+        "election_date": "2023-08-20",
+        "snapshot": "2023-08-20T23:12:00-06:00",
+        "result_status": "PRELIMINARY_SNAPSHOT",
+        "expected_actas": 29,
+        "captured_actas": 29,
+        "captured_share": 1,
+        "counted_actas": 29,
+        "counted_share": 1.0,
+        "nominal_roll_counted": 11317,
+        "votes_cast_counted": 7096,
+        "turnout_counted": 0.6270212953963065,
+        "valid_votes": 6671,
+        "null_votes": 394,
+        "blank_votes": 31,
+        "ballot_option_votes": 6671,
+        "leader": "VAMOS",
+        "leader_votes": 3052,
+        "leader_share": 0.45750262329485836,
+        "runner_up": "CABAL",
+        "runner_up_votes": 2678,
+        "margin_votes": 374,
+        "margin_share": 0.056063558686853546
+      },
+      "source": {
+        "url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/GTM2023-segundaeleccion-20230820-231251.zip",
+        "csv_file": "gtm2023_e4d11m04.csv",
+        "csv_sha256": "3b58ea916ab7260da142667521ec72fa9659fc0d95f8217c3ed8b0b1259582a8",
+        "json_url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/gtm2023_tc4_e11.json",
+        "decoded_json_sha256": "afe55b694c4145a4beabe9e9240cf08f73b58f22673c4d91f62c58d0d6ba63fe",
+        "event": "REPETICION_MUNICIPAL_2023_08_20",
+        "retrieved_on": "2026-09-23",
+        "center_crosswalk": [
+          {
+            "code": "001",
+            "jrv_ranges": "12812-12820",
+            "repeat_trep_center_codes": [
+              "1747"
+            ]
+          },
+          {
+            "code": "002",
+            "jrv_ranges": "12821-12829",
+            "repeat_trep_center_codes": [
+              "1748"
+            ]
+          },
+          {
+            "code": "003",
+            "jrv_ranges": "12830-12833",
+            "repeat_trep_center_codes": [
+              "1749"
+            ]
+          },
+          {
+            "code": "004",
+            "jrv_ranges": "12834-12837",
+            "repeat_trep_center_codes": [
+              "1750"
+            ]
+          },
+          {
+            "code": "005",
+            "jrv_ranges": "12838-12840",
+            "repeat_trep_center_codes": [
+              "1751"
+            ]
+          }
+        ],
+        "uncounted_actas": [],
+        "reported_valid_votes": 6671,
+        "calculated_valid_votes": 6671,
+        "guardrail": "Corte TREP preliminar de la repetición municipal. Solo actas contabilizadas; no sustituye la Memoria oficial. Válidos reportados y calculados se conservan separados. No corresponde a la primera vuelta presidencial ni a elecciones legislativas.",
+        "display_notice": "Repetición municipal del 20 de agosto de 2023. Corte preliminar: 29/29 actas contabilizadas. Los resultados de junio y de otras elecciones no se sustituyen por estos datos."
+      },
+      "qa": {
+        "status": "PASS_CSV_JSON_JRV_RECONCILED"
+      },
+      "option_schema": [
+        "source",
+        "key",
+        "municipal_votes",
+        "municipal_share",
+        "municipal_rank"
+      ],
+      "options": [
+        [
+          "VAMOS",
+          "VAMOS",
+          3052,
+          0.45750262329485836,
+          1
+        ],
+        [
+          "CABAL",
+          "CABAL",
+          2678,
+          0.40143906460800477,
+          2
+        ],
+        [
+          "UNE",
+          "UNE",
+          676,
+          0.10133413281367111,
+          3
+        ],
+        [
+          "SEMILLA",
+          "SEMILLA",
+          107,
+          0.01603957427672013,
+          4
+        ],
+        [
+          "VALOR",
+          "VALOR",
+          63,
+          0.00944386149003148,
+          5
+        ],
+        [
+          "TODOS",
+          "TODOS",
+          31,
+          0.004646979463348824,
+          6
+        ],
+        [
+          "PODEMOS",
+          "PODEMOS",
+          28,
+          0.004197271773347324,
+          7
+        ],
+        [
+          "VIVA",
+          "VIVA",
+          20,
+          0.00299805126667666,
+          8
+        ],
+        [
+          "MLP",
+          "MLP",
+          16,
+          0.0023984410133413283,
+          9
+        ]
+      ],
+      "center_metric_schema": [
+        "code",
+        "captured",
+        "counted",
+        "nominal",
+        "cast",
+        "turnout",
+        "valid",
+        "null",
+        "blank",
+        "option_votes"
+      ],
+      "center_metrics": [
+        [
+          "001",
+          9,
+          9,
+          3600,
+          2432,
+          0.6755555555555556,
+          2253,
+          167,
+          12,
+          2253
+        ],
+        [
+          "002",
+          9,
+          9,
+          3600,
+          2192,
+          0.6088888888888889,
+          2042,
+          143,
+          7,
+          2042
+        ],
+        [
+          "003",
+          4,
+          4,
+          1600,
+          994,
+          0.62125,
+          955,
+          33,
+          6,
+          955
+        ],
+        [
+          "004",
+          4,
+          4,
+          1600,
+          1020,
+          0.6375,
+          981,
+          34,
+          5,
+          981
+        ],
+        [
+          "005",
+          3,
+          3,
+          917,
+          458,
+          0.4994547437295529,
+          440,
+          17,
+          1,
+          440
+        ]
+      ],
+      "votes_matrix": {
+        "rows": "center_metrics",
+        "columns": "options",
+        "values": [
+          [
+            998,
+            912,
+            247,
+            44,
+            17,
+            10,
+            7,
+            9,
+            9
+          ],
+          [
+            877,
+            879,
+            198,
+            34,
+            23,
+            10,
+            10,
+            6,
+            5
+          ],
+          [
+            442,
+            372,
+            103,
+            15,
+            11,
+            4,
+            4,
+            3,
+            1
+          ],
+          [
+            480,
+            382,
+            92,
+            9,
+            8,
+            4,
+            4,
+            1,
+            1
+          ],
+          [
+            255,
+            133,
+            36,
+            5,
+            4,
+            3,
+            3,
+            1,
+            0
+          ]
+        ]
+      }
+    }
+  }
+]

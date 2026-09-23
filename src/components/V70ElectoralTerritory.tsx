@@ -300,7 +300,8 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
           <div className="active-reading"><span>Visualizando</span><b>{election.shortName} · {metricNames[metric]}</b><small>Los colores y valores de los {viewModel.centers.length} nodos responden a esta selección.</small></div>
           <div ref={mapNode} className="real-map" role="img" aria-label={`Mapa interactivo de centros de votación de ${viewModel.municipalityName}`} />
           <MetricLegend metric={metric} />
-          <div className="map-source"><span>Mapa base © OpenStreetMap · {viewModel.qa.geoExact} centros geolocalizados{viewModel.qa.geoHeld ? ` · ${viewModel.qa.geoHeld} SIN_ASOCIACION` : ""}</span><span>TREP 2023 · corte preliminar {viewModel.snapshot ?? "no publicado"}</span></div>
+          <div className="map-source"><span>Mapa base © OpenStreetMap · {viewModel.qa.geoExact} centros geolocalizados{viewModel.qa.geoHeld ? ` · ${viewModel.qa.geoHeld} SIN_ASOCIACION` : ""}</span><span>TREP 2023 · corte preliminar {election.snapshot ?? viewModel.snapshot ?? "no publicado"}</span></div>
+          {election.sourceNotice ? <p className="trace-note" role="note">{election.sourceNotice}</p> : null}
           {selected && selectedResult ? <article className="center-card include-print" aria-live="polite">
             <div className="center-card-head"><span>CV {selected.id}</span><div><b>{selected.name}</b><small>{selected.community} · {selected.type}{selected.geoState === "SIN_ASOCIACION" ? " · SIN_ASOCIACION" : ""}</small></div></div>
             <div className="center-stats"><div><small>Empadronados</small><b>{number(selected.voters)}</b></div><div><small>JRV</small><b>{selected.jrvRange}</b></div><div><small>Actas computadas</small><b>{selectedResult.counted ?? "—"}/{selectedResult.expected}</b></div><div><small>Participación</small><b>{pct(selectedResult.turnout)}</b></div></div>

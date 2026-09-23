@@ -1,0 +1,605 @@
+{
+  "municipality_code": "1104",
+  "layers": [
+    {
+      "municipality_code": "1104",
+      "layer_id": "TREP_2023_CENTER_INDEX",
+      "period": "2023-06-29T08:48:00-06:00",
+      "source_id": "GT-TSE-TREP-2023-4C594249",
+      "source_label": "TSE Guatemala TREP 2023 · corte 2023-06-29 08:48 UTC-6",
+      "source_status": "DASHBOARD_READY_WITH_5_GEO_ASSOCIATIONS_HELD",
+      "payload": {
+        "qa": {
+          "all": "PASS_NO_PUBLICADO",
+          "jrv_universe": "PASS",
+          "municipality": "PASS",
+          "source_hashes": "PASS",
+          "five_elections": "PASS_NO_PUBLISHED_ACTAS",
+          "geo_associations": {
+            "status": "PASS_FAIL_CLOSED",
+            "sin_asociacion": 5,
+            "associated_exact": 0
+          },
+          "center_election_rows": "NO_PUBLICADO_NOT_MATERIALIZED",
+          "trep_vs_memoria_scope": "PASS_SEPARATE_UNIVERSES_NO_RECONCILIATION",
+          "registered_voters_center_total": "PASS"
+        },
+        "source": {
+          "guardrail": "Fuente preliminar TREP; 1104 conserva 29 JRV esperadas pero 0/29 actas capturadas/contabilizadas en las cinco elecciones al corte. Mostrar NO_PUBLICADO y no fabricar matrices/resultados. Los cinco centros quedan SIN_ASOCIACION por conflicto semántico-espacial del punto TSE compartido; no imputar coordenadas. No mezclar TREP con Memoria oficial final.",
+          "geo_source": "GT-TSE-2023-CENTROS-VOTACION-COORD-340-001",
+          "source_package": "05_TREP_2023-20260717T182246Z-1-001.zip",
+          "raw_file_sha256": {
+            "DIP_NAC": "558f2d006d5f4aa3dac13b19be48ba0cca7f77ce5265d650fa2606b13e948cf7",
+            "DIP_PAR": "356fd292d8d0f14e5ac1c1c36ad0fbee1c645d1be0d6fe6e48fd2d909c8d6b1e",
+            "DIP_DIST": "f5e2cce36a78ecc99d08534c41df2b6a24dc49c3ed1c6713c9b661573a93706d",
+            "PRESIDENTE": "a608018cf8d846ebf1304e39638a853f81b2e8b4e58bcd0a328021a4c26be928",
+            "CORPORACION_MUNICIPAL": "eccdaf61d91e1207d9ac173faa09f2ce55b1d677c71467c5a3b27025294ebde5"
+          },
+          "jrv_center_source": "GT_TSE_2023_JRV_CENTRO_CROSSWALK_24427_v1",
+          "source_validation": "package hash pinned; five raw hashes derived from canonical package; 29-JRV universe matched exactly in all five raws; 0 captured and 0 counted in every election; JRV mapping 1747-1751 to centers 001-005; five TSE geos held fail-closed after independent INE/MSPAS/SEGEPLAN cross-check.",
+          "source_package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52"
+        },
+        "centers": [
+          {
+            "latitude": null,
+            "center_id": "GT-2023-1104-CV-F1B8AF9E5D",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": null,
+            "total_jrv": 9,
+            "jrv_ranges": "12812-12820",
+            "geo_candidate": {
+              "reason": "Shared TSE point independently matches Comunidad San Alfonso, while cabecera/EOUM evidence is ~2.6–2.7 km north; fail-closed.",
+              "latitude": 14.58426361,
+              "longitude": -91.60691028,
+              "source_key": "TSE2023-1104-001",
+              "shared_coordinate_count": 5
+            },
+            "geo_source_key": null,
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "1747"
+            ],
+            "voting_center_code": "001",
+            "voting_center_name": "ESCUELA OFICIAL URBANA MIXTA SAN MARTÍN ZAPOTITLÁN",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 3600
+          },
+          {
+            "latitude": null,
+            "center_id": "GT-2023-1104-CV-5E2C9FF862",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": null,
+            "total_jrv": 9,
+            "jrv_ranges": "12821-12829",
+            "geo_candidate": {
+              "reason": "Shared TSE point independently matches Comunidad San Alfonso, while cabecera/INEB evidence is ~2.7 km north; fail-closed.",
+              "latitude": 14.58426361,
+              "longitude": -91.60691028,
+              "source_key": "TSE2023-1104-002",
+              "shared_coordinate_count": 5
+            },
+            "geo_source_key": null,
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "1748"
+            ],
+            "voting_center_code": "002",
+            "voting_center_name": "INSTITUTO NACIONAL DE EDUCACIÓN BÁSICA POR COOPERATIVA ITEBA",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 3600
+          },
+          {
+            "latitude": null,
+            "center_id": "GT-2023-1104-CV-294EC689B3",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": null,
+            "total_jrv": 4,
+            "jrv_ranges": "12830-12833",
+            "geo_candidate": {
+              "reason": "Shared TSE point contradicts independent cabecera evidence; fail-closed.",
+              "latitude": 14.58426361,
+              "longitude": -91.60691028,
+              "source_key": "TSE2023-1104-003",
+              "shared_coordinate_count": 5
+            },
+            "geo_source_key": null,
+            "institution_type": "MINEDUC",
+            "trep_center_codes": [
+              "1749"
+            ],
+            "voting_center_code": "003",
+            "voting_center_name": "ESCUELA OFICIAL DE PARVULOS ANEXA ESCUELA OFICIAL URBANA MIXTA SAN MARTÍN ZAPOTITLÁN",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 1600
+          },
+          {
+            "latitude": null,
+            "center_id": "GT-2023-1104-CV-F635D11401",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": null,
+            "total_jrv": 4,
+            "jrv_ranges": "12834-12837",
+            "geo_candidate": {
+              "reason": "Shared TSE point contradicts independent cabecera evidence; fail-closed.",
+              "latitude": 14.58426361,
+              "longitude": -91.60691028,
+              "source_key": "TSE2023-1104-004",
+              "shared_coordinate_count": 5
+            },
+            "geo_source_key": null,
+            "institution_type": "MUNICIPAL",
+            "trep_center_codes": [
+              "1750"
+            ],
+            "voting_center_code": "004",
+            "voting_center_name": "CANCHA POLIDEPORTIVA SAS MARTÍN ZAPOTITLÁN",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 1600
+          },
+          {
+            "latitude": null,
+            "center_id": "GT-2023-1104-CV-0C40884FE9",
+            "community": "CABECERA MUNICIPAL",
+            "longitude": null,
+            "total_jrv": 3,
+            "jrv_ranges": "12838-12840",
+            "geo_candidate": {
+              "reason": "Shared TSE point contradicts independent cabecera evidence; fail-closed.",
+              "latitude": 14.58426361,
+              "longitude": -91.60691028,
+              "source_key": "TSE2023-1104-005",
+              "shared_coordinate_count": 5
+            },
+            "geo_source_key": null,
+            "institution_type": "MUNICIPAL",
+            "trep_center_codes": [
+              "1751"
+            ],
+            "voting_center_code": "005",
+            "voting_center_name": "SALÓN MUNICIPAL",
+            "geo_association_status": "SIN_ASOCIACION",
+            "registered_voters_center": 917
+          }
+        ],
+        "snapshot": "2023-06-29T08:48:00-06:00",
+        "elections": [
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "PRESIDENTE",
+            "election_name": "Presidente y Vicepresidente",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 1,
+            "expected_actas": 29,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_NAC",
+            "election_name": "Diputados por Lista Nacional",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 2,
+            "expected_actas": 29,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_DIST",
+            "election_name": "Diputados Distritales",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 3,
+            "expected_actas": 29,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "CORPORACION_MUNICIPAL",
+            "election_name": "Corporación Municipal",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 4,
+            "expected_actas": 29,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          },
+          {
+            "leader": null,
+            "snapshot": "2023-06-29T08:48:00-06:00",
+            "runner_up": null,
+            "null_votes": 0,
+            "blank_votes": 0,
+            "valid_votes": 0,
+            "leader_share": null,
+            "leader_votes": null,
+            "margin_share": null,
+            "margin_votes": null,
+            "counted_actas": 0,
+            "counted_share": 0,
+            "election_code": "DIP_PAR",
+            "election_name": "Diputados al Parlamento Centroamericano",
+            "result_status": "NO_PUBLICADO",
+            "captured_actas": 0,
+            "captured_share": 0,
+            "election_order": 5,
+            "expected_actas": 29,
+            "runner_up_votes": null,
+            "turnout_counted": null,
+            "votes_cast_counted": 0,
+            "ballot_option_votes": 0,
+            "nominal_roll_counted": 0
+          }
+        ],
+        "result_status": "NO_PUBLICADO",
+        "department_name": "Retalhuleu",
+        "municipality_code": "1104",
+        "municipality_name": "San Martín Zapotitlán"
+      }
+    },
+    {
+      "layer_id": "TREP_2023_CENTER_RESULTS_CORPORACION_MUNICIPAL",
+      "period": "2023-08-20T23:12:00-06:00",
+      "source_id": "GT-TSE-TREP-2023-REPETICION-20230820",
+      "source_label": "TSE TREP · repetición municipal 20 agosto 2023 · corte 23:12 UTC-6",
+      "source_status": "DASHBOARD_READY",
+      "payload": {
+        "municipality_code": "1104",
+        "municipality_name": "San Martín Zapotitlán",
+        "department_code": "11",
+        "department_name": "Retalhuleu",
+        "election": {
+          "election_code": "CORPORACION_MUNICIPAL",
+          "election_name": "Corporación Municipal · repetición del 20 de agosto",
+          "election_order": 4,
+          "election_date": "2023-08-20",
+          "snapshot": "2023-08-20T23:12:00-06:00",
+          "result_status": "PRELIMINARY_SNAPSHOT",
+          "expected_actas": 29,
+          "captured_actas": 29,
+          "captured_share": 1,
+          "counted_actas": 29,
+          "counted_share": 1.0,
+          "nominal_roll_counted": 11317,
+          "votes_cast_counted": 7096,
+          "turnout_counted": 0.6270212953963065,
+          "valid_votes": 6671,
+          "null_votes": 394,
+          "blank_votes": 31,
+          "ballot_option_votes": 6671,
+          "leader": "VAMOS",
+          "leader_votes": 3052,
+          "leader_share": 0.45750262329485836,
+          "runner_up": "CABAL",
+          "runner_up_votes": 2678,
+          "margin_votes": 374,
+          "margin_share": 0.056063558686853546
+        },
+        "source": {
+          "url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/GTM2023-segundaeleccion-20230820-231251.zip",
+          "csv_file": "gtm2023_e4d11m04.csv",
+          "csv_sha256": "3b58ea916ab7260da142667521ec72fa9659fc0d95f8217c3ed8b0b1259582a8",
+          "json_url": "https://segundaeleccion.trep.gt/ext/jsonData_gtm2023/1692574389/1692594771/gtm2023_tc4_e11.json",
+          "decoded_json_sha256": "afe55b694c4145a4beabe9e9240cf08f73b58f22673c4d91f62c58d0d6ba63fe",
+          "event": "REPETICION_MUNICIPAL_2023_08_20",
+          "retrieved_on": "2026-09-23",
+          "center_crosswalk": [
+            {
+              "code": "001",
+              "jrv_ranges": "12812-12820",
+              "repeat_trep_center_codes": [
+                "1747"
+              ]
+            },
+            {
+              "code": "002",
+              "jrv_ranges": "12821-12829",
+              "repeat_trep_center_codes": [
+                "1748"
+              ]
+            },
+            {
+              "code": "003",
+              "jrv_ranges": "12830-12833",
+              "repeat_trep_center_codes": [
+                "1749"
+              ]
+            },
+            {
+              "code": "004",
+              "jrv_ranges": "12834-12837",
+              "repeat_trep_center_codes": [
+                "1750"
+              ]
+            },
+            {
+              "code": "005",
+              "jrv_ranges": "12838-12840",
+              "repeat_trep_center_codes": [
+                "1751"
+              ]
+            }
+          ],
+          "uncounted_actas": [],
+          "reported_valid_votes": 6671,
+          "calculated_valid_votes": 6671,
+          "guardrail": "Corte TREP preliminar de la repetición municipal. Solo actas contabilizadas; no sustituye la Memoria oficial. Válidos reportados y calculados se conservan separados. No corresponde a la primera vuelta presidencial ni a elecciones legislativas.",
+          "display_notice": "Repetición municipal del 20 de agosto de 2023. Corte preliminar: 29/29 actas contabilizadas. Los resultados de junio y de otras elecciones no se sustituyen por estos datos."
+        },
+        "qa": {
+          "status": "PASS_CSV_JSON_JRV_RECONCILED"
+        },
+        "option_schema": [
+          "source",
+          "key",
+          "municipal_votes",
+          "municipal_share",
+          "municipal_rank"
+        ],
+        "options": [
+          [
+            "VAMOS",
+            "VAMOS",
+            3052,
+            0.45750262329485836,
+            1
+          ],
+          [
+            "CABAL",
+            "CABAL",
+            2678,
+            0.40143906460800477,
+            2
+          ],
+          [
+            "UNE",
+            "UNE",
+            676,
+            0.10133413281367111,
+            3
+          ],
+          [
+            "SEMILLA",
+            "SEMILLA",
+            107,
+            0.01603957427672013,
+            4
+          ],
+          [
+            "VALOR",
+            "VALOR",
+            63,
+            0.00944386149003148,
+            5
+          ],
+          [
+            "TODOS",
+            "TODOS",
+            31,
+            0.004646979463348824,
+            6
+          ],
+          [
+            "PODEMOS",
+            "PODEMOS",
+            28,
+            0.004197271773347324,
+            7
+          ],
+          [
+            "VIVA",
+            "VIVA",
+            20,
+            0.00299805126667666,
+            8
+          ],
+          [
+            "MLP",
+            "MLP",
+            16,
+            0.0023984410133413283,
+            9
+          ]
+        ],
+        "center_metric_schema": [
+          "code",
+          "captured",
+          "counted",
+          "nominal",
+          "cast",
+          "turnout",
+          "valid",
+          "null",
+          "blank",
+          "option_votes"
+        ],
+        "center_metrics": [
+          [
+            "001",
+            9,
+            9,
+            3600,
+            2432,
+            0.6755555555555556,
+            2253,
+            167,
+            12,
+            2253
+          ],
+          [
+            "002",
+            9,
+            9,
+            3600,
+            2192,
+            0.6088888888888889,
+            2042,
+            143,
+            7,
+            2042
+          ],
+          [
+            "003",
+            4,
+            4,
+            1600,
+            994,
+            0.62125,
+            955,
+            33,
+            6,
+            955
+          ],
+          [
+            "004",
+            4,
+            4,
+            1600,
+            1020,
+            0.6375,
+            981,
+            34,
+            5,
+            981
+          ],
+          [
+            "005",
+            3,
+            3,
+            917,
+            458,
+            0.4994547437295529,
+            440,
+            17,
+            1,
+            440
+          ]
+        ],
+        "votes_matrix": {
+          "rows": "center_metrics",
+          "columns": "options",
+          "values": [
+            [
+              998,
+              912,
+              247,
+              44,
+              17,
+              10,
+              7,
+              9,
+              9
+            ],
+            [
+              877,
+              879,
+              198,
+              34,
+              23,
+              10,
+              10,
+              6,
+              5
+            ],
+            [
+              442,
+              372,
+              103,
+              15,
+              11,
+              4,
+              4,
+              3,
+              1
+            ],
+            [
+              480,
+              382,
+              92,
+              9,
+              8,
+              4,
+              4,
+              1,
+              1
+            ],
+            [
+              255,
+              133,
+              36,
+              5,
+              4,
+              3,
+              3,
+              1,
+              0
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}
