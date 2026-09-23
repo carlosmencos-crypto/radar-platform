@@ -21,18 +21,15 @@ rows = json.loads(fixture.read_text())
 by_code = {r['municipality_code']: r for r in rows}
 normalize = lambda s: re.sub(r'\s+', ' ', s).strip()
 sql_rows = []
+skipped = []
 for review in reviews:
     code = review['municipality_code']
     planning = by_code[code]['planning']
     assert planning['document']['file_id'] == review['file_id']
     assert review['review_scope'] == 'HISTORICAL_PLAN_DIAGNOSIS'
-    for ext, key in [('pdf', 'pdf_sha256'), ('layout.txt', 'layout_sha256')]:
-        path = args.sources / (f'{code}.pdf' if ext == 'pdf' else f'{code}-layout.txt')
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == review[key], code
-    pages = (args.sources / f'{code}-layout.txt').read_text().split('\f')
     entries = []
     for kind, label, page, anchor in review['priorities']:
-        assert kind in ('PROBLEMA', 'POTENCIALIDAD') and normalize(anchor) in normalize(pages[page - 1])
+        assert kind in ('PROBLEMA', 'POTENCIALIDAD') and isinstance(page, int) and page > 0
         entries.append({
             'municipality_code': code, 'kind': kind, 'label': label, 'pdf_page': page,
             'source_id': f'GT-SEGEPLAN-PDMOT-{code}-001', 'status': 'SOURCE_VERIFIED',
@@ -41,12 +38,25 @@ for review in reviews:
             'product_id': 'RADAR-PDM-SEMANTIC-REVIEW-V1', 'product_url': planning['document']['url'],
         })
     prior = planning['priorities']
-    assert not prior or prior == entries, 'Do not overwrite a different review'
+    if (prior == entries and planning.get('review_notes') == review['exclusions']
+            and planning['review_status'] == 'PARTIAL_VALIDATED_CONTENT'):
+        skipped.append(code)
+        continue
+    assert not prior, 'Existing review differs: reconcile it explicitly instead of overwriting'
+    for ext, key in [('pdf', 'pdf_sha256'), ('layout.txt', 'layout_sha256')]:
+        path = args.sources / (f'{code}.pdf' if ext == 'pdf' else f'{code}-layout.txt')
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == review[key], code
+    pages = (args.sources / f'{code}-layout.txt').read_text().split('\f')
+    for _, _, page, anchor in review['priorities']:
+        assert normalize(anchor) in normalize(pages[page - 1]), f'Source anchor mismatch: {code} / {page}'
     planning['priorities'] = entries
     planning['review_notes'] = review['exclusions']
     planning['review_status'] = 'PARTIAL_VALIDATED_CONTENT'
     quote = lambda value: "'" + value.replace("'", "''") + "'"
     sql_rows.append('(' + ','.join([quote(code), quote(review['file_id']), quote(json.dumps(entries, ensure_ascii=False))+'::jsonb', quote(json.dumps(review['exclusions'], ensure_ascii=False))+'::jsonb']) + ')')
+if not sql_rows:
+    print(json.dumps({'new_reviews': 0, 'already_integrated': skipped, 'writes': 0}))
+    raise SystemExit(0)
 fixture.write_text(json.dumps(rows, ensure_ascii=False, indent=2)+'\n')
 args.migration.write_text('''-- Reviewed historical plan diagnoses, not current measurements or acceptance.
 -- Preserve original source observations, unresolved dates, and all other data.
@@ -69,7 +79,7 @@ begin
     and p.profile#>>'{public_context,planning,document,file_id}'=r.file_id
     and p.profile#>'{public_context,planning,priorities}'='[]'::jsonb;
   get diagnostics changed=row_count;
-  if changed <> ''' + str(len(reviews)) + ''' then raise exception 'PDM_REVIEW_CONCURRENT_CHANGE_OR_SCOPE_MISMATCH_%', changed; end if;
+  if changed <> ''' + str(len(sql_rows)) + ''' then raise exception 'PDM_REVIEW_CONCURRENT_CHANGE_OR_SCOPE_MISMATCH_%', changed; end if;
 end $migration$;
 ''')
-print(json.dumps({'reviewed_documents':len(reviews),'priorities':sum(len(r['priorities']) for r in reviews),'national_acceptance':'OPEN'}))
+print(json.dumps({'new_reviews':len(sql_rows),'already_integrated':skipped,'national_acceptance':'OPEN'}))

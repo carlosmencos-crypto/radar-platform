@@ -467,3 +467,23 @@ QA publication and render evidence for this increment remain to be verified.
 
 The national semantic review is still incomplete. This is not a closure or a
 claim that inspecting two additional plans homologates all 340 municipalities.
+
+### Verified publication and incremental import
+
+537c013ff506dc13e00d90f0addc3e36c140f8f4 passed Quality 35910804470
+and Deploy Preview 35910804505. Cloudflare published the same SHA at
+https://53511fb3.radar-v70-national-qa.pages.dev. Reviewed Sibinal's mobile
+planning capture and the 12-page generated report; the 19 source-referenced
+priorities, partial-content warning and legible page numbering are present.
+
+The review importer now skips exact already-integrated entries, including their
+source hashes and review notes. A repeated run needs no source reread, changes
+no fixture and creates no duplicate migration. A mixed-batch check confirmed
+that one new review generates one guarded update, leaving the existing review
+untouched. Different existing reviews still require explicit reconciliation.
+This tooling change does not modify runtime data or count as new semantic coverage.
+
+Current planning coverage: 329 pending reviews, six partial plans, five absent
+documents. The shared model isolates municipal runtime inputs; the strategy
+reference remains null when required local election inputs are absent. These
+technical checks do not validate a prediction or close national acceptance.
