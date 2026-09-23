@@ -488,6 +488,12 @@ try {
   if (publicDetail.households !== 10 || publicDetail.years !== 10) throw new Error(`Public indicator depth failed: ${JSON.stringify(publicDetail)}`);
   interactions.push({kind:"public-indicator-depth",...publicDetail,ok:true});
 
+  await navigate(`/municipio/${municipalityCode}/dia-d#fiscales`);
+  const expectedCoverage = isGolden ? `0% · 0/${centerJrv}` : "Sin campaña vinculada";
+  await waitFor(`document.querySelector('[aria-label="Cobertura municipal de JRV con fiscal"]')?.textContent.trim()===${JSON.stringify(expectedCoverage)}`, "municipal fiscal coverage");
+  await capture('fiscales-cobertura-municipal');
+  interactions.push({kind:"municipal-fiscal-coverage",municipalityCode,expectedCoverage,ok:true});
+
   if (!isGolden) {
     await navigate(`/municipio/${municipalityCode}/directorio`);
     await waitFor(`Boolean(document.querySelector('button.elector-row'))`, "contact directory");

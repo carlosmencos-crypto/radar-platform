@@ -16,6 +16,7 @@ import {
 } from "../data/radarRuntime";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
+import { fiscalJrvCoverage } from "../data/fiscalJrvCoverage";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
 function InternalViews({
@@ -186,6 +187,7 @@ function DayDContent() {
   const totalJrv = centers.reduce((sum, center) => sum + center.jrv, 0);
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [assignments, setAssignments] = useState<CampaignModuleRecord[]>([]);
+  const [loadedCampaignId, setLoadedCampaignId] = useState<string | null>(null);
   const [resources, setResources] = useState<CampaignModuleRecord[]>([]);
   const [financeRecords, setFinanceRecords] = useState<CampaignModuleRecord[]>([]);
   const [selectedCenterId, setSelectedCenterId] = useState("");
@@ -244,9 +246,12 @@ function DayDContent() {
   });
   useEffect(() => { if (!selectedCenterId && centers[0]) setSelectedCenterId(centers[0].id); }, [centers, selectedCenterId]);
   useEffect(() => {
-    let cancelled = false; if (!campaign_id) return;
+    let cancelled = false;
+    setLoadedCampaignId(null);
+    setAssignments([]);
+    if (!campaign_id) return;
     void ensureRadarAccessToken().then(async (token) => Promise.all([loadCampaignContacts(campaign_id, token), loadCampaignRecords(campaign_id, "dia-d", token), loadCampaignRecords(campaign_id, "recursos", token), loadCampaignRecords(campaign_id, "finanzas", token)]))
-      .then(([people, records, resourceRecords, financialRecords]) => { if (!cancelled) { setContacts(people ?? []); setAssignments(records ?? []); setResources(resourceRecords ?? []); setFinanceRecords(financialRecords ?? []); } })
+      .then(([people, records, resourceRecords, financialRecords]) => { if (!cancelled) { setContacts(people ?? []); setAssignments(records ?? []); setResources(resourceRecords ?? []); setFinanceRecords(financialRecords ?? []); setLoadedCampaignId(campaign_id); } })
       .catch((error: unknown) => { if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo cargar la operación Día D."); });
     return () => { cancelled = true; };
   }, [campaign_id]);
@@ -254,6 +259,8 @@ function DayDContent() {
   const selectedCenter = centers.find((center) => center.id === selectedCenterId) ?? centers[0];
   const selectedCenterJrvs = selectedCenter ? jrvNumbers(selectedCenter.jrvRange, selectedCenter.jrv) : [];
   const assignmentRows = assignments.filter((record) => record.category === "ASIGNACION_JRV");
+  const coverage = fiscalJrvCoverage(centers, assignmentRows, campaign_id);
+  const coverageReady = Boolean(campaign_id && loadedCampaignId === campaign_id);
   const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
@@ -573,7 +580,11 @@ function DayDContent() {
       <div className="day-d-operations-strip">
         <span>
           <small>JRV con fiscal</small>
-          <b>{assignmentRows.length}/{totalJrv}</b>
+          <b aria-label="Cobertura municipal de JRV con fiscal">
+            {coverageReady && coverage.percent !== null
+              ? `${new Intl.NumberFormat("es-GT", { maximumFractionDigits: 2 }).format(coverage.percent)}% · ${coverage.covered}/${coverage.total}`
+              : !campaign_id ? "Sin campaña vinculada" : coverage.percent === null ? "Sin datos de JRV" : "Cobertura pendiente"}
+          </b>
         </span>
         <span>
           <small>Check-in completados</small>

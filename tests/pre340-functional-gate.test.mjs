@@ -73,7 +73,7 @@ test("RTD restores JRV coverage and the canonical fiscal portal", () => {
   const dayD = read("src/components/V70DirectDayD0509.tsx");
   assert.match(dayD, /JRV con RTD recibido/);
   assert.match(dayD, /0 de \{totalJrv\}/);
-  assert.match(dayD, /assignmentRows\.length\}\/\{totalJrv\}/);
+  assert.match(dayD, /Cobertura municipal de JRV con fiscal/);
   assert.match(dayD, /radar-portal-fiscal\.carlos-mencos\.chatgpt\.site/);
 });
 
