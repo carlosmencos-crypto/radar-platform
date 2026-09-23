@@ -196,7 +196,7 @@ const injection = `<script>(function(){
   const campaignBundle=${JSON.stringify(isGolden ? { identity: { candidate_name: "Nombre Apellido", party_name: "", party_logo_data_url: null }, activities: [{ id: "qa-map-activity", campaign_id: "qa-render-0509", title: "Actividad territorial QA", activity_type: "REUNION", starts_at: "2027-02-20T16:10:00.000Z", community: "Cabecera Municipal", latitude: 13.939, longitude: -90.821, status: "PLANIFICADA", notes: null, details: {}, created_at: "2026-09-16T00:00:00.000Z", updated_at: "2026-09-16T00:00:00.000Z" }], commitments: [] } : { identity: {}, activities: [], commitments: [] })};
   const voterRows=${JSON.stringify(isGolden ? [{ id: 1, full_name: "Registro autorizado QA", community: "Cabecera Municipal", estimated_age_2026: 40, masked_identification: "0000••••0000", contact_status: "SIN_CONTACTO", phone_primary: null, assigned_person_name: null, campaign_role: null, party_affiliation: null, total_count: 36878 }] : [])};
   const electoralLayers=${JSON.stringify(publicLayers.filter((layer) => layer.layer_id.startsWith("TREP_")))};
-  let contactProfile={contact_status:"SIN_CONTACTO"};
+  let contactProfile={contact_status:"SIN_CONTACTO",dpi_front_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC",dpi_back_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC"};
   let contactInteractions=[];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
@@ -499,6 +499,10 @@ try {
     if (layout.sheet-layout.form>70 || layout.grid-layout.documents>40 || layout.maxHeight!=='none') throw new Error(`Contact sheet layout is clipped: ${JSON.stringify(layout)}`);
     interactions.push({kind:"contact-sheet-layout",...layout,ok:true});
     await capture('directorio-ficha-completa');
+    await clickSelector('.elector-document-preview summary');
+    await waitFor(`document.querySelector('.elector-document-preview[open] img')?.naturalWidth===1`, "inline private document preview");
+    await clickSelector('.elector-document-preview summary');
+    interactions.push({kind:"contact-document-inline-preview",ok:true});
     await clickSelector('.elector-private-form textarea');
     await cdp.send("Input.insertText", {text:"Nota de prueba sintética QA"});
     await clickSelector('.elector-private-form footer button');

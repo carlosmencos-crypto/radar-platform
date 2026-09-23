@@ -1039,6 +1039,9 @@ html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
 .agenda-modal .elector-sheet > .elector-private-form { width: auto; max-width: none; max-height: none; overflow: visible; padding: 0; box-shadow: none; }
 .agenda-modal .elector-sheet .elector-history > form { width: 100%; max-width: none; max-height: none; overflow: visible; padding: 0; box-shadow: none; background: transparent; border-radius: 0; }
 .elector-private-form .agenda-form-grid > .wide { grid-column: 1/-1; }
+.elector-document-preview { grid-column: 1/-1; min-width: 0; }
+.elector-document-preview summary { cursor: pointer; color: var(--radar-petroleo); font-size: 10px; font-weight: 800; }
+.elector-document-preview img { display: block; width: 100%; max-height: 320px; object-fit: contain; margin-top: 10px; border-radius: 8px; }
 .municipal-photo,.municipal-finance-series { scroll-margin-top: 100px; }
 .national-insight-grid .insight { min-width: 0; display: flex; flex-direction: column; }
 .national-insight-grid .insight > b { font-size: clamp(23px, 2.4vw, 34px); overflow-wrap: anywhere; }
