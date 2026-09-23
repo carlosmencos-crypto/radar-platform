@@ -294,7 +294,6 @@ function buildElectionSummary(code: V70ElectionCode, layer: AuthorizedLayerRecor
   if (!election) return emptyElection(code, "PARCIAL");
   const options = parseOptions(payload)
     .sort((a, b) => a.municipalRank - b.municipalRank || b.municipalVotes - a.municipalVotes)
-    .slice(0, 10)
     .map((option) => ({ party: option.source, votes: option.municipalVotes, share: option.municipalShare, rank: option.municipalRank }));
   return {
     code,
@@ -333,12 +332,32 @@ function buildCenterResult(
   if (!row) return emptyCenterElection(expected, "PARCIAL");
 
   const options = parseOptions(payload);
-  const matrix = isDict(payload.votes_matrix) ? payload.votes_matrix : null;
-  const values = matrix ? asArray(matrix.values) : [];
+  // Both national source contracts are published: an object, or a singleton
+  // wrapper around that object. Do not silently discard the latter's votes.
+  const rawMatrix = payload.votes_matrix;
+  if (Array.isArray(rawMatrix) && rawMatrix.length !== 1) {
+    throw new Error(`V70 electoral adapter: matriz ambigua ${code}.`);
+  }
+  const unwrapped = Array.isArray(rawMatrix) ? rawMatrix[0] : rawMatrix;
+  const matrix = isDict(unwrapped) ? unwrapped : null;
+  const sourceValues = matrix ? asArray(matrix.values) : [];
   const centerOrder = [...metrics.keys()];
+  // Later national batches use row-major flat cells. Recover rows only when
+  // every cell is numeric and the exact declared dimensions reconcile.
+  const flat = sourceValues.length > 0 && sourceValues.every((value) => typeof value === "number");
+  if (flat && sourceValues.length !== centerOrder.length * options.length) {
+    throw new Error(`V70 electoral adapter: matriz plana incompleta ${code}.`);
+  }
+  const values = flat
+    ? centerOrder.map((_, index) => sourceValues.slice(index * options.length, (index + 1) * options.length))
+    : sourceValues;
+  const rowContract = Array.isArray(payload.center_metrics) ? "center_metrics" : "centers";
+  if (matrix && (matrix.rows !== rowContract || matrix.columns !== "options" || values.length !== centerOrder.length)) {
+    throw new Error(`V70 electoral adapter: dimensiones incompatibles ${code}.`);
+  }
   const centerIndex = centerOrder.indexOf(centerCode);
   const votes = centerIndex >= 0 ? asArray(values[centerIndex]) : [];
-  if (votes.length && votes.length !== options.length) {
+  if (matrix && votes.length !== options.length) {
     throw new Error(`V70 electoral adapter: matriz incompatible ${code}/${centerCode}.`);
   }
   const optionVotes = asNumber(row.option_votes);
@@ -352,14 +371,18 @@ function buildCenterResult(
         };
       }))
     : [];
+  if (ranked.some((item) => item.votes < 0 || !Number.isInteger(item.votes)) ||
+      (ranked.length && optionVotes !== null && ranked.reduce((sum, item) => sum + item.votes, 0) !== optionVotes)) {
+    throw new Error(`V70 electoral adapter: votos no reconciliados ${code}/${centerCode}.`);
+  }
 
-  const leader = ranked[0] ?? null;
-  const runner = ranked[1] ?? null;
+  const hasVotes = ranked.some((item) => item.votes > 0);
+  const leader = hasVotes ? ranked[0] ?? null : null;
+  const runner = hasVotes ? ranked[1] ?? null : null;
   const storedLeader = asNullableString(row.leader_key);
   const storedLeaderVotes = asNumber(row.leader_votes);
-  if (leader && storedLeaderVotes !== null && leader.votes !== storedLeaderVotes) {
-    throw new Error(`V70 electoral adapter: líder inconsistente ${code}/${centerCode}.`);
-  }
+  // Several source summaries retain the municipal leader even when another
+  // option wins this center. Derive local leadership from reconciled cells.
 
   return {
     counted: asNumber(row.counted),
@@ -369,15 +392,15 @@ function buildCenterResult(
     optionVotes,
     nullVotes: asNumber(row.null),
     blankVotes: asNumber(row.blank),
-    leader: leader?.party ?? storedLeader,
-    leaderVotes: leader?.votes ?? storedLeaderVotes,
-    leaderShare: leader?.share ?? asNumber(row.leader_share),
-    runner: runner?.party ?? asNullableString(row.runner_key),
-    runnerVotes: runner?.votes ?? asNumber(row.runner_votes),
-    marginVotes: asNumber(row.margin_votes),
-    marginShare: asNumber(row.margin_share),
-    top: ranked.slice(0, 5),
-    availability,
+    leader: matrix ? leader?.party ?? null : storedLeader,
+    leaderVotes: matrix ? leader?.votes ?? null : storedLeaderVotes,
+    leaderShare: matrix ? leader?.share ?? null : asNumber(row.leader_share),
+    runner: matrix ? runner?.party ?? null : asNullableString(row.runner_key),
+    runnerVotes: matrix ? runner?.votes ?? null : asNumber(row.runner_votes),
+    marginVotes: leader && runner ? leader.votes - runner.votes : matrix ? null : asNumber(row.margin_votes),
+    marginShare: leader && runner ? leader.share - runner.share : matrix ? null : asNumber(row.margin_share),
+    top: ranked,
+    availability: matrix ? availability : "PARCIAL",
     mapStatus: asString(row.map_status, availability),
   };
 }
@@ -396,6 +419,10 @@ export function adaptAuthorizedElectoralTerritoryLayers(layers: AuthorizedLayerR
   const index = indexLayer.payload;
   const municipalityCode = asString(index.municipality_code);
   if (!/^\d{4}$/.test(municipalityCode)) throw new Error("V70 electoral adapter: municipality_code inválido.");
+  for (const layer of layers) {
+    const layerCode = isDict(layer.payload) ? asNullableString(layer.payload.municipality_code) : null;
+    if (layerCode && layerCode !== municipalityCode) throw new Error("V70 electoral adapter: cruce municipal bloqueado.");
+  }
 
   const resultLayers = Object.fromEntries(
     V70_ELECTION_ORDER.map((code) => [code, unique.get(RESULT_LAYER_BY_ELECTION[code])]),

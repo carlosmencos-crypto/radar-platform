@@ -34,10 +34,12 @@ test("private national reads require active source, active administrator and aut
   assert.match(importSql, /from public,anon,authenticated/);
 });
 
-test("QA directory preserves campaign editing while nominal source stays explicitly read only", () => {
+test("QA directory preserves campaign editing and keeps original source separate from private contact updates", () => {
   const ui = read("src/components/V70DirectDirectory0509.tsx");
   const runtime = read("src/data/radarRuntime.ts");
-  assert.match(ui, /Padrón nominal 2023/);
+  assert.match(ui, /Base inicial 2023/);
+  assert.match(ui, /saveAuthorizedContactProfile/);
+  assert.match(ui, /addAuthorizedContactInteraction/);
   assert.match(ui, /detail\.read_only/);
   assert.match(ui, /disabled=\{nationalRegister \|\| !campaign_id\}/);
   assert.doesNotMatch(ui, /communityOptions\.length \|\| 148/);

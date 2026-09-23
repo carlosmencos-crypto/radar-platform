@@ -1034,3 +1034,45 @@ html[data-theme="dark"] :is(.agenda-list-actions button, .agenda-list-actions a,
 /* Viewport fallback for browsers that deny the native Fullscreen API. */
 :is(.map-fullscreen-frame,.intelligence-fullscreen-frame).is-fullscreen{position:fixed;inset:0;z-index:10000}
 html[data-text-size] .portal-shell:has(.is-fullscreen){zoom:1}
+
+/* National public indicators reuse the V70 hierarchy with source-bound values. */
+.national-insight-grid .insight { min-width: 0; display: flex; flex-direction: column; }
+.national-insight-grid .insight > b { font-size: clamp(23px, 2.4vw, 34px); overflow-wrap: anywhere; }
+.national-insight-grid .insight > em { margin-top: auto; padding-top: 12px; color: var(--radar-municipal); }
+.national-insight-grid .insight.dark > em { color: var(--radar-salvia); }
+.municipal-households,.municipal-finance-series { margin-top: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); overflow: hidden; }
+.municipal-households > header,.municipal-finance-series > header { padding: 22px 24px; display: flex; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--line); }
+.municipal-households header small,.municipal-finance-series header small { color: var(--radar-petroleo); letter-spacing: .09em; font-weight: 800; }
+.municipal-households header h3,.municipal-finance-series header h3 { margin: 8px 0 0; }
+.municipal-households header p,.municipal-finance-series header p { max-width: 440px; font-size: 11px; line-height: 1.6; color: var(--radar-municipal); }
+.household-indicator-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 36px; padding: 24px; }
+.household-indicator-grid article { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; font-size: 12px; }
+.household-indicator-grid article b { font-size: 17px; color: var(--radar-petroleo); }
+.household-track { grid-column: 1/-1; height: 7px; background: var(--paper); border-radius: 8px; overflow: hidden; }
+.household-track i { display: block; height: 100%; background: var(--radar-petroleo); }
+.national-service-baseline { margin-top: 20px; }
+.municipal-document-source { margin-top: 20px; display: flex; align-items: center; gap: 24px; padding: 22px; border-left: 4px solid var(--radar-petroleo); background: var(--white); border-radius: 8px; }
+.municipal-document-source small,.municipal-document-source b { display: block; margin-bottom: 7px; }
+.municipal-document-source small { color: var(--radar-petroleo); font-size: 10px; font-weight: 800; }
+.municipal-document-source p { font-size: 11px; line-height: 1.6; color: var(--radar-municipal); }
+.municipal-document-source a { flex: none; padding: 12px 16px; border-radius: 8px; background: var(--radar-petroleo); color: white; text-decoration: none; font-size: 11px; }
+.finance-series-scroll { overflow-x: auto; }
+.finance-series-scroll table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.finance-series-scroll th,.finance-series-scroll td { padding: 13px 16px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.finance-series-scroll thead { background: var(--radar-grafito); color: white; }
+.finance-series-scroll th:first-child { text-align: left; }
+.finance-series-scroll tbody tr:nth-child(even) { background: var(--paper); }
+.annual-execution-track { display: block; height: 5px; margin-top: 6px; background: var(--paper); }
+.annual-execution-track i { display: block; height: 100%; background: var(--radar-petroleo); }
+.procurement-periods { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.procurement-periods article { display: grid; gap: 10px; padding: 24px; background: var(--white); border: 1px solid var(--line); border-radius: 14px; }
+.procurement-periods small { color: var(--radar-petroleo); font-weight: 800; letter-spacing: .05em; }
+.procurement-periods b { font-size: 24px; }
+.procurement-periods em { font-size: 10px; font-style: normal; color: var(--radar-municipal); }
+.center-card .mini-ranking { max-height: 190px; overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+.center-card .mini-ranking > div { margin-bottom: 9px; }
+.center-result-unavailable { font-size: 11px; line-height: 1.5; }
+.full-ranking { max-height: 520px; overflow-y: auto; }
+@media(max-width:1100px) { .national-insight-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media(max-width:760px) { .national-insight-grid,.household-indicator-grid,.procurement-periods { grid-template-columns: 1fr; } .municipal-households > header,.municipal-finance-series > header,.municipal-document-source { flex-direction: column; align-items: stretch; } }
+@media print { .center-card .mini-ranking,.full-ranking,.finance-series-scroll { max-height: none; overflow: visible; } .finance-series-scroll table { font-size: 8px; } .finance-series-scroll th,.finance-series-scroll td { padding: 7px 4px; } }

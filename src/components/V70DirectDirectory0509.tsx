@@ -9,9 +9,12 @@ import { ensureRadarAccessToken } from "../data/radarAuth";
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import {
   addVoterInteraction,
+  addAuthorizedContactInteraction,
+  saveAuthorizedContactProfile,
   createManualVoter,
   loadAuthorizedVoterDetail,
   loadAuthorizedVoterDirectory,
+  loadAuthorizedContactDirectoryPage,
   loadNominalDirectoryAvailability,
   loadCampaignBundle,
   loadCampaignContacts,
@@ -196,7 +199,7 @@ function ElectorsDirectoryCanonical() {
 }
 
 function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities = [] }: { nationalRegister?: boolean; nominalCommunities?: string[] }) {
-  const directoryCache = useRef(new Map<string, { items: AuthorizedVoterDirectoryRow[]; total: number }>()).current;
+  const directoryCache = useRef(new Map<string, { items: AuthorizedVoterDirectoryRow[]; total: number | null; hasMore: boolean }>()).current;
   const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
   const municipalRuntime = getInstalledRadarRuntime(municipality_code);
   const communityOptions = nationalRegister
@@ -205,11 +208,13 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
   const initialCommunity =
     new URLSearchParams(window.location.search).get("community") ?? "";
   const [items, setItems] = useState<AuthorizedVoterDirectoryRow[]>([]);
-  const [total, setTotal] = useState(
+  const [total, setTotal] = useState<number | null>(
     municipalRuntime?.voter_roll.aggregates.find(
       (item) => item.universe === "PADRON_DETALLADO_2023",
     )?.elector_count ?? 0,
   );
+  const [hasMore, setHasMore] = useState(false);
+  const [counting, setCounting] = useState(false);
   const [query, setQuery] = useState("");
   const [dpi, setDpi] = useState("");
   const [community, setCommunity] = useState(initialCommunity);
@@ -240,6 +245,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     interaction_type: "LLAMADA",
     interaction_at: "",
     responsible_contact_id: "",
+    responsible_name: "",
     notes: "",
     commitment: "",
   });
@@ -294,6 +300,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     if (cached) {
       setItems(cached.items);
       setTotal(cached.total);
+      setHasMore(cached.hasMore);
       setLoading(false);
       setError("");
       return;
@@ -301,36 +308,25 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     const hasFilters = Boolean(
       query || dpi || community || ageRange || status || affiliation || responsible || role,
     );
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setLoading(true);
       setError("");
       void ensureRadarAccessToken()
-        .then((token) =>
-          loadAuthorizedVoterDirectory(
-            municipality_code,
-            {
-              query,
-              dpi,
-              community,
-              ...age,
-              status,
-              affiliation,
-              responsible,
-              role,
-              offset: (page - 1) * pageSize,
-              limit: pageSize,
-            },
-            token,
-            nationalRegister,
-          ),
-        )
-        .then((rows) => {
+        .then(async (token) => {
+          const filters = { query, dpi, community, ...age, status, affiliation, responsible, role, offset: (page - 1) * pageSize, limit: pageSize };
+          if (nationalRegister) return loadAuthorizedContactDirectoryPage(municipality_code, filters, token, controller.signal);
+          const rows = await loadAuthorizedVoterDirectory(municipality_code, filters, token, false, controller.signal);
+          const count = rows[0]?.total_count ?? 0;
+          return { items: rows, total_count: count, has_more: page * pageSize < count };
+        })
+        .then((result) => {
           if (cancelled) return;
-          setItems(rows);
-          const nextTotal = rows[0]?.total_count ?? 0;
-          setTotal(nextTotal);
+          setItems(result.items);
+          setTotal(result.total_count);
+          setHasMore(result.has_more);
           if (directoryCache.size >= 50) directoryCache.clear();
-          directoryCache.set(cacheKey, { items: rows, total: nextTotal });
+          directoryCache.set(cacheKey, { items: result.items, total: result.total_count, hasMore: result.has_more });
         })
         .catch((loadError: unknown) => {
           if (!cancelled)
@@ -347,6 +343,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      controller.abort();
     };
   }, [
     affiliation,
@@ -393,13 +390,14 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
 
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
-    if (!campaign_id || !detail || detail.read_only) return;
+    if (!detail || detail.read_only || (!nationalRegister && !campaign_id)) return;
     setSaving(true);
     setMessage("");
     try {
       const token = await ensureRadarAccessToken();
-      await saveAuthorizedVoterProfile(
-        campaign_id,
+      const save = nationalRegister ? saveAuthorizedContactProfile : saveAuthorizedVoterProfile;
+      await save(
+        nationalRegister ? municipality_code : campaign_id!,
         detail.elector.id,
         {
           ...profile,
@@ -415,9 +413,9 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         token,
       );
       directoryCache.clear();
-      setMessage("Ficha privada actualizada.");
       setRevision((value) => value + 1);
       await openDetail(detail.elector.id);
+      setMessage("Ficha privada actualizada.");
     } catch (saveError) {
       setMessage(
         saveError instanceof Error
@@ -483,12 +481,13 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
 
   async function addInteraction(event: FormEvent) {
     event.preventDefault();
-    if (!campaign_id || !detail || detail.read_only) return;
+    if (!detail || detail.read_only || (!nationalRegister && !campaign_id)) return;
     setSaving(true);
     try {
       const token = await ensureRadarAccessToken();
-      await addVoterInteraction(
-        campaign_id,
+      const add = nationalRegister ? addAuthorizedContactInteraction : addVoterInteraction;
+      await add(
+        nationalRegister ? municipality_code : campaign_id!,
         detail.elector.id,
         {
           ...interaction,
@@ -504,11 +503,12 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         interaction_type: "LLAMADA",
         interaction_at: "",
         responsible_contact_id: "",
+        responsible_name: "",
         notes: "",
         commitment: "",
       });
-      setMessage("Interacción agregada al historial.");
       await openDetail(detail.elector.id);
+      setMessage("Interacción agregada al historial.");
     } catch (saveError) {
       setMessage(
         saveError instanceof Error
@@ -520,7 +520,23 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     }
   }
 
-  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const pages = total === null ? null : Math.max(1, Math.ceil(total / pageSize));
+  const countRequest = useRef(0);
+  useEffect(() => { countRequest.current += 1; setCounting(false); }, [municipality_code, query, dpi, community, age, status, affiliation, responsible, role]);
+  async function countMatches() {
+    const request = ++countRequest.current;
+    setCounting(true);
+    try {
+      const token = await ensureRadarAccessToken();
+      const rows = await loadAuthorizedVoterDirectory(municipality_code,
+        { query, dpi, community, ...age, status, affiliation, responsible, role, offset: 0, limit: 1 }, token, true);
+      if (request === countRequest.current) setTotal(rows[0]?.total_count ?? 0);
+    } catch {
+      if (request === countRequest.current) setMessage("No se pudo calcular el total. Podés seguir consultando las páginas.");
+    } finally {
+      if (request === countRequest.current) setCounting(false);
+    }
+  }
   const setFilter = (setter: (value: string) => void, value: string) => {
     setter(value);
     setPage(1);
@@ -542,10 +558,10 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
 
   return (
     <>
-      {nationalRegister ? <p className="agenda-message">Padrón nominal 2023 · Consulta autorizada de {municipality_name}. Edad estimada a 2026. El seguimiento y la edición requieren vincular los registros a una campaña.</p> : null}
+      {nationalRegister ? <p className="agenda-message">Directorio privado de {municipality_name} · Base inicial 2023 y edad estimada a 2026. Completá cada ficha con los datos que el contacto te proporcione. Tus actualizaciones e interacciones se conservan en tu espacio privado.</p> : null}
       <section className="elector-kpis" aria-label="Resumen del Directorio">
         <span>
-          <b>{error ? "—" : fmt.format(total)}</b>
+          <b>{error || total === null ? "—" : fmt.format(total)}</b>
           <small>Registros</small>
         </span>
         <span>
@@ -683,7 +699,8 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         <header>
           <div>
             <small>RESULTADOS</small>
-            <h2>{fmt.format(total)} personas</h2>
+            <h2>{total === null ? "Coincidencias" : `${fmt.format(total)} personas`}</h2>
+            {nationalRegister && total === null ? <button type="button" onClick={() => void countMatches()} disabled={counting}>{counting ? "Calculando total…" : "Calcular total exacto"}</button> : null}
           </div>
           <label>
             Por página
@@ -761,10 +778,10 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
             ← Anterior
           </button>
           <span>
-            Página <b>{fmt.format(page)}</b> de {fmt.format(pages)}
+            Página <b>{fmt.format(page)}</b>{pages === null ? "" : ` de ${fmt.format(pages)}`}
           </span>
           <button
-            disabled={page >= pages || loading}
+            disabled={(pages === null ? !hasMore : page >= pages) || loading}
             onClick={() => setPage((value) => value + 1)}
           >
             Siguiente →
@@ -804,18 +821,18 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               <span><small>DPI</small><b>{dpiRevealed || detail.elector.masked_identification || "No disponible"}</b>{detail.elector.masked_identification ? <button type="button" onClick={() => void revealDpi()}>{dpiRevealed ? "Visible hasta cerrar" : "Revelar"}</button> : null}</span>
               <span><small>Edad estimada</small><b>{detail.elector.estimated_age_2026 ?? "—"}</b></span>
             </div>
-            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : null}</div>
-            {detail.read_only ? <p className="agenda-message">Fuente: padrón nominal 2023. Esta ficha muestra el registro original en modo consulta; todavía no tiene seguimiento de campaña asociado.</p> : <>
+            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : null}</div>
+            {detail.read_only ? <p className="agenda-message">La sesión actual permite consultar esta ficha, pero no modificarla.</p> : <>
             <form className="elector-private-form" onSubmit={saveProfile}>
-              <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
+              <header><div><small>DIRECTORIO RADAR · PRIVADO</small><h3>Contacto</h3></div></header>
               <div className="agenda-form-grid">
                 <div className="wide photo-editor-field"><span>Fotografía</span><V70PhotoEditor currentSrc={profile.photo_url} onChange={(photo_url) => setProfile({ ...profile, photo_url })} onError={setMessage} /></div>
                 <label><span>Estado de contacto</span><select value={profile.contact_status} onChange={(event) => setProfile({ ...profile, contact_status: event.target.value })}>{electorStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
                 <label><span>Afiliado al partido</span><select value={profile.party_affiliation} onChange={(event) => setProfile({ ...profile, party_affiliation: event.target.value })}><option value="">—</option><option value="SI">Sí</option><option value="NO">No</option></select></label>
-                <label><span>Responsable</span><select value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select></label>
+                {nationalRegister ? <label><span>Responsable</span><input value={profile.assigned_person_name} onChange={(event) => setProfile({ ...profile, assigned_person_name: event.target.value })} placeholder="Nombre del responsable" /></label> : <label><span>Responsable</span><select value={profile.assigned_contact_id} onChange={(event) => setProfile({ ...profile, assigned_contact_id: event.target.value })}><option value="">Sin asignar</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select></label>}
                 <label><span>Teléfono principal</span><input value={profile.phone_primary} onChange={(event) => setProfile({ ...profile, phone_primary: event.target.value })} /></label>
                 <label><span>Teléfono secundario</span><input value={profile.phone_secondary} onChange={(event) => setProfile({ ...profile, phone_secondary: event.target.value })} /></label>
-                <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} placeholder="Dato privado agregado por la campaña" /></label>
+                <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} placeholder="Dirección proporcionada por el contacto" /></label>
                 <label><span>Referencia de ubicación</span><input value={profile.location_reference} onChange={(event) => setProfile({ ...profile, location_reference: event.target.value })} /></label>
                 <label><span>Comunidad actual confirmada</span><input value={profile.confirmed_community} onChange={(event) => setProfile({ ...profile, confirmed_community: event.target.value })} /></label>
                 <label><span>Rol o responsabilidad</span><input value={profile.campaign_role} onChange={(event) => setProfile({ ...profile, campaign_role: event.target.value })} /></label>
@@ -832,11 +849,11 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               <form onSubmit={addInteraction}>
                 <select aria-label="Tipo de interacción" value={interaction.interaction_type} onChange={(event) => setInteraction({ ...interaction, interaction_type: event.target.value })}>{["LLAMADA", "VISITA", "REUNION", "MENSAJE", "COMPROMISO", "OTRA"].map((item) => <option key={item}>{item}</option>)}</select>
                 <input required aria-label="Fecha de interacción" type="datetime-local" value={interaction.interaction_at} onChange={(event) => setInteraction({ ...interaction, interaction_at: event.target.value })} />
-                <select aria-label="Responsable" value={interaction.responsible_contact_id} onChange={(event) => setInteraction({ ...interaction, responsible_contact_id: event.target.value })}><option value="">Responsable…</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select>
+                {nationalRegister ? <input aria-label="Responsable" value={interaction.responsible_name} onChange={(event) => setInteraction({ ...interaction, responsible_name: event.target.value })} placeholder="Responsable" /> : <select aria-label="Responsable" value={interaction.responsible_contact_id} onChange={(event) => setInteraction({ ...interaction, responsible_contact_id: event.target.value })}><option value="">Responsable…</option>{contacts.map((item) => <option key={item.id} value={item.id}>{item.full_name}</option>)}</select>}
                 <input aria-label="Nota" value={interaction.notes} onChange={(event) => setInteraction({ ...interaction, notes: event.target.value })} placeholder="Nota breve" />
                 <button disabled={saving}>Agregar</button>
               </form>
-              <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Aún no hay interacciones registradas.</p>}</div>
+              <div className="elector-interaction-list">{detail.interactions.length ? detail.interactions.map((item) => <article key={String(item.id)}><b>{String(item.interaction_type || "INTERACCIÓN")}</b><span>{String(item.notes || "Sin notas")}{item.responsible_name ? ` · ${String(item.responsible_name)}` : ""}</span><small>{item.interaction_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(String(item.interaction_at))) : ""}</small></article>) : <p>Aún no hay interacciones registradas.</p>}</div>
             </section>
             </>}
           </section>

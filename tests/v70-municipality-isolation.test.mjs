@@ -11,7 +11,9 @@ const cache = read("src/data/radarRuntimeCache.ts");
 const brand = read("src/components/useV70CampaignBrand.ts");
 const directory = read("src/components/V70DirectDirectory0509.tsx");
 const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
-const richMunicipality = read("src/components/V70CanonicalRichMunicipality.tsx");
+const richMunicipality = read("src/components/V70CanonicalRichMunicipality.tsx").replace(
+  "<V70MunicipalPublicIndicators model={model} />", read("src/components/V70MunicipalPublicIndicators.tsx"),
+);
 const municipalModel = read("src/data/v70MunicipalIntelligence.ts");
 const strategyOverview = read("src/components/V70DirectStrategy0509.tsx");
 const home = read("src/components/V70DirectHome0509.tsx");

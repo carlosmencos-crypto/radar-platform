@@ -1,3 +1,4 @@
+import { buildElectoralPartyPalette } from "../data/electoralPartyColors";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MunicipalityGeoBundle } from "../data/radarRuntime";
 import type {
@@ -43,17 +44,6 @@ type LeafletWindow = Window & { L?: LeafletNamespace; __radarLeafletPromise?: Pr
 type SelectionChange = { electionCode: V70ElectionCode; centerId: string };
 
 const fmt = new Intl.NumberFormat("es-GT");
-const partyColors: Record<string, string> = {
-  VALOR: "#ef684f",
-  "VALOR UNIONISTA": "#ef684f",
-  UNE: "#2e78bd",
-  VAMOS: "#782f96",
-  PPN: "#e4a229",
-  ELEFANTE: "#24a68a",
-  VIVA: "#316e56",
-  SEMILLA: "#6d9f3a",
-  TODOS: "#6b7780",
-};
 const metricNames: Record<Metric, string> = {
   leader: "Partido ganador",
   turnout: "Participación",
@@ -70,7 +60,7 @@ function number(value: number | null) {
 function centerResult(center: V70ElectoralCenter, code: V70ElectionCode) {
   return center.elections[code];
 }
-function markerColor(center: V70ElectoralCenter, code: V70ElectionCode, metric: Metric) {
+function markerColor(center: V70ElectoralCenter, code: V70ElectionCode, metric: Metric, partyColors: Record<string, string>) {
   const result = centerResult(center, code);
   if (metric === "leader") return partyColors[result.leader ?? ""] ?? "#5f7180";
   if (metric === "turnout") return result.turnout === null ? "#7f8d88" : result.turnout >= .70 ? "#139b79" : result.turnout >= .60 ? "#e2a33d" : "#d94d4d";
@@ -154,6 +144,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
     if (!term) return viewModel.centers;
     return viewModel.centers.filter((center) => `${center.id} ${center.name} ${center.community}`.toLocaleLowerCase("es-GT").includes(term));
   }, [query, viewModel.centers]);
+  const partyColors = useMemo(() => buildElectoralPartyPalette(viewModel.elections.flatMap((item) => item.top.map((result) => result.party))), [viewModel.elections]);
   const schoolCount = geoBundle?.feature_counts.school ?? 0;
   const healthCount = geoBundle?.feature_counts.health_facility ?? 0;
 
@@ -186,7 +177,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
         const marker = L.marker([center.lat, center.lon], {
           icon: L.divIcon({
             className: "radar-marker-shell",
-            html: `<span class="radar-marker" style="--marker:${markerColor(center, initialElection, "leader")}"><b>${clean(center.id)}</b><small>${clean(result.leader ?? result.availability)}</small></span>`,
+            html: `<span class="radar-marker" style="--marker:${markerColor(center, initialElection, "leader", partyColors)}"><b>${clean(center.id)}</b><small>${clean(result.leader ?? result.availability)}</small></span>`,
             iconSize: [54, 54], iconAnchor: [27, 47],
           }),
           title: center.name,
@@ -222,12 +213,12 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
         const active = center.id === selectedId;
         marker.setIcon(L.divIcon({
           className: `radar-marker-shell ${active ? "active" : ""}`,
-          html: `<span class="radar-marker" style="--marker:${markerColor(center, electionCode, metric)}"><b>${clean(center.id)}</b><small>${clean(metricLabel(center, electionCode, metric))}</small></span>`,
+          html: `<span class="radar-marker" style="--marker:${markerColor(center, electionCode, metric, partyColors)}"><b>${clean(center.id)}</b><small>${clean(metricLabel(center, electionCode, metric))}</small></span>`,
           iconSize: [active ? 62 : 54, active ? 62 : 54], iconAnchor: [active ? 31 : 27, active ? 55 : 47],
         }));
       });
     });
-  }, [electionCode, mapReady, metric, selectedId, viewModel.centers]);
+  }, [electionCode, mapReady, metric, selectedId, viewModel.centers, partyColors]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
@@ -314,7 +305,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
             <div className="center-card-head"><span>CV {selected.id}</span><div><b>{selected.name}</b><small>{selected.community} · {selected.type}{selected.geoState === "SIN_ASOCIACION" ? " · SIN_ASOCIACION" : ""}</small></div></div>
             <div className="center-stats"><div><small>Empadronados</small><b>{number(selected.voters)}</b></div><div><small>JRV</small><b>{selected.jrvRange}</b></div><div><small>Actas computadas</small><b>{selectedResult.counted ?? "—"}/{selectedResult.expected}</b></div><div><small>Participación</small><b>{pct(selectedResult.turnout)}</b></div></div>
             <div className="result-heading"><span>Resultado · {election.shortName}</span><b>Margen {number(selectedResult.marginVotes)} · {pct(selectedResult.marginShare)}</b></div>
-            <div className="mini-ranking">{selectedResult.top.map((result) => <div key={result.party}><span><b>{result.rank}. {result.party}</b><small>{fmt.format(result.votes)} · {pct(result.share)}</small></span><i><em style={{ width: `${Math.max(result.share * 100, 2)}%`, background: partyColors[result.party] ?? "#6d7d84" }} /></i></div>)}</div>
+            <div className="mini-ranking" aria-label="Todos los partidos del centro">{selectedResult.top.map((result) => <div key={result.party}><span><b>{result.rank}. {result.party}</b><small>{fmt.format(result.votes)} · {pct(result.share)}</small></span><i><em style={{ width: `${Math.max(result.share * 100, 2)}%`, background: partyColors[result.party] ?? "#6d7d84" }} /></i></div>)}{!selectedResult.top.length ? <p className="center-result-unavailable">Desglose por partido no disponible en la capa autorizada.</p> : null}</div>
             <div className="vote-quality"><span>Votos por opción <b>{number(selectedResult.optionVotes)}</b></span><span>Blancos <b>{number(selectedResult.blankVotes)}</b></span><span>Nulos <b>{number(selectedResult.nullVotes)}</b></span></div>
           </article> : null}
         </div>

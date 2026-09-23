@@ -260,7 +260,7 @@ export interface AuthorizedVoterDirectoryRow {
   assigned_person_name: string | null;
   campaign_role: string | null;
   party_affiliation: string | null;
-  total_count: number;
+  total_count: number | null;
 }
 
 export interface StrategyScenarios {
@@ -303,6 +303,7 @@ export interface AuthorizedVoterSuggestion {
 export interface AuthorizedVoterDetail {
   read_only?: boolean;
   source_year?: number;
+  workspace_kind?: "PRIVATE_CONTACT";
   elector: {
     id: number;
     full_name: string;
@@ -402,6 +403,7 @@ async function rpc<T>(
   functionName: string,
   body: Record<string, unknown>,
   accessToken: string,
+  signal?: AbortSignal,
 ): Promise<T> {
   assertAccessToken(accessToken);
   if (!supabaseUrl || !publishableKey)
@@ -415,6 +417,7 @@ async function rpc<T>(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!response.ok) {
@@ -784,6 +787,25 @@ export async function saveAuthorizedVoterProfile(
   );
 }
 
+/** Owner-scoped updates; the original municipal source remains immutable. */
+export async function saveAuthorizedContactProfile(
+  municipalityCode: string, voterId: number, profile: Record<string, unknown>, accessToken: string,
+) {
+  assertMunicipalityCode(municipalityCode);
+  if (!Number.isSafeInteger(voterId) || voterId >= 0) throw new Error("Identificador de contacto inválido.");
+  return rpc<{ saved: boolean }>("radar_save_contact_profile_v1",
+    { p_municipality_code: municipalityCode, p_voter_id: voterId, p_profile: profile }, accessToken);
+}
+
+export async function addAuthorizedContactInteraction(
+  municipalityCode: string, voterId: number, interaction: Record<string, unknown>, accessToken: string,
+) {
+  assertMunicipalityCode(municipalityCode);
+  if (!Number.isSafeInteger(voterId) || voterId >= 0) throw new Error("Identificador de contacto inválido.");
+  return rpc<Record<string, unknown>>("radar_add_contact_interaction_v1",
+    { p_municipality_code: municipalityCode, p_voter_id: voterId, p_interaction: interaction }, accessToken);
+}
+
 export async function createManualVoter(
   campaignId: string,
   voter: Record<string, unknown>,
@@ -949,6 +971,7 @@ export async function loadAuthorizedVoterDirectory(
   filters: VoterDirectoryFilters,
   accessToken: string,
   nationalRegister = false,
+  signal?: AbortSignal,
 ) {
   assertMunicipalityCode(municipalityCode);
   const result = await rpc<AuthorizedVoterDirectoryRow[] | {
@@ -970,16 +993,44 @@ export async function loadAuthorizedVoterDirectory(
       p_limit: Math.min(Math.max(filters.limit ?? 25, 1), 50),
     },
     accessToken,
+    signal,
   );
   if (nationalRegister) {
     if (Array.isArray(result) || result?.municipality_code !== municipalityCode ||
       !Array.isArray(result.items) || result.items.some((row) => row.municipality_code !== municipalityCode || row.id >= 0)) {
-      throw new Error("El padrón nominal no corresponde al municipio autorizado.");
+      throw new Error("El directorio no corresponde al municipio autorizado.");
     }
     return result.items;
   }
   if (!Array.isArray(result)) throw new Error("El directorio de campaña no tiene un formato válido.");
   return result;
+}
+
+export interface ContactDirectoryPage {
+  municipality_code: string;
+  items: AuthorizedVoterDirectoryRow[];
+  total_count: number | null;
+  has_more: boolean;
+}
+
+export async function loadAuthorizedContactDirectoryPage(
+  municipalityCode: string, filters: VoterDirectoryFilters, accessToken: string, signal?: AbortSignal,
+) {
+  assertMunicipalityCode(municipalityCode);
+  const page = await rpc<ContactDirectoryPage>("radar_authorized_contact_directory_page_v1", {
+    p_municipality_code: municipalityCode, p_query: filters.query?.trim() || null,
+    p_dpi: filters.dpi?.trim() || null, p_community: filters.community || null,
+    p_age_min: filters.ageMin ?? null, p_age_max: filters.ageMax ?? null,
+    p_status: filters.status || null, p_affiliation: filters.affiliation || null,
+    p_role: filters.role?.trim() || null, p_responsible: filters.responsible || null,
+    p_offset: Math.max(filters.offset ?? 0, 0), p_limit: Math.min(Math.max(filters.limit ?? 25, 1), 50),
+  }, accessToken, signal);
+  if (page?.municipality_code !== municipalityCode || !Array.isArray(page.items) ||
+    page.items.some(row => row.municipality_code !== municipalityCode || !Number.isSafeInteger(row.id) || row.id >= 0) ||
+    typeof page.has_more !== "boolean" || (page.total_count !== null && (!Number.isSafeInteger(page.total_count) || page.total_count < 0))) {
+    throw new Error("La página de contactos no corresponde al municipio autorizado.");
+  }
+  return page;
 }
 
 export interface NominalDirectoryAvailability {

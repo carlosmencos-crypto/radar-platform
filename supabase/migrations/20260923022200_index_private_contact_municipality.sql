@@ -1,0 +1,1 @@
+create index contact_workspace_profiles_municipality_fk_idx on campaign_vault.contact_workspace_profiles(municipality_id);

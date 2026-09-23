@@ -6,7 +6,9 @@ const read = (file) => fs.readFileSync(new URL(`../${file}`, import.meta.url), "
 
 const municipalities = read("src/data/municipalities.ts");
 const intelligence = read("src/components/V70DirectIntelligence0509.tsx");
-const rich = read("src/components/V70CanonicalRichMunicipality.tsx");
+const rich = read("src/components/V70CanonicalRichMunicipality.tsx").replace(
+  "<V70MunicipalPublicIndicators model={model} />", read("src/components/V70MunicipalPublicIndicators.tsx"),
+);
 const home = read("src/components/V70DirectHome0509.tsx");
 const strategy = read("src/components/V70DirectStrategyArea0509.tsx");
 const report = read("src/components/V70DirectReport0509.tsx");

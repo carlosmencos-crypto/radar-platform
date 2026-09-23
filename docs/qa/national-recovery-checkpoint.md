@@ -279,3 +279,19 @@ Advisors rerun at 00:05 UTC: 17 informational closed-RLS tables, one existing
 and one informational Auth connection allocation notice. No unrelated policy or
 Auth setting was changed. This closes nominal import/access verification, not all
 outstanding historical/PDM content and premium visual refinements.
+
+## 2026-09-23 — complete contact sheets and public municipal detail
+
+Base: `ad6cdb944402ae87f53c2ab6934f2ef82a7c6fb7`, QA branch only.
+
+- Restored the pilot contact form for the national directory: photo, optional front/back document images, phones, address, responsible person, manually provided fields, notes and contact history. An owner-scoped private overlay preserves the original source. Existing campaign editing RPCs are unchanged; no campaigns were fabricated and no source records were reloaded or modified.
+- Applied migrations `add_private_contact_workspace`, `index_private_contact_municipality`, `add_fast_contact_directory_pages`. Public endpoints are security invoker; private helpers verify the active actor, municipal scope, source activation and exact record. Tables are RLS protected and unavailable to anon/direct authenticated table reads.
+- `supabase/tests/private-contact-workspace.sql` passed with authenticated role: save/reopen, photo/document fields, history, saved-field filtering, fast-page filtering, empty pages, denied cross-municipal writes, unauthorized actor, anon, unsafe image schemes and source immutability. Test annotations are rolled back.
+- Search first-page rendering no longer waits for an exact filtered count. Extra-row sentinel determines Next availability; unknown totals are explicit, never estimated. Exact count is user-requested. Measured broad capital search `MAR`: previous combined count/page 14,559 ms (cold); new authorized first page 58.435 ms (warm), database timings only, not a network SLA. Obsolete browser requests are aborted and repeated pages remain cached.
+- Electoral adapter accepts nested matrix objects, singleton-wrapped objects and flat row-major matrices, with dimensions, integer/nonnegative votes, totals and municipal scope checked. Complete party rankings are retained. Local leader/runner/margin derive from reconciled center votes; municipal leader summary fields are not treated as the local winner.
+- Six checked-in PUBLIC aggregate fixtures (0101,0301,0509,0608,1208,1901) exercise all five election types. No individual contact data is in these fixtures or the public bundle. National source has results for 338 municipalities; 0104 and 1104 still lack center-result layers and must remain explicit missing-source states.
+- Party palettes use the complete set of parties, preserving pilot colors and assigning distinct remaining swatches. Exact names/ranks/votes remain visible.
+- Municipal photo: compact shared cards, 10 census household indicators, source/year, urban/rural service baseline and municipal planning document link. Fiscal view: 2016–2025 annual income/budget/accrued/paid/execution table; procurement periods shown separately. Missing data is not converted to zero. Planning PDFs are linked; deeper semantic extraction for all 340 has NOT been claimed complete.
+- Local: 97/97 tests PASS; lint zero warnings/errors; typecheck PASS; XLSX PASS; 340 municipal smoke + V70 parity PASS; production build PASS; bundle security and 340 deep-link checks PASS.
+- Supabase advisors: no new security warning; preexisting leaked-password-protection warning remains. Newly detected municipal FK index was added; remaining workspace unused-index notices are expected for new tables. Existing unrelated permissive-policy notices were not modified.
+- Browser limitation in this session: local preview blocked by the cloud browser; deployed QA requires fresh sign-in. CI render fixtures now include actual public layers and exercise national contact-sheet save/reopen. CI results and screenshots must be reviewed before final visual signoff.

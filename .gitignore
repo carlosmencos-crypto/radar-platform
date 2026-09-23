@@ -18,3 +18,5 @@ Departamentos.zip
 import-token
 batch-manifest.json
 upload-receipts.jsonl
+
+supabase/.temp/

@@ -77,6 +77,8 @@ const genericMapFixture = {
 const mapFixture = isGolden ? goldenMapFixture : isSibinal
   ? { features: sibinalFeatures, communities: [], bbox: { south: 15.08591667, north: 15.23805556, west: -92.07544992, east: -92.04364467 }, provenance: { captured_for_qa: "2026-09-18T00:00:00.000Z" } }
   : genericMapFixture;
+const publicFixturePath = path.join(root, `scripts/fixtures/public-municipal-layers-${municipalityCode}.json`);
+const publicLayers = fs.existsSync(publicFixturePath) ? JSON.parse(fs.readFileSync(publicFixturePath, "utf8")).layers : [];
 const layerIds = contract.layers.map((layer) => layer.layer_id);
 const actions = contract.route_states[municipalityCode];
 const activeProfile = nationalProfile.active_voter_profile;
@@ -106,6 +108,11 @@ const visibleLayers = layerIds.filter((_, index) => actions[index] !== "HIDE_POS
   source_label: "V70 isolated render smoke",
   synthetic_notice: "QA-only browser render fixture; never shipped in the client bundle.",
 }));
+
+for (const fixture of publicLayers.filter((layer) => !layer.layer_id.startsWith("TREP_"))) {
+  const index = visibleLayers.findIndex((layer) => layer.layer_id === fixture.layer_id);
+  if (index >= 0) visibleLayers[index] = fixture;
+}
 
 if (!fs.existsSync(path.join(dist, "index.html"))) throw new Error("dist-render/index.html missing. Build the isolated render bundle first.");
 fs.rmSync(out, { recursive: true, force: true });
@@ -188,11 +195,14 @@ const injection = `<script>(function(){
   const voterCommunities=${JSON.stringify(voterCommunities)};
   const campaignBundle=${JSON.stringify(isGolden ? { identity: { candidate_name: "Nombre Apellido", party_name: "", party_logo_data_url: null }, activities: [{ id: "qa-map-activity", campaign_id: "qa-render-0509", title: "Actividad territorial QA", activity_type: "REUNION", starts_at: "2027-02-20T16:10:00.000Z", community: "Cabecera Municipal", latitude: 13.939, longitude: -90.821, status: "PLANIFICADA", notes: null, details: {}, created_at: "2026-09-16T00:00:00.000Z", updated_at: "2026-09-16T00:00:00.000Z" }], commitments: [] } : { identity: {}, activities: [], commitments: [] })};
   const voterRows=${JSON.stringify(isGolden ? [{ id: 1, full_name: "Registro autorizado QA", community: "Cabecera Municipal", estimated_age_2026: 40, masked_identification: "0000••••0000", contact_status: "SIN_CONTACTO", phone_primary: null, assigned_person_name: null, campaign_role: null, party_affiliation: null, total_count: 36878 }] : [])};
+  const electoralLayers=${JSON.stringify(publicLayers.filter((layer) => layer.layer_id.startsWith("TREP_")))};
+  let contactProfile={contact_status:"SIN_CONTACTO"};
+  let contactInteractions=[];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
     const url=String(typeof input==="string"?input:input?.url||"");
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_runtime_v8")) return new Response(JSON.stringify(runtime),{status:200,headers:{"Content-Type":"application/json"}});
-    if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response(JSON.stringify(electoralLayers),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_campaign_bundle_v1")) return new Response(JSON.stringify(campaignBundle),{status:200,headers:{"Content-Type":"application/json"}});
@@ -201,7 +211,11 @@ const injection = `<script>(function(){
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_pulse_v1")) return new Response("[]",{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_directory_v1")) return new Response(JSON.stringify(voterRows),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_nominal_availability_v1")) return new Response(JSON.stringify({municipality_code:runtime.context.municipality_code,available:true,total_count:1,source_year:2023,read_only:true,communities:["Comunidad sintética QA"]}),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_contact_directory_page_v1")) return new Response(JSON.stringify({municipality_code:runtime.context.municipality_code,total_count:1,has_more:false,items:[{id:-1,municipality_code:runtime.context.municipality_code,full_name:"Registro sintético QA",community:"Comunidad sintética QA",estimated_age_2026:40,masked_identification:"•••••••••0000",contact_status:contactProfile.contact_status,phone_primary:contactProfile.phone_primary||null,assigned_person_name:contactProfile.assigned_person_name||null,campaign_role:null,party_affiliation:null,total_count:1}]}),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_nominal_directory_v1")) return new Response(JSON.stringify({municipality_code:runtime.context.municipality_code,source_year:2023,total_count:1,items:[{id:-1,municipality_code:runtime.context.municipality_code,full_name:"Registro sintético QA",community:"Comunidad sintética QA",estimated_age_2026:40,masked_identification:"•••••••••0000",contact_status:"SIN_CONTACTO",phone_primary:null,assigned_person_name:null,campaign_role:null,party_affiliation:null,total_count:1}]}),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_nominal_detail_v1")) return new Response(JSON.stringify({elector:{id:-1,municipality_code:runtime.context.municipality_code,municipality_name:runtime.context.municipality_name,full_name:"Registro sintético QA",community:"Comunidad sintética QA",estimated_age_2026:40,masked_identification:"•••••••••0000"},profile:contactProfile,interactions:contactInteractions,read_only:false,workspace_kind:"PRIVATE_CONTACT",source_year:2023}),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_save_contact_profile_v1")){contactProfile=JSON.parse(init?.body||"{}").p_profile; return new Response(JSON.stringify({saved:true}),{status:200});}
+    if(url.includes("/mock/rest/v1/rpc/radar_add_contact_interaction_v1")){contactInteractions.push({id:"qa-interaction",...JSON.parse(init?.body||"{}").p_interaction}); return new Response(JSON.stringify({id:"qa-interaction"}),{status:200});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_campaign_identity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify(body.p_identity||{}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("/mock/rest/v1/rpc/radar_save_activity_v1")){const body=JSON.parse(init?.body||"{}"); return new Response(JSON.stringify({id:"qa-activity",campaign_id:"qa-render-0509",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),...body.p_activity}),{status:200,headers:{"Content-Type":"application/json"}});}
     if(url.includes("nominatim.openstreetmap.org/search")) return new Response(JSON.stringify([{place_id:1,name:${JSON.stringify(`Municipalidad de ${municipalityName}`)},display_name:${JSON.stringify(`Municipalidad de ${municipalityName}, ${departmentName}, Guatemala`)},lat:${JSON.stringify(isSibinal ? "15.149219" : "13.939")},lon:${JSON.stringify(isSibinal ? "-92.04861" : "-90.821")},addresstype:"townhall"}]),{status:200,headers:{"Content-Type":"application/json"}});
@@ -400,7 +414,7 @@ try {
       && html.includes("Todas")
       && (!isGolden || html.includes("Actividad territorial QA"))
     );
-    const readinessOk = isGolden || slug !== "directorio" || (text.includes("Padrón nominal 2023") && text.includes("Registro sintético QA"));
+    const readinessOk = isGolden || slug !== "directorio" || (text.includes("Directorio privado de") && text.includes("Registro sintético QA"));
     const slateOk = slug !== "inicio" || (html.match(/class="slate-member"/g) ?? []).length === nationalProfile.electoral_basis_2027.all_positions;
     const council2023 = nationalProfile.electoral_history.councils.find((item) => item.year === 2023);
     const officialIntelligenceOk = slug !== "inteligencia" || (
@@ -464,6 +478,35 @@ try {
   await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await waitFor(`!document.fullscreenElement`, "Intelligence fullscreen Escape exit");
+
+  // Public sections must display actual local indicators and annual rows.
+  await evaluate(`document.querySelector('.municipal-photo')?.scrollIntoView({block:'start',behavior:'instant'})`);
+  await capture("fotografia-municipal");
+  await evaluate(`document.querySelector('.municipal-finance-series')?.scrollIntoView({block:'start',behavior:'instant'})`);
+  await capture("finanzas-historicas");
+  const publicDetail = await evaluate(`({households:document.querySelectorAll('.household-indicator-grid article').length,years:document.querySelectorAll('.finance-series-scroll tbody tr').length})`);
+  if (publicDetail.households !== 10 || publicDetail.years !== 10) throw new Error(`Public indicator depth failed: ${JSON.stringify(publicDetail)}`);
+  interactions.push({kind:"public-indicator-depth",...publicDetail,ok:true});
+
+  if (!isGolden) {
+    await navigate(`/municipio/${municipalityCode}/directorio`);
+    await waitFor(`Boolean(document.querySelector('button.elector-row'))`, "contact directory");
+    await clickSelector('button.elector-row');
+    await waitFor(`Boolean(document.querySelector('.elector-private-form'))`, "complete private contact sheet");
+    const controls = await evaluate(`({photo:!!document.querySelector('.photo-editor-field'),documents:document.querySelectorAll('.elector-document-grid input[type=file]').length,history:!!document.querySelector('.elector-history form')})`);
+    if (!controls.photo || controls.documents!==2 || !controls.history) throw new Error('Incomplete private contact sheet');
+    await capture('directorio-ficha-completa');
+    await clickSelector('.elector-private-form textarea');
+    await cdp.send("Input.insertText", {text:"Nota de prueba sintética QA"});
+    await clickSelector('.elector-private-form footer button');
+    await waitFor(`document.body.innerText.includes('Ficha privada actualizada.')`, "private profile confirmation");
+    await clickSelector('.elector-sheet > header > button');
+    await clickSelector('button.elector-row');
+    await waitFor(`document.querySelector('.elector-private-form textarea')?.value==='Nota de prueba sintética QA'`, "private profile reopen");
+    await evaluate(`document.querySelector('.elector-history')?.scrollIntoView({block:'center',behavior:'instant'})`);
+    await capture('directorio-historial');
+    interactions.push({kind:"contact-sheet-save-reopen",...controls,ok:true});
+  }
 
   // A denied native request must still offer a usable viewport map and exits.
   for (const [route, frameClass] of [["mapa", "map-fullscreen-frame"], ["inteligencia", "intelligence-fullscreen-frame"]]) {
