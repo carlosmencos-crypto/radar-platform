@@ -612,3 +612,50 @@ Local validation: 119 tests passed, production build/typecheck, lint, bundle aud
 and 340 municipality isolation smoke passed. Publication must be tied to the
 resulting commit and its successful QA/deployment checks; smoke and sample browser
 routes do not establish complete visual/functional acceptance for 340 municipalities.
+
+## 2026-09-24 — Shared public documentary histories
+
+User requested repairing the sparse public-history block for all 340 municipalities.
+The previous selector rendered only the stored `electoral_history.trajectories`
+array, omitting repeat appearances already present in public candidate and council
+records. One shared selector now reconciles these records within the authorized
+municipal profile. Stored routes and cautions are retained. Candidacies and awarded
+offices are labelled separately; documented council pages are shown where available.
+This is a documentary-name index, not verified identity, current affiliation,
+voter profiling, prediction or campaign advice. Exact full-name normalization
+preserves Ñ, spelling order and surname structure. Initials, placeholders and
+approximate names do not create new matches. Repeated rows in one year do not
+count as multiple elections. Existing runtime scope checks remain in force.
+
+Read-only comparison of repository source profiles plus the recovered 2023 council
+migrations: 340 profiles, 1,861 stored matches versus 2,846 displayed documentary
+matches; 320 profiles gain entries. Fraijanes 0113: 1 → 3; San José 0509: 8 → 11.
+These are reproducible fixture results, not a fresh live database census or complete
+biographical coverage. No database data, permissions, original source documents,
+private records, strategic calculations or frozen V70 assets were changed.
+
+Tests cover all 340 local name sets and preservation of original routes, read-only
+behavior, municipal scope rejection, accents/Ñ, initials, distinct names, repeated
+years and the recovered Fraijanes 2023 council. The browser QA adds a dedicated
+Fraijanes desktop/mobile history check, including three expected entries, identity
+caveat and horizontal overflow. Check the exact published SHA's CI/deployment before
+reporting the correction available; local Chrome is not installed here.
+
+### Planning handoff — no duplicate extraction
+
+A new Drive search for PDM CLEAN/DASHBOARD products again located the previously
+reconciled priorities and infrastructure products. The separate 0509 territory
+CLEAN workbook `1lXTMJqWcSRL9N1TD332o0hDD8HUj7Gbb` was read: it contains four
+microregions, five centralities, six normalized places and a 13-center crosswalk,
+with a retained La Esso review recommendation. It is not evidence of semantic
+completion for 340 plans and was not imported or used to alter electoral geography.
+Next content task: compare its public administrative fields and validation workbook
+`11wV4lLdKB_JzOrf18t5igNhusJ6nPwQq` against the shared runtime before any reload.
+The previous 36 priorities/12 indicators/340 poverty entries remain reconciled.
+
+The user observed similar Intelligence screens in 0509 and 0113, correctly: the
+layout is shared and both PDM blocks remain partial. The current public-depth
+fixture has 12 indicators and zero priority entries for 0509, versus seven historical
+diagnoses and zero indicators for 0113. Neither is a complete/incomplete benchmark
+pair. National PDM status remains 10 partial, 325 pending, 5 without documents.
+No new semantic integration is claimed in this public-history correction.

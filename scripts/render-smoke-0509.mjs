@@ -9,6 +9,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const dist = path.join(root, "dist-render");
 const municipalityCode = process.env.RADAR_RENDER_MUNICIPALITY_CODE ?? "0509";
 const isGolden = municipalityCode === "0509";
+const historyOnly = process.env.RADAR_RENDER_HISTORY_ONLY === "1";
 const isSibinal = municipalityCode === "1208";
 const out = path.join(root, `render-smoke-${municipalityCode}`);
 const port = 4179;
@@ -391,7 +392,7 @@ try {
     return fs.statSync(target).size;
   }
 
-  for (const [slug, route, marker] of routes) {
+  for (const [slug, route, marker] of routes.filter(([slug]) => !historyOnly || slug === "inteligencia")) {
     const url = `http://127.0.0.1:${port}${route}`;
     const loaded = cdp.once("Page.loadEventFired", 15000);
     await cdp.send("Page.navigate", { url });
@@ -449,6 +450,22 @@ try {
     }
   }
 
+  if (historyOnly) {
+    const history = await evaluate(`(()=>{const card=document.querySelector('.trajectory-card');return{rows:card?.querySelectorAll('.trajectory-list>div').length,text:card?.innerText||''}})()`);
+    if (municipalityCode === "0113" && history.rows !== 3) throw new Error(`Fraijanes expected 3 reconciled public name matches, got ${history.rows}`);
+    if (!history.text.includes("no confirma identidad ni afiliación vigente")) throw new Error("Public history identity caveat missing");
+    await evaluate("document.querySelector('.trajectory-card').scrollIntoView({block:'center'})");
+    await capture("public-history-desktop");
+    await cdp.send("Emulation.setDeviceMetricsOverride", {width:390,height:844,deviceScaleFactor:1,mobile:true});
+    await evaluate("document.querySelector('.trajectory-card').scrollIntoView({block:'start'})");
+    await delay(200);
+    await capture("public-history-mobile");
+    const layout = await evaluate(`(()=>{const c=document.querySelector('.trajectory-card');return{width:c.clientWidth,scrollWidth:c.scrollWidth}})()`);
+    if (layout.scrollWidth > layout.width + 2) throw new Error("Public history card overflows on mobile");
+    interactions.push({kind:"public-history",rows:history.rows,ok:true});
+    fs.writeFileSync(path.join(out,"summary.json"),JSON.stringify({status:"PASS",routes:results,interactions},null,2));
+    console.log(`V70_PUBLIC_HISTORY_OK ${municipalityCode} ${history.rows} documentary name matches; desktop/mobile`);
+  } else {
   await navigate(`/municipio/${municipalityCode}/mapa`);
   await waitFor(`Boolean(document.querySelector('.map-fullscreen-frame .map-fullscreen-button'))`, "Smart Map fullscreen control");
   await clickSelector(".map-fullscreen-frame .map-fullscreen-button");
@@ -604,6 +621,7 @@ try {
   interactions.push({ kind: "recovered-public-report", ok: reportOk });
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "PASS", routes: results, interactions, publicDepth, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));
   console.log(`V70_RENDER_SMOKE_OK ${municipalityCode} ${results.filter((item) => item.ok).length}/11 routes · ${interactions.length}/4 fullscreen interactions · national profile isolated`);
+  }
 } catch (error) {
   const failure = error instanceof Error ? error.message : String(error);
   fs.writeFileSync(path.join(out, "summary.json"), JSON.stringify({ status: "FAIL", error: failure, routes: results, interactions, runtimeEvents: runtimeEvents.slice(-40) }, null, 2));

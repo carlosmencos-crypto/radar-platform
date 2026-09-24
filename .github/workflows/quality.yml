@@ -37,6 +37,8 @@ jobs:
         run: RADAR_RENDER_MUNICIPALITY_CODE=0101 node scripts/render-smoke-0509.mjs
       - name: Render stratified medium municipality sample 1901
         run: RADAR_RENDER_MUNICIPALITY_CODE=1901 node scripts/render-smoke-0509.mjs
+      - name: Verify Fraijanes public history on desktop and mobile
+        run: RADAR_RENDER_MUNICIPALITY_CODE=0113 RADAR_RENDER_HISTORY_ONLY=1 node scripts/render-smoke-0509.mjs
       - name: Exercise 0509 SPA navigation, report modal and printable report
         run: node scripts/render-interaction-0509-canonical.mjs
       - uses: actions/upload-artifact@v4
@@ -60,6 +62,7 @@ jobs:
           path: |
             render-smoke-0101
             render-smoke-1901
+            render-smoke-0113
           if-no-files-found: error
           retention-days: 1
       - uses: actions/upload-artifact@v4

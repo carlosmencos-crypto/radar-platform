@@ -157,6 +157,78 @@ function strategicRound(value: number | null) {
   return Math.max(step, Math.round(value / step) * step);
 }
 
+// This groups documentary name matches, never verified identities or current affiliations.
+// Keep spelling order and Ñ; no fuzzy, surname-only or phonetic matching.
+function publicNameKey(name: string): string {
+  return name.normalize("NFD").replace(/n\u0303/gi, "ñ").replace(/\p{M}/gu, "")
+    .toLocaleUpperCase("es-GT").trim().replace(/\s+/g, " ");
+}
+
+export function municipalPublicTrajectories(history: Record<string, unknown>): MunicipalPoliticalTrajectory[] {
+  const buckets = new Map<string, {
+    name: string; legacy: MunicipalPoliticalTrajectory[];
+    records: Map<number, Set<string>>;
+  }>();
+  const yearOf = (value: unknown) => typeof value === "number" && [2011, 2015, 2019, 2023].includes(value) ? value : null;
+  const bucketFor = (name: string) => {
+    const key = publicNameKey(name);
+    if (!buckets.has(key)) buckets.set(key, { name: name.trim(), legacy: [], records: new Map() });
+    return buckets.get(key)!;
+  };
+  const rows = (value: unknown) => Array.isArray(value) ? value.map(record) : [];
+  for (const item of rows(history.trajectories)) {
+    const name = textValue(item.name), route = textValue(item.route);
+    if (!name || !route) continue;
+    const years = [...new Set((Array.isArray(item.years) ? item.years : []).flatMap((value) => {
+      const year = yearOf(value); return year === null ? [] : [year];
+    }))].sort();
+    bucketFor(name).legacy.push({ name, route, years, elections: years.length,
+      caution: textValue(item.caution) ?? "Coincidencia nominal pendiente de verificación de identidad" });
+  }
+  function add(nameValue: unknown, yearValue: unknown, description: string) {
+    const name = textValue(nameValue), year = yearOf(yearValue);
+    if (!name || year === null) return;
+    const key = publicNameKey(name);
+    // Do not construct new matches from placeholders, initials or truncated names.
+    if (key.split(" ").length < 3 || /[0-9.]|\b(?:SIN NOMBRE|NO PUBLICADO|NO DISPONIBLE|DESCONOCIDO)\b/.test(key)
+      || key.split(" ").some((word) => word.length === 1 && word !== "Y")) return;
+    const bucket = bucketFor(name);
+    if (!bucket.records.has(year)) bucket.records.set(year, new Set());
+    bucket.records.get(year)!.add(description);
+  }
+  for (const council of rows(history.councils)) {
+    for (const member of rows(council.members)) {
+      const office = textValue(member.office), party = textValue(member.party);
+      if (!office || !party) continue;
+      const page = finite(member.source_page);
+      add(member.name, council.year, `${office} (${party}) · adjudicación${page === null ? "" : `, p. ${page}`}`);
+    }
+  }
+  for (const election of rows(history.elections)) {
+    for (const result of rows(election.results)) {
+      const party = textValue(result.party);
+      if (party) add(result.candidate, election.year, `Candidatura a alcaldía (${party})`);
+    }
+    // The documented winner is useful even where rankings do not publish names.
+    const party = textValue(election.winner_party);
+    if (party) add(election.winner_candidate, election.year, `Alcaldía electa (${party})`);
+  }
+  return [...buckets.values()].flatMap((bucket) => {
+    const legacyYears = new Set(bucket.legacy.flatMap((item) => item.years));
+    const years = [...new Set([...legacyYears, ...bucket.records.keys()])].sort();
+    if (!bucket.legacy.length && years.length < 2) return [];
+    // Preserve existing documentary routes verbatim; only append previously absent years.
+    const additional = [...bucket.records.entries()].filter(([year]) => !legacyYears.has(year)).sort(([a], [b]) => a - b)
+      .map(([year, entries]) => `${year}: ${[...entries].sort().join("; ")}`);
+    const original = [...new Set(bucket.legacy.map((item) => item.route))];
+    return [{ name: bucket.name, years, elections: years.length,
+      route: original.length ? `${original.join(" · ")}${additional.length ? ` · Registros adicionales: ${additional.join(" → ")}` : ""}` : additional.join(" → "),
+      caution: [...new Set([...bucket.legacy.map((item) => item.caution),
+        "Coincidencia de nombre completo en registros públicos; no confirma identidad ni afiliación vigente."])].join(" · "),
+    }];
+  }).sort((a, b) => a.name.localeCompare(b.name, "es-GT"));
+}
+
 export function buildMunicipalIntelligenceModel(
   runtime: RadarRuntimeBundle,
   electoralLayers: AuthorizedLayerRecord[] = [],
@@ -286,22 +358,7 @@ export function buildMunicipalIntelligenceModel(
       ?.members.find((member) => member.office.toLocaleUpperCase("es-GT").startsWith("ALCALDE"));
     if (mayor) election.mayor = mayor.name;
   }
-  const politicalTrajectories: MunicipalPoliticalTrajectory[] = (nationalProfile?.electoral_history.trajectories ?? []).map(record).flatMap((item) => {
-    const name = textValue(item.name);
-    const route = textValue(item.route);
-    if (!name || !route) return [];
-    const years = Array.isArray(item.years) ? item.years.flatMap((value) => {
-      const parsed = finite(value);
-      return parsed === null ? [] : [parsed];
-    }) : [];
-    return [{
-      name,
-      years,
-      elections: finite(item.elections) ?? years.length,
-      route,
-      caution: textValue(item.caution) ?? "Requiere verificación nominal antes de uso sensible",
-    }];
-  });
+  const politicalTrajectories = municipalPublicTrajectories(record(nationalProfile?.electoral_history));
   const communityCatalog: MunicipalCommunityCatalogRecord[] = (nationalProfile?.community_catalog.records ?? []).map(record).flatMap((item) => {
     const name = textValue(item.name);
     if (!name) return [];
