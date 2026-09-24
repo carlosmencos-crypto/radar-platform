@@ -6,6 +6,7 @@ import {
   type AuthorizedRadarConsumer,
 } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
+import { assertDemoContext } from "../data/radarDemo";
 import {
   assertGeoBundleMatchesRuntime,
   RADAR_PUBLIC_MAP_FEATURE_TYPES,
@@ -24,6 +25,7 @@ import {
   loadAuthorizedElectoralTerritoryLayers,
   loadAuthorizedGeoBundle,
   loadAuthorizedVoterCommunities,
+  loadAuthorizedRadarContext,
 } from "../data/radarRuntime";
 import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
 import { V70DirectAi0509 } from "./V70DirectAi0509";
@@ -99,6 +101,8 @@ function directV70(section: string | undefined): ReactNode | null {
 export function MunicipalityAccessGate() {
   const { municipalityCode, section } = useParams();
   const location = useLocation();
+  const demoRequested = new URLSearchParams(location.search).get("demo") === "1";
+  const [demoUnavailable, setDemoUnavailable] = useState(false);
   const [state, setState] = useState<GateState>({ status: "loading" });
 
   useEffect(() => {
@@ -115,15 +119,27 @@ export function MunicipalityAccessGate() {
     clearInstalledRadarElectoralLayers(municipalityCode);
     clearInstalledRadarVoterCommunities(municipalityCode);
     setState({ status: "loading" });
+    setDemoUnavailable(false);
 
     ensureRadarAccessToken()
       .then(async (accessToken) => {
+        let demoCampaign: string | undefined;
+        if (demoRequested) {
+          const context = await loadAuthorizedRadarContext(municipalityCode, accessToken);
+          assertDemoContext(context, municipalityCode);
+          demoCampaign = context.campaign_id!;
+        }
+        const load = async () => {
+          const bundle = await loadMunicipalityRuntime(municipalityCode, accessToken);
+          if (demoRequested) assertDemoContext(bundle.consumer.runtime.context, municipalityCode, demoCampaign);
+          return bundle;
+        };
         try {
-          return await loadMunicipalityRuntime(municipalityCode, accessToken);
+          return await load();
         } catch (error) {
           if (isAuthenticationFailure(error)) throw error;
           await delay(250);
-          return loadMunicipalityRuntime(municipalityCode, accessToken);
+          return load();
         }
       })
       .then(({ consumer, geoBundle, electoralLayers, voterCommunities }) => {
@@ -141,6 +157,11 @@ export function MunicipalityAccessGate() {
         clearInstalledRadarGeoBundle(municipalityCode);
         clearInstalledRadarElectoralLayers(municipalityCode);
         clearInstalledRadarVoterCommunities(municipalityCode);
+        if (error instanceof Error && error.message === "RADAR_DEMO_CONTEXT_REQUIRED") {
+          setDemoUnavailable(true);
+          setState({ status: "forbidden" });
+          return;
+        }
         if (isAuthenticationFailure(error)) {
           clearRadarSession();
           setState({ status: "auth_required" });
@@ -162,7 +183,9 @@ export function MunicipalityAccessGate() {
       clearInstalledRadarElectoralLayers(municipalityCode);
       clearInstalledRadarVoterCommunities(municipalityCode);
     };
-  }, [municipalityCode]);
+  }, [municipalityCode, demoRequested]);
+
+  if (demoUnavailable) return <div className="page page--compact"><span className="eyebrow">DEMO</span><h1>Demo pendiente de habilitación</h1><p>Esta cuenta todavía no tiene un espacio de demostración autorizado para este municipio. No se abrió el espacio de un cliente real.</p></div>;
 
   if (state.status === "loading") {
     return (
@@ -199,9 +222,11 @@ export function MunicipalityAccessGate() {
   }
 
   const direct = directV70(section);
+  if (demoRequested && state.consumer.runtime.context.is_demo !== true) return <div className="page page--compact"><span className="eyebrow">DEMO</span><h1>Verificando acceso demo…</h1></div>;
   if (direct)
     return (
       <AuthorizedRuntimeProvider consumer={state.consumer}>
+        {state.consumer.runtime.context.is_demo === true ? <span className="radar-demo-badge" role="status">DEMO</span> : null}
         {direct}
       </AuthorizedRuntimeProvider>
     );

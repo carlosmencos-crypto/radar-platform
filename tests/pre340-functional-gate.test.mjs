@@ -16,7 +16,7 @@ const indexedSearchMigration = read("supabase/migrations/20260915194630_optimize
 const materializedSearchMigration = read("supabase/migrations/20260915195200_materialize_voter_directory_search.sql");
 
 test("municipal navigation retains one authorized runtime across section changes", () => {
-  assert.match(gate, /useEffect\([\s\S]*?\}, \[municipalityCode\]\);/);
+  assert.match(gate, /useEffect\([\s\S]*?\}, \[municipalityCode, demoRequested\]\);/);
   assert.doesNotMatch(gate, /\[municipalityCode, section\]/);
   assert.match(gate, /installRadarGeoBundle\(geoBundle\)/);
   assert.match(gate, /installRadarVoterCommunities\(municipalityCode, voterCommunities\)/);

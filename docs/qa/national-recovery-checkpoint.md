@@ -659,3 +659,22 @@ fixture has 12 indicators and zero priority entries for 0509, versus seven histo
 diagnoses and zero indicators for 0113. Neither is a complete/incomplete benchmark
 pair. National PDM status remains 10 partial, 325 pending, 5 without documents.
 No new semantic integration is claimed in this public-history correction.
+
+## 2026-09-24 — Demo entry routes, backend provisioning remains separate
+
+Added shared /XXXXd and /municipios/XXXXd entries for valid catalog municipalities,
+plus /demos directory. Entries navigate to canonical /municipio/XXXX?demo=1.
+Before loading the municipal runtime, the entry requires a server-authorized
+context with is_demo=true, a nonempty campaign_id and the requested municipality.
+The loaded runtime must repeat the same demo campaign identity. Real contexts are
+rejected rather than relabelled or opened. DEMO badge is derived from runtime
+is_demo, never from the URL alone. No database or permission changes.
+
+This does not provision demo campaigns, grant a demo account or implement reset.
+Superadmin must provide a dedicated account with demo-only membership and ensure
+all RPCs resolve the same demo identity for a municipality, including report and
+section navigation. The entry cannot select between real/demo memberships for a
+mixed administrator: it rejects a real context. Do not advertise full demo use or
+reset acceptance until authenticated cross-client tests pass. Public data depth
+remains paused. Local 125 tests, lint, build and smoke340 passed; see the published
+SHA checks and Hostinger release manifest for deployment provenance.
