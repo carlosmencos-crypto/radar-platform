@@ -21,6 +21,7 @@ const DEFAULT_ORIGINS = new Set([
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "https://carlosmencos-crypto.github.io",
+  "https://radar-superadmin-v70-qa.netlify.app",
 ]);
 
 function allowedOrigins() {
