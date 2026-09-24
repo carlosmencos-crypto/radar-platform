@@ -15,6 +15,14 @@ interface SupabaseTokenResponse {
   token_type?: string;
 }
 
+interface RadarAuthCallback {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type?: string;
+  type: "invite" | "recovery";
+}
+
 interface SupabaseFactor {
   id: string;
   factor_type: string;
@@ -90,6 +98,47 @@ function persistRadarSession(response: SupabaseTokenResponse) {
     expires_at: Date.now() + Math.max(response.expires_in, 1) * 1000,
   };
   if (storageAvailable()) window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  return session;
+}
+
+function readRadarAuthCallback(): RadarAuthCallback | null {
+  if (typeof window === "undefined") return null;
+  const values = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const type = values.get("type");
+  const accessToken = values.get("access_token");
+  const refreshToken = values.get("refresh_token");
+  if ((type !== "invite" && type !== "recovery") || !accessToken || !refreshToken) return null;
+  const expiresIn = Number(values.get("expires_in"));
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_in: Number.isFinite(expiresIn) && expiresIn > 0 ? expiresIn : 3600,
+    token_type: values.get("token_type") || "bearer",
+    type,
+  };
+}
+
+export function radarAuthCallbackType() {
+  return readRadarAuthCallback()?.type ?? null;
+}
+
+export async function completeRadarPasswordSetup(password: string) {
+  if (password.length < 12) throw new Error("RADAR_PASSWORD_TOO_SHORT");
+  const callback = readRadarAuthCallback();
+  if (!callback) throw new Error("RADAR_AUTH_CALLBACK_INVALID");
+  const { url, publishableKey } = requireAuthConfig();
+  const response = await fetch(`${url}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${callback.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+  if (!response.ok) throw new Error(`RADAR_PASSWORD_${response.status}`);
+  const session = persistRadarSession(callback);
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
   return session;
 }
 
