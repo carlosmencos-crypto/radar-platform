@@ -574,3 +574,41 @@ catalog discrepancies and final functional acceptance remain open.
 Local 119 tests passed, including all municipal source binding and report retention.
 Published SHA CI/deploy must be verified for this increment; no live authenticated
 visual walkthrough of 0103 is claimed by these tests.
+
+## 2026-09-24 — Reviewed public plan batch: 0107, 0113, 0114
+
+Adds 30 source-bound historical diagnoses/potentialities through the existing shared
+V70 contract: San Pedro Ayampuc (7), Fraijanes (7), Amatitlán (16). Original Drive
+PDFs and their layout exports are hashed in `pdm-semantic-reviews.json`; the ledger
+records page anchors, scope, and exclusions. Relevant pages were read in context
+and visually inspected. Anchors locate manually reviewed claims; they do not infer
+facts from lexical matches. This batch adds no numerical indicators or targets.
+
+San Pedro Ayampuc uses table 8, physical pages 42–45. Ranking indices are not
+household coverage; the traffic figure has conflicting 2016/2017 labels. Fraijanes
+uses diagnosis sections 4.2.2–4.2.8: nutrition dates/arithmetic and education
+2018/2019/2020 labels remain unresolved. National employment figures were not
+attributed to the municipality. Amatitlán uses table 3, physical page 61; its two
+columns are independent lists, not causal pairings. Competitiveness rank and
+employment percentage remain unvalidated. All three retain partial review status.
+
+Migration `20260924041954_integrate_reviewed_public_plans_0107_0113_0114.sql`
+was rehearsed with rollback, then applied and read back: counts 7/7/16. Its guard
+requires exact municipality/source identity and empty prior entries, aborting the
+transaction on concurrent changes or scope mismatch. The aggregate MD5 of all
+other 337 profiles stayed `0ed94010c671164e59cb91fd8689dde2` before, during rehearsal,
+and after application. Local comparison also confirmed that only priorities,
+review notes and review status changed in these three fixture rows; all previous
+entries and other fields remain identical. Re-running the importer produces zero
+writes. No schema, permission, private-record or UI behavior changes.
+
+Current inventory: 104 historical priorities/potentialities, 12 prior indicators,
+10 plans with partial content, 325 pending semantic review, 5 without documents.
+The 128 original FAIL_CLOSED source observations remain unchanged. These counts
+are not full semantic homologation or national acceptance. Institutional gaps,
+including uncounted San José del Golfo TREP records, remain explicit.
+
+Local validation: 119 tests passed, production build/typecheck, lint, bundle audit,
+and 340 municipality isolation smoke passed. Publication must be tied to the
+resulting commit and its successful QA/deployment checks; smoke and sample browser
+routes do not establish complete visual/functional acceptance for 340 municipalities.
