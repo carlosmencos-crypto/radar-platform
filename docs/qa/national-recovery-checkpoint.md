@@ -523,3 +523,19 @@ No held geographic coordinate is inferred and no official Memoria is overwritten
 National PDM semantics, remaining shared functional review and publication gates
 remain open. No Hostinger, Golden, main, private directory, portal fiscal,
 superadministrator or paused extraction task was modified.
+
+## 2026-09-24 · Remove optional directory profile photograph
+
+The shared voter contact sheet opts into a “Borrar fotografía” action in the
+existing photo editor. It clears the draft photo, crop source and file input;
+saving uses the existing national/campaign profile RPC with an empty photo field.
+The existing optional-image backend normalizes empty images to null. No schema,
+permissions or private records were changed. Other editor consumers retain their
+previous controls. In-flight image decoding is invalidated so it cannot restore
+a removed photo.
+
+Typecheck, lint and build passed locally. Local Chrome is unavailable; the CI
+synthetic contact-sheet check now removes an existing photo, saves and reopens
+the profile, and checks the empty avatar and photo field. This is synthetic
+workflow verification, not a claim of a live private-record deletion. Verify the
+published SHA's CI/deploy before reporting this change available in QA.

@@ -5,6 +5,7 @@ type V70PhotoEditorProps = {
   onChange: (dataUrl: string) => void;
   onError?: (message: string) => void;
   privacyLabel?: string;
+  allowRemove?: boolean;
 };
 
 const OUTPUT_SIZE = 900;
@@ -14,8 +15,10 @@ export function V70PhotoEditor({
   onChange,
   onError,
   privacyLabel = "Opcional",
+  allowRemove = false,
 }: V70PhotoEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const renderRevision = useRef(0);
   const onChangeRef = useRef(onChange);
   const onErrorRef = useRef(onError);
@@ -45,6 +48,7 @@ export function V70PhotoEditor({
     const revision = ++renderRevision.current;
     const image = new Image();
     image.onload = () => {
+      if (revision !== renderRevision.current) return;
       const canvas = canvasRef.current;
       const context = canvas?.getContext("2d");
       if (!canvas || !context) return;
@@ -65,9 +69,11 @@ export function V70PhotoEditor({
       const result = canvas.toDataURL("image/jpeg", 0.92);
       if (revision === renderRevision.current) onChangeRef.current(result);
     };
-    image.onerror = () =>
-      onErrorRef.current?.("No se pudo procesar la fotografía.");
+    image.onerror = () => {
+      if (revision === renderRevision.current) onErrorRef.current?.("No se pudo procesar la fotografía.");
+    };
     image.src = previewUrl;
+    return () => { renderRevision.current += 1; };
   }, [horizontal, previewUrl, source, vertical, zoom]);
 
   function selectPhoto(file: File | null) {
@@ -79,6 +85,16 @@ export function V70PhotoEditor({
     setZoom(1);
     setHorizontal(50);
     setVertical(50);
+  }
+
+  function removePhoto() {
+    renderRevision.current += 1;
+    setSource(null);
+    setZoom(1);
+    setHorizontal(50);
+    setVertical(50);
+    if (inputRef.current) inputRef.current.value = "";
+    onChange("");
   }
 
   return (
@@ -98,6 +114,7 @@ export function V70PhotoEditor({
         </span>
         <span className="photo-editor-file">
           <input
+            ref={inputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => selectPhoto(event.target.files?.[0] ?? null)}
@@ -105,6 +122,9 @@ export function V70PhotoEditor({
           <small>
             {privacyLabel} · JPG, PNG o WebP · se guardará ajustada al círculo
           </small>
+          {allowRemove && (source || currentSrc) ? (
+            <button type="button" onClick={removePhoto}>Borrar fotografía</button>
+          ) : null}
         </span>
       </div>
       {source ? (

@@ -196,7 +196,7 @@ const injection = `<script>(function(){
   const campaignBundle=${JSON.stringify(isGolden ? { identity: { candidate_name: "Nombre Apellido", party_name: "", party_logo_data_url: null }, activities: [{ id: "qa-map-activity", campaign_id: "qa-render-0509", title: "Actividad territorial QA", activity_type: "REUNION", starts_at: "2027-02-20T16:10:00.000Z", community: "Cabecera Municipal", latitude: 13.939, longitude: -90.821, status: "PLANIFICADA", notes: null, details: {}, created_at: "2026-09-16T00:00:00.000Z", updated_at: "2026-09-16T00:00:00.000Z" }], commitments: [] } : { identity: {}, activities: [], commitments: [] })};
   const voterRows=${JSON.stringify(isGolden ? [{ id: 1, full_name: "Registro autorizado QA", community: "Cabecera Municipal", estimated_age_2026: 40, masked_identification: "0000••••0000", contact_status: "SIN_CONTACTO", phone_primary: null, assigned_person_name: null, campaign_role: null, party_affiliation: null, total_count: 36878 }] : [])};
   const electoralLayers=${JSON.stringify(publicLayers.filter((layer) => layer.layer_id.startsWith("TREP_")))};
-  let contactProfile={contact_status:"SIN_CONTACTO",dpi_front_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC",dpi_back_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC"};
+  let contactProfile={photo_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC",contact_status:"SIN_CONTACTO",dpi_front_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC",dpi_back_url:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNw6UgDAAJGATNkvhBkAAAAAElFTkSuQmCC"};
   let contactInteractions=[];
   const nativeFetch=window.fetch.bind(window);
   window.fetch=async function(input,init){
@@ -531,6 +531,10 @@ try {
     if (layout.sheet>=800 && (Math.abs(layout.width-680)>1 || layout.padding!=='24px' || layout.shadow==='none' || layout.overflow!=='auto')) throw new Error(`Contact sheet differs from approved pilot: ${JSON.stringify(layout)}`);
     interactions.push({kind:"contact-sheet-approved-pilot-layout",...layout,ok:true});
     await capture('directorio-ficha-completa');
+    await waitFor(`document.querySelector('.photo-editor-preview img')?.naturalWidth===1`, "existing synthetic contact photo");
+    await clickSelector('.photo-editor-file button');
+    await waitFor(`!document.querySelector('.photo-editor-preview img') && !document.querySelector('.photo-editor-file button') && !document.querySelector('.elector-sheet-person img')`, "contact photo cleared in form");
+
     await clickSelector('.elector-document-preview summary');
     await waitFor(`document.querySelector('.elector-document-preview[open] img')?.naturalWidth===1`, "inline private document preview");
     await clickSelector('.elector-document-preview summary');
@@ -546,6 +550,10 @@ try {
     await clickSelector('.elector-sheet > header > button');
     await clickSelector('button.elector-row');
     await waitFor(`document.querySelector('.elector-private-form textarea')?.value==='Nota de prueba sintética QA'`, "private profile reopen");
+    const photoRemoved = await evaluate(`!document.querySelector('.photo-editor-preview img') && !document.querySelector('.elector-sheet-person img') && !document.querySelector('.photo-editor-file button') && document.querySelector('.photo-editor-file input').value===''`);
+    if (!photoRemoved) throw new Error('Deleted contact photo returned after save and reopen');
+    interactions.push({kind:"contact-photo-remove-save-reopen",ok:true});
+
     await waitFor(`document.querySelector('select[aria-label="Responsable del contacto"]')?.value==='Responsable sintético QA'`, "saved responsible person select");
     await evaluate(`document.querySelector('.elector-history')?.scrollIntoView({block:'center',behavior:'instant'})`);
     await capture('directorio-historial');
