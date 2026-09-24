@@ -24,7 +24,7 @@ Deno.serve(async (request: Request) => {
     if (!received || !(await sameSecret(received, expected))) {
       return json(401, { error: "server_authentication_required" }, null);
     }
-    const body = await request.json() as { session_id?: string; grant_id?: string };
+    const body = await request.json() as { session_id?: string; grant_id?: string; include_identity?: boolean };
     if (!body.session_id || !body.grant_id) return json(400, { error: "invalid_request" }, null);
     const service = serviceClient();
     const { data, error } = await service.rpc("radar_validate_fiscal_session_v1", {
@@ -35,7 +35,19 @@ Deno.serve(async (request: Request) => {
       console.error("day-d-access-validate rpc", error.code);
       return json(500, { error: "validation_failed" }, null);
     }
-    return json(200, { scope: data }, null);
+    let scope = data;
+    if (body.include_identity === true && data?.ok) {
+      const { data: identity, error: identityError } = await service.rpc("radar_fiscal_campaign_identity_v1", {
+        p_session_id: body.session_id,
+        p_grant_id: body.grant_id,
+      });
+      if (identityError) {
+        console.error("day-d-access-validate identity rpc", identityError.code);
+        return json(500, { error: "identity_lookup_failed" }, null);
+      }
+      scope = { ...data, identity: identity ?? { ok: false } };
+    }
+    return json(200, { scope }, null);
   } catch (error) {
     console.error("day-d-access-validate", safeMessage(error));
     return json(500, { error: "server_configuration_error" }, null);
