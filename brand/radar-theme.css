@@ -1,0 +1,32 @@
+:root {
+  --radar-petroleo: #08576E;
+  --radar-petroleo-diagonal: #0B6478;
+  --radar-electoral: #552676;
+  --radar-gobierno: #974D39;
+  --radar-municipal: #4C7261;
+  --radar-grafito: #2F343A;
+  --radar-salvia: #A7ACA5;
+  --radar-marfil: #F7F5EF;
+  --radar-fondo-oscuro: #2D333A;
+  --radar-blanco: #FFFFFF;
+  --radar-font-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-radar-product="electoral"] { --radar-accent: var(--radar-electoral); }
+[data-radar-product="gobierno"] { --radar-accent: var(--radar-gobierno); }
+[data-radar-product="municipal"] { --radar-accent: var(--radar-municipal); }
+
+.radar-theme-light {
+  --radar-bg: var(--radar-marfil);
+  --radar-surface: #FFFFFF;
+  --radar-text: var(--radar-grafito);
+  --radar-muted: var(--radar-salvia);
+  --radar-nav: var(--radar-fondo-oscuro);
+}
+.radar-theme-dark {
+  --radar-bg: var(--radar-fondo-oscuro);
+  --radar-surface: #364048;
+  --radar-text: var(--radar-marfil);
+  --radar-muted: var(--radar-salvia);
+  --radar-nav: #232A31;
+}

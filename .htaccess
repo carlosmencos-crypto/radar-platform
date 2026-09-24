@@ -1,7 +1,14 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  # Preserve the approved landing at / and /index.html.
   RewriteRule ^index\.html$ - [L]
+  # Friendly municipality alias; preserve any section and query string.
+  RewriteRule ^municipio([0-9]{4})(/.*)?$ /municipio/$1$2 [R=302,L,NE]
+  RewriteRule ^login/?$ /acceso [R=302,L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(municipio|municipios|departamento|comparar|acceso|acceso-restringido|admin|reporte)(/.*)?$ /radar-app.html [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]

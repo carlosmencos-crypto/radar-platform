@@ -1,0 +1,90 @@
+{
+  "source_sha": "d4c1604c0d5743c5fd0144e621ff7753e1731205",
+  "source_url": "https://radar-v70-national-qa.pages.dev/",
+  "files": [
+    {
+      "path": "assets/index-Bfno3a_j.js",
+      "size": 1158327,
+      "sha256": "06906ad770f02c53054f310ec7210254ea83340718c960befe9ca18fb52a19b7"
+    },
+    {
+      "path": "assets/index-Bw8noe0z.css",
+      "size": 679952,
+      "sha256": "8815108f095aa86297afe92d9f1af71386be24206f8bf70dd4943dbbba25afde"
+    },
+    {
+      "path": "assets/inter-1ab1ad55-8kRkwJBP.woff2",
+      "size": 48432,
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    },
+    {
+      "path": "assets/inter-656bbed6-BQL42Lnq.woff2",
+      "size": 19044,
+      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf"
+    },
+    {
+      "path": "assets/inter-6e1a6b2b-Ai74Rjx-.woff2",
+      "size": 11272,
+      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271"
+    },
+    {
+      "path": "assets/inter-7249155f-Cpd2YT5r.woff2",
+      "size": 25844,
+      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5"
+    },
+    {
+      "path": "assets/inter-749a3084-B_-bZUTo.woff2",
+      "size": 85272,
+      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2"
+    },
+    {
+      "path": "assets/inter-e34c5f1b-C5ekK6td.woff2",
+      "size": 18744,
+      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6"
+    },
+    {
+      "path": "assets/inter-fc83e075-YEzCLjIM.woff2",
+      "size": 10280,
+      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931"
+    },
+    {
+      "path": "brand/radar-brand-tokens.json",
+      "size": 1506,
+      "sha256": "673ad5319b00ad85e8bd625a8d3d2438d87701934ff33d9fc1e118f219893409"
+    },
+    {
+      "path": "brand/radar-electoral-isotipo.svg",
+      "size": 1484,
+      "sha256": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a"
+    },
+    {
+      "path": "brand/radar-electoral-logo-horizontal-claro.svg",
+      "size": 19817,
+      "sha256": "9b40108347693adce301a58173a4ee1625b8e7190e81c97ac3ad293d1338dd2a"
+    },
+    {
+      "path": "brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",
+      "size": 19889,
+      "sha256": "b73bd230561f9351e02ac84fc08320ab544c6f9d3c131f2823c4a0f97b0c1cec"
+    },
+    {
+      "path": "brand/radar-electoral-logo-reducido-horizontal-claro.svg",
+      "size": 7206,
+      "sha256": "3ace9bc5d121a259d6d18109be1d13693d7e4a093b3bcbafa90367fe6e13e42d"
+    },
+    {
+      "path": "brand/radar-isotipo.svg",
+      "size": 1484,
+      "sha256": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a"
+    },
+    {
+      "path": "brand/radar-theme.css",
+      "size": 1029,
+      "sha256": "d7ca21806ae121e10edfcd302f8336cf8f7db24fe900b92f2dce66f6ed8f6271"
+    }
+  ],
+  "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
+  "quality_run": "35977765721",
+  "date": "2026-09-24",
+  "scope": "Static application deployment; no database, account or permission changes"
+}
