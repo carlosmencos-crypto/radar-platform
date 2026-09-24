@@ -2,6 +2,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { ComparePage, DepartmentPage, MunicipalitiesPage, NotFoundPage } from "./pages";
 import { RadarAccessPage } from "./RadarAccessPage";
+import { radarAuthCallbackType } from "../data/radarAuth";
 import { MunicipalityAccessGate as MunicipalDashboard } from "../components/MunicipalityAccessGate";
 import { V70DirectReportAccessGate0509 } from "../components/V70DirectReportAccessGate0509";
 import { SuperAdminAccessGate } from "../admin/SuperAdminAccessGate";
@@ -21,6 +22,16 @@ function AccessDeniedPage() {
 }
 
 export function App() {
+  if (radarAuthCallbackType()) {
+    return (
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="*" element={<RadarAccessPage />} />
+        </Route>
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />} />
