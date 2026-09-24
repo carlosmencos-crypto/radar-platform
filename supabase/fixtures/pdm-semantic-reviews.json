@@ -46,5 +46,80 @@
       ["POTENCIALIDAD", "Personal de salud y nutrición para educación alimentaria", 88, "Personal capacitado del MSPAS y SESAN"],
       ["POTENCIALIDAD", "Infraestructura pública propuesta para un instituto tecnológico", 88, "Infraestructura pública para la creación"]
     ]
+  },
+  {
+    "municipality_code": "0103",
+    "file_id": "10TmQI-g0XjnpKjhfONiR5-CrH8oeFYms",
+    "pdf_sha256": "88467fc0d749c3cf4a4a617d063560f955ccd8c9394097410cbba88d1bd3751d",
+    "layout_sha256": "115ce80c01677eaa0e6bf8bd100769df86985a5058ace205b03007730a704d74",
+    "review_scope": "HISTORICAL_PLAN_DIAGNOSIS",
+    "exclusions": [
+      "Contenido histórico del diagnóstico participativo de 2018, revisado en el cuadro 7 (páginas PDF 41–45); no describe mediciones actuales ni recomendaciones de campaña.",
+      "La sección 5.3 (página PDF 53) menciona San Pedro Ayampuc aunque el título del cuadro indica San José Pínula. Se excluye íntegramente esa sección de escenario futuro; la discrepancia queda sin resolver.",
+      "La desnutrición de 17.3% figura con año 2015 en la página PDF 22 y 2017 en la 41. No se importa esa cifra ni se decide un año por inferencia.",
+      "No se importan proyecciones, metas, magnitudes sin datos, porcentajes de cobertura ni índices del ranking como logros actuales. Tampoco se asignan diagnósticos a personas o grupos electorales."
+    ],
+    "priorities": [
+      [
+        "PROBLEMA",
+        "Acceso limitado a servicios de salud señalado por el diagnóstico",
+        41,
+        "Limitado Acceso a Servicios de"
+      ],
+      [
+        "PROBLEMA",
+        "Desnutrición crónica incluida en el diagnóstico histórico",
+        41,
+        "Desnutrición crónica"
+      ],
+      [
+        "PROBLEMA",
+        "Acceso limitado a educación diversificada identificado en el plan",
+        42,
+        "Problemática: Limitado acceso a servicios"
+      ],
+      [
+        "PROBLEMA",
+        "Deficiencias de agua y saneamiento señaladas por el plan",
+        42,
+        "Problema: Deficiencia en los servicios"
+      ],
+      [
+        "PROBLEMA",
+        "Movilidad y carga vehicular incluidas como problemática",
+        43,
+        "Problemática: Movilidad-carga Vehicular"
+      ],
+      [
+        "PROBLEMA",
+        "Accidentes de tránsito incluidos en el diagnóstico",
+        43,
+        "Problemática: No. de accidente de transito"
+      ],
+      [
+        "POTENCIALIDAD",
+        "Recurso forestal reconocido en el diagnóstico",
+        44,
+        "Potencialidad: Recurso forestal"
+      ],
+      [
+        "POTENCIALIDAD",
+        "Recurso hídrico reconocido en el diagnóstico",
+        44,
+        "Potencialidad: Recurso Hídrico"
+      ],
+      [
+        "POTENCIALIDAD",
+        "Actividades agroforestales identificadas por el plan",
+        45,
+        "Potencialidad: Actividades agroforestales"
+      ],
+      [
+        "POTENCIALIDAD",
+        "Desarrollo urbano identificado como potencialidad por el plan",
+        45,
+        "Potencialidad: Desarrollo Urbano"
+      ]
+    ]
   }
 ]

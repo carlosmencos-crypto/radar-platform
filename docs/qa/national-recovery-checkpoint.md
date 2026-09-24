@@ -539,3 +539,38 @@ synthetic contact-sheet check now removes an existing photo, saves and reopens
 the profile, and checks the empty avatar and photo field. This is synthetic
 workflow verification, not a claim of a live private-record deletion. Verify the
 published SHA's CI/deploy before reporting this change available in QA.
+
+## 2026-09-24 · Historical public plan content for San José Pinula
+
+Continued execution after the user's instruction to advance the remaining work.
+The local divergent history was merged without discarding commits; before the new
+data work its tree exactly matched published `6d882126cfa18c4145953904aedb2ffd6258c865`.
+
+Reviewed the retained 0103 PDF, table 7, physical PDF pages 41–45 (printed 34–38),
+including rendered pages and the introductory municipal attribution. Ten historical
+diagnoses/potentialities are added through the existing national planning contract.
+The source PDF and layout-text hashes and page anchors are in the review ledger.
+This is public documentary reference, not current measurement or campaign advice.
+
+The future-scenario section on PDF page 53 names San Pedro Ayampuc: that entire
+section is excluded, with an explicit unresolved review note. The 17.3% nutrition
+figure has different years on PDF pages 22 and 41 and is also excluded. No numeric
+indicators, future targets, geographic targeting or electoral strategy are added.
+Catalog-readiness metadata remains as inventoried; new content-review observations
+are separate and appear in the shared screen/report.
+
+The guarded transaction was rehearsed with rollback, then applied as migration
+`20260924032210_integrate_reviewed_public_plan_0103`. Read-back confirms ten entries
+under 0103 and the expected source file. The aggregate hash of the other 339
+profiles is unchanged (`0265e58e96859c492dd71f57241f8fcc`). Re-running the importer
+skips all three direct reviews and produces zero writes. No private campaign data,
+permissions, schema or readiness flags changed.
+
+National planning now has 74 reviewed priority entries, 12 prior indicators,
+seven partial plans, 328 pending-content plans and five missing documents.
+This is an integration increment, not complete semantic homologation. The existing
+catalog discrepancies and final functional acceptance remain open.
+
+Local 119 tests passed, including all municipal source binding and report retention.
+Published SHA CI/deploy must be verified for this increment; no live authenticated
+visual walkthrough of 0103 is claimed by these tests.

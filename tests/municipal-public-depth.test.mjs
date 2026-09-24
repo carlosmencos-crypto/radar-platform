@@ -8,7 +8,7 @@ const rows = JSON.parse(fs.readFileSync(new URL("../supabase/fixtures/municipal-
 const get = (code) => structuredClone(rows.find((row) => row.municipality_code === code));
 
 test("report retains every validated entry, unknown magnitudes and unit caveats", () => {
-  for (const code of ["0501", "0502", "0509", "0513", "0101", "1208"]) {
+  for (const code of ["0501", "0502", "0509", "0513", "0101", "0103", "1208"]) {
     const value = municipalPublicDepth(get(code), code);
     const cards = municipalPublicDepthReport(value);
     const text = cards.flatMap((c) => c.items).join("\n");
@@ -31,9 +31,9 @@ test("recovered Vault products bind every official municipality without inventin
   assert.equal(rows.filter((r) => r.poverty.extreme_pct === null).length, 23);
   assert.equal(rows.filter((r) => r.planning.document.source_qa === "FAIL_CLOSED").length, 128);
   assert.deepEqual(rows.filter((r) => r.planning.review_status === "NO_DOCUMENT_IN_INVENTORY").map((r) => r.municipality_code), ["0101", "0115", "0116", "0201", "1333"]);
-  assert.equal(rows.reduce((n, r) => n + r.planning.priorities.length, 0), 64);
+  assert.equal(rows.reduce((n, r) => n + r.planning.priorities.length, 0), 74);
   assert.equal(rows.reduce((n, r) => n + r.planning.indicators.length, 0), 12);
-  assert.equal(rows.filter((r) => r.planning.review_status === "PARTIAL_VALIDATED_CONTENT").length, 6);
+  assert.equal(rows.filter((r) => r.planning.review_status === "PARTIAL_VALIDATED_CONTENT").length, 7);
 });
 
 test("prior validated PDM units, unknown years, unknown magnitudes, and source zeros survive", () => {
@@ -80,13 +80,13 @@ test("inventory or lexical counts alone cannot become validated planning content
 });
 
 test("direct PDF reviews remain historical, source-bound, and incomplete", () => {
-  for (const code of ["0102", "1208"]) {
+  for (const code of ["0102", "0103", "1208"]) {
     const row = get(code);
     const plan = municipalPublicDepth(row, code).planning;
     assert.ok(plan.priorities.length > 0);
     assert.equal(plan.indicators.length, 0, "National targets and conflicting percentages must not be imported");
     assert.equal(plan.review_status, "PARTIAL_VALIDATED_CONTENT");
-    assert.equal(plan.document.source_qa, "FAIL_CLOSED");
+    assert.equal(plan.document.source_qa, code === "0103" ? "PASS_SOURCE_READINESS" : "FAIL_CLOSED");
     assert.ok(plan.review_notes.length > 0);
     const report = municipalPublicDepthReport(municipalPublicDepth(row, code));
     for (const note of plan.review_notes) assert.ok(report.some(card => card.items.includes(note)));
