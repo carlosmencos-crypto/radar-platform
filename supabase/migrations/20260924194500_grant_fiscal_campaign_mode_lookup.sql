@@ -1,0 +1,1 @@
+-- Least-privilege lookup used by the service-only fiscal exchange function.\ngrant select (id,is_demo) on public.campaigns to service_role;\n
