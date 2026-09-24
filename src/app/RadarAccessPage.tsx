@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  completeRadarPasswordSetup,
   prepareRadarAdminMfa,
+  radarAuthCallbackType,
   radarAuthConfigured,
   signInRadar,
   verifyRadarMfa,
@@ -25,13 +27,44 @@ function qrSource(value: string) {
 export function RadarAccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [callbackType] = useState(radarAuthCallbackType);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [challenge, setChallenge] = useState<RadarMfaChallenge | null>(null);
   const [enrollment, setEnrollment] = useState<RadarMfaEnrollment | null>(null);
   const [mfaCode, setMfaCode] = useState("");
+
+  function nextPath() {
+    return callbackType ? "/admin" : safeNextPath(location.search);
+  }
+
+  async function submitPasswordSetup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (password !== passwordConfirmation) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await completeRadarPasswordSetup(password);
+      const mfa = await prepareRadarAdminMfa();
+      setChallenge(mfa.challenge);
+      setEnrollment(mfa.enrollment);
+      setPassword("");
+      setPasswordConfirmation("");
+    } catch (authError) {
+      const message = authError instanceof Error ? authError.message : "RADAR_PASSWORD_FAILED";
+      setError(message === "RADAR_PASSWORD_TOO_SHORT"
+        ? "Usa una contraseña de al menos 12 caracteres."
+        : "El enlace no pudo validarse. Solicita una invitación nueva si ya expiró.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,7 +72,7 @@ export function RadarAccessPage() {
     setError(null);
     try {
       await signInRadar(email, password);
-      const next = safeNextPath(location.search);
+      const next = nextPath();
       if (next.startsWith("/admin")) {
         const mfa = await prepareRadarAdminMfa();
         setChallenge(mfa.challenge);
@@ -62,7 +95,7 @@ export function RadarAccessPage() {
     setError(null);
     try {
       await verifyRadarMfa(challenge, mfaCode);
-      navigate(safeNextPath(location.search), { replace: true });
+      navigate(nextPath(), { replace: true });
     } catch (authError) {
       const message = authError instanceof Error ? authError.message : "RADAR_MFA_FAILED";
       setError(message === "RADAR_MFA_CODE_REQUIRED" ? "Ingresa el código de seis dígitos." : "El código MFA no pudo verificarse.");
@@ -78,6 +111,22 @@ export function RadarAccessPage() {
       <p className="lede">El acceso municipal requiere una sesión válida. Los permisos se verifican nuevamente en Supabase para cada municipio.</p>
       {!radarAuthConfigured() ? (
         <p>El runtime autenticado todavía no está configurado en este entorno.</p>
+      ) : callbackType && !challenge ? (
+        <form onSubmit={submitPasswordSetup} autoComplete="new-password">
+          <h2>{callbackType === "invite" ? "Activa tu cuenta administrativa" : "Crea una contraseña nueva"}</h2>
+          <p>Define una contraseña exclusiva para RADAR. Después activarás el segundo factor obligatorio.</p>
+          <label>
+            Contraseña nueva
+            <input type="password" name="new_password" minLength={12} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required autoFocus />
+          </label>
+          <label>
+            Confirmar contraseña
+            <input type="password" name="password_confirmation" minLength={12} autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} required />
+          </label>
+          <small>Mínimo 12 caracteres. No reutilices una contraseña de correo u otro servicio.</small>
+          {error ? <p role="alert">{error}</p> : null}
+          <button className="button" type="submit" disabled={busy}>{busy ? "Activando…" : "Continuar con MFA"}</button>
+        </form>
       ) : challenge ? (
         <form onSubmit={submitMfa} autoComplete="one-time-code">
           {enrollment ? (
