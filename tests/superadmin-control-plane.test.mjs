@@ -33,6 +33,17 @@ test("service role is confined to the server function", () => {
   assert.doesNotMatch(auth, /service[_-]?role/i);
 });
 
+test("administrative invitations finish with password setup and mandatory MFA", () => {
+  assert.match(app, /radarAuthCallbackType\(\)/);
+  assert.match(auth, /type !== "invite" && type !== "recovery"/);
+  assert.match(auth, /password\.length < 12/);
+  assert.match(auth, /Authorization: `Bearer \$\{callback\.access_token\}`/);
+  assert.match(auth, /window\.history\.replaceState/);
+  assert.match(access, /completeRadarPasswordSetup/);
+  assert.match(access, /Continuar con MFA/);
+  assert.match(edge, /redirectTo:?[\s\S]*\/acceso\?next=\/admin/);
+});
+
 test("admin vault is closed, RLS enabled, and privileged RPCs are service-only", () => {
   assert.match(migration, /create schema if not exists admin_vault/);
   assert.match(migration, /revoke all on schema admin_vault from public, anon, authenticated/);
