@@ -1,0 +1,3444 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-09-24",
+  "published_code_reference": "73b0091a0ff30d6673c568ee300e11ddd0f9ea13",
+  "scope": "Retained public products versus repository fixture; not a live database or UI acceptance test",
+  "limits": [
+    "The retained master is v1.60 (2026-07-29); it is not a claim about all later Vault products.",
+    "The current Drive catalog explicitly validates document availability, not internal PDF content.",
+    "Search discovery is not proof that no other semantic product exists.",
+    "Unreviewed available content is not institutionally unavailable.",
+    "A partial plan must not be marked complete because its existing entries match."
+  ],
+  "input_readable_export_sha256": {
+    "master.txt": "3b5451e020d200a6ed6f116beb7e5eee3901c636a2eda442e2172514d247c79c",
+    "catalog-current.txt": "d37b98a443484941e9a43b4508b099b2b9eac080d3276989632c5bf1ad0a9968",
+    "audit-v2.txt": "53c26223bfde4e239383969c72029a8848e081df4bc3f6d4388c2bc40a15762b",
+    "poverty.txt": "53758d4f70e0e6b46c3a8e525b16cd8c449f09ce212dc13bd842892d8c7c6b5f",
+    "pdm-priorities.txt": "6e214d0cd7324f2ca272e100d0906025fa7ec2af411692d1d8cfeefe126df19e",
+    "pdm-indicators.txt": "ab3a7c850d5760f48b677d7500118421d70f415f1a093af8f0d4640558b411ee"
+  },
+  "index_sha256": "3a0078dcefd8d0bba906856ab701b0e5f57be5f78ea36ca5bbb4e0f02f338fe6",
+  "fixture_sha256": "49961319c0eb6bc3a72db8338aac7bb2aedd44267aaae50ba1dc25987c6701e1",
+  "summary": {
+    "municipalities": 340,
+    "master_plan_statuses": {
+      "VALIDATED_0509_TERRITORY_AND_INFRASTRUCTURE_BASELINE": 1,
+      "PENDING_REVIEW": 331,
+      "VALIDATED_WITH_DOCUMENTED_EXCEPTIONS": 3
+    },
+    "fixture_plan_statuses": {
+      "NO_DOCUMENT_IN_INVENTORY": 5,
+      "PARTIAL_VALIDATED_CONTENT": 6,
+      "PENDING_SEMANTIC_REVIEW": 329
+    },
+    "retained_priorities_matched": 36,
+    "retained_indicators_matched": 12,
+    "integrated_priorities": 64,
+    "integrated_indicators": 12,
+    "mismatches": 0
+  },
+  "mismatches": [],
+  "municipalities": [
+    {
+      "municipality_code": "0101",
+      "file_id": null,
+      "master_validation_status": null,
+      "fixture_review_status": "NO_DOCUMENT_IN_INVENTORY",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0102",
+      "file_id": "1kH_pUM09DYVQtltMWsuGM6lFYJLznz_4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 9,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0103",
+      "file_id": "10TmQI-g0XjnpKjhfONiR5-CrH8oeFYms",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0104",
+      "file_id": "1TXjiwWIjthWfw_7B8klvQbQv7IwLa3Gd",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0105",
+      "file_id": "1OldFXgmiXHS9O0TAUDRYa6bO9fhHYqZw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0106",
+      "file_id": "1-8cplJr_zvGIWDl4JoOf1njH5NA0M53W",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0107",
+      "file_id": "1f1o5LcGPGYFIU9bCAzQtOSpq4QVb_mnX",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0108",
+      "file_id": "1uP6IhCdc29H8XeXv8rWTOsuC6bz6SYpm",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0109",
+      "file_id": "1w_Vb56fAHLktSDARDvnMsMTimsqI2lFp",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0110",
+      "file_id": "1oTVdjjnsMkEZ5b3AVYrZr288c0G6McAy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0111",
+      "file_id": "1tEcfm_mfKnj_ph9t37ga8ajSfLM3nx4C",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0112",
+      "file_id": "1eGgD2bfnW9hqbS6WXu_I435TrANZdkz_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0113",
+      "file_id": "1wiaiX3uRrYWDxDSKkMhEaEh-CI9LcyPG",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0114",
+      "file_id": "1JHgUI8XlkwswuHs5PE179WSgGkl-Ghpm",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0115",
+      "file_id": null,
+      "master_validation_status": null,
+      "fixture_review_status": "NO_DOCUMENT_IN_INVENTORY",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0116",
+      "file_id": null,
+      "master_validation_status": null,
+      "fixture_review_status": "NO_DOCUMENT_IN_INVENTORY",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0117",
+      "file_id": "16WkNujfoP_vOzJxkS5ASrHAjVo012DE8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0201",
+      "file_id": null,
+      "master_validation_status": null,
+      "fixture_review_status": "NO_DOCUMENT_IN_INVENTORY",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0202",
+      "file_id": "1NEPvnHtugBOvTAntErnRidq0-IMlhKBc",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0203",
+      "file_id": "1Aj89RJL2u_-LX1rDo4FJoikirO6eO2eC",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0204",
+      "file_id": "1DPlCaPFNbeEY2q_HrucMsfrYxIC35ECW",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0205",
+      "file_id": "1bIYa7iFMD5giYOvH2F2vXfZyW0cG8EJl",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0206",
+      "file_id": "1xazBXAUA2xwxftKRZxlBU86N1SVWJtIy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0207",
+      "file_id": "1HIr99JdKXtW-oWxMspUImTs93xKs4w_4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0208",
+      "file_id": "1brJBea9wts1auhIeu3hNlbkoahS41-GL",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0301",
+      "file_id": "1mG5ssFJpzRWHUNMZYFBa_natWa2_N5tl",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0302",
+      "file_id": "1tmYEDm-N8YJStKawR4JLRBfCae98Svro",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0303",
+      "file_id": "1ruKgO2HGJtCoy_0vLhtwiT00Wp7kIHds",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0304",
+      "file_id": "1p369KaEdeiq9w9yl9C6eANXNO7JJ3hu7",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0305",
+      "file_id": "1M4HjP8OId6K7DRC50sGIzRBlIKj26dJD",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0306",
+      "file_id": "1utM8XV8ud9nXGFF73UVFnIdmCI4NejVt",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0307",
+      "file_id": "1LgpnidWKCT1_2M9NZKuQIpTUxsyew03f",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0308",
+      "file_id": "1UToH3lrRnsIqCDo44xAzk1LY6DYZ10B4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0309",
+      "file_id": "19ok-17t_tiamiM4p8CN4cyQ3NgQjI0mF",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0310",
+      "file_id": "1QEtf7nqWo71on_ZrFJB12cvQI4Tjee-t",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0311",
+      "file_id": "1jOot3DRX3jaZNfnmt1Wc2cFclrC1Livq",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0312",
+      "file_id": "1Ya13GS6R_5cNxEGr97rwO8Sbkgl8WJlE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0313",
+      "file_id": "1JdlSRJtZmawLQi8wUx9Fb7Vyg9TuHhkH",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0314",
+      "file_id": "1UZMbNL1_x8xOQVEyXPV3-Evu-4_0dZwI",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0315",
+      "file_id": "12gNjafPmUqH9H5X3rKUKlJr6N762FUc-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0316",
+      "file_id": "1p55wzATeXxgmbCkJinSFBNI_cD8PJ4zY",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0401",
+      "file_id": "1Labq-qRR_wwN1D_JVvvkKD-2Qt8k1m8m",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0402",
+      "file_id": "1XmORp5rAGtRxmay4uc_Yub76UxyPzqhQ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0403",
+      "file_id": "1AlrYaP4jQs0zUsX0I_Fu_ZCuBdQN3Y-P",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0404",
+      "file_id": "143m1ut5qWNW--8t-Fxqk9BrCDAB8hyoH",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0405",
+      "file_id": "10HbCw-aDcnqS7tW6sC82QLdZnuQR656b",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0406",
+      "file_id": "1A7VsBYdxSC0bgoRJFo5P2TDoV9Dn5sgR",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0407",
+      "file_id": "1Z2eYOpvnb70aiAjGxdF8GK7djXtR4kk1",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0408",
+      "file_id": "1eVagSKu2RygJHlSJwNQVC-S1ps0PCEzo",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0409",
+      "file_id": "1nKFMdn1xrrD3F773KwBZeAV9_E47JuA3",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0410",
+      "file_id": "1eDBTw9f2DcBk-MkM8zZl3XuvMzsvtPTE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0411",
+      "file_id": "1fEvoD615dKt8fYHIC0zN8jkXGmwWjbos",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0412",
+      "file_id": "1kA0brDv21uYF9jgTMrQF2xWT22fFeFch",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0413",
+      "file_id": "10CBtKjU3_U0FxMDiiDUmGhvLgwZEwAsm",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0414",
+      "file_id": "1tKNIlDs-5glSYsLX_b7CerN1976Kp6PD",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0415",
+      "file_id": "1as1SFWptgZVmPFmoraPRjKN8RYC4R2B4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0416",
+      "file_id": "1t9Sqc9IuRAyVDrH87xcgLo3RACoWm4NB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0501",
+      "file_id": "1HnMfsqJGlWVQDSxnru2xo4PA23kKBvnB",
+      "master_validation_status": "VALIDATED_WITH_DOCUMENTED_EXCEPTIONS",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 15,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 15,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0502",
+      "file_id": "1kbcq4QOxadNi-eBwk3Gz_m56Hn4z9MvN",
+      "master_validation_status": "VALIDATED_WITH_DOCUMENTED_EXCEPTIONS",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 11,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 11,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0503",
+      "file_id": "1Sah7nqnDZ-C7bOfYK4n1HF5_X6ismNzI",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0504",
+      "file_id": "11LrQ_-K3DpKg0RRvlKIXjxazA_Jn4Qqp",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0505",
+      "file_id": "1j25IeZNUWluUNqaWTa4rL8NmvzctoA0R",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0506",
+      "file_id": "1T465VyleyEGHKSqEi4q5oYwPGENmDStP",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0507",
+      "file_id": "1B--TKQd1USzkgAlzCKmZ5ECCOmamOWRo",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0508",
+      "file_id": "1mA-a5eAOxVfVrnY29IGd5qZyKNzeDZt2",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0509",
+      "file_id": "1KhKIuw0f-zEusu-FS_GR0yApnUDg0lBt",
+      "master_validation_status": "VALIDATED_0509_TERRITORY_AND_INFRASTRUCTURE_BASELINE",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 12,
+      "integrated_priorities": 0,
+      "integrated_indicators": 12
+    },
+    {
+      "municipality_code": "0510",
+      "file_id": "1Zob0IQsjWAu95niCVgSrses6JV0tZjGP",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0511",
+      "file_id": "1wnCU4eKjM8V2JlSNzmO4HgFjT-jRw-8h",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0512",
+      "file_id": "12NOHcBGnTORsH8Wej-4R5GWuKA9Gtu7Q",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0513",
+      "file_id": "1Pi6I5D18kukh2qVTCOkhIkansHMKXlMh",
+      "master_validation_status": "VALIDATED_WITH_DOCUMENTED_EXCEPTIONS",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 10,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 10,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0514",
+      "file_id": "1aO6KvcrU_ngQ1GaHydqfGDewdFlC_bli",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0601",
+      "file_id": "1iMil2FNqlIfaT9UNl1Gafwdw3vO45UXo",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0602",
+      "file_id": "1eRQImv1uf4Kt2oikFwyw8y5mHJKStOuE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0603",
+      "file_id": "1nxALqbhU-_gs5REwlelx1VCJTxUUDxgs",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0604",
+      "file_id": "1SDdibuNlU4bUVVwuErurxwgIiuqwsAd8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0605",
+      "file_id": "1KIkshNidNuEyuHGRPN0j2KtHY3OWfu3i",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0606",
+      "file_id": "1w9jm4FPoDtNKxIAQsbmX1rL4hrpdcV2r",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0607",
+      "file_id": "152CeatAU2IlY1odePfnfwrSv0Qd50rCR",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0608",
+      "file_id": "11wXmb42Mkowc6ytHPq6fsjBUhqhwj4Yz",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0609",
+      "file_id": "1rKM0zFEOTEgokgnyZmtFn0Af8fhZdj36",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0610",
+      "file_id": "1jl53bc9dc1yBbkIiY0kFiBJBPYlMfXsZ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0611",
+      "file_id": "1g172Eq4u83Zb6FH5hBUkSW0Qw8nO99KQ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0612",
+      "file_id": "1jFJqvL3H_WxFpFq46Uz3hfiT4EbNrWLE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0613",
+      "file_id": "1NgAy6exqzRY43-oUkAOu1-u8sxZM6XWD",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0614",
+      "file_id": "19ogkXkAfWBZFw1BqFWlqipoG0c7A7Y1P",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0701",
+      "file_id": "1tSKGz5UiWQFNypdoJRiZ9XbqvuKyz1HO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0702",
+      "file_id": "1eOF4EJH6K06amsH6dT6ze7_ImVXe3MuO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0703",
+      "file_id": "1lD9MPx4dWU9BzSbY1vFnPi1kb_j4ZhVi",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0704",
+      "file_id": "1XXsxE44-rJloU0bg4vd_z6pgVtMOh7y1",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0705",
+      "file_id": "1LVdQZ5yyoV0UKeKRoAZa4FeJ_lDxRnYy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0706",
+      "file_id": "1RHrzJwkbFj2Bdcn4NcsqbTscObxzzYA0",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0707",
+      "file_id": "1pJ0DjNjMylOL1dLYKQ1XMci-yFhN4ddl",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0708",
+      "file_id": "1y7rFgn1JfVbp_7fyprhJ2Yiqk4rccQ01",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0709",
+      "file_id": "1xcByNE9MVG1hNiGMeY7WGgJRdybhaHnC",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0710",
+      "file_id": "1mChMJragny4MaIC0Ef-FjI9aEsYxWDxB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0711",
+      "file_id": "11XUR4lN7dWyvaCZ1M-Up_guqBntvt4Fm",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0712",
+      "file_id": "1HBaw2Ek-0h3udx6-Z3-u_e9eXc9dqfaO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0713",
+      "file_id": "19Ra9LYMZOWP1zi-bn2UBQq6gn0s6B80K",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0714",
+      "file_id": "17vTunu_oyQFx6esHbzXU6QyMAC1LhYm5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0715",
+      "file_id": "1JldzqxQ7ntJCk59qfQFVl8mlKiEZcKz3",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0716",
+      "file_id": "1tT_4bDZ_FZsDNy39H-i4PVYFmjKhF48Y",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0717",
+      "file_id": "1Zl-JzeuGqOsG7lcDfc7Bw2WLd-W1JXBq",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0718",
+      "file_id": "1pkb9fgCCpeORJOWObyuGlNT8U-Tdqwie",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0719",
+      "file_id": "1z8_1L5Vvlyj0AYcSm5QgOiHnrjk17yP2",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0801",
+      "file_id": "1EEboM9ippuzijfVRr9xAlY5PqLkTQGm-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0802",
+      "file_id": "1zg3CrzUnitMkaKcsJQJicT4bgwTeTfAg",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0803",
+      "file_id": "18LUwXktISL2s2tvpC6riui1ZLzuSQxz0",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0804",
+      "file_id": "1MOCwfH0MZWvabv4NYFU1V_1c-jmXqOP_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0805",
+      "file_id": "1039rk8MA0OZqbzKCLjvYnibUpYhC2iSs",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0806",
+      "file_id": "1S0EVhBcBzo4FjZ0bTac0d0U3xkm2IqCc",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0807",
+      "file_id": "1CZucbA9KrNjUOUJffXA68X8BkyXQOAe1",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0808",
+      "file_id": "17ofTapROcYbjsbBzjXiZCwlHpN-tPikG",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0901",
+      "file_id": "1IDwcZ9yLokM1k43ZqBeSWpe_XBZxFUgc",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0902",
+      "file_id": "1-6x5KfQfZC6KwgTpc0hav1kS-0QmBnKD",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0903",
+      "file_id": "1ibIplh4fEvqA4yzymzpt92gbMGzfklsB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0904",
+      "file_id": "1Kbp6qdEQkgIpIWG9aTcJ0T1nzhASKU0y",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0905",
+      "file_id": "1S4RMz-EwHs6PD9Gm4FkNLHxbZrrAYf_8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0906",
+      "file_id": "1YN9bENqi9aczKxoSYYXbSck8mdfYVcKN",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0907",
+      "file_id": "1QbpUOvvNfJ7_sSqN5yKDzML6QNTXNAKw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0908",
+      "file_id": "1tQAsPoqVZGPCPxi_4iZ_9NHTPpp98eQP",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0909",
+      "file_id": "19OiTdTMH4TPZ1yNhdpAg9rV-oJJ9qLIR",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0910",
+      "file_id": "18vRNsZjR1MsYxDaZN3u3B5yAO-WjJtIA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0911",
+      "file_id": "1OZhy09AfrJ1UdtMOvgcGORwTGZtNdZGA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0912",
+      "file_id": "1nP_jFI8HzIknjXO9n1XdtdVYpY7auiZY",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0913",
+      "file_id": "1fcf6udK84VtT6me_dtJWnCtSoZrXW1Qj",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0914",
+      "file_id": "18LEVcg8yHXWcURROdP0B8ZdSqtmORXZ5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0915",
+      "file_id": "19fB1wPIRC072dn9G_ffd1LAUu9BkFT7Q",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0916",
+      "file_id": "1F8Uo6ulGrONzEANmfv30c4K-UYnVYueO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0917",
+      "file_id": "1pjMMP51xDapywDb2FXhCHva7MXLY-vya",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0918",
+      "file_id": "1JED9bPhjvTFHPUdzKZnxYHhtsyZnkjMX",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0919",
+      "file_id": "1OTdhcCYGfeyr606QHn4sSu4PO0EIRtHu",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0920",
+      "file_id": "1P13Bs1q2pxkg_aj9jqBM5LfnGEgUjVsM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0921",
+      "file_id": "1J8HzHYV6sQOf5dJQz3IKlkC7bkxGunqO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0922",
+      "file_id": "10G6q-S-Iz-dVSf3mpYGn50ZwHNfdIIy8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0923",
+      "file_id": "11fva9UhNMICjdtEoKM9dO8RWga4lpjPB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "0924",
+      "file_id": "1lDNeHMfvPNcolxgpDzQrGjl7sV3l2JYa",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1001",
+      "file_id": "16wFqVzaUluOLyb6j6c5H1OZ724i9fTWL",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1002",
+      "file_id": "1hUdyxd_wdSJkSDZV4gL1DwyR0P02s6ID",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1003",
+      "file_id": "172xv7e-OZKR9tcDkgtlZl3VmEH9IjaQY",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1004",
+      "file_id": "1vDOihba6DxKxdmHy-1VUU8hI5wSLG6ps",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1005",
+      "file_id": "1hSZXwtuNRD6_LQc5vS_H2Gp88ZZTQiZH",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1006",
+      "file_id": "1hqVVVuaVIkH8_LR4Z4oW5uOgkvtk3bxf",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1007",
+      "file_id": "1A0ND1mAJC6shBD8X4qkETrzdlCDMcLy8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1008",
+      "file_id": "1NVQjTidr-KRCk0SaPNX-cMb2Vm6db-Oe",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1009",
+      "file_id": "1Fx5M2Ff_V4EMcR4Vctj-fFjPRaVKNUh9",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1010",
+      "file_id": "1mMgT-IqhqkADnXrELvXJOmdegw0KSVWF",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1011",
+      "file_id": "14mo2xrmlCHypDOmockxZRMOVMcknCz1-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1012",
+      "file_id": "18UqRYO7OQIv7ra9k8oW0SKxMDsjAXdAA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1013",
+      "file_id": "1TRgr_rz8NaYCh-czjA8t_kQq4RMaCP6Y",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1014",
+      "file_id": "1Nl5MFhkB6I3ct-tXJKIb4gnKCLgWgmQ3",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1015",
+      "file_id": "1X2shxjxyZMrmTkxxJZXQERBGtxNS1XKr",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1016",
+      "file_id": "1yNWiUYIdt3smWzoq6c02sUQQqLkErFST",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1017",
+      "file_id": "1e-zTW1GMjYyBHbnB0xg17ZMt0lQXCK9n",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1018",
+      "file_id": "16w-u1rQuc3Rc91zsrPyqgn3yr6pS_EwR",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1019",
+      "file_id": "1cP1Mq3LPzIa6irBhwBkhvZUPHKPXCU9f",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1020",
+      "file_id": "17Q10_Xk7J8iKc-HeWF7meyFv3RpFi7eJ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1021",
+      "file_id": "1ttRVikYUK8-yHsX0p1pEJDSQpSR4D3dg",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1101",
+      "file_id": "1BFfAO4y8LqPeqUz49tJSwvlcYxU5nilS",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1102",
+      "file_id": "14GjCoii6Uz968h8I6ITBDV4n2MLHMWg8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1103",
+      "file_id": "1k_4CzJdX0QOhozOmFV9LkOTNWvUIjE6Q",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1104",
+      "file_id": "1J_N2-_vbfhABgp3NwgXsA3HmfOsaqBiT",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1105",
+      "file_id": "1XOeY2GNj9iHN92ZYogpb9mDJ01Mc-KL4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1106",
+      "file_id": "1N3oTIb1ME647j8KG3A93Q2tJ5m8xyLNm",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1107",
+      "file_id": "1fIuBN4nfwVe-X7KX6KuRhSFy52Q4FIV5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1108",
+      "file_id": "1hovfpE6nOR7FUU-mMB5zg4Aj-dvJWtbU",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1109",
+      "file_id": "1yT5BXMfnZsHWV4wVBKn8CBhIqrlb5qNV",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1201",
+      "file_id": "1mamd2SAQMFFdMN34gx1EbvBxpul60Gmg",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1202",
+      "file_id": "1cnFICOIsAM-MFaRwOqB9EYwvH-hu4bnn",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1203",
+      "file_id": "1ViyKfg0g578wW3H8-ebO7wG0RH5cXPt2",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1204",
+      "file_id": "1qwDSuoYm1puIaUJUjSSMmgjSxGX-_5Ti",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1205",
+      "file_id": "1MdTWWsTqrezw3IcxXGMgVGD-mbgskZtQ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1206",
+      "file_id": "1samJYDl5rcYcmcSc6d-6vJgSj8iIbno-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1207",
+      "file_id": "110icBxEzjWN3lP1jmMFby7WPK199bAsc",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1208",
+      "file_id": "1AdzgMmeQc7E_5acLQNSHPwO0HneuE7M3",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PARTIAL_VALIDATED_CONTENT",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 19,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1209",
+      "file_id": "1HhdSpUZK4985ZLz2092gOl9Lh95SnUgF",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1210",
+      "file_id": "12PWku6ngrIm3KS3tOP5AmxhfIuRxxiir",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1211",
+      "file_id": "1XY3iT9JGaaAk8dT-aV8l9mVmxBzdRZ0-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1212",
+      "file_id": "1qMKgQnCv0ja00zCSm7ufXy4b-iGanS8w",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1213",
+      "file_id": "13lnGsDY3_V7vpppzqqAt1wdNWI5MNFFl",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1214",
+      "file_id": "1V4uGNELE-98LmUNVG8gqM_GDy7aGGdkf",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1215",
+      "file_id": "1f76n3znkhqTOMupxlfpRFOkT8RNWjB_E",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1216",
+      "file_id": "1S26b9SvdcQBKiMe6Ikwe4T7wV0inR3Zo",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1217",
+      "file_id": "194IJ2xQnFeQaEYwW7zpejACL5BSENYnJ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1218",
+      "file_id": "1cyWfhDy0oA2m92sH4Cm60scDduYt-9MU",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1219",
+      "file_id": "1RyVgCgFo76IGCI8YOtQTr5tznhcLTRwt",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1220",
+      "file_id": "1WBfdixWYI0CRVAvKZnt4fRcTaVJD8Xd7",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1221",
+      "file_id": "17arc8SziLPBn9yZg-AZT4r9i77gQ78DT",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1222",
+      "file_id": "1uAqEl38SCwdO_DjIYhMVgmpSpgbHSfvV",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1223",
+      "file_id": "1rjBET_oBeMxDF8hlxGEKainDFximAL7l",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1224",
+      "file_id": "1NKlW_3zOitXPvKYkIa5uyOv1UeJtf3QX",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1225",
+      "file_id": "1q3p45UqILlzqupWG7RxZZb6mMpzK3C1T",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1226",
+      "file_id": "1dUnNX3JQrDWYpue7Cxlj5hNex3pBu1Jd",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1227",
+      "file_id": "16usEZ_XJUiBCQUQcnFHZ5DP8I-1Pt1Fx",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1228",
+      "file_id": "1vbsZVIlEBsAz4WHN6Wow4mUK4aOodp0v",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1229",
+      "file_id": "13CHHeDz9SbU2Igzvc6Z2ZtJ4NSOEonyc",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1230",
+      "file_id": "1yy3hT_sh8ya85lQ7Ta6EHgQk51rgo9TK",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1301",
+      "file_id": "1OJPI8EonFJ9nCSszI-MlHr_4eaBvDtuv",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1302",
+      "file_id": "17Yn3WUlevRHLBnJkUgo_SIoXZQgVRLMj",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1303",
+      "file_id": "1fAbApyvoyBsSo7hiuyOMuObjGokzlKCP",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1304",
+      "file_id": "1RoeWSHcYM5PHX0OHu82cpC2-FPLHfttM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1305",
+      "file_id": "1EXB4H0hQgAqt2chwP8MkCFct_l4Z7bau",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1306",
+      "file_id": "1lIZkLlSx0Adcud3QrodkEuUtPSOfn2Qv",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1307",
+      "file_id": "10Wg7h2oLAbayogcXsnd8MhRdnw486t2T",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1308",
+      "file_id": "1gdknwL1dvOzH_E89OIbH9llWHh-PJHx1",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1309",
+      "file_id": "1h4FAPIPxJkRLKI27Xp49b5zd6ODs2wAx",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1310",
+      "file_id": "1RiWmgJrjDcXHlB6Za_RrcG2LPJpc5wSy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1311",
+      "file_id": "1bep1eldb7JUHW0MZDI6yjJYqjDuksrW5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1312",
+      "file_id": "1Wn8ytmUgTLIiq0_eiJ7JAv8qBhW3wV4y",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1313",
+      "file_id": "1HZEaMJT0HabuUkKF3eFNpsty-PXoEx9T",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1314",
+      "file_id": "12CExe-T5x6nvQvP6QKzDxLFgF0SSmpxr",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1315",
+      "file_id": "1ksTfbpPTeotmlqqqwTmCtOE3Cp4vVYwz",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1316",
+      "file_id": "1aSs5lrdP5QwUX47ATeIkS2T0O3vqkTDo",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1317",
+      "file_id": "1xYNdPsXm2A-9_cD8Ivuzn_X-fOo4Nkus",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1318",
+      "file_id": "1Xspy6HjFtF3zaOlrXFgxQhB2RaMDpnaB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1319",
+      "file_id": "1b9n0FwFXXcZy9IuFG5k45Ezqy0Abe71Y",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1320",
+      "file_id": "1lY5Vxnd2SISB311I8x1G9jDLRZBr1f7I",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1321",
+      "file_id": "1KWaxm1TaHoGD1Os_x2h7g5z11fqaVVVK",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1322",
+      "file_id": "1zewT6EcJMQynFVYIqH-PK6X9bcfbHlk4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1323",
+      "file_id": "11zcIyDJpRtl42AYyQ5u5_aAthpok1UqC",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1324",
+      "file_id": "1o-1Tk9UvoC8IoIxnEIRtsf4gJW1IIeXh",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1325",
+      "file_id": "1LoumnOvA4MT7VJWLDmzJBRvFVnPjuL2P",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1326",
+      "file_id": "1a49TPiA15PhhamzskIimJnU623jfN131",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1327",
+      "file_id": "1AJSj8LxeGWPtQKfN4977ZM474ftjoLlk",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1328",
+      "file_id": "1qruYhXqmhli3CTTaoaMirMisi1n_E3nA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1329",
+      "file_id": "1cx_MoqpUYVDBCm1lUrWzQi7zE56_mIDL",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1330",
+      "file_id": "1WDQ8n2InfUmZow2L82uz8tGDn0DJckLt",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1331",
+      "file_id": "1jL1741GiacP-wcdKcKnHh1__e-giQbU6",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1332",
+      "file_id": "1ggXBwaI56oj5dT5-5x4RJocGnBbmgHxU",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1333",
+      "file_id": null,
+      "master_validation_status": null,
+      "fixture_review_status": "NO_DOCUMENT_IN_INVENTORY",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1401",
+      "file_id": "1fPTcukp0VjAZjuVaiaDsMbCqE4LNiST5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1402",
+      "file_id": "1MGJwq0QyD8K5GNAuDG3mfgYgWB-N0zRM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1403",
+      "file_id": "1meGtq89P7TgS3Sm7OFH-0E1aVVjEjBH7",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1404",
+      "file_id": "1QY2p-sMufDh15c4GpCYAaEOkcR6SJiet",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1405",
+      "file_id": "1oG3uB2n7Y_TwDXNfCeNe7tIqc4FqeH38",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1406",
+      "file_id": "1c9vvl0d63L3StKAf2tg-8O2S1JUlShH4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1407",
+      "file_id": "1KDPsHdjSYFms8TKwTZCIH1CGCD1f8U7B",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1408",
+      "file_id": "1nwZ_j4kGIvfiv2I2vPYGCcwuL759_LwM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1409",
+      "file_id": "1JSOPhR0RTBQLKndYpUbyzusqlruS_2kT",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1410",
+      "file_id": "1WRfq3L1cjBRm-KRQXbPeB5S2WcYEL509",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1411",
+      "file_id": "15V7E3Wo1d56eeog7N00ksNJYvmAhbL_D",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1412",
+      "file_id": "1iG-vICZhUBIb6jbH6zfWv_gzbiCsOoIi",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1413",
+      "file_id": "1lZLUz8yU21O0X4S5D5bslKd0XEGMj6bu",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1414",
+      "file_id": "1SmWltT1OkYNYkAkU99DajYAS2uz_v88n",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1415",
+      "file_id": "174J07n1X0zDVTZ7yNGEzRFR31KYzRFFn",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1416",
+      "file_id": "1RNdVto7OSlfikxj1PpS8GMOlvPZo1X__",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1417",
+      "file_id": "1yeUJjhR00cJQdGHYk9ciU7MxMU3VLmX0",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1418",
+      "file_id": "1yg5ah6f7HoB5bB7ujRn1chHgt4a6fA6R",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1419",
+      "file_id": "1LdapEIi8IM8hmElhIFEK_QbsTkrGzvy5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1420",
+      "file_id": "1RKX5CSWV60qWa9cH5XU7uAP_m9adpP9w",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1421",
+      "file_id": "1BSj2QfwgLKDzXdA0aCXUZmYreqZtzl61",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1501",
+      "file_id": "1sR7nieNC3vOV_FICrY7ZnnPw1Fb0G3tg",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1502",
+      "file_id": "1ATxmYaB1u1pLxK0xj5SlAgT_j9cEQH85",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1503",
+      "file_id": "1e2xU1w7zw_i_2lfGZXPDNWxZvbnFt9v9",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1504",
+      "file_id": "1V2FOnO3cXoTSxwDlPjLF-W2AQwl00Zid",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1505",
+      "file_id": "1xVqyRDNCjn8F56Cs_cqAUOtbO0AEAmLd",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1506",
+      "file_id": "1RFF8aZP3My4iGUVmegvD2hDiyTJo3a5N",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1507",
+      "file_id": "1GotBcytNKN9utK7BRjDdyWmdK_6UD7DE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1508",
+      "file_id": "1Qr-1xDekmdmfDxGy0aH7T_V5jC9v1q-T",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1601",
+      "file_id": "1jOhjpnqZsMhGGtbVyMMBU2rPAgnvPB2u",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1602",
+      "file_id": "1-KRftW5rp00Fl_U0c06ReuovOmQ3HGIw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1603",
+      "file_id": "12OoB_QsrVCVdUl0DJniCUEyhKA8sPgAp",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1604",
+      "file_id": "1V6eji_1idZDI8SFnG6tnLzBJBEO0kiPr",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1605",
+      "file_id": "1IEIN1n2wxvFjrfV4LyVJquU000Hj8dVq",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1606",
+      "file_id": "1b_2Y1qcoKcJUOcj57u09RCeYuikwyflF",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1607",
+      "file_id": "1EIE0dDbrcy7Uo0ECV9EwHrdZrHc6qIM8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1608",
+      "file_id": "1fGmBbPyewHGaAQvfHro3gtXmD3t-K-Te",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1609",
+      "file_id": "19QKSoh1joTc7LoAMej9bAK2fW3MpK9kJ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1610",
+      "file_id": "1iDN5I2HecP6ZYv-AjrE_LixJuDsrhJ2G",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1611",
+      "file_id": "12YVpPBU0EYV_rXNOy8_rt1iKfvu4RaYE",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1612",
+      "file_id": "1e8Oza4PVO_h25McGGHnVDZZkp2PQ-qrj",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1613",
+      "file_id": "1IsJJf4J5oVibW_TfxYop98_GGCxzqupK",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1614",
+      "file_id": "19MryQx-dGNnk0H5WC_IJHasDxpdc269g",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1615",
+      "file_id": "1IFFmhsc0tyHcJsrHZWLc8oi6M_EtOn1L",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1616",
+      "file_id": "1JeLC2Innl80-dZ0GzBejNeLCtT0RjFMM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1617",
+      "file_id": "1WTgf4TrCECUGvGm8IAptcUEFQgw5i00b",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1701",
+      "file_id": "1JTPUeBndhCnIOBbP6cJtGajlQIxUYmsx",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1702",
+      "file_id": "1WOrwFv7cydDg2419iXB8J3Vz3OGpood8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1703",
+      "file_id": "1oswIiFnIE0OAV2f84JlSWnwYwYXCT0PQ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1704",
+      "file_id": "1uGH3CNZbC1MMnxeywQ5l5-cBMxgzOrKa",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1705",
+      "file_id": "1WRBDgMOZg2DdRrNNt4Pvuzru2GkIPXaj",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1706",
+      "file_id": "10_aOZGBnpuR0_vIzS0soqz4d_ZFja2Ku",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1707",
+      "file_id": "1OMeT3aaXuDvsTRXbKjLP1N8hLu9DjHS8",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1708",
+      "file_id": "1KTaoVs4V9gDaR_Q6pyXRv-eRXOyR8lpk",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1709",
+      "file_id": "1szt8Mug8i3RmtV4y0gKaEJVSkUlyaOEk",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1710",
+      "file_id": "1m1jPHNAqNI1pv9qgWhLMcRwBbiliJFsZ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1711",
+      "file_id": "1uKBygIUqyOmUEUEksTCTIVObIepqNfcb",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1712",
+      "file_id": "1OCwgrRF4MYYpd52SPVC8puGM7UHaee4_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1713",
+      "file_id": "1qNxF7ffR7POTYm9wCavGyd2hWVFka6jx",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1714",
+      "file_id": "1ERHzJIIrV24PZdq-qpkbjzm8VcmxczJV",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1801",
+      "file_id": "1Fl2r12ewxNZGYHe7wiTKinMjop7Ha_NA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1802",
+      "file_id": "1FPJqHPpYn8-99lpPHl_YmBoClfMpXm5R",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1803",
+      "file_id": "1alu12BPxk15mYGorAusrCA7gmhzsUaK6",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1804",
+      "file_id": "1XkySTh7GNkk6Eq26Wo70WGvfUZBM9pf4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1805",
+      "file_id": "1ob0MhqLEI1uxIqRBuEEgV_8qBGaTBQWw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1901",
+      "file_id": "1ngBun2gKVL4SUxAB4sVfsll-1QTAjLih",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1902",
+      "file_id": "1H3CtTx9qAOtc_Ze3njurQPR1BIJZX4Vr",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1903",
+      "file_id": "1g91rp_M5ZANg0nVcmOduPSzofE_9LjDq",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1904",
+      "file_id": "12F2cvocMrVRfrN7gK5kqsYj9u7p_Fp30",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1905",
+      "file_id": "1gcYPlG3iGT-busrFNBuR9B7AZEJApyuy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1906",
+      "file_id": "1iBC2LUKNes71G5Au-9lD4IAq-tAXPlyT",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1907",
+      "file_id": "1Pep1Dfu6y_CgZVGZpkTHQpxlF95zwH7u",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1908",
+      "file_id": "1_xn-3NsFK8921s7BR3XHH7oQrCP3ugkw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1909",
+      "file_id": "1Xzamd0ydr-InT9djjboS6TGP2hU6Cpe_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1910",
+      "file_id": "1Zpb5cgIBETkXZI2V4G_a1Ha5-uRVckVZ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "1911",
+      "file_id": "1CMm1YUHkK5lGeBWrLWsZls6WKNB-R6cj",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2001",
+      "file_id": "1LuNIJ5sXPv-CYHkS9TuynDcKUZW_zNMn",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2002",
+      "file_id": "1f2-JWhiM2dS9bZ6hZ_VB6vxkSu8xwyLh",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2003",
+      "file_id": "1MTdPCJNRXEyaGeGNRs__W6m3OrQ2BO_5",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2004",
+      "file_id": "1cBfBrAwfUyV7V7jz_0cN1nrLujdnG50P",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2005",
+      "file_id": "1ntlsVGv_l9UGTZeZK6istIReZZsleY7R",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2006",
+      "file_id": "1tOvEZBhda0kQpfOjvw-8JVZ-Oonn3fFO",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2007",
+      "file_id": "1U42GfCQQUutzS1zmHXeDXCpyOCrQoXz6",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2008",
+      "file_id": "1uugozsoEFGvSY5nwYuOPJPD1o0XEdxKb",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2009",
+      "file_id": "1OS6s_oEOwGtspoZfP4_V6Cs-BpgxX_yZ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2010",
+      "file_id": "1UhuTEEfKYRjbfBxYBKnJswb9YM9Oorg_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2011",
+      "file_id": "1WX0BgTGKjqWbR408rX5ZV22iUYBTRlfz",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2101",
+      "file_id": "1733FTjKMpsiEQRRUGkLYJ4dVGM-PDrRM",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2102",
+      "file_id": "1duoOeZ7L9eYMTN6tkpnvZk4T2Qy3BrhC",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2103",
+      "file_id": "1r3Io3zU1_GNL1Qv1lBYqrrswKEwnJ7f_",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2104",
+      "file_id": "1VjazUm4qFIsdrXc7y8imyaSmx6ZuG9IQ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2105",
+      "file_id": "1F6kjbS4UslrNU514v8e3NKgcRkrTuaK-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2106",
+      "file_id": "1CcP89CRO474K-nAr6i1oEqH7dC5DWGm-",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2107",
+      "file_id": "15g8TBHlXW1EhhCzBt2Xn6KZyeqauKVhy",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2201",
+      "file_id": "1j_xHtDsL3g0c9EMk_sIlqPgszpgm1aJ4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2202",
+      "file_id": "1xQbgy42ce-L6GNDbb9lGOVm6ma4XuDm4",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2203",
+      "file_id": "1rxzQUVSDx8G-mHTKPTeuNgoqM47f72f3",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2204",
+      "file_id": "1oMN-GoO7ihBWRr1ZvsrjYAZ36dfSvJ-O",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2205",
+      "file_id": "14HShYWA_Qa-8jaWEafMn59asShiisBTg",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2206",
+      "file_id": "1-X0TIk1HNJRujq-G9XLIuXUoNNIjLgUu",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2207",
+      "file_id": "1q9rQ0eJKOi9Mm7o8m7OmF_YUWinDpvV2",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2208",
+      "file_id": "1eWyBrKGSPkKphUREYm1iP8xfL8FRi2pb",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2209",
+      "file_id": "10RYe04CxWp2pBMGQ114ev5bn1Jo0dE57",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2210",
+      "file_id": "1ur3dXLwELUF79oNA0EHod2eDBPTNxGkJ",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2211",
+      "file_id": "1qi8JEPNv3O2OIgPoIGkdU7QZBPhPn2YB",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2212",
+      "file_id": "1fFhEhhE9A01oKoQTtPD7ycSibY_PyiqA",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2213",
+      "file_id": "14XXfbE5Sf3OyAKPZsfAB59AXNhUmld2I",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2214",
+      "file_id": "1XueM3X_qzFuD3pP0X5ohmRgm99jIb3Cw",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2215",
+      "file_id": "14Vu8OUTNuT9GjPkSAWmK1W7MdXnV-q1i",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2216",
+      "file_id": "1-6JvvVFNFArn2T0znUryxmtAnI_wQA4p",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    },
+    {
+      "municipality_code": "2217",
+      "file_id": "1M3YvQByTRiVtwMQjLw0Obm_21k7TRs8E",
+      "master_validation_status": "PENDING_REVIEW",
+      "fixture_review_status": "PENDING_SEMANTIC_REVIEW",
+      "retained_priorities_matched": 0,
+      "retained_indicators_matched": 0,
+      "integrated_priorities": 0,
+      "integrated_indicators": 0
+    }
+  ]
+}
