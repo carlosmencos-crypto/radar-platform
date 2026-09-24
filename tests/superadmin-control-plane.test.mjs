@@ -41,6 +41,9 @@ test("administrative invitations finish with password setup and mandatory MFA", 
   assert.match(auth, /window\.history\.replaceState/);
   assert.match(auth, /sessionStorage\.setItem\(CALLBACK_STORAGE_KEY/);
   assert.match(auth, /window\.location\.pathname\.endsWith\("\/acceso"\)/);
+  assert.match(auth, /const refreshToken = values\.get\("refresh_token"\) \?\? ""/);
+  assert.match(auth, /if \(!accessToken\) return storedRadarAuthCallback\(\)/);
+  assert.match(auth, /if \(!session\.refresh_token\)/);
   assert.match(access, /useState\(\(\) => radarAuthCallbackType\(\)\)/);
   assert.match(access, /completeRadarPasswordSetup/);
   assert.match(access, /Continuar con MFA/);

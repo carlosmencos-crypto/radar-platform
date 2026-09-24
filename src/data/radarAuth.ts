@@ -78,7 +78,7 @@ export function readRadarSession(): RadarAuthSession | null {
     const parsed = JSON.parse(raw) as Partial<RadarAuthSession>;
     if (
       typeof parsed.access_token !== "string" || !parsed.access_token
-      || typeof parsed.refresh_token !== "string" || !parsed.refresh_token
+      || typeof parsed.refresh_token !== "string"
       || typeof parsed.expires_at !== "number"
     ) return null;
     return parsed as RadarAuthSession;
@@ -114,7 +114,7 @@ function storedRadarAuthCallback(): RadarAuthCallback | null {
     const parsed = JSON.parse(raw) as Partial<RadarAuthCallback>;
     if (
       typeof parsed.access_token !== "string" || !parsed.access_token
-      || typeof parsed.refresh_token !== "string" || !parsed.refresh_token
+      || typeof parsed.refresh_token !== "string"
       || (parsed.type !== "invite" && parsed.type !== "recovery")
     ) return null;
     return parsed as RadarAuthCallback;
@@ -132,12 +132,13 @@ function readRadarAuthCallback(): RadarAuthCallback | null {
   const values = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const rawType = values.get("type");
   const accessToken = values.get("access_token");
-  const refreshToken = values.get("refresh_token");
-  if (!accessToken || !refreshToken) return storedRadarAuthCallback();
+  const refreshToken = values.get("refresh_token") ?? "";
+  if (!accessToken) return storedRadarAuthCallback();
 
-  // Netlify's protected-site redirect can preserve the tokens while omitting the
-  // final callback type. Possession of both tokens already represents a valid
-  // Supabase session, so the dedicated /acceso route may safely infer recovery.
+  // Netlify's protected-site redirect can preserve only the access token while
+  // omitting the refresh token and final callback type. The access token is
+  // sufficient for the immediate password update and MFA enrollment; it is
+  // never refreshed unless Supabase also supplied a refresh token.
   const type = rawType === "invite" || rawType === "recovery"
     ? rawType
     : window.location.pathname.endsWith("/acceso")
@@ -306,6 +307,11 @@ export async function ensureRadarAccessToken() {
   const session = readRadarSession();
   if (!session) throw new Error("RADAR_AUTH_REQUIRED");
   if (session.expires_at - EXPIRY_SKEW_MS > Date.now()) return session.access_token;
+
+  if (!session.refresh_token) {
+    clearRadarSession();
+    throw new Error("RADAR_AUTH_REQUIRED");
+  }
 
   try {
     const refreshed = await refreshRadarSession(session.refresh_token);
