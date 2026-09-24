@@ -1,25 +1,357 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#08576E" />
-    <meta name="description" content="RADAR · Inteligencia Electoral" />
-    <link rel="icon" type="image/svg+xml" href="/brand/radar-isotipo.svg" sizes="any" />
-    <link rel="shortcut icon" href="/brand/radar-isotipo.svg" />
-    <title>RADAR · Inteligencia Electoral</title>
-    <script type="module" crossorigin src="/assets/index-DsjVSI5l.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-C7R0cXrm.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script>
-      (() => {
-        const theme = localStorage.getItem("radar-theme") === "dark" ? "dark" : "light";
-        const textSize = localStorage.getItem("radar-text-size-v3") === "large" ? "large" : "normal";
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.dataset.textSize = textSize;
-      })();
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#20262c">
+  <meta name="description" content="RADAR organiza la inteligencia, el territorio y la operación de una campaña en una sola memoria estratégica.">
+  <title>RADAR · Inteligencia Electoral</title>
+  <link rel="icon" href="/landing-assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/landing-assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="RADAR, inicio">
+      <img src="/landing-assets/brand/logo-claro.svg" alt="RADAR Inteligencia Electoral">
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">
+      <span></span><span></span>
+    </button>
+
+    <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
+      <a href="#inicio">RADAR</a>
+      <a href="#contacto">Contacto</a>
+      <a href="#productos">Productos</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="market-picker">
+        <button class="market-trigger" type="button" aria-expanded="false" aria-controls="market-menu">
+          <span class="market-flag" aria-hidden="true">🇬🇹</span>
+          <span class="market-code">GT</span>
+          <span class="market-name">Guatemala</span>
+          <span class="market-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div class="market-menu" id="market-menu" role="menu" hidden>
+          <div class="market-menu-head">
+            <span>RADAR Latinoamérica</span>
+            <small>Selecciona un país</small>
+          </div>
+          <button type="button" role="menuitem" data-code="GT" data-country="Guatemala" data-flag="🇬🇹"><i>🇬🇹</i><b>GT</b><span>Guatemala</span><em>Disponible</em></button>
+          <button type="button" role="menuitem" data-code="HN" data-country="Honduras" data-flag="🇭🇳"><i>🇭🇳</i><b>HN</b><span>Honduras</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="CR" data-country="Costa Rica" data-flag="🇨🇷"><i>🇨🇷</i><b>CR</b><span>Costa Rica</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="SV" data-country="El Salvador" data-flag="🇸🇻"><i>🇸🇻</i><b>SV</b><span>El Salvador</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="NI" data-country="Nicaragua" data-flag="🇳🇮"><i>🇳🇮</i><b>NI</b><span>Nicaragua</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="PA" data-country="Panamá" data-flag="🇵🇦"><i>🇵🇦</i><b>PA</b><span>Panamá</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="CO" data-country="Colombia" data-flag="🇨🇴"><i>🇨🇴</i><b>CO</b><span>Colombia</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="PE" data-country="Perú" data-flag="🇵🇪"><i>🇵🇪</i><b>PE</b><span>Perú</span><em>Expansión</em></button>
+          <button type="button" role="menuitem" data-code="MX" data-country="México" data-flag="🇲🇽"><i>🇲🇽</i><b>MX</b><span>México</span><em>Expansión</em></button>
+        </div>
+      </div>
+      <button class="client-link" type="button" data-login-open>Login</button>
+      <a class="button button-dark button-small header-demo" href="#contacto">Solicitar demo</a>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="hero" id="inicio">
+      <div class="particle-field" data-parallax="18" aria-hidden="true"></div>
+      <div class="hero-inner reveal">
+        <p class="eyebrow"><span></span> RADAR ELECTORAL / CAMPAÑA 2027</p>
+        <h1 data-parallax="16">Una campaña sin memoria<br><span>repite sus errores.</span></h1>
+        <p class="hero-manifesto">La estrategia no improvisa.</p>
+        <p class="hero-lead">RADAR convierte cada dato, visita, acuerdo y resultado en memoria estratégica para decidir con más claridad y operar con menos improvisación.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#plataforma">Ver RADAR en acción <span>↘</span></a>
+          <a class="button button-outline" href="#disponibilidad">Consultar mi municipio</a>
+        </div>
+        <div class="hero-proof" aria-label="Principios de RADAR">
+          <span><i></i> Datos con fuente</span>
+          <span><i></i> Operación privada</span>
+          <span><i></i> Exclusividad municipal</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="why section-paper" id="por-que">
+      <div class="section-particles" data-parallax="12" aria-hidden="true"></div>
+      <header class="section-intro reveal">
+        <div>
+          <h2>¿Por qué RADAR?</h2>
+          <p>Porque una campaña no debería empezar de cero cada mañana.</p>
+        </div>
+      </header>
+
+      <div class="collage-story reveal">
+        <img src="/landing-assets/visuals/campaign-collage.webp" data-parallax="22" alt="Información de campaña dispersa entre chats, hojas de cálculo, agenda y notas">
+        <p>La información electoral suele existir, pero vive separada: una hoja de cálculo, un chat, una libreta, una llamada. RADAR reúne ese conocimiento y lo convierte en una forma sencilla de ver, coordinar y decidir.</p>
+      </div>
+
+      <div class="memory-lines reveal">
+        <article>
+          <span>01</span>
+          <h3>Memoria</h3>
+          <p>Personas, acuerdos, fuentes y decisiones conservan historia y contexto.</p>
+          <small>Lo aprendido no se pierde.</small>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Territorio</h3>
+          <p>Municipios, comunidades, centros y actividad de campo se leen juntos.</p>
+          <small>El mapa deja de ser decoración.</small>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Control</h3>
+          <p>Responsables, agenda, recursos y Día D comparten una sola operación.</p>
+          <small>La estrategia llega a la calle.</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-band section-petrol" id="plataforma">
+      <div class="micro-particles" data-parallax="20" aria-hidden="true"></div>
+      <div class="dashboard-copy reveal">
+        <h2>Un dashboard para organizar todo lo que ocurre antes, durante y después de la elección.</h2>
+      </div>
+      <div class="dashboard-device">
+        <img src="/landing-assets/visuals/radar-laptop.webp" alt="Laptop mostrando el Mapa Inteligente real de RADAR">
+      </div>
+    </section>
+
+    <section class="modules section-paper" aria-label="Módulos de RADAR">
+      <div class="module-list reveal">
+        <article><span>01</span><h3>Inteligencia Municipal</h3><p>La fotografía social, territorial, electoral y financiera del municipio.</p></article>
+        <article><span>02</span><h3>Estrategia</h3><p>Prioridades, escenarios y líneas de acción dentro de un mismo contexto.</p></article>
+        <article><span>03</span><h3>Directorio</h3><p>Personas, liderazgos, equipos e historial de relación con el territorio.</p></article>
+        <article><span>04</span><h3>Agenda</h3><p>Actividades, responsables, compromisos y calendario electoral conectado.</p></article>
+        <article><span>05</span><h3>Mapa Inteligente</h3><p>Comunidades, centros, infraestructura y actividad vistos geográficamente.</p></article>
+        <article><span>06</span><h3>Día D</h3><p>Mesas, fiscales, incidencias, actas y RTD para el centro de control.</p></article>
+        <article><span>07</span><h3>Recursos</h3><p>Asignación y seguimiento para saber qué se entregó, dónde y a quién.</p></article>
+        <article><span>08</span><h3>Pulso e IA RADAR</h3><p>Lecturas ejecutivas y asistencia para explorar información con contexto.</p></article>
+      </div>
+    </section>
+
+    <section class="phone-band section-purple">
+      <div class="micro-particles" data-parallax="20" aria-hidden="true"></div>
+      <div class="phone-device">
+        <img src="/landing-assets/visuals/radar-phone.webp" alt="Celular mostrando la agenda móvil real de RADAR">
+      </div>
+      <div class="phone-copy reveal" data-delay="1">
+        <p class="eyebrow eyebrow-light">CAMPAÑA CONECTADA</p>
+        <h2>De la campaña tradicional a una operación con lógica y memoria.</h2>
+      </div>
+    </section>
+
+    <section class="comparison" id="comparativo" aria-label="Comparación entre campaña tradicional y RADAR">
+      <h2 class="comparison-title reveal">Cambiamos la forma de hacer campaña</h2>
+      <div class="comparison-table reveal">
+        <div class="comparison-head">
+          <span>Campaña tradicional</span>
+          <span>RADAR</span>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>Contactos repartidos entre teléfonos, chats y archivos</span></div>
+          <div><i>✓</i><span>Cada persona con territorio, historial, responsable y próxima acción</span></div>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>Reportes de campo que llegan tarde o sin evidencia</span></div>
+          <div><i>✓</i><span>Actividad vinculada a lugar, fecha, equipo y seguimiento</span></div>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>Datos públicos consultados en fuentes separadas</span></div>
+          <div><i>✓</i><span>Información institucional organizada con fuente, periodo y universo</span></div>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>Agenda, territorio y recursos avanzan por caminos distintos</span></div>
+          <div><i>✓</i><span>Una operación conectada con responsables y prioridades visibles</span></div>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>El Día D se arma con controles de última hora</span></div>
+          <div><i>✓</i><span>Centros, mesas, fiscales, incidencias y RTD en una misma capa</span></div>
+        </div>
+        <div class="comparison-row">
+          <div><i>—</i><span>Al terminar el proceso, el aprendizaje se dispersa</span></div>
+          <div><i>✓</i><span>La organización conserva una memoria útil para el siguiente ciclo</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="conversion" id="contacto">
+      <div class="exclusive-panel" id="disponibilidad">
+        <div class="conversion-heading reveal">
+          <p class="eyebrow eyebrow-light">EXCLUSIVIDAD TERRITORIAL</p>
+          <h2>Un municipio.<br>Una campaña.<br><span>Un solo RADAR.</span></h2>
+          <p>Trabajamos con una sola campaña por municipio durante el proceso electoral. La ventaja estratégica no se comparte.</p>
+          <small>La exclusividad se confirma al formalizar la incorporación. Una consulta no reserva el territorio.</small>
+        </div>
+        <form class="compact-form reveal" id="availability-form" novalidate>
+          <h3>Consulta tu municipio</h3>
+          <label>País
+            <select name="country" required>
+              <option>Guatemala</option><option>Honduras</option><option>Costa Rica</option><option>El Salvador</option><option>Nicaragua</option><option>Panamá</option><option>Colombia</option><option>Perú</option><option>México</option>
+            </select>
+          </label>
+          <div class="field-row availability-fields">
+            <label>Departamento o región<input name="region" autocomplete="address-level1" placeholder="Ej. Escuintla" required></label>
+            <label>Municipio<input name="municipality" autocomplete="address-level2" placeholder="Ej. San José" required></label>
+          </div>
+          <label>Campaña
+            <select name="campaign" required>
+              <option value="">Seleccionar ciclo</option>
+              <option>2027</option>
+              <option>2031</option>
+            </select>
+          </label>
+          <button class="button button-primary button-full" type="submit">Verificar disponibilidad <span>→</span></button>
+          <div class="form-result" id="availability-result" role="status" aria-live="polite"></div>
+          <small>La identidad de otros clientes nunca se revela.</small>
+        </form>
+      </div>
+
+      <div class="demo-panel" id="demostracion">
+        <div class="conversion-heading reveal">
+          <p class="eyebrow">DEMOSTRACIÓN PRIVADA</p>
+          <h2>Veamos<br><span>RADAR</span><br>con tu equipo.</h2>
+          <p>Recorre el producto real, revisa la cobertura de tu territorio y decide si RADAR encaja en tu operación.</p>
+          <small class="conversion-spacer" aria-hidden="true">&nbsp;</small>
+        </div>
+        <form class="compact-form reveal" id="demo-form" novalidate>
+          <h3>Solicita una demostración</h3>
+          <div class="field-row">
+            <label>Nombre<input name="name" autocomplete="name" required></label>
+            <label>Cargo<input name="role" autocomplete="organization-title" required></label>
+          </div>
+          <div class="field-row">
+            <label>Campaña u organización<input name="organization" autocomplete="organization" required></label>
+            <label>Municipio o territorio<input name="territory" required></label>
+          </div>
+          <div class="field-row">
+            <label>Correo<input name="email" type="email" autocomplete="email" required></label>
+            <label>WhatsApp<input name="phone" type="tel" autocomplete="tel" required></label>
+          </div>
+          <label>Producto de interés
+            <select name="product" required>
+              <option value="">Seleccionar</option>
+              <option>RADAR Electoral</option><option>RADAR Municipal</option><option>RADAR Gobierno</option>
+            </select>
+          </label>
+          <label class="consent"><input type="checkbox" name="consent" required><span>Acepto que RADAR me contacte únicamente para atender esta solicitud.</span></label>
+          <button class="button button-primary button-full" type="submit">Solicitar demostración privada <span>→</span></button>
+          <div class="form-result" id="demo-result" role="status" aria-live="polite"></div>
+          <small class="form-spacer" aria-hidden="true">&nbsp;</small>
+        </form>
+      </div>
+    </section>
+
+    <section class="products section-paper" id="productos">
+      <header class="products-heading reveal">
+        <h2>PRODUCTOS RADAR</h2>
+      </header>
+      <div class="product-family" aria-label="Productos RADAR">
+        <button class="product-pill product-electoral reveal" type="button" data-product="electoral" aria-expanded="false" aria-controls="product-detail">
+          <span>RADAR ELECTORAL</span><i aria-hidden="true">＋</i>
+        </button>
+        <button class="product-pill product-municipal reveal" data-delay="1" type="button" data-product="municipal" aria-expanded="false" aria-controls="product-detail">
+          <span>RADAR MUNICIPAL</span><i aria-hidden="true">＋</i>
+        </button>
+        <button class="product-pill product-government reveal" data-delay="2" type="button" data-product="government" aria-expanded="false" aria-controls="product-detail">
+          <span>RADAR GOBIERNO</span><i aria-hidden="true">＋</i>
+        </button>
+      </div>
+      <div class="product-detail" id="product-detail" aria-hidden="true" inert>
+        <div class="product-detail-inner">
+          <div>
+            <p class="product-detail-index" id="product-detail-index">RADAR / 01</p>
+            <h3 id="product-detail-title">RADAR Electoral</h3>
+          </div>
+          <div>
+            <p id="product-detail-copy"></p>
+            <ul id="product-detail-features"></ul>
+            <a class="button button-dark" href="#demostracion">Solicitar demostración <span>↘</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-lead">
+      <a href="#inicio" aria-label="RADAR, volver al inicio">
+        <img src="/landing-assets/brand/logo-oscuro.svg" alt="RADAR Inteligencia Electoral">
+      </a>
+      <h2>Memoria estratégica para decidir.</h2>
+    </div>
+
+    <div class="footer-ecosystem">
+      <div class="wow-lockup">
+        <span>UN PRODUCTO DE</span>
+        <a href="https://www.wowlatam.com/" target="_blank" rel="noopener noreferrer" aria-label="Visitar WOW Latam">WOW LATAM</a>
+      </div>
+      <div class="app-platforms" aria-label="Aplicaciones móviles">
+        <div class="store-badge" aria-label="RADAR para iOS">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19.67 13.25c-.02-2.3 1.88-3.42 1.97-3.47-1.07-1.56-2.74-1.78-3.33-1.79-1.42-.15-2.77.83-3.49.83-.72 0-1.83-.81-3.01-.79-1.55.02-2.97.9-3.77 2.28-1.61 2.79-.41 6.91 1.15 9.17.77 1.1 1.68 2.35 2.88 2.3 1.15-.04 1.59-.74 2.98-.74 1.4 0 1.78.74 3 .72 1.24-.02 2.03-1.13 2.79-2.23.88-1.29 1.24-2.53 1.26-2.59-.03-.01-2.4-.92-2.43-3.69ZM17.37 6.5c.64-.77 1.07-1.85.95-2.91-.92.03-2.02.61-2.68 1.38-.59.68-1.11 1.77-.97 2.82 1.02.08 2.07-.52 2.7-1.29Z"/></svg>
+          <p><small>Disponible en</small><b>App Store</b></p>
+        </div>
+        <div class="store-badge" aria-label="RADAR para Android">
+          <svg class="google-play-mark" aria-hidden="true" viewBox="0 0 32 32">
+            <path fill="#19d5ff" d="M3.7 3.2 18.5 16 3.7 28.8c-.7-.8-1-1.9-1-3.2V6.4c0-1.3.3-2.4 1-3.2Z"/>
+            <path fill="#15d989" d="m3.7 3.2 18.7 10.7-3.9 2.1L3.7 3.2Z"/>
+            <path fill="#ffd84a" d="m18.5 16 3.9 2.1L3.7 28.8 18.5 16Z"/>
+            <path fill="#ff5660" d="m22.4 13.9 5.1 2.9c1 .6 1 1.8 0 2.4l-5.1 2.9-3.9-6.1 3.9-2.1Z"/>
+          </svg>
+          <p><small>Disponible en</small><b>Google Play</b></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-social">
+      <div>
+        <a href="https://www.instagram.com/radar_lat/" target="_blank" rel="noopener noreferrer" aria-label="RADAR en Instagram, radar_lat">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          <span>radar_lat</span>
+        </a>
+        <a href="https://www.tiktok.com/@radar.latam" target="_blank" rel="noopener noreferrer" aria-label="RADAR en TikTok, radar.latam">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3c.4 2.1 1.7 3.5 4 4v3c-1.5 0-2.8-.4-4-1.1V16a5 5 0 1 1-4-4.9v3.1A2 2 0 1 0 12 16V3h3Z"/></svg>
+          <span>@radar.latam</span>
+        </a>
+        <a href="https://www.facebook.com/radar.lat" target="_blank" rel="noopener noreferrer" aria-label="RADAR en Facebook, radar.lat">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4.5c-.5-.1-2-.2-3.4-.2-2.8 0-4.7 1.7-4.7 4.9V12H6v4h2.9v8H13v-8h3.2l.5-4H13V9.6C13 8.5 13.3 8 14 8Z"/></svg>
+          <span>radar.lat</span>
+        </a>
+        <a href="https://x.com/latam_RADAR" target="_blank" rel="noopener noreferrer" aria-label="RADAR en X, latam_RADAR">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h4.8l4.1 5.5L17.6 3H20l-6 7.2L21 21h-4.8l-4.6-6.2L6.4 21H4l6.5-7.9L4 3Zm3.5 2 10 14h1L8.5 5h-1Z"/></svg>
+          <span>latam_RADAR</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <dialog class="login-dialog" id="login-dialog" aria-labelledby="login-title">
+    <div class="login-panel">
+      <button class="login-close" type="button" data-login-close aria-label="Cerrar acceso">×</button>
+      <div class="login-heading">
+        <p>RADAR / ACCESO PRIVADO</p>
+        <h2 id="login-title">BIENVENIDO</h2>
+        <span>Ingresar a la operación asignada a tu equipo.</span>
+      </div>
+      <form class="login-form" id="login-form">
+        <label>Correo o usuario
+          <input type="text" name="username" autocomplete="username" placeholder="nombre@campaña.com" required>
+        </label>
+        <label>Contraseña
+          <input type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+        </label>
+        <label class="login-remember"><input type="checkbox" name="remember"><span>Mantener sesión en este dispositivo</span></label>
+        <button class="button button-primary button-full" type="submit">Ingresar a RADAR <span>→</span></button>
+        <p class="login-result" id="login-result" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="/landing-assets/script.js"></script>
+</body>
 </html>
