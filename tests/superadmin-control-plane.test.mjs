@@ -35,10 +35,13 @@ test("service role is confined to the server function", () => {
 
 test("administrative invitations finish with password setup and mandatory MFA", () => {
   assert.match(app, /radarAuthCallbackType\(\)/);
-  assert.match(auth, /type !== "invite" && type !== "recovery"/);
+  assert.match(auth, /rawType === "invite" \|\| rawType === "recovery"/);
   assert.match(auth, /password\.length < 12/);
   assert.match(auth, /Authorization: `Bearer \$\{callback\.access_token\}`/);
   assert.match(auth, /window\.history\.replaceState/);
+  assert.match(auth, /sessionStorage\.setItem\(CALLBACK_STORAGE_KEY/);
+  assert.match(auth, /window\.location\.pathname\.endsWith\("\/acceso"\)/);
+  assert.match(access, /useState\(\(\) => radarAuthCallbackType\(\)\)/);
   assert.match(access, /completeRadarPasswordSetup/);
   assert.match(access, /Continuar con MFA/);
   assert.match(edge, /redirectTo:?[\s\S]*\/acceso\?next=\/admin/);

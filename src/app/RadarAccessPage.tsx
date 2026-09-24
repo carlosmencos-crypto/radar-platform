@@ -27,7 +27,7 @@ function qrSource(value: string) {
 export function RadarAccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [callbackType] = useState(radarAuthCallbackType);
+  const [callbackType] = useState(() => radarAuthCallbackType());
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");

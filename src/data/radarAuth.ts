@@ -1,4 +1,5 @@
 const SESSION_STORAGE_KEY = "radar-supabase-session-v1";
+const CALLBACK_STORAGE_KEY = "radar-supabase-callback-v1";
 const EXPIRY_SKEW_MS = 60_000;
 
 export interface RadarAuthSession {
@@ -101,21 +102,61 @@ function persistRadarSession(response: SupabaseTokenResponse) {
   return session;
 }
 
+function callbackStorageAvailable() {
+  return typeof window !== "undefined" && typeof window.sessionStorage !== "undefined";
+}
+
+function storedRadarAuthCallback(): RadarAuthCallback | null {
+  if (!callbackStorageAvailable()) return null;
+  const raw = window.sessionStorage.getItem(CALLBACK_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<RadarAuthCallback>;
+    if (
+      typeof parsed.access_token !== "string" || !parsed.access_token
+      || typeof parsed.refresh_token !== "string" || !parsed.refresh_token
+      || (parsed.type !== "invite" && parsed.type !== "recovery")
+    ) return null;
+    return parsed as RadarAuthCallback;
+  } catch {
+    return null;
+  }
+}
+
+function clearRadarAuthCallback() {
+  if (callbackStorageAvailable()) window.sessionStorage.removeItem(CALLBACK_STORAGE_KEY);
+}
+
 function readRadarAuthCallback(): RadarAuthCallback | null {
   if (typeof window === "undefined") return null;
   const values = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const type = values.get("type");
+  const rawType = values.get("type");
   const accessToken = values.get("access_token");
   const refreshToken = values.get("refresh_token");
-  if ((type !== "invite" && type !== "recovery") || !accessToken || !refreshToken) return null;
+  if (!accessToken || !refreshToken) return storedRadarAuthCallback();
+
+  // Netlify's protected-site redirect can preserve the tokens while omitting the
+  // final callback type. Possession of both tokens already represents a valid
+  // Supabase session, so the dedicated /acceso route may safely infer recovery.
+  const type = rawType === "invite" || rawType === "recovery"
+    ? rawType
+    : window.location.pathname.endsWith("/acceso")
+      ? "recovery"
+      : null;
+  if (!type) return null;
   const expiresIn = Number(values.get("expires_in"));
-  return {
+  const callback: RadarAuthCallback = {
     access_token: accessToken,
     refresh_token: refreshToken,
     expires_in: Number.isFinite(expiresIn) && expiresIn > 0 ? expiresIn : 3600,
     token_type: values.get("token_type") || "bearer",
     type,
   };
+  if (callbackStorageAvailable()) {
+    window.sessionStorage.setItem(CALLBACK_STORAGE_KEY, JSON.stringify(callback));
+  }
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  return callback;
 }
 
 export function radarAuthCallbackType() {
@@ -136,9 +177,12 @@ export async function completeRadarPasswordSetup(password: string) {
     },
     body: JSON.stringify({ password }),
   });
-  if (!response.ok) throw new Error(`RADAR_PASSWORD_${response.status}`);
+  if (!response.ok) {
+    clearRadarAuthCallback();
+    throw new Error(`RADAR_PASSWORD_${response.status}`);
+  }
   const session = persistRadarSession(callback);
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  clearRadarAuthCallback();
   return session;
 }
 
