@@ -314,8 +314,13 @@ Deno.serve(async (req: Request) => {
       const email = asString(input.email, "email").toLowerCase();
       const targetRole = asString(input.platform_role, "platform_role") as AdminRole;
       if (!ADMIN_ROLES.has(targetRole)) throw new Error("Invalid platform_role");
+      const requestOrigin = req.headers.get("Origin") ?? "";
+      const redirectTo = allowedOrigins().has(requestOrigin)
+        ? `${requestOrigin}/acceso?next=/admin`
+        : undefined;
       const { data: invitation, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, {
         data: { display_name: asString(input.display_name, "display_name", false) },
+        redirectTo,
       });
       if (inviteError || !invitation.user) throw inviteError ?? new Error("Invitation failed");
       const { error: metadataError } = await service.auth.admin.updateUserById(invitation.user.id, {
