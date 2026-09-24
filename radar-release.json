@@ -1,17 +1,7 @@
 {
-  "source_sha": "d4c1604c0d5743c5fd0144e621ff7753e1731205",
+  "source_sha": "52ad9a506b9b4c7e5021fa53f1b0460369828ad7",
   "source_url": "https://radar-v70-national-qa.pages.dev/",
   "files": [
-    {
-      "path": "assets/index-Bfno3a_j.js",
-      "size": 1158327,
-      "sha256": "06906ad770f02c53054f310ec7210254ea83340718c960befe9ca18fb52a19b7"
-    },
-    {
-      "path": "assets/index-Bw8noe0z.css",
-      "size": 679952,
-      "sha256": "8815108f095aa86297afe92d9f1af71386be24206f8bf70dd4943dbbba25afde"
-    },
     {
       "path": "assets/inter-1ab1ad55-8kRkwJBP.woff2",
       "size": 48432,
@@ -81,10 +71,26 @@
       "path": "brand/radar-theme.css",
       "size": 1029,
       "sha256": "d7ca21806ae121e10edfcd302f8336cf8f7db24fe900b92f2dce66f6ed8f6271"
+    },
+    {
+      "path": "assets/index-Dwn8hPvB.css",
+      "size": 680183,
+      "sha256": "c095ea12ca508c627874b604eddc8cac97e7e7e0a456c535cfb126ff481ae499"
+    },
+    {
+      "path": "assets/index-BsLFBCE6.js",
+      "size": 1160591,
+      "sha256": "0d7be8f699e82b84c14cb563642320c571f5b8f3bd6c6cd83823f22a359eb1d8"
+    },
+    {
+      "path": "radar-app.html",
+      "size": 1057,
+      "sha256": "afd5a8a2da219036bf9a8691199fa59021a1b0cd4a7d82884f75613e49932f80"
     }
   ],
   "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
-  "quality_run": "35977765721",
+  "quality_run": "36051240756",
   "date": "2026-09-24",
-  "scope": "Static application deployment; no database, account or permission changes"
+  "scope": "Static application deployment; no database, account or permission changes",
+  "demo_status": "Guarded entry routes; demo accounts, provisioning and reset require superadmin verification"
 }

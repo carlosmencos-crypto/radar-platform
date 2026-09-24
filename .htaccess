@@ -1,6 +1,7 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  RewriteRule ^([0-9]{4}d|demos)/?$ /radar-app.html [L]
   # Preserve the approved landing at / and /index.html.
   RewriteRule ^index\.html$ - [L]
   # Friendly municipality alias; preserve any section and query string.
