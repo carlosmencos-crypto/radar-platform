@@ -17,23 +17,23 @@ import {
 const sections = [
   ["resumen", "Resumen nacional", "⌂"],
   ["municipios", "Municipios y campañas", "◎"],
-  ["exclusividad", "Exclusividad comercial", "◇"],
-  ["usuarios", "Usuarios y permisos", "♙"],
-  ["data-vault", "Data Vault", "▥"],
-  ["publicaciones", "Publicaciones", "⇧"],
-  ["campaign-vault", "Campaign Vault", "▣"],
-  ["pulso", "Pulso Electoral", "◒"],
-  ["rtd", "RTD Día D", "▤"],
-  ["qa", "QA y despliegue", "✓"],
-  ["auditoria", "Auditoría", "≡"],
-  ["soporte", "Soporte seguro", "?"],
+  ["exclusividad", "Disponibilidad y contratos", "◇"],
+  ["usuarios", "Equipo RADAR", "♙"],
+  ["data-vault", "Datos municipales", "▥"],
+  ["publicaciones", "Cargas y publicaciones", "⇧"],
+  ["campaign-vault", "Actividad de campañas", "▣"],
+  ["pulso", "Encuestas · Pulso", "◒"],
+  ["rtd", "Día D · monitoreo", "▤"],
+  ["qa", "Estado técnico", "✓"],
+  ["auditoria", "Historial de cambios", "≡"],
+  ["soporte", "Soporte", "?"],
 ] as const;
 
 type SectionId = (typeof sections)[number][0];
 type Action = (
   operation: string,
   input: Record<string, unknown>,
-) => Promise<void>;
+) => Promise<boolean>;
 interface ActionModuleProps {
   snapshot: AdminSnapshot;
   action: Action;
@@ -45,7 +45,7 @@ const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
     resumen: {
       eyebrow: "OPERACIÓN NACIONAL",
       description:
-        "Una sola plataforma para controlar cobertura, campañas, datos y bloqueantes en los 340 municipios.",
+        "Revisá tus campañas, encontrá un municipio y resolvé lo que requiere atención.",
     },
     municipios: {
       eyebrow: "COBERTURA TERRITORIAL",
@@ -55,17 +55,17 @@ const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
     exclusividad: {
       eyebrow: "PROTECCIÓN COMERCIAL",
       description:
-        "Reservas contractuales por municipio y período, con conflictos impedidos desde la base.",
+        "Consultá qué municipios están reservados y administrá sus contratos y fechas de vigencia.",
     },
     usuarios: {
       eyebrow: "ACCESO Y SEGURIDAD",
       description:
-        "Personas, roles y territorios autorizados. Cada cambio revoca o habilita acceso de forma auditada.",
+        "Administrá a las personas de tu equipo interno: su función, territorio y acceso a esta consola.",
     },
     "data-vault": {
       eyebrow: "DATOS OFICIALES",
       description:
-        "Fuentes, períodos, cobertura y linaje de las 17 capas canónicas sin mezclar universos.",
+        "Consultá la información electoral, territorial y municipal disponible, su fuente y fecha de actualización.",
     },
     publicaciones: {
       eyebrow: "CONTROL DE VERSIONES",
@@ -75,7 +75,7 @@ const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
     "campaign-vault": {
       eyebrow: "SALUD OPERATIVA",
       description:
-        "Indicadores agregados de cada campaña sin abrir padrón, CRM ni documentos privados.",
+        "Revisá el nivel de actividad y la última actualización de cada campaña.",
     },
     pulso: {
       eyebrow: "INVESTIGACIÓN ELECTORAL",
@@ -85,7 +85,7 @@ const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
     rtd: {
       eyebrow: "MONITOREO DÍA D",
       description:
-        "Estado agregado de centros, JRV, fiscales, cinco actas, retrasos y alertas.",
+        "Controlá la recepción de actas, la cobertura de fiscales y los incidentes de cada campaña.",
     },
     qa: {
       eyebrow: "CALIDAD Y ENTREGA",
@@ -193,6 +193,7 @@ export function SuperAdminApp({
   const [menuOpen, setMenuOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionFailed, setActionFailed] = useState(false);
   const [dark, setDark] = useState(false);
   const activeDefinition = sections.find(([id]) => id === active)!;
   const meta = sectionCopy[active];
@@ -211,18 +212,22 @@ export function SuperAdminApp({
   async function action<T>(operation: string, input: Record<string, unknown>) {
     setActionBusy(true);
     setActionMessage(null);
+    setActionFailed(false);
     try {
       await runAdminAction<T>(operation, input);
       setActionMessage(
         "Operación completada. El cambio quedó registrado en auditoría.",
       );
       await onRefresh();
+      return true;
     } catch (error) {
+      setActionFailed(true);
       setActionMessage(
         error instanceof Error
           ? error.message
           : "No se pudo completar la operación.",
       );
+      return false;
     } finally {
       setActionBusy(false);
     }
@@ -279,14 +284,14 @@ export function SuperAdminApp({
           </span>
           <div>
             <strong>{statusLabel(snapshot.operator_context.user_role)}</strong>
-            <small>MFA verificado · Guatemala</small>
+            <small>Verificación en dos pasos activa</small>
           </div>
           <button
             type="button"
             onClick={() => void logout()}
             aria-label="Cerrar sesión"
           >
-            ↗
+            Cerrar sesión
           </button>
         </div>
       </aside>
@@ -313,7 +318,7 @@ export function SuperAdminApp({
           </div>
           <div className="superadmin-top-actions">
             <span className="superadmin-environment">
-              <i /> QA · entorno cerrado
+              <i /> Entorno de pruebas
             </span>
             <button type="button" onClick={() => void onRefresh()}>
               ↻ <span>Actualizar</span>
@@ -341,7 +346,7 @@ export function SuperAdminApp({
               <p>{meta.description}</p>
             </div>
             <aside>
-              <small>ÚLTIMA LECTURA DEL SISTEMA</small>
+              <small>ÚLTIMA ACTUALIZACIÓN</small>
               <strong>{date(snapshot.generated_at)}</strong>
               <span>
                 <i /> Sesión y alcance verificados
@@ -350,8 +355,8 @@ export function SuperAdminApp({
           </section>
 
           {actionMessage ? (
-            <div className="superadmin-action-message" role="status">
-              <span>✓</span>
+            <div className={`superadmin-action-message${actionFailed ? " is-error" : ""}`} role={actionFailed ? "alert" : "status"}>
+              <span>{actionFailed ? "!" : "✓"}</span>
               {actionMessage}
               <button
                 type="button"
@@ -427,8 +432,8 @@ function NationalSummary({ snapshot }: { snapshot: AdminSnapshot }) {
   );
   const attention = [
     {
-      label: "Cobertura incompleta",
-      detail: `${number(layerPending)} municipios no tienen todavía las 17 capas presentes`,
+      label: "Datos por completar",
+      detail: `${number(layerPending)} municipios tienen grupos de información pendientes`,
       value: layerPending,
       to: "/admin/data-vault",
     },
@@ -439,8 +444,8 @@ function NationalSummary({ snapshot }: { snapshot: AdminSnapshot }) {
       to: "/admin/publicaciones",
     },
     {
-      label: "MFA pendiente",
-      detail: `${number(mfaPending)} cuentas administrativas requieren segundo factor`,
+      label: "Verificación en dos pasos pendiente",
+      detail: `${number(mfaPending)} personas deben activar el código de seguridad adicional`,
       value: mfaPending,
       to: "/admin/usuarios",
     },
@@ -462,21 +467,21 @@ function NationalSummary({ snapshot }: { snapshot: AdminSnapshot }) {
           tone="petrol"
         />
         <Kpi
-          label="Municipios con 17 capas"
+          label="Municipios con datos presentes"
           value={number(snapshot.national.municipalities_with_17_layers)}
-          note="Presencia completa; la validación se controla aparte"
+          note="17 grupos de información presentes; revisá su validación en Datos municipales"
           tone="purple"
         />
         <Kpi
           label="Campañas activas"
           value={number(snapshot.national.active_campaigns)}
-          note="Campañas reales, sin entornos demo"
+          note="Espacios de clientes habilitados para operar"
           tone="graphite"
         />
         <Kpi
           label="Exclusividades vigentes"
           value={number(snapshot.national.protected_contracts)}
-          note="Reservas y contratos protegidos por base"
+          note="Municipios reservados o contratados dentro de su vigencia"
           tone="green"
         />
       </div>
@@ -522,15 +527,15 @@ function NationalSummary({ snapshot }: { snapshot: AdminSnapshot }) {
             <Link to="/admin/usuarios">
               <span>♙</span>
               <div>
-                <strong>Administrar acceso</strong>
-                <small>Invitaciones y revocación</small>
+                <strong>Administrar equipo RADAR</strong>
+                <small>Invitar, suspender y reactivar personal interno</small>
               </div>
             </Link>
             <Link to="/admin/soporte">
               <span>?</span>
               <div>
-                <strong>Abrir diagnóstico</strong>
-                <small>Acceso temporal auditado</small>
+                <strong>Resolver un incidente</strong>
+                <small>Soporte con permiso y duración definidos</small>
               </div>
             </Link>
           </div>
@@ -538,8 +543,8 @@ function NationalSummary({ snapshot }: { snapshot: AdminSnapshot }) {
       </div>
       <div className="superadmin-grid superadmin-grid--wide">
         <Panel
-          eyebrow="AISLAMIENTO TERRITORIAL"
-          title="Vertical QA · 0509 y municipio de control"
+          eyebrow="CONTROL DE CALIDAD"
+          title="Municipios de prueba"
         >
           <div className="superadmin-verticals">
             {snapshot.vertical_qa.map((municipality) => (
@@ -610,7 +615,7 @@ function MunicipalitiesModule({ snapshot, action, busy }: ActionModuleProps) {
       (item) => String(item.id) === String(form.contract_id),
     );
     if (!contract) return;
-    await action("create_campaign", {
+    const completed = await action("create_campaign", {
       municipality_code: contract.municipality_code,
       organization_id: contract.client_organization_id,
       name: form.name,
@@ -618,7 +623,7 @@ function MunicipalitiesModule({ snapshot, action, busy }: ActionModuleProps) {
       status: form.status,
       reason: form.reason,
     });
-    setDialog(false);
+    if (completed) setDialog(false);
   }
   return (
     <>
@@ -682,7 +687,7 @@ function MunicipalitiesModule({ snapshot, action, busy }: ActionModuleProps) {
                 <Progress
                   value={item.canonical_layers_present}
                   max={17}
-                  label={`${item.canonical_layers_present}/17 capas`}
+                  label={`${item.canonical_layers_present}/17 grupos`}
                 />
               </td>
               <td>{number(item.active_campaigns)}</td>
@@ -733,7 +738,7 @@ function MunicipalitiesModule({ snapshot, action, busy }: ActionModuleProps) {
           {!protectedContracts.length ? (
             <InlineNotice>
               No hay una reserva vigente disponible. Creala primero en
-              Exclusividad comercial.
+              Disponibilidad y contratos.
             </InlineNotice>
           ) : null}
           <Step
@@ -794,21 +799,21 @@ function ExclusivityModule({ snapshot, action, busy }: ActionModuleProps) {
   ).filter(([id]) => id);
   async function reserve(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await action(
+    const completed = await action(
       "reserve_contract",
       Object.fromEntries(new FormData(event.currentTarget).entries()),
     );
-    setDialog(false);
+    if (completed) setDialog(false);
   }
   return (
     <>
       <div className="superadmin-info-strip">
         <span>◇</span>
         <div>
-          <strong>La exclusividad no depende de esta pantalla.</strong>
+          <strong>Un cliente por municipio durante la vigencia del contrato.</strong>
           <p>
-            PostgreSQL rechaza cualquier período solapado para el mismo
-            municipio, aunque la interfaz falle.
+            El sistema impide reservar el mismo municipio para dos clientes en
+            fechas que se superponen.
           </p>
         </div>
       </div>
@@ -976,7 +981,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
       commercial_ops: ["snapshot:read", "contracts:write", "campaigns:write"],
       rtd_ops: ["snapshot:read", "rtd:read"],
     };
-    await action("invite_user", {
+    const completed = await action("invite_user", {
       email: form.email,
       display_name: form.display_name,
       platform_role: form.platform_role,
@@ -990,7 +995,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
       },
       reason: form.reason,
     });
-    setInviteOpen(false);
+    if (completed) setInviteOpen(false);
   }
   async function changeStatus(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -998,12 +1003,12 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
     const form = Object.fromEntries(
       new FormData(event.currentTarget).entries(),
     );
-    await action("set_user_status", {
+    const completed = await action("set_user_status", {
       user_id: selectedUser.id,
       is_active: String(form.is_active) === "true",
       reason: form.reason,
     });
-    setSelectedUser(null);
+    if (completed) setSelectedUser(null);
   }
   const departmentOptions = Array.from(
     new Map(
@@ -1017,14 +1022,14 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
     <>
       <Panel
         eyebrow="CUENTAS ADMINISTRATIVAS"
-        title="Usuarios y permisos"
+        title="Personas del equipo RADAR"
         action={
           <button
             className="superadmin-primary"
             type="button"
             onClick={() => setInviteOpen(true)}
           >
-            + Invitar usuario
+            + Invitar al equipo
           </button>
         }
       >
@@ -1036,7 +1041,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
             headers={[
               "Usuario",
               "Rol",
-              "Segundo factor",
+              "Verificación en dos pasos",
               "Último acceso",
               "Estado",
               "",
@@ -1053,7 +1058,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
                 <td>{statusLabel(user.platform_role)}</td>
                 <td>
                   <Status
-                    value={user.mfa_enrolled ? "AAL2 listo" : "MFA pendiente"}
+                    value={user.mfa_enrolled ? "Activada" : "Verificación en dos pasos pendiente"}
                   />
                 </td>
                 <td>{date(user.last_sign_in_at)}</td>
@@ -1207,16 +1212,16 @@ function DataVaultModule({ snapshot, action, busy }: ActionModuleProps) {
     const form = Object.fromEntries(
       new FormData(event.currentTarget).entries(),
     );
-    await action("register_source", {
+    const completed = await action("register_source", {
       ...form,
       lineage: { method: form.method, notes: form.lineage_notes },
     });
-    setDialog(false);
+    if (completed) setDialog(false);
   }
   return (
     <>
       <Panel
-        eyebrow="17 CAPAS CANÓNICAS"
+        eyebrow="17 GRUPOS DE INFORMACIÓN"
         title="Cobertura, procedencia y validación"
         action={
           <button
@@ -1762,12 +1767,12 @@ function BatchReview({
     const form = Object.fromEntries(
       new FormData(event.currentTarget).entries(),
     );
-    await action("transition_publication", {
+    const completed = await action("transition_publication", {
       batch_id: batch?.id,
       target_state: next,
       reason: form.reason,
     });
-    onClose();
+    if (completed) onClose();
   }
   return (
     <form className="superadmin-form" onSubmit={(event) => void submit(event)}>
@@ -1874,6 +1879,8 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
     null,
   );
   const [election, setElection] = useState("ALCALDIA");
+  const [resultRows, setResultRows] = useState([1, 2, 3]);
+  const [nextResultRow, setNextResultRow] = useState(4);
   const scope =
     election === "ALCALDIA"
       ? "MUNICIPALITY"
@@ -1906,19 +1913,19 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
       source_label: form.source_label,
       version: 1,
     };
-    const results = [1, 2, 3]
+    const results = resultRows
       .map((index) => ({
         option_code: `O${index}`,
         candidate_name: form[`candidate_${index}`],
         value: Number(form[`value_${index}`]),
       }))
       .filter((item) => item.candidate_name);
-    await action("save_pulse_draft", {
+    const completed = await action("save_pulse_draft", {
       measurement,
       results,
       reason: form.reason,
     });
-    setDialog(false);
+    if (completed) setDialog(false);
   }
   async function transition(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1926,13 +1933,13 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
     const form = Object.fromEntries(
       new FormData(event.currentTarget).entries(),
     );
-    await action("transition_pulse", {
+    const completed = await action("transition_pulse", {
       measurement_id: selected.id,
       target_status: form.target_status,
       preview_hash: selected.preview_hash,
       reason: form.reason,
     });
-    setSelected(null);
+    if (completed) setSelected(null);
   }
   const departments = Array.from(
     new Map(
@@ -2144,22 +2151,29 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
             title="Resultados"
             detail="Se guardan exactamente estos valores; el cliente no los recalcula."
           />
-          {[1, 2, 3].map((index) => (
+          {resultRows.map((index) => (
             <div className="superadmin-result-row" key={index}>
               <input
                 name={`candidate_${index}`}
                 placeholder={`Opción o candidatura ${index}`}
-                required={index < 3}
+                aria-label={`Candidatura u opción ${index}`}
+                required
               />
               <input
                 name={`value_${index}`}
                 type="number"
                 step="0.01"
+                min="0"
+                max="100"
+                aria-label={`Porcentaje de la opción ${index}`}
                 placeholder="%"
-                required={index < 3}
+                required
               />
+              <button type="button" className="superadmin-row-button" disabled={resultRows.length <= 2} aria-label={`Quitar opción ${index}`} onClick={() => setResultRows((rows) => rows.filter((row) => row !== index))}>Quitar</button>
             </div>
           ))}
+          <button type="button" className="superadmin-row-button" onClick={() => { setResultRows((rows) => [...rows, nextResultRow]); setNextResultRow((row) => row + 1); }}>+ Agregar candidatura u opción</button>
+          <p className="superadmin-help">Incluí todas las candidaturas medidas y, si la encuesta las incluye, opciones como indecisos o ninguno. Los porcentajes deben corresponder a la misma pregunta.</p>
           <Field label="Motivo">
             <textarea
               name="reason"
@@ -2250,8 +2264,8 @@ function RtdModule({ snapshot }: { snapshot: AdminSnapshot }) {
       </div>
       <Panel eyebrow="MONITOREO AGREGADO" title="RTD Día D">
         <p className="superadmin-help">
-          Esta vista evita consultar filas crudas e imágenes de actas. Presenta
-          únicamente salud operativa por campaña.
+          Este panel muestra el avance de recepción y los incidentes por campaña.
+          Los resultados por candidato y la revisión de imágenes de actas aún no están disponibles aquí.
         </p>
         <EmptyOr
           rows={snapshot.rtd}
@@ -2420,11 +2434,11 @@ function SupportModule({ snapshot, action, busy }: ActionModuleProps) {
   const [dialog, setDialog] = useState(false);
   async function open(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await action(
+    const completed = await action(
       "open_support_session",
       Object.fromEntries(new FormData(event.currentTarget).entries()),
     );
-    setDialog(false);
+    if (completed) setDialog(false);
   }
   return (
     <>
@@ -2616,7 +2630,7 @@ function MunicipalitySignal({
       <Progress
         value={municipality.canonical_layers_present}
         max={17}
-        label={`${municipality.canonical_layers_present}/17 capas`}
+        label={`${municipality.canonical_layers_present}/17 grupos`}
       />
       <dl>
         <div>
