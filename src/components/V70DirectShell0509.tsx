@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
+import { signOutRadar, radarCurrentIdentity } from "../data/radarAuth";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { V70DirectModalEscape } from "./V70DirectModalEscape";
@@ -64,9 +65,14 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     });
   }
 
-  const userLabel = "Carlos Mencos";
-  const avatar = userPhoto ? <img src={userPhoto} alt="" /> : "CM";
-  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
+  const [userLabel, setUserLabel] = useState("Mi cuenta");
+  useEffect(() => {
+    let live = true;
+    void radarCurrentIdentity().then(user => { if (live && user) setUserLabel(user.user_metadata?.display_name || user.email || "Mi cuenta"); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  const avatar = userPhoto ? <img src={userPhoto} alt="" /> : userLabel.slice(0, 2).toUpperCase();
+  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>Sesión protegida</span><button type="button" onClick={() => { void signOutRadar().finally(() => window.location.assign("/acceso")); }}>Cerrar sesión</button></div>;
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
 
   const controls = <div className="top-actions">
