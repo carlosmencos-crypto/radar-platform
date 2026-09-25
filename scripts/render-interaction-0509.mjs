@@ -54,7 +54,7 @@ const runtime = {
     campaign_name: "QA V70 interaction smoke",
     user_role: "owner",
     permissions: ["municipality:0509", "campaign:read"],
-    is_demo: true,
+    is_demo: false,
   },
   layers: visibleLayers,
   geo: {
