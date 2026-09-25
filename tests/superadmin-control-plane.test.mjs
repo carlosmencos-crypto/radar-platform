@@ -21,6 +21,8 @@ test("superadmin route is a distinct authenticated control plane", () => {
   assert.match(edge, /jwtPayload\(token\)\.aal !== "aal2"/);
   assert.match(access, /prepareRadarAdminMfa/);
   assert.match(access, /Activa la seguridad administrativa/);
+  assert.match(access, /decodeURIComponent\(payload\)/);
+  assert.match(access, /data:image\/svg\+xml;charset=utf-8/);
   assert.match(auth, /factor_type: "totp"/);
   assert.match(auth, /RADAR Administrador/);
   assert.match(auth, /\/factors\/\$\{factor\.id\}\/challenge/);
