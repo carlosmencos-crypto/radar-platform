@@ -7,6 +7,7 @@ const nav = [
 
 export function Layout() {
   const location = useLocation();
+  const onAccessPage = location.pathname === "/acceso";
 
   return (
     <div className="app-shell public-shell">
@@ -14,7 +15,7 @@ export function Layout() {
         <NavLink to="/" className="brand" aria-label="RADAR inicio">
           <img src="/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg" alt="RADAR Inteligencia Electoral" />
         </NavLink>
-        <nav className="nav" aria-label="Navegación principal">
+        {!onAccessPage && <nav className="nav" aria-label="Navegación principal">
           {nav.map((item) => (
             <NavLink
               key={item.to}
@@ -28,8 +29,8 @@ export function Layout() {
               {item.label}
             </NavLink>
           ))}
-        </nav>
-        <NavLink to="/admin" className="button button--ghost">Consola interna</NavLink>
+        </nav>}
+        {!onAccessPage && <NavLink to="/admin" className="button button--ghost">Consola interna</NavLink>}
       </header>
       <main><Outlet /></main>
     </div>
