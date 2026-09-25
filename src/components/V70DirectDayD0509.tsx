@@ -19,6 +19,10 @@ import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAda
 import { fiscalJrvCoverage } from "../data/fiscalJrvCoverage";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 
+const FISCAL_PORTAL_URL =
+  (import.meta.env.VITE_FISCAL_PORTAL_URL as string | undefined)?.replace(/\/+$/, "") ||
+  "https://fiscales-qa.wowlatam.com";
+
 function InternalViews({
   views,
 }: {
@@ -323,7 +327,7 @@ function DayDContent() {
         current?.id ?? null,
       );
       setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
-      const link = `https://radar-portal-fiscal.carlos-mencos.chatgpt.site/?code=${encodeURIComponent(code)}`;
+      const link = `${FISCAL_PORTAL_URL}/?code=${encodeURIComponent(code)}`;
       setIssuedAccess({
         link,
         code,
@@ -570,7 +574,7 @@ function DayDContent() {
         </div>
         <a
           className="day-d-open-fiscal"
-          href="https://radar-portal-fiscal.carlos-mencos.chatgpt.site"
+          href={FISCAL_PORTAL_URL}
           target="_blank"
           rel="noreferrer"
         >
