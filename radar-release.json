@@ -1,5 +1,5 @@
 {
-  "source_sha": "01d4a660654f85ab5473cb9d9a2173c5c0187945",
+  "source_sha": "36026414d409f1c89766a9a9091bae08b8c2a73c",
   "source_branch": "qa/v70-national-client-readiness",
   "date": "2026-09-25",
   "scope": "Harden municipal runtime, demo alias, premium sign-in, and deployment integrity",
@@ -15,9 +15,9 @@
   },
   "files": [
     {
-      "path": "assets/index-DU9H_aQa.js",
-      "size": 604196,
-      "sha256": "a0e880fa3f9041d9d66362d115bab55badc6cb54fc0f2eba23da2d71e4c13780"
+      "path": "assets/index-f2ULqrmd.js",
+      "size": 604210,
+      "sha256": "bd8f48b70c0557bca65c0c960374849a44d4df5a0e982bdcbb6cda0dd72487c7"
     },
     {
       "path": "assets/radar-contract-WSpO9eWF.js",
@@ -42,7 +42,7 @@
     {
       "path": "radar-app.html",
       "size": 1306,
-      "sha256": "33040627d4c80674a4fd4cd006f60a6e8d722f223afa5a44bae981128f990c84"
+      "sha256": "eb842c7e9a38fc7024518dbe8d822e39404582480d7f8f7903c4864fdcea6380"
     }
   ]
 }
