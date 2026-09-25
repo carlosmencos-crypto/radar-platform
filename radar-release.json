@@ -3,6 +3,10 @@
   "source_branch": "qa/v70-national-client-readiness",
   "date": "2026-09-25",
   "scope": "Harden municipal runtime, demo alias, premium sign-in, and deployment integrity",
+  "environment": {
+    "supabase_project": "xxobbhnhxhcjkdxmjmwj",
+    "credential_class": "publishable"
+  },
   "quality": {
     "tests": 129,
     "municipalities_validated": 340,
@@ -11,9 +15,9 @@
   },
   "files": [
     {
-      "path": "assets/index-BCKKkbqk.js",
-      "size": 603663,
-      "sha256": "fae990811bb1c478a09ccc559bcea3a1b800ab152b036c4081040591c06bbc7c"
+      "path": "assets/index-DU9H_aQa.js",
+      "size": 604196,
+      "sha256": "a0e880fa3f9041d9d66362d115bab55badc6cb54fc0f2eba23da2d71e4c13780"
     },
     {
       "path": "assets/radar-contract-WSpO9eWF.js",
@@ -38,7 +42,7 @@
     {
       "path": "radar-app.html",
       "size": 1306,
-      "sha256": "83010753b2f1e44363ac737485cb5f361dc73d8d378073c86db30e8a50ba8df7"
+      "sha256": "33040627d4c80674a4fd4cd006f60a6e8d722f223afa5a44bae981128f990c84"
     }
   ]
 }
