@@ -332,8 +332,8 @@ export async function ensureRadarAccessToken() {
 
 export async function signOutRadar() {
   const session = readRadarSession();
-  const { url, publishableKey } = requireAuthConfig();
   try {
+    const { url, publishableKey } = requireAuthConfig();
     if (session?.access_token) {
       await fetch(`${url}/auth/v1/logout`, {
         method: "POST",
@@ -345,5 +345,25 @@ export async function signOutRadar() {
     }
   } finally {
     clearRadarSession();
+    clearRadarAuthCallback();
   }
+}
+
+export async function radarCurrentIdentity(): Promise<{ email?: string; user_metadata?: { display_name?: string } } | null> {
+  const token = await ensureRadarAccessToken();
+  if (!token) return null;
+  const { url, publishableKey } = requireAuthConfig();
+  const response = await fetch(`${url}/auth/v1/user`, { headers: { apikey: publishableKey, Authorization: `Bearer ${token}` } });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function requestRadarPasswordRecovery(email: string, next: string) {
+  const { url, publishableKey } = requireAuthConfig();
+  const redirect = `${window.location.origin}/acceso?next=${encodeURIComponent(next)}`;
+  const response = await fetch(`${url}/auth/v1/recover?redirect_to=${encodeURIComponent(redirect)}`, {
+    method: "POST", headers: { apikey: publishableKey, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim() }),
+  });
+  if (!response.ok) throw new Error(response.status === 429 ? "Espera unos minutos antes de solicitar otro enlace." : "No se pudo solicitar el enlace. Intenta de nuevo.");
 }
