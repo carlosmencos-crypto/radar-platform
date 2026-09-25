@@ -1,96 +1,44 @@
 {
-  "source_sha": "b5486b9d2f887af94151a5039a52d79685037d3f",
-  "source_url": "https://radar-v70-qa.netlify.app/",
+  "source_sha": "01d4a660654f85ab5473cb9d9a2173c5c0187945",
+  "source_branch": "qa/v70-national-client-readiness",
+  "date": "2026-09-25",
+  "scope": "Harden municipal runtime, demo alias, premium sign-in, and deployment integrity",
+  "quality": {
+    "tests": 129,
+    "municipalities_validated": 340,
+    "browser_parse_required": true,
+    "max_transport_bytes": 740000
+  },
   "files": [
     {
-      "path": "assets/inter-1ab1ad55-8kRkwJBP.woff2",
-      "size": 48432,
-      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+      "path": "assets/index-BCKKkbqk.js",
+      "size": 603663,
+      "sha256": "fae990811bb1c478a09ccc559bcea3a1b800ab152b036c4081040591c06bbc7c"
     },
     {
-      "path": "assets/inter-656bbed6-BQL42Lnq.woff2",
-      "size": 19044,
-      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf"
+      "path": "assets/radar-contract-WSpO9eWF.js",
+      "size": 321317,
+      "sha256": "5229c3a9312b1400b42b1c92d7f4e86fdadd1897c7b1111c60669d7bee5eaf50"
     },
     {
-      "path": "assets/inter-6e1a6b2b-Ai74Rjx-.woff2",
-      "size": 11272,
-      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271"
+      "path": "assets/vendor-BX4hqFD-.js",
+      "size": 237933,
+      "sha256": "a7ac19dc8f2ef507853788522729a85542a21b5854256e93cc8f53c8b9f82ccd"
     },
     {
-      "path": "assets/inter-7249155f-Cpd2YT5r.woff2",
-      "size": 25844,
-      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5"
+      "path": "assets/rolldown-runtime-CbXtAM7H.js",
+      "size": 589,
+      "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "assets/inter-749a3084-B_-bZUTo.woff2",
-      "size": 85272,
-      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2"
-    },
-    {
-      "path": "assets/inter-e34c5f1b-C5ekK6td.woff2",
-      "size": 18744,
-      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6"
-    },
-    {
-      "path": "assets/inter-fc83e075-YEzCLjIM.woff2",
-      "size": 10280,
-      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931"
-    },
-    {
-      "path": "brand/radar-brand-tokens.json",
-      "size": 1506,
-      "sha256": "673ad5319b00ad85e8bd625a8d3d2438d87701934ff33d9fc1e118f219893409"
-    },
-    {
-      "path": "brand/radar-electoral-isotipo.svg",
-      "size": 1484,
-      "sha256": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a"
-    },
-    {
-      "path": "brand/radar-electoral-logo-horizontal-claro.svg",
-      "size": 19817,
-      "sha256": "9b40108347693adce301a58173a4ee1625b8e7190e81c97ac3ad293d1338dd2a"
-    },
-    {
-      "path": "brand/radar-electoral-logo-horizontal-oscuro-transparente.svg",
-      "size": 19889,
-      "sha256": "b73bd230561f9351e02ac84fc08320ab544c6f9d3c131f2823c4a0f97b0c1cec"
-    },
-    {
-      "path": "brand/radar-electoral-logo-reducido-horizontal-claro.svg",
-      "size": 7206,
-      "sha256": "3ace9bc5d121a259d6d18109be1d13693d7e4a093b3bcbafa90367fe6e13e42d"
-    },
-    {
-      "path": "brand/radar-isotipo.svg",
-      "size": 1484,
-      "sha256": "4f5b1a88be85a10004787215037f5ea58bb5876324c43459715c4a8c28a81a7a"
-    },
-    {
-      "path": "brand/radar-theme.css",
-      "size": 1029,
-      "sha256": "d7ca21806ae121e10edfcd302f8336cf8f7db24fe900b92f2dce66f6ed8f6271"
-    },
-    {
-      "path": "assets/index-BPpuk27k.css",
-      "size": 680037,
-      "sha256": "31b8a4acb8c5a08fe55c98ddec5eda74fdf6f0aecf9cbc21068292e2bf0e8a46"
-    },
-    {
-      "path": "assets/index-B3sxZtg8-r1.js",
-      "size": 1161829,
-      "sha256": "1cbece884f1b7ee30defb7710cb6310aec4ac039c8af258b8b21c437e1a5af5a"
+      "path": "assets/index-cZH3Ilm4.css",
+      "size": 685856,
+      "sha256": "aea037dc98bed43a8389c74be96e61a1b55b0990bc92457658b4983811a9d37a"
     },
     {
       "path": "radar-app.html",
-      "size": 1060,
-      "sha256": "d760112f7ea27894b51ed7b954e0795a7da2c8948ede22172734adf81f82083a"
+      "size": 1306,
+      "sha256": "83010753b2f1e44363ac737485cb5f361dc73d8d378073c86db30e8a50ba8df7"
     }
-  ],
-  "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
-  "quality_run": "36101275997",
-  "date": "2026-09-25",
-  "scope": "Publish the approved discreet DEMO label across every isolated demo module",
-  "demo_status": "Active only when is_demo=true; internal links retain demo context and real-campaign fallback remains blocked"
+  ]
 }
