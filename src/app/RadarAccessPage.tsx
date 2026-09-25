@@ -18,10 +18,26 @@ function safeNextPath(search: string) {
 }
 
 function qrSource(value: string) {
-  if (!value) return "";
-  if (value.startsWith("data:image/")) return value;
-  if (value.trimStart().startsWith("<svg")) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(value)}`;
-  return value;
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("data:image/svg+xml")) {
+    const comma = trimmed.indexOf(",");
+    const header = comma >= 0 ? trimmed.slice(0, comma) : "";
+    if (header.includes(";base64")) return trimmed;
+    const payload = comma >= 0 ? trimmed.slice(comma + 1) : trimmed;
+    let svg = payload;
+    try {
+      svg = decodeURIComponent(payload);
+    } catch {
+      // Supabase can return either encoded or raw SVG payloads.
+    }
+    const svgStart = svg.indexOf("<svg");
+    if (svgStart >= 0) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.slice(svgStart))}`;
+  }
+  if (trimmed.startsWith("data:image/")) return trimmed;
+  const svgStart = trimmed.indexOf("<svg");
+  if (svgStart >= 0) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed.slice(svgStart))}`;
+  return trimmed;
 }
 
 export function RadarAccessPage() {
