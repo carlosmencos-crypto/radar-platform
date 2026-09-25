@@ -300,13 +300,68 @@ Deno.serve(async (req: Request) => {
       });
       if (error) throw error;
       let users: unknown[] = [];
+      let campaignMembers: unknown[] = [];
       if (role === "super_admin") {
-        const { data: usersData, error: usersError } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        if (usersError) throw usersError;
-        users = usersData.users.map((user) => sanitizeUser(user as unknown as Record<string, unknown>, true));
+        for (let page = 1; ; page++) {
+          const { data: usersData, error: usersError } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+          if (usersError) throw usersError;
+          users.push(...usersData.users.map((user) => sanitizeUser(user as unknown as Record<string, unknown>, true)));
+          if (usersData.users.length < 1000) break;
+        }
+        for (let offset = 0; ; offset += 1000) {
+          const { data: members, error: membersError } = await service.from("campaign_members").select("campaign_id,user_id,member_role,created_at").order("campaign_id").order("user_id").range(offset, offset + 999);
+          if (membersError) throw membersError;
+          campaignMembers.push(...(members ?? []));
+          if (!members || members.length < 1000) break;
+        }
       }
       const visibleSnapshot = scopedSnapshot(asObject(data), context, role);
-      return response(req, { data: { ...visibleSnapshot, users, operator_context: context }, request_id: requestId });
+      return response(req, { data: { ...visibleSnapshot, users, campaign_members: campaignMembers, operator_context: context }, request_id: requestId });
+    }
+
+    if (action === "assign_campaign_member" || action === "invite_campaign_member") {
+      assertPermission(role, context, "users:write");
+      if (role !== "super_admin") throw new Error("Solo superadministradores");
+      const campaignId = asString(input.campaign_id, "campaign_id");
+      const reason = asString(input.reason, "reason");
+      const memberRole = input.member_role === null ? null : asString(input.member_role, "member_role");
+      const { data: campaign, error: campaignError } = await service.from("campaigns").select("id,is_demo,municipality_id").eq("id", campaignId).single();
+      if (campaignError || !campaign) throw new Error("Campaña inexistente");
+      const validRoles = campaign.is_demo ? ["demo_admin", "demo_viewer"] : ["campaign_admin", "campaign_editor", "campaign_viewer"];
+      if (memberRole !== null && !validRoles.includes(memberRole)) throw new Error("Rol incompatible con la campaña");
+      let targetId = String(input.user_id ?? "");
+      if (action === "invite_campaign_member") {
+        if (!memberRole) throw new Error("Selecciona un rol");
+        const email = asString(input.email, "email").trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
+        // Resolve existing accounts without changing their password or platform privileges.
+        let existing;
+        for (let page = 1; ; page++) {
+          const { data: listed, error } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+          if (error) throw error;
+          existing = listed.users.find((u) => u.email?.toLowerCase() === email);
+          if (existing || listed.users.length < 1000) break;
+        }
+        if (existing) targetId = existing.id;
+        else {
+          const { data: municipality, error } = await service.from("municipalities").select("municipality_code").eq("id", campaign.municipality_id).single();
+          if (error) throw error;
+          const origin = req.headers.get("Origin") ?? "";
+          if (!allowedOrigins().has(origin)) throw new Error("Origen de invitación no permitido");
+          const { data: invitation, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, {
+            data: { display_name: asString(input.display_name, "display_name") },
+            redirectTo: `${origin}/acceso?next=${encodeURIComponent(`/municipio/${municipality.municipality_code}`)}`,
+          });
+          if (inviteError || !invitation.user) throw inviteError ?? new Error("No se pudo enviar la invitación");
+          targetId = invitation.user.id;
+        }
+      }
+      const { data, error } = await service.rpc("radar_admin_campaign_member_v1", {
+        p_actor_user_id: userData.user.id, p_actor_role: role, p_campaign_id: campaignId,
+        p_user_id: asString(targetId, "user_id"), p_member_role: memberRole, p_reason: reason,
+      });
+      if (error) throw error;
+      return response(req, { data, request_id: requestId });
     }
 
     if (action === "invite_user") {
@@ -368,6 +423,17 @@ Deno.serve(async (req: Request) => {
         });
         if (revokeError) throw revokeError;
       }
+      return response(req, { data, request_id: requestId });
+    }
+
+    if (action === "release_contract") {
+      assertPermission(role, context, "users:write");
+      const { data, error } = await service.rpc("radar_admin_release_contract_v1", {
+        p_actor_user_id: userData.user.id, p_actor_role: role,
+        p_contract_id: asString(input.contract_id, "contract_id"),
+        p_confirmation: asString(input.confirmation, "confirmation"), p_reason: asString(input.reason, "reason"),
+      });
+      if (error) throw error;
       return response(req, { data, request_id: requestId });
     }
 
