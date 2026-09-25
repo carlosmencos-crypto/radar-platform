@@ -1,5 +1,5 @@
 {
-  "source_sha": "52ad9a506b9b4c7e5021fa53f1b0460369828ad7",
+  "source_sha": "92422f318cd8f72abc6465dd7e178dc1ec768d1f",
   "source_url": "https://radar-v70-national-qa.pages.dev/",
   "files": [
     {
@@ -78,19 +78,19 @@
       "sha256": "c095ea12ca508c627874b604eddc8cac97e7e7e0a456c535cfb126ff481ae499"
     },
     {
-      "path": "assets/index-BsLFBCE6.js",
-      "size": 1160591,
-      "sha256": "0d7be8f699e82b84c14cb563642320c571f5b8f3bd6c6cd83823f22a359eb1d8"
+      "path": "assets/index-DbG53mqW.js",
+      "size": 1161834,
+      "sha256": "3aafbe73d04293302dac14047d178b16a4d17fecd3036c7ff280e00c24cf8736"
     },
     {
       "path": "radar-app.html",
       "size": 1057,
-      "sha256": "afd5a8a2da219036bf9a8691199fa59021a1b0cd4a7d82884f75613e49932f80"
+      "sha256": "71c224113dd7f8e466d83a3aa729132e48aae0de346af1549a38b8e7dcc3960b"
     }
   ],
   "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
-  "quality_run": "36051240756",
-  "date": "2026-09-24",
-  "scope": "Static application deployment; no database, account or permission changes",
-  "demo_status": "Guarded entry routes; demo accounts, provisioning and reset require superadmin verification"
+  "quality_run": "36097801635",
+  "date": "2026-09-25",
+  "scope": "San Jose 0509 isolated demo runtime and vault routing",
+  "demo_status": "Active for the authorized account with a dedicated is_demo campaign and no real-campaign fallback"
 }
