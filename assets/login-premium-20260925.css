@@ -1,0 +1,23 @@
+/* RADAR premium access refinements, scoped to /acceso. */
+.public-shell:has(.access-page) > .topbar .nav,
+.public-shell:has(.access-page) > .topbar > .button {
+  display: none !important;
+}
+
+.public-shell:has(.access-page) .access-story {
+  background: #26383e !important;
+}
+
+.public-shell:has(.access-page) .access-story::before,
+.public-shell:has(.access-page) .access-story::after,
+.public-shell:has(.access-page) .access-orbit,
+.public-shell:has(.access-page) .access-proof,
+.public-shell:has(.access-page) .access-assurance {
+  display: none !important;
+}
+
+.public-shell:has(.access-page) .access-mark {
+  width: 96px;
+  height: 96px;
+  border-radius: 21px;
+}
