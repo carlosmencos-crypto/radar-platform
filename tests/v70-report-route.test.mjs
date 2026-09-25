@@ -18,12 +18,14 @@ test("all municipal report actions resolve to the authorized V70 executive-repor
   assert.ok(app.includes('path="reporte/:section" element={<V70DirectReportAccessGate0509 />}'), "Authorized executive report route is not mounted.");
   assert.ok(app.includes('import { V70DirectReportAccessGate0509 }'), "Authorized report gate is not imported.");
   assert.ok(gate.includes('ensureRadarAccessToken()'), "Report route does not verify the active RADAR session.");
-  assert.ok(gate.includes('resolveAuthorizedRadarConsumer(municipalityCode, accessToken)'), "Report route does not verify its authorized municipal context.");
+  assert.match(gate, /resolveAuthorizedRadarConsumer\([\s\S]*municipalityCode,[\s\S]*accessToken,[\s\S]*demoRequested \? "demo" : "municipality"/, "Report route does not verify its authorized municipal context and route kind.");
   assert.ok(gate.includes('searchParams.get("municipality") ?? ""'), "Report route must fail closed when a municipality is omitted.");
   assert.ok(gate.includes('<V70DirectReport0509 />'), "Authorized gate does not render the canonical report.");
   assert.ok(builder.includes('import.meta.env.BASE_URL') && builder.includes('reporte/inicio?${query.toString()}'), "Universal ReportBuilder must retain the deployed base path.");
   assert.ok(exporter.includes('import.meta.env.BASE_URL') && exporter.includes('reporte/municipio-360?'), "Municipio-360 report must retain the deployed base path.");
   assert.ok(exporter.includes('municipality: municipality_code'), "Municipio-360 report must preserve the active municipality.");
+  assert.ok(builder.includes('query.set("demo", "1")'), "Universal ReportBuilder must preserve demo scope.");
+  assert.ok(exporter.includes('query.set("demo", "1")'), "Municipio-360 report must preserve demo scope.");
 
   for (const phrase of [
     "report-shell",

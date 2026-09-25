@@ -54,7 +54,8 @@ function ActivityReportCard({activity,partyLogo,partyName,department}:{activity:
 function CanonicalV70Report(){
   const {section="inicio"}=useParams();
   const [searchParams]=useSearchParams();
-  const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name, consumer } = useMunicipalityContext();
+  const demoSuffix = consumer.context.is_demo === true ? "?demo=1" : "";
   const runtime = getInstalledRadarRuntime(municipality_code);
   const electoralLayers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
   const municipalModel = useMemo(() => runtime ? buildMunicipalIntelligenceModel(runtime, electoralLayers) : null, [runtime, electoralLayers]);
@@ -89,7 +90,7 @@ function CanonicalV70Report(){
     const source: ReportDefinition = {
       ...template,
       subtitle: template.key === "inicio" ? `${municipality_name} · Campaña Alcaldía` : template.key === "estrategia" ? `${municipality_name} · Documento ejecutivo de uso interno` : template.subtitle,
-      backHref: `/municipio/${municipality_code}${routeSegment}`,
+      backHref: `/municipio/${municipality_code}${routeSegment}${demoSuffix}`,
       metrics: template.metrics.map((metric) => metric.label === "Municipio" || metric.label === "Territorio" ? { ...metric, value: municipality_code, note: `${municipality_name} · ${department_name}` } : metric),
     };
     const activities=bundle?.activities??[];
@@ -181,7 +182,7 @@ function CanonicalV70Report(){
       dynamic.metrics=source.metrics.map((metric,index)=>index===0?{...metric,label:"Municipio",value:municipality_code,note:`${municipality_name} · ${department_name}`} : metric);
     }
     return {...source,...dynamic,sections:dynamic.sections??source.sections};
-  }, [bundle, candidateName, contacts, department_name, municipalModel, municipality_code, municipality_name, records, section]);
+  }, [bundle, candidateName, contacts, demoSuffix, department_name, municipalModel, municipality_code, municipality_name, records, section]);
   const [generatedAt,setGeneratedAt]=useState("");
   const [copyLabel,setCopyLabel]=useState("Copiar enlace");
   useEffect(()=>{setGeneratedAt(new Intl.DateTimeFormat("es-GT",{dateStyle:"long",timeStyle:"short"}).format(new Date()));},[]);

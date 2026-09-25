@@ -3,6 +3,7 @@ import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { MunicipalityProvider } from "../context/MunicipalityContext";
 import { resolveAuthorizedRadarConsumer } from "../data/radarAuthorizedConsumer";
 import { clearRadarSession, ensureRadarAccessToken } from "../data/radarAuth";
+import { assertDemoContext } from "../data/radarDemo";
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import {
   clearInstalledRadarRuntime,
@@ -22,6 +23,7 @@ export function V70DirectReportAccessGate0509() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const municipalityCode = searchParams.get("municipality") ?? "";
+  const demoRequested = searchParams.get("demo") === "1";
   const [state, setState] = useState<GateState>("loading");
   const [consumer, setConsumer] = useState<RadarMunicipalConsumer | null>(null);
 
@@ -33,9 +35,16 @@ export function V70DirectReportAccessGate0509() {
       return () => { cancelled = true; };
     }
     ensureRadarAccessToken()
-      .then((accessToken) => resolveAuthorizedRadarConsumer(municipalityCode, accessToken))
+      .then((accessToken) =>
+        resolveAuthorizedRadarConsumer(
+          municipalityCode,
+          accessToken,
+          demoRequested ? "demo" : "municipality",
+        ),
+      )
       .then((consumer) => {
         if (cancelled) return;
+        if (demoRequested) assertDemoContext(consumer.runtime.context, municipalityCode);
         if (consumer.municipality.code !== municipalityCode) {
           setState("forbidden");
           return;
@@ -63,7 +72,7 @@ export function V70DirectReportAccessGate0509() {
       cancelled = true;
       clearInstalledRadarRuntime(municipalityCode);
     };
-  }, [municipalityCode]);
+  }, [municipalityCode, demoRequested]);
 
   if (state === "loading") return <div className="page page--compact"><span className="eyebrow">RADAR</span><h1>Preparando informe…</h1></div>;
   if (state === "auth_required") {

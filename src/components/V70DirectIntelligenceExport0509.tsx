@@ -14,7 +14,7 @@ function resolveViewModel(municipalityCode: string): V70ElectoralViewModel | nul
 }
 
 export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electionCode, centerId }: Props) {
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, consumer } = useMunicipalityContext();
   const view = useMemo(() => resolveViewModel(municipality_code), [municipality_code]);
   const [exportSections, setExportSections] = useState<Record<ExportSection, boolean>>({ electoral: true, center: true, territory: true, indicators: true, finance: true });
   const election = view?.elections.find((item) => item.code === electionCode)
@@ -26,6 +26,7 @@ export function V70DirectIntelligenceExport0509({ open, onOpen, onClose, electio
   function exportPdf() {
     const blocks = Object.entries(exportSections).filter(([, enabled]) => enabled).map(([key]) => key).join(",");
     const query = new URLSearchParams({ municipality: municipality_code, blocks });
+    if (consumer.context.is_demo === true) query.set("demo", "1");
     if (election) query.set("election", election.code);
     if (selected) query.set("center", selected.id);
     onClose();

@@ -16,6 +16,7 @@ import {
   clearInstalledRadarGeoBundle,
   clearInstalledRadarRuntime,
   clearInstalledRadarVoterCommunities,
+  getInstalledRadarRuntime,
   installRadarElectoralLayers,
   installRadarGeoBundle,
   installRadarRuntime,
@@ -103,7 +104,11 @@ function directV70(section: string | undefined): ReactNode | null {
 export function MunicipalityAccessGate() {
   const { municipalityCode, section } = useParams();
   const location = useLocation();
-  const demoRequested = new URLSearchParams(location.search).get("demo") === "1";
+  const queryDemoRequested = new URLSearchParams(location.search).get("demo") === "1";
+  const installedRuntime = getInstalledRadarRuntime(municipalityCode);
+  const stickyDemoRequested =
+    !queryDemoRequested && installedRuntime?.context.is_demo === true;
+  const demoRequested = queryDemoRequested || stickyDemoRequested;
   const [demoUnavailable, setDemoUnavailable] = useState(false);
   const [state, setState] = useState<GateState>({ status: "loading" });
 
@@ -187,6 +192,17 @@ export function MunicipalityAccessGate() {
     };
   }, [municipalityCode, demoRequested]);
 
+  if (stickyDemoRequested) {
+    const demoParams = new URLSearchParams(location.search);
+    demoParams.set("demo", "1");
+    return (
+      <Navigate
+        to={`${location.pathname}?${demoParams.toString()}${location.hash}`}
+        replace
+      />
+    );
+  }
+
   if (demoUnavailable) return <div className="page page--compact"><span className="eyebrow">DEMO</span><h1>Demo pendiente de habilitación</h1><p>Esta cuenta todavía no tiene un espacio de demostración autorizado para este municipio. No se abrió el espacio de un cliente real.</p></div>;
 
   if (state.status === "loading") {
@@ -233,5 +249,5 @@ export function MunicipalityAccessGate() {
       </AuthorizedRuntimeProvider>
     );
 
-  return <Navigate to={`/municipio/${municipalityCode}/inicio`} replace />;
+  return <Navigate to={`/municipio/${municipalityCode}/inicio${demoRequested ? "?demo=1" : ""}`} replace />;
 }

@@ -11,12 +11,13 @@ const options = [
 ] as const;
 
 export function V70DirectReportBuilder({ onClose }: { section: string; onClose: () => void }) {
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, consumer } = useMunicipalityContext();
   const [parts, setParts] = useState<string[]>(options.map(([key]) => key));
   const [activityScope, setActivityScope] = useState("next7");
   const toggle = (key: string) => setParts((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key]);
   function open() {
     const query = new URLSearchParams({ municipality: municipality_code, parts: parts.join(","), activities: activityScope });
+    if (consumer.context.is_demo === true) query.set("demo", "1");
     window.open(`${import.meta.env.BASE_URL}reporte/inicio?${query.toString()}`, "_blank", "noopener,noreferrer");
     onClose();
   }

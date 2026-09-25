@@ -22,6 +22,23 @@ test("demo route propagates an explicit demo scope through every bootstrap RPC",
   assert.match(runtime, /radar_authorized_voter_communities_v2/);
 });
 
+test("demo context survives municipal navigation and report generation", () => {
+  const gate = readFileSync(new URL("../src/components/MunicipalityAccessGate.tsx", import.meta.url), "utf8");
+  const shell = readFileSync(new URL("../src/components/V70DirectShell0509.tsx", import.meta.url), "utf8");
+  const reportBuilder = readFileSync(new URL("../src/components/V70DirectReportBuilder.tsx", import.meta.url), "utf8");
+  const intelligenceExport = readFileSync(new URL("../src/components/V70DirectIntelligenceExport0509.tsx", import.meta.url), "utf8");
+  const reportGate = readFileSync(new URL("../src/components/V70DirectReportAccessGate0509.tsx", import.meta.url), "utf8");
+  assert.match(shell, /consumer\.context\.is_demo === true/);
+  assert.match(shell, /demo \? `\$\{path\}\?demo=1` : path/);
+  assert.match(gate, /getInstalledRadarRuntime\(municipalityCode\)/);
+  assert.match(gate, /stickyDemoRequested/);
+  assert.match(gate, /demoParams\.set\("demo", "1"\)/);
+  assert.match(reportBuilder, /query\.set\("demo", "1"\)/);
+  assert.match(intelligenceExport, /query\.set\("demo", "1"\)/);
+  assert.match(reportGate, /demoRequested \? "demo" : "municipality"/);
+  assert.match(reportGate, /assertDemoContext\(consumer\.runtime\.context, municipalityCode\)/);
+});
+
 test("0509 demo provisioning is isolated and has no real-campaign fallback", () => {
   const migration = readFileSync(new URL("../supabase/migrations/20260925044904_enable_demo_0509_isolation.sql", import.meta.url), "utf8");
   assert.match(migration, /'radar-demo-0509', true, 'active'/);

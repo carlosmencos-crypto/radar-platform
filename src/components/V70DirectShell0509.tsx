@@ -16,7 +16,10 @@ const sections: ReadonlyArray<readonly [string, string, SectionSlug]> = [
   ["✦", "IA RADAR", "ia-radar"], ["⚙", "Configuración", "configuracion"],
 ];
 
-function routeFor(code: string, section: SectionSlug) { return section === "inicio" ? `/municipio/${code}` : `/municipio/${code}/${section}`; }
+function routeFor(code: string, section: SectionSlug, demo: boolean) {
+  const path = section === "inicio" ? `/municipio/${code}` : `/municipio/${code}/${section}`;
+  return demo ? `${path}?demo=1` : path;
+}
 function canonicalAsset(path: string) { const base = import.meta.env.BASE_URL || "/"; return `${base}${path.replace(/^\//, "")}`; }
 
 function useRadarPreferences() {
@@ -39,7 +42,8 @@ function useRadarPreferences() {
 }
 
 export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole = "Dirección de campaña", children, dayDNext = false }: Props) {
-  const { municipality_code, municipality_name, campaign_id, user_role, permissions } = useMunicipalityContext();
+  const { municipality_code, municipality_name, campaign_id, user_role, permissions, consumer } = useMunicipalityContext();
+  const isDemo = consumer.context.is_demo === true;
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -83,7 +87,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
       <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
         <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
-        <nav aria-label="Navegación principal">{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
+        <nav aria-label="Navegación principal">{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug, isDemo)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
         <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
       </aside>
       <div className="portal-main">
@@ -99,7 +103,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
     <aside className={`portal-sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-logo"><div className="radar-brand"><img className="sidebar-logo-expanded" src={canonicalAsset("/brand/radar-electoral-logo-horizontal-oscuro-transparente.svg")} alt="RADAR Electoral" /><img className="sidebar-logo-collapsed" src={canonicalAsset("/brand/radar-electoral-isotipo.svg")} alt="RADAR" /></div></div>
       <button className="sidebar-collapse" type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú" : "Contraer menú"} title={collapsed ? "Expandir menú" : "Contraer menú"}>{collapsed ? "›" : "‹"}</button>
-      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
+      <nav>{sections.map(([icon, label, slug]) => <Link key={slug} to={routeFor(municipality_code, slug, isDemo)} className={active === slug ? "active" : ""} onClick={() => setOpen(false)}><span>{icon}</span><b>{label}</b>{slug==="dia-d"&&dayDNext ? <small>PRÓXIMO</small> : null}</Link>)}</nav>
       <div className="sidebar-account"><button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button>{profileOpen ? accountMenu : null}</div>
     </aside>
     <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />

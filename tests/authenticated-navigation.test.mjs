@@ -18,7 +18,7 @@ test("every municipal route is gated by authenticated Supabase runtime before re
   assert.match(gate, /<V70DirectIntelligence0509 \/>/);
   assert.doesNotMatch(gate, /municipalityCode\s*===\s*["']0509["']/);
   assert.doesNotMatch(gate, /<MunicipalDashboardV70Runtime \/>/);
-  assert.match(gate, /to=\{`\/municipio\/\$\{municipalityCode\}\/inicio`\}/);
+  assert.match(gate, /to=\{`\/municipio\/\$\{municipalityCode\}\/inicio\$\{demoRequested \? "\?demo=1" : ""\}`\}/);
   assert.match(gate, /status: "auth_required"/);
   assert.match(gate, /<Navigate to=\{`\/acceso\?next=/);
   assert.match(gate, /AuthorizedRuntimeProvider/);
