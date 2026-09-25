@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   completeRadarPasswordSetup,
+  requestRadarPasswordRecovery,
   prepareRadarAdminMfa,
   radarAuthCallbackType,
   radarAuthConfigured,
@@ -44,6 +45,8 @@ export function RadarAccessPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [callbackType] = useState(() => radarAuthCallbackType());
+  const [recovering, setRecovering] = useState(false);
+  const [notice, setNotice] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -54,7 +57,16 @@ export function RadarAccessPage() {
   const [mfaCode, setMfaCode] = useState("");
 
   function nextPath() {
-    return callbackType ? "/admin" : safeNextPath(location.search);
+    return safeNextPath(location.search);
+  }
+
+  async function recover(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setError(null); setNotice("");
+    try {
+      await requestRadarPasswordRecovery(email, nextPath());
+      setNotice("Si el correo tiene una cuenta habilitada, recibirás un enlace para crear una contraseña nueva. Revisa también la carpeta de correo no deseado.");
+    } catch (error) { setError(error instanceof Error ? error.message : "No se pudo solicitar el enlace."); }
+    finally { setBusy(false); }
   }
 
   async function submitPasswordSetup(event: FormEvent<HTMLFormElement>) {
@@ -67,6 +79,10 @@ export function RadarAccessPage() {
     setBusy(true);
     try {
       await completeRadarPasswordSetup(password);
+      if (!nextPath().startsWith("/admin")) {
+        navigate(nextPath(), { replace: true });
+        return;
+      }
       const mfa = await prepareRadarAdminMfa();
       setChallenge(mfa.challenge);
       setEnrollment(mfa.enrollment);
@@ -129,8 +145,8 @@ export function RadarAccessPage() {
         <p>El runtime autenticado todavía no está configurado en este entorno.</p>
       ) : callbackType && !challenge ? (
         <form onSubmit={submitPasswordSetup} autoComplete="new-password">
-          <h2>{callbackType === "invite" ? "Activa tu cuenta administrativa" : "Crea una contraseña nueva"}</h2>
-          <p>Define una contraseña exclusiva para RADAR. Después activarás el segundo factor obligatorio.</p>
+          <h2>{callbackType === "invite" ? "Activa tu cuenta RADAR" : "Crea una contraseña nueva"}</h2>
+          <p>Define una contraseña exclusiva para RADAR.{nextPath().startsWith("/admin") ? " Después activarás la verificación en dos pasos." : " Después podrás entrar a tu municipio."}</p>
           <label>
             Contraseña nueva
             <input type="password" name="new_password" minLength={12} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required autoFocus />
@@ -163,6 +179,14 @@ export function RadarAccessPage() {
           {error ? <p role="alert">{error}</p> : null}
           <button className="button" type="submit" disabled={busy}>{busy ? "Verificando…" : "Verificar MFA"}</button>
         </form>
+      ) : recovering ? (
+        <form onSubmit={recover}>
+          <h2>Recupera tu acceso</h2>
+          <label>Correo de tu cuenta<input type="email" required value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" /></label>
+          {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
+          <button className="button" type="submit" disabled={busy}>{busy ? "Solicitando…" : "Enviar enlace"}</button>
+          <button type="button" disabled={busy} onClick={() => { setRecovering(false); setError(null); setNotice(""); }}>Volver al ingreso</button>
+        </form>
       ) : (
         <form onSubmit={submit} autoComplete="on">
           <label>
@@ -175,6 +199,7 @@ export function RadarAccessPage() {
           </label>
           {error ? <p role="alert">{error}</p> : null}
           <button className="button" type="submit" disabled={busy}>{busy ? "Validando…" : "Ingresar"}</button>
+          <button type="button" disabled={busy} onClick={() => { setRecovering(true); setError(null); }}>Olvidé mi contraseña</button>
         </form>
       )}
     </div>
