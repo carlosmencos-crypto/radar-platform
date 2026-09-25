@@ -61,7 +61,7 @@ html[data-theme="dark"] .superadmin-shell {
 }
 .superadmin-brand img {
   display: block;
-  width: 166px;
+  width: 226px;
   max-width: 100%;
   height: auto;
   object-fit: contain;
@@ -1490,4 +1490,14 @@ html[data-theme="dark"] .superadmin-environment {
     transition: none;
     animation: none;
   }
+}
+
+/* Clear account actions and survey row controls. */
+.superadmin-identity { flex-wrap: wrap; }
+.superadmin-identity > button { width: 100%; height: auto; min-height: 36px; margin-top: 8px; font-size: 13px; }
+.superadmin-action-message.is-error { color: #853c30; background: #fff0ec; border: 1px solid #e4b5a7; }
+.superadmin-result-row { grid-template-columns: minmax(0, 1fr) 100px auto; }
+@media (max-width: 560px) {
+  .superadmin-result-row { grid-template-columns: minmax(0, 1fr) 80px; }
+  .superadmin-result-row > button { grid-column: 1 / -1; justify-self: end; }
 }
