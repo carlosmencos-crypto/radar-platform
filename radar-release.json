@@ -1,6 +1,6 @@
 {
-  "source_sha": "222a95ea8085b8474e7972b87acecda686dbcfb2",
-  "source_url": "https://radar-v70-national-qa.pages.dev/",
+  "source_sha": "b5486b9d2f887af94151a5039a52d79685037d3f",
+  "source_url": "https://radar-v70-qa.netlify.app/",
   "files": [
     {
       "path": "assets/inter-1ab1ad55-8kRkwJBP.woff2",
@@ -73,24 +73,24 @@
       "sha256": "d7ca21806ae121e10edfcd302f8336cf8f7db24fe900b92f2dce66f6ed8f6271"
     },
     {
-      "path": "assets/index-Dwn8hPvB.css",
-      "size": 680183,
-      "sha256": "c095ea12ca508c627874b604eddc8cac97e7e7e0a456c535cfb126ff481ae499"
+      "path": "assets/index-BPpuk27k.css",
+      "size": 680037,
+      "sha256": "31b8a4acb8c5a08fe55c98ddec5eda74fdf6f0aecf9cbc21068292e2bf0e8a46"
     },
     {
-      "path": "assets/index-DHkfrrH5.js",
-      "size": 1161906,
-      "sha256": "14f2bd383bfa39a496f0e71c93e38e6e81aa69b8f5287df88001fa9f1f698617"
+      "path": "assets/index-B3sxZtg8.js",
+      "size": 1161829,
+      "sha256": "1cbece884f1b7ee30defb7710cb6310aec4ac039c8af258b8b21c437e1a5af5a"
     },
     {
       "path": "radar-app.html",
       "size": 1057,
-      "sha256": "d9b25e47e9958bf5a00a88a73ed6faa5cde45b1026918be8a58bebefcebc66b4"
+      "sha256": "26df570ff18840f3a930c60676541a139ef5f23b87128a9f16c618ecec991744"
     }
   ],
   "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
-  "quality_run": "36100295541",
+  "quality_run": "36101275997",
   "date": "2026-09-25",
-  "scope": "Preserve isolated demo context across municipal navigation and reports",
-  "demo_status": "Active for the authorized account; internal links retain demo=1 and real-campaign fallback remains blocked"
+  "scope": "Publish the approved discreet DEMO label across every isolated demo module",
+  "demo_status": "Active only when is_demo=true; internal links retain demo context and real-campaign fallback remains blocked"
 }
