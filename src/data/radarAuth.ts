@@ -292,9 +292,17 @@ export async function prepareRadarAdminMfa(): Promise<RadarAdminMfaStep> {
 export async function verifyRadarMfa(challenge: RadarMfaChallenge, code: string) {
   const normalized = code.replace(/\s/g, "");
   if (!/^\d{6}$/.test(normalized)) throw new Error("RADAR_MFA_CODE_REQUIRED");
+  // MFA challenges expire quickly. Always create one immediately before
+  // verification instead of reusing the challenge created when the screen
+  // first rendered; users may need several minutes to configure their app.
+  const freshChallenge = await authenticatedAuthRequest<{ id: string }>(`/factors/${challenge.factorId}/challenge`, {
+    method: "POST",
+    body: "{}",
+  });
+  if (!freshChallenge.id) throw new Error("RADAR_MFA_CHALLENGE_FAILED");
   const response = await authenticatedAuthRequest<SupabaseTokenResponse>(`/factors/${challenge.factorId}/verify`, {
     method: "POST",
-    body: JSON.stringify({ challenge_id: challenge.challengeId, code: normalized }),
+    body: JSON.stringify({ challenge_id: freshChallenge.id, code: normalized }),
   });
   return persistRadarSession(response);
 }
