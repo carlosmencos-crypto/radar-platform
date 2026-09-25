@@ -1,5 +1,5 @@
 {
-  "source_sha": "92422f318cd8f72abc6465dd7e178dc1ec768d1f",
+  "source_sha": "222a95ea8085b8474e7972b87acecda686dbcfb2",
   "source_url": "https://radar-v70-national-qa.pages.dev/",
   "files": [
     {
@@ -78,19 +78,19 @@
       "sha256": "c095ea12ca508c627874b604eddc8cac97e7e7e0a456c535cfb126ff481ae499"
     },
     {
-      "path": "assets/index-DbG53mqW.js",
-      "size": 1161834,
-      "sha256": "3aafbe73d04293302dac14047d178b16a4d17fecd3036c7ff280e00c24cf8736"
+      "path": "assets/index-DHkfrrH5.js",
+      "size": 1161906,
+      "sha256": "14f2bd383bfa39a496f0e71c93e38e6e81aa69b8f5287df88001fa9f1f698617"
     },
     {
       "path": "radar-app.html",
       "size": 1057,
-      "sha256": "71c224113dd7f8e466d83a3aa729132e48aae0de346af1549a38b8e7dcc3960b"
+      "sha256": "d9b25e47e9958bf5a00a88a73ed6faa5cde45b1026918be8a58bebefcebc66b4"
     }
   ],
   "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
-  "quality_run": "36097801635",
+  "quality_run": "36100295541",
   "date": "2026-09-25",
-  "scope": "San Jose 0509 isolated demo runtime and vault routing",
-  "demo_status": "Active for the authorized account with a dedicated is_demo campaign and no real-campaign fallback"
+  "scope": "Preserve isolated demo context across municipal navigation and reports",
+  "demo_status": "Active for the authorized account; internal links retain demo=1 and real-campaign fallback remains blocked"
 }
