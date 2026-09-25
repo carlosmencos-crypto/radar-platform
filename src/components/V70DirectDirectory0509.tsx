@@ -163,7 +163,7 @@ function readPrivateImage(file: File) {
 }
 
 function ElectorsDirectoryCanonical() {
-  const { municipality_code, municipality_name } = useMunicipalityContext();
+  const { municipality_code, municipality_name, is_demo } = useMunicipalityContext();
   const readiness = getInstalledRadarRuntime(municipality_code)?.client_readiness;
   const directoryReady = Boolean(readiness?.campaign_connected && readiness.possible_voters_loaded);
   const [nominal, setNominal] = useState<NominalDirectoryAvailability | null>(null);
@@ -174,6 +174,7 @@ function ElectorsDirectoryCanonical() {
     let cancelled = false;
     setNominal(null);
     setAvailabilityError(false);
+    if (is_demo) { setChecking(false); return () => { cancelled = true; }; }
     if (directoryReady) { setChecking(false); return; }
     setChecking(true);
     void ensureRadarAccessToken().then((token) => loadNominalDirectoryAvailability(municipality_code, token))
@@ -181,7 +182,12 @@ function ElectorsDirectoryCanonical() {
       .catch(() => { if (!cancelled) setAvailabilityError(true); })
       .finally(() => { if (!cancelled) setChecking(false); });
     return () => { cancelled = true; };
-  }, [municipality_code, directoryReady, availabilityAttempt]);
+  }, [municipality_code, directoryReady, availabilityAttempt, is_demo]);
+  if (is_demo) return <section className="canonical-protected-page directory-readiness-page" role="status">
+    <small>DEMO AISLADA</small>
+    <h2>Directorio privado separado</h2>
+    <p>Esta demostración no consulta ni usa el padrón o los posibles votantes de una campaña real. Usa Equipo de campaña para crear contactos exclusivos del espacio demo.</p>
+  </section>;
   if (directoryReady) return <ElectorsDirectoryReady key={municipality_code} />;
   if (nominal?.municipality_code === municipality_code && nominal.available) return <ElectorsDirectoryReady key={municipality_code} nationalRegister nominalCommunities={nominal.communities} />;
   if (checking) return <section className="canonical-protected-page" role="status">Verificando acceso al padrón municipal…</section>;

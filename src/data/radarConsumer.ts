@@ -167,11 +167,13 @@ export function resolveRadarConsumer(municipalityCode?: string): RadarMunicipalC
       campaign_id: authorizedRuntime.context.campaign_id ?? "",
       user_role: canonicalUserRole(authorizedRuntime.context.user_role),
       permissions: [...authorizedRuntime.context.permissions],
+      is_demo: authorizedRuntime.context.is_demo,
     } : {
       municipality_code: municipality.code,
       campaign_id: "public-demo",
       user_role: "public_viewer",
       permissions: ["data_vault:read_public"],
+      is_demo: false,
     },
     municipality,
     navigation,

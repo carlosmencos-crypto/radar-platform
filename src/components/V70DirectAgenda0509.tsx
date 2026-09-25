@@ -152,7 +152,7 @@ function displayActivityDate(value: string | null) {
 }
 
 function AgendaContent() {
-  const { campaign_id, municipality_code, municipality_name, department_name } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name, is_demo } = useMunicipalityContext();
   const communities =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const [view, setView] = useState<"calendar" | "list">("calendar");
@@ -229,6 +229,10 @@ function AgendaContent() {
 
   useEffect(() => {
     let cancelled = false;
+    if (is_demo) {
+      setElectorResults([]);
+      return () => { cancelled = true; };
+    }
     if (electorQuery.trim().length < 2) {
       setElectorResults([]);
       return;
@@ -253,7 +257,7 @@ function AgendaContent() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [electorQuery, municipality_code]);
+  }, [electorQuery, municipality_code, is_demo]);
 
   const selectedTeam = useMemo(
     () =>

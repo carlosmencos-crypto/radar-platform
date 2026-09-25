@@ -185,7 +185,9 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       const [bundle, contacts, pulse, ...moduleRows] = await Promise.all([
         loadCampaignBundle(municipality.campaign_id, token),
         loadCampaignContacts(municipality.campaign_id, token),
-        loadAuthorizedPulse(municipality.municipality_code, token).catch(() => [] as AuthorizedPulseMeasurement[]),
+        municipality.is_demo
+          ? Promise.resolve([] as AuthorizedPulseMeasurement[])
+          : loadAuthorizedPulse(municipality.municipality_code, token).catch(() => [] as AuthorizedPulseMeasurement[]),
         ...moduleKeys.map((moduleKey) => loadCampaignRecords(municipality.campaign_id, moduleKey, token)),
       ]);
       if (cancelled) return;
@@ -193,7 +195,7 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       setContextStatus("Contexto vigente y aislado para esta campaña.");
     }).catch((error: unknown) => { if (!cancelled) { setPortalContext(null); setContextStatus(error instanceof Error ? error.message : "No se pudo cargar el contexto autorizado."); } });
     return () => { cancelled = true; };
-  }, [municipality.campaign_id, municipality.department_name, municipality.municipality_code, municipality.municipality_name, municipality.user_role]);
+  }, [municipality.campaign_id, municipality.department_name, municipality.is_demo, municipality.municipality_code, municipality.municipality_name, municipality.user_role]);
 
   async function connect() {
     if (!window.puter) { setStatus("La conexión todavía está cargando. Intenta nuevamente en unos segundos."); return; }

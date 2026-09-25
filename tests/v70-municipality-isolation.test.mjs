@@ -23,7 +23,7 @@ const activityVisual = read("src/components/V70ActivityVisual.tsx");
 const strategy = read("src/components/V70DirectStrategyArea0509.tsx");
 
 test("every municipal route loads and installs only its requested municipality", () => {
-  assert.match(gate, /loadMunicipalityRuntime\(municipalityCode, accessToken\)/);
+  assert.match(gate, /loadMunicipalityRuntime\(municipalityCode, accessToken, demoRequested\)/);
   assert.match(gate, /assertGeoBundleMatchesRuntime\(consumer\.runtime, geoBundle\)/);
   assert.match(gate, /installRadarElectoralLayers\(municipalityCode, electoralLayers\)/);
   assert.match(gate, /installRadarVoterCommunities\(municipalityCode, voterCommunities\)/);

@@ -38,7 +38,7 @@ function TrendChart({ surveys }: { surveys: Survey[] }) {
 }
 
 function PulseContent() {
-  const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
+  const { municipality_code, municipality_name, department_name, is_demo } = useMunicipalityContext();
   const [election,setElection]=useState<Election>("ALCALDIA");
   const [mode,setMode]=useState<"demo"|"radar">("demo");
   const [radarSurveys,setRadarSurveys]=useState<Survey[]>([]);
@@ -46,6 +46,7 @@ function PulseContent() {
   useEffect(()=>{
     let cancelled=false;
     if(mode!=="radar")return;
+    if(is_demo){setRadarSurveys([]);setRadarStatus("El espacio demo no consulta mediciones privadas de campañas reales.");return;}
     setRadarStatus("Cargando mediciones autorizadas…");
     void ensureRadarAccessToken().then((token)=>loadAuthorizedPulse(municipality_code,token)).then((measurements)=>{
       if(cancelled)return;
@@ -53,7 +54,7 @@ function PulseContent() {
       setRadarStatus(measurements.length?"Mediciones publicadas dentro del alcance autorizado.":"Aún no hay encuestas RADAR publicadas para este alcance.");
     }).catch(()=>{if(!cancelled){setRadarSurveys([]);setRadarStatus("Pulso está preparado; falta activar su almacenamiento seguro en Supabase.");}});
     return()=>{cancelled=true;};
-  },[mode,municipality_code]);
+  },[mode,municipality_code,is_demo]);
   const scopedDemo=useMemo(()=>demo.map((survey)=>({...survey,scopeLabel:survey.electionType==="ALCALDIA"?municipality_name:survey.electionType==="DIP_DIST"?department_name:"Guatemala"})),[municipality_name,department_name]);
   const source=mode==="demo"?scopedDemo:radarSurveys;
   const selected=useMemo(()=>source.filter((survey)=>survey.electionType===election).sort((a,b)=>b.fieldEnd.localeCompare(a.fieldEnd)),[election,source]);

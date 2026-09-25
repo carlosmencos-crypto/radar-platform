@@ -71,7 +71,7 @@ test("Sibinal has the same intelligence universes as the approved V70 contract",
 });
 
 test("national runtime uses one municipality-scoped contract with no 0509 content fork", () => {
-  assert.match(runtime, /radar_authorized_runtime_v8/);
+  assert.match(runtime, /radar_authorized_runtime_v9/);
   assert.match(runtime, /bundle\.intelligence_profile\?\.municipality_code !== municipalityCode/);
   assert.match(runtime, /bundle\.client_readiness\?\.municipality_code !== municipalityCode/);
   assert.match(model, /runtime\.intelligence_profile/);

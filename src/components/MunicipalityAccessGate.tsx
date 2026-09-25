@@ -63,15 +63,17 @@ function delay(ms: number) {
 async function loadMunicipalityRuntime(
   municipalityCode: string,
   accessToken: string,
+  demoRequested: boolean,
 ) {
+  const routeKind = demoRequested ? "demo" : "municipality";
   const [consumer, geoBundle, electoralLayers, voterCommunities] =
     await Promise.all([
-      resolveAuthorizedRadarConsumer(municipalityCode, accessToken),
+      resolveAuthorizedRadarConsumer(municipalityCode, accessToken, routeKind),
       loadAuthorizedGeoBundle(municipalityCode, accessToken, [
         ...RADAR_PUBLIC_MAP_FEATURE_TYPES,
-      ]),
-      loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken),
-      loadAuthorizedVoterCommunities(municipalityCode, accessToken),
+      ], routeKind),
+      loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken, routeKind),
+      loadAuthorizedVoterCommunities(municipalityCode, accessToken, routeKind),
     ]);
   return { consumer, geoBundle, electoralLayers, voterCommunities };
 }
@@ -125,12 +127,12 @@ export function MunicipalityAccessGate() {
       .then(async (accessToken) => {
         let demoCampaign: string | undefined;
         if (demoRequested) {
-          const context = await loadAuthorizedRadarContext(municipalityCode, accessToken);
+          const context = await loadAuthorizedRadarContext(municipalityCode, accessToken, "demo");
           assertDemoContext(context, municipalityCode);
           demoCampaign = context.campaign_id!;
         }
         const load = async () => {
-          const bundle = await loadMunicipalityRuntime(municipalityCode, accessToken);
+          const bundle = await loadMunicipalityRuntime(municipalityCode, accessToken, demoRequested);
           if (demoRequested) assertDemoContext(bundle.consumer.runtime.context, municipalityCode, demoCampaign);
           return bundle;
         };

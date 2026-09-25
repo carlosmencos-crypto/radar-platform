@@ -12,6 +12,8 @@ export interface AuthorizedRadarContext {
   is_demo: boolean;
 }
 
+export type AuthorizedRouteKind = "municipality" | "demo";
+
 export interface AuthorizedLayerRecord {
   layer_id: string;
   period: string | null;
@@ -439,12 +441,13 @@ async function rpc<T>(
 export async function loadAuthorizedRadarContext(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ) {
   assertMunicipalityCode(municipalityCode);
   const rows = await rpc<AuthorizedRadarContext[]>(
     "radar_authorized_context_v2",
     {
-      route_kind: "municipality",
+      route_kind: routeKind,
       route_key: municipalityCode,
     },
     accessToken,
@@ -464,12 +467,13 @@ export async function loadAuthorizedRadarContext(
 export async function loadAuthorizedRadarLayers(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ) {
   assertMunicipalityCode(municipalityCode);
   return rpc<AuthorizedLayerRecord[]>(
     "radar_authorized_layers_v2",
     {
-      route_kind: "municipality",
+      route_kind: routeKind,
       route_key: municipalityCode,
     },
     accessToken,
@@ -479,8 +483,9 @@ export async function loadAuthorizedRadarLayers(
 export async function loadAuthorizedElectoralTerritoryLayers(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ) {
-  const layers = await loadAuthorizedRadarLayers(municipalityCode, accessToken);
+  const layers = await loadAuthorizedRadarLayers(municipalityCode, accessToken, routeKind);
   const electoralTerritory = layers.filter((layer) =>
     electoralTerritoryLayerIds.has(layer.layer_id),
   );
@@ -496,12 +501,14 @@ export async function loadAuthorizedElectoralTerritoryLayers(
 export async function loadAuthorizedVoterCommunities(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ) {
   assertMunicipalityCode(municipalityCode);
   const communities = await rpc<AuthorizedVoterCommunity[]>(
-    "radar_authorized_voter_communities",
+    "radar_authorized_voter_communities_v2",
     {
-      p_municipality_code: municipalityCode,
+      route_kind: routeKind,
+      route_key: municipalityCode,
     },
     accessToken,
   );
@@ -541,12 +548,14 @@ export async function loadAuthorizedGeoBundle(
   municipalityCode: string,
   accessToken: string,
   featureTypes?: string[],
+  routeKind: AuthorizedRouteKind = "municipality",
 ) {
   assertMunicipalityCode(municipalityCode);
   return rpc<MunicipalityGeoBundle>(
-    "radar_municipality_geo_bundle",
+    "radar_municipality_geo_bundle_v2",
     {
-      p_municipality_code: municipalityCode,
+      route_kind: routeKind,
+      route_key: municipalityCode,
       p_feature_types: featureTypes?.length ? featureTypes : null,
     },
     accessToken,
@@ -556,12 +565,14 @@ export async function loadAuthorizedGeoBundle(
 export async function loadRadarRuntimeBundle(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ): Promise<RadarRuntimeBundle> {
   assertMunicipalityCode(municipalityCode);
   const bundle = await rpc<RadarRuntimeBundle | null>(
-    "radar_authorized_runtime_v8",
+    "radar_authorized_runtime_v9",
     {
-      p_municipality_code: municipalityCode,
+      route_kind: routeKind,
+      route_key: municipalityCode,
     },
     accessToken,
   );

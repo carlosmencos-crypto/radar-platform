@@ -1,5 +1,9 @@
 import { resolveRadarConsumer } from "./radarConsumer";
-import { loadRadarRuntimeBundle, type RadarRuntimeBundle } from "./radarRuntime";
+import {
+  loadRadarRuntimeBundle,
+  type AuthorizedRouteKind,
+  type RadarRuntimeBundle,
+} from "./radarRuntime";
 import type { RadarMunicipalConsumer } from "../types/radar";
 
 export interface AuthorizedConsumerContext {
@@ -7,6 +11,7 @@ export interface AuthorizedConsumerContext {
   campaign_id: string | null;
   user_role: string;
   permissions: string[];
+  is_demo: boolean;
 }
 
 export interface AuthorizedRadarConsumer extends Omit<RadarMunicipalConsumer, "context"> {
@@ -44,11 +49,12 @@ function assertRuntimeMatchesCanonicalConsumer(base: RadarMunicipalConsumer, run
 export async function resolveAuthorizedRadarConsumer(
   municipalityCode: string,
   accessToken: string,
+  routeKind: AuthorizedRouteKind = "municipality",
 ): Promise<AuthorizedRadarConsumer> {
   const base = resolveRadarConsumer(municipalityCode);
   if (!base) throw new Error("Municipio fuera del contrato canónico RADAR 340.");
 
-  const runtime = await loadRadarRuntimeBundle(base.municipality.code, accessToken);
+  const runtime = await loadRadarRuntimeBundle(base.municipality.code, accessToken, routeKind);
   assertRuntimeMatchesCanonicalConsumer(base, runtime);
 
   return {
@@ -58,6 +64,7 @@ export async function resolveAuthorizedRadarConsumer(
       campaign_id: runtime.context.campaign_id,
       user_role: runtime.context.user_role,
       permissions: [...runtime.context.permissions],
+      is_demo: runtime.context.is_demo,
     },
     runtime,
   };
