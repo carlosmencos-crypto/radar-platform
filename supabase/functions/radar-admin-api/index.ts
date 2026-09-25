@@ -331,6 +331,7 @@ Deno.serve(async (req: Request) => {
       if (memberRole !== null && !validRoles.includes(memberRole)) throw new Error("Rol incompatible con la campaña");
       let targetId = String(input.user_id ?? "");
       if (action === "invite_campaign_member") {
+        if (campaign.is_demo) throw new Error("Las invitaciones están habilitadas para campañas reales. Las demos requieren su flujo de acceso específico.");
         if (!memberRole) throw new Error("Selecciona un rol");
         const email = asString(input.email, "email").trim().toLowerCase();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
