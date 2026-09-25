@@ -53,7 +53,7 @@
   margin-bottom: 24px;
 }
 .public-shell:has(.access-page) .access-panel__intro .eyebrow {
-  color: var(--petrol);
+  color: #08576e !important;
 }
 .public-shell:has(.access-page) .access-panel__intro h2 {
   margin: 12px 0;
