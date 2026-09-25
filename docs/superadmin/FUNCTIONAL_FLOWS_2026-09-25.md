@@ -4,7 +4,7 @@ Environment: djldhumkmuppzxiaontb and radar-superadmin-v70-qa.netlify.app. No pr
 
 ## Implemented
 - Users and permissions: select campaign, search members, invite by email, assign existing accounts without modifying their global role or password, change campaign role, remove campaign membership.
-- Real campaigns: administrator, editor, viewer. Demos: demo administrator or viewer. No invented commercial seat limit.
+- Real campaigns: administrator, editor, viewer. Demo roles remain validated by the database but the invitation UI is restricted to real campaigns because QA demo routing uses a separate context. No invented commercial seat limit.
 - Membership operations lock the campaign, validate the active superadmin, require a reason, audit before/after, and reject removal/demotion of the last active administrator. RPC callable only by service role; Edge also requires authenticated AAL2.
 - Membership removal preserves campaign data and all other memberships. RLS checks membership immediately.
 - First invitation: create password (12+ characters), then municipality route. Internal operator invitation still proceeds through administrative MFA.
@@ -18,8 +18,8 @@ Environment: djldhumkmuppzxiaontb and radar-superadmin-v70-qa.netlify.app. No pr
 - QA SQL transactions in tests/sql/campaign-member-management.sql and contract-release.sql passed and rolled back all fixtures.
 - Tested role boundaries, permission revocation, last administrator guard, wrong confirmation rejection, contract ending, campaign retention, audit events, anonymous/authenticated RPC denial.
 - Bundle audit passed: no secrets, private CampaignVault records or sensitive PII.
-- Existing Edge version 3 matched local base before deployment; version 4 deployed with JWT verification.
-- No invitations sent to real people. SMTP delivery, invitation acceptance and authenticated visual end-to-end testing remain unverified. QA Auth redirect allowlist must accept the QA /acceso?next=... URLs.
+- Existing Edge version 3 matched local base before deployment; deployed with JWT verification.
+- No invitations sent to real people. The deployed password recovery form was checked in the browser. SMTP delivery, invitation acceptance and authenticated visual end-to-end testing remain unverified. QA Auth redirect allowlist must accept the QA /acceso?next=... URLs.
 
 ## Remaining scope
 - Demo reset needs a versioned initial dataset and clear handling of local browser state before enabling restore; no destructive reset shipped.
