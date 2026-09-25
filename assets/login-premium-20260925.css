@@ -21,3 +21,13 @@
   height: 96px;
   border-radius: 21px;
 }
+
+.public-shell:has(.access-page) > .topbar .brand img {
+  width: 250px;
+}
+
+@media (max-width: 620px) {
+  .public-shell:has(.access-page) > .topbar .brand img {
+    width: 180px;
+  }
+}
