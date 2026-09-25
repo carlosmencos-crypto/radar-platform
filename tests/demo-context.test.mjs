@@ -30,6 +30,9 @@ test("demo context survives municipal navigation and report generation", () => {
   const reportGate = readFileSync(new URL("../src/components/V70DirectReportAccessGate0509.tsx", import.meta.url), "utf8");
   assert.match(shell, /consumer\.context\.is_demo === true/);
   assert.match(shell, /demo \? `\$\{path\}\?demo=1` : path/);
+  assert.match(shell, /topbar-demo-label/);
+  assert.match(shell, /isDemo \? <span className="topbar-demo-label">DEMO<\/span> : null/);
+  assert.doesNotMatch(gate, /radar-demo-badge/);
   assert.match(gate, /getInstalledRadarRuntime\(municipalityCode\)/);
   assert.match(gate, /stickyDemoRequested/);
   assert.match(gate, /demoParams\.set\("demo", "1"\)/);

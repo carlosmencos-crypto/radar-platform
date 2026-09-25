@@ -73,6 +73,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   const avatar = userPhoto ? <img src={userPhoto} alt="" /> : fallbackAvatar;
   const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>{municipality_name} · sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
+  const topbarEyebrow = <small>{eyebrow}{isDemo ? <span className="topbar-demo-label">DEMO</span> : null}</small>;
 
   const controls = <div className="top-actions">
     <button className="print-top-action" type="button" onClick={() => setReportOpen(true)}><span className="control-icon" aria-hidden="true">⇩</span><span className="control-label">Reporte PDF</span></button>
@@ -91,7 +92,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
         <div id="cuenta" className="sidebar-account">{profileOpen ? accountMenu : null}<button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button></div>
       </aside>
       <div className="portal-main">
-        <header className="portal-topbar"><button className="mobile-menu" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div><small>{eyebrow}</small><b>{topbarTitle}</b></div>{controls}</header>
+        <header className="portal-topbar"><button className="mobile-menu" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div>{topbarEyebrow}<b>{topbarTitle}</b></div>{controls}</header>
         {children}
         {intelligenceExport}
       </div>
@@ -107,7 +108,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
       <div className="sidebar-account"><button type="button" onClick={() => setProfileOpen((value) => !value)}><i>{avatar}</i><span><b>{userLabel}</b><small>{accountRole}</small></span><em>⌄</em></button>{profileOpen ? accountMenu : null}</div>
     </aside>
     <button className={`nav-scrim ${open ? "visible" : ""}`} aria-label="Cerrar menú" onClick={() => setOpen(false)} />
-    <main className="portal-main module-page"><header className="portal-topbar"><button className="mobile-menu" type="button" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div><small>{eyebrow}</small><b>{topbarTitle}</b></div>{controls}</header>{children}</main>
+    <main className="portal-main module-page"><header className="portal-topbar"><button className="mobile-menu" type="button" onClick={() => setOpen(true)}>☰</button><img className="topbar-mark" src={canonicalAsset("/brand/radar-isotipo.svg")} alt="" aria-hidden="true" /><div>{topbarEyebrow}<b>{topbarTitle}</b></div>{controls}</header>{children}</main>
     {reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}
   </div>;
 }

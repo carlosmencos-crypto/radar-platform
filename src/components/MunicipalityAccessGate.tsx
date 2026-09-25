@@ -244,7 +244,6 @@ export function MunicipalityAccessGate() {
   if (direct)
     return (
       <AuthorizedRuntimeProvider consumer={state.consumer}>
-        {state.consumer.runtime.context.is_demo === true ? <span className="radar-demo-badge" role="status">DEMO</span> : null}
         {direct}
       </AuthorizedRuntimeProvider>
     );
