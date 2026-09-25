@@ -74,7 +74,7 @@ test("RTD restores JRV coverage and the canonical fiscal portal", () => {
   assert.match(dayD, /JRV con RTD recibido/);
   assert.match(dayD, /0 de \{totalJrv\}/);
   assert.match(dayD, /Cobertura municipal de JRV con fiscal/);
-  assert.match(dayD, /radar-portal-fiscal\.carlos-mencos\.chatgpt\.site/);
+  assert.match(dayD, /fiscales-qa\.wowlatam\.com/);
 });
 
 test("voter directory uses indexed page order and an in-memory revisit cache", () => {
