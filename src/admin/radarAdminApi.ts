@@ -55,6 +55,7 @@ export interface AdminSnapshot {
   audit: Array<Record<string, unknown>>;
   support: Array<Record<string, unknown>>;
   users: Array<Record<string, unknown>>;
+  campaign_members?: Array<Record<string, unknown>>;
   operator_context: {
     user_id: string;
     user_role: string;
