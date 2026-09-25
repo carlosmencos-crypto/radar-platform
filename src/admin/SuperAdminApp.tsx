@@ -996,9 +996,9 @@ function CampaignMembersPanel({ snapshot, action, busy }: ActionModuleProps) {
     if (completed) { setEditing(null); setInviting(false); }
   }
   return <Panel eyebrow="ACCESOS MUNICIPALES" title="Usuarios de cada campaña" action={<button type="button" className="superadmin-primary" disabled={!campaign || busy} onClick={() => setInviting(true)}>+ Agregar usuario</button>}>
-    <p>Selecciona una campaña para administrar su equipo. Cada persona usa su propio correo y contraseña.</p>
+    <p>Selecciona una campaña real para administrar su equipo. Cada persona usa su propio correo y contraseña.</p>
     <div className="superadmin-form">
-      <Field label="Municipio y campaña"><select value={campaignId} onChange={e => { setCampaignId(e.target.value); setQuery(""); }}><option value="">Selecciona una campaña</option>{snapshot.campaigns.map(c => <option key={text(c.id)} value={text(c.id)}>{text(c.municipality_code)} · {text(c.name)}{c.is_demo ? " · Demo" : ""}</option>)}</select></Field>
+      <Field label="Municipio y campaña"><select value={campaignId} onChange={e => { setCampaignId(e.target.value); setQuery(""); }}><option value="">Selecciona una campaña</option>{snapshot.campaigns.filter(c => !c.is_demo).map(c => <option key={text(c.id)} value={text(c.id)}>{text(c.municipality_code)} · {text(c.name)}{c.is_demo ? " · Demo" : ""}</option>)}</select></Field>
       {campaign && <Field label={`Buscar entre ${members.length} usuarios asignados`}><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Correo del usuario" /></Field>}
     </div>
     {campaign && <><p><strong>Administrador:</strong> gestión de campaña. <strong>Editor:</strong> captura y edición según los permisos del módulo. <strong>Consulta:</strong> lectura. Las demos usan sus propios roles.</p>
