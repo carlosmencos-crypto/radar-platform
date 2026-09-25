@@ -78,14 +78,14 @@
       "sha256": "31b8a4acb8c5a08fe55c98ddec5eda74fdf6f0aecf9cbc21068292e2bf0e8a46"
     },
     {
-      "path": "assets/index-B3sxZtg8.js",
+      "path": "assets/index-B3sxZtg8-r1.js",
       "size": 1161829,
       "sha256": "1cbece884f1b7ee30defb7710cb6310aec4ac039c8af258b8b21c437e1a5af5a"
     },
     {
       "path": "radar-app.html",
-      "size": 1057,
-      "sha256": "26df570ff18840f3a930c60676541a139ef5f23b87128a9f16c618ecec991744"
+      "size": 1060,
+      "sha256": "d760112f7ea27894b51ed7b954e0795a7da2c8948ede22172734adf81f82083a"
     }
   ],
   "landing_parent": "f39d2f230167c7b6b80e61f4f975603260e3e0fa",
