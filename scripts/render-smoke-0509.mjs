@@ -206,7 +206,7 @@ const injection = `<script>(function(){
       window.__qaFailDirectoryOnce=false;
       return new Response(JSON.stringify({message:'Synthetic QA timeout'}),{status:500,headers:{'Content-Type':'application/json'}});
     }
-    if(url.includes("/mock/rest/v1/rpc/radar_authorized_runtime_v8")) return new Response(JSON.stringify(runtime),{status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("/mock/rest/v1/rpc/radar_authorized_runtime_v9")) return new Response(JSON.stringify(runtime),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_layers_v2")) return new Response(JSON.stringify(electoralLayers),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_municipality_geo_bundle")) return new Response(JSON.stringify(geoBundle),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("/mock/rest/v1/rpc/radar_authorized_voter_communities")) return new Response(JSON.stringify(voterCommunities),{status:200,headers:{"Content-Type":"application/json"}});
