@@ -25,6 +25,8 @@ test("superadmin route is a distinct authenticated control plane", () => {
   assert.match(auth, /RADAR Administrador/);
   assert.match(auth, /\/factors\/\$\{factor\.id\}\/challenge/);
   assert.match(auth, /\/factors\/\$\{challenge\.factorId\}\/verify/);
+  assert.match(auth, /const freshChallenge = await authenticatedAuthRequest/);
+  assert.match(auth, /challenge_id: freshChallenge\.id/);
 });
 
 test("service role is confined to the server function", () => {
