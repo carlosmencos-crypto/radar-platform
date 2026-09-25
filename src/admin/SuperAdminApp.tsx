@@ -18,7 +18,7 @@ const sections = [
   ["resumen", "Resumen nacional", "⌂"],
   ["municipios", "Municipios y campañas", "◎"],
   ["exclusividad", "Disponibilidad y contratos", "◇"],
-  ["usuarios", "Equipo RADAR", "♙"],
+  ["usuarios", "Usuarios y permisos", "♙"],
   ["data-vault", "Datos municipales", "▥"],
   ["publicaciones", "Cargas y publicaciones", "⇧"],
   ["campaign-vault", "Actividad de campañas", "▣"],
@@ -243,8 +243,8 @@ export function SuperAdminApp({
   }
 
   async function logout() {
-    await signOutRadar();
-    navigate("/acceso?next=/admin", { replace: true });
+    try { await signOutRadar(); }
+    finally { navigate("/acceso?next=/admin", { replace: true }); }
   }
 
   return (
@@ -789,6 +789,13 @@ function MunicipalitiesModule({ snapshot, action, busy }: ActionModuleProps) {
 
 function ExclusivityModule({ snapshot, action, busy }: ActionModuleProps) {
   const [dialog, setDialog] = useState(false);
+  const [release, setRelease] = useState<Record<string, unknown> | null>(null);
+  async function releaseContract(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!release) return;
+    const completed = await action("release_contract", { ...Object.fromEntries(new FormData(event.currentTarget)), contract_id: release.id });
+    if (completed) setRelease(null);
+  }
   const organizationChoices = Array.from(
     new Map(
       snapshot.contracts.map((item) => [
@@ -840,7 +847,7 @@ function ExclusivityModule({ snapshot, action, busy }: ActionModuleProps) {
               "Referencia",
               "Vigencia",
               "Estado",
-              "Actualización",
+              "Actualización", "",
             ]}
           >
             {snapshot.contracts.map((contract) => (
@@ -860,11 +867,21 @@ function ExclusivityModule({ snapshot, action, busy }: ActionModuleProps) {
                   <Status value={contract.status} />
                 </td>
                 <td>{date(contract.updated_at)}</td>
+                <td>{["RESERVED", "ACTIVE", "SUSPENDED"].includes(text(contract.status)) && snapshot.operator_context?.user_role === "super_admin" && <button type="button" className="superadmin-row-button" disabled={busy} onClick={() => setRelease(contract)}>Liberar</button>}</td>
               </tr>
             ))}
           </DataTable>
         </EmptyOr>
       </Panel>
+      <Dialog open={Boolean(release)} onClose={() => { if (!busy) setRelease(null); }} eyebrow="DISPONIBILIDAD" title="Finalizar contrato y liberar municipio">
+        <form className="superadmin-form" onSubmit={e => void releaseContract(e)}>
+          <p>Se finalizará el contrato <strong>{text(release?.contract_ref)}</strong>. La campaña vinculada quedará pausada y se retirarán sus accesos. Su información privada se conserva.</p>
+          <p>Otros contratos vigentes o futuros del municipio conservarán su protección.</p>
+          <Field label="Escribe la referencia del contrato para confirmar"><input name="confirmation" required autoComplete="off" /></Field>
+          <Field label="Motivo"><textarea name="reason" required minLength={3} /></Field>
+          <button type="submit" className="superadmin-primary" disabled={busy}>{busy ? "Finalizando…" : "Finalizar y retirar accesos"}</button>
+        </form>
+      </Dialog>
       <Dialog
         open={dialog}
         onClose={() => setDialog(false)}
@@ -955,6 +972,51 @@ function ExclusivityModule({ snapshot, action, busy }: ActionModuleProps) {
   );
 }
 
+const campaignRoleNames: Record<string, string> = {
+  campaign_admin: "Administrador", campaign_editor: "Editor", campaign_viewer: "Solo consulta",
+  demo_admin: "Administrador demo", demo_viewer: "Consulta demo",
+};
+function CampaignMembersPanel({ snapshot, action, busy }: ActionModuleProps) {
+  const [campaignId, setCampaignId] = useState("");
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const [inviting, setInviting] = useState(false);
+  const campaign = snapshot.campaigns.find(c => String(c.id) === campaignId);
+  const roles = campaign?.is_demo ? ["demo_admin", "demo_viewer"] : ["campaign_admin", "campaign_editor", "campaign_viewer"];
+  const users = new Map(snapshot.users.map(u => [String(u.id), u]));
+  const members = (snapshot.campaign_members ?? []).filter(m => String(m.campaign_id) === campaignId);
+  const shown = members.filter(m => String(users.get(String(m.user_id))?.email ?? m.user_id).toLowerCase().includes(query.toLowerCase()));
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = Object.fromEntries(new FormData(event.currentTarget));
+    const completed = await action(editing ? "assign_campaign_member" : "invite_campaign_member", {
+      ...form, campaign_id: campaignId, ...(editing ? { user_id: editing.user_id } : {}),
+      member_role: form.member_role === "remove" ? null : form.member_role,
+    });
+    if (completed) { setEditing(null); setInviting(false); }
+  }
+  return <Panel eyebrow="ACCESOS MUNICIPALES" title="Usuarios de cada campaña" action={<button type="button" className="superadmin-primary" disabled={!campaign || busy} onClick={() => setInviting(true)}>+ Agregar usuario</button>}>
+    <p>Selecciona una campaña para administrar su equipo. Cada persona usa su propio correo y contraseña.</p>
+    <div className="superadmin-form">
+      <Field label="Municipio y campaña"><select value={campaignId} onChange={e => { setCampaignId(e.target.value); setQuery(""); }}><option value="">Selecciona una campaña</option>{snapshot.campaigns.map(c => <option key={text(c.id)} value={text(c.id)}>{text(c.municipality_code)} · {text(c.name)}{c.is_demo ? " · Demo" : ""}</option>)}</select></Field>
+      {campaign && <Field label={`Buscar entre ${members.length} usuarios asignados`}><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Correo del usuario" /></Field>}
+    </div>
+    {campaign && <><p><strong>Administrador:</strong> gestión de campaña. <strong>Editor:</strong> captura y edición según los permisos del módulo. <strong>Consulta:</strong> lectura. Las demos usan sus propios roles.</p>
+      <EmptyOr rows={shown} empty={members.length ? "No hay coincidencias para este correo." : "Agrega primero a la persona responsable de la campaña."}><DataTable headers={["Correo", "Rol", "", ""]}>{shown.map(m => <tr key={text(m.user_id)}><td>{text(users.get(String(m.user_id))?.email, text(m.user_id))}</td><td>{campaignRoleNames[text(m.member_role)] ?? text(m.member_role)}</td><td>{users.get(String(m.user_id))?.last_sign_in_at ? "Ya ingresó" : "Primer ingreso pendiente"}</td><td><button className="superadmin-row-button" type="button" disabled={busy} onClick={() => setEditing(m)}>Cambiar acceso</button></td></tr>)}</DataTable></EmptyOr></>}
+    <Dialog open={inviting || Boolean(editing)} onClose={() => { if (!busy) { setInviting(false); setEditing(null); } }} eyebrow="EQUIPO DE CAMPAÑA" title={editing ? "Cambiar o retirar acceso" : "Agregar usuario a la campaña"}>
+      <form className="superadmin-form" onSubmit={e => void submit(e)}>
+        <p>{text(campaign?.name)} · {text(campaign?.municipality_code)}</p>
+        {!editing && <><Field label="Nombre completo"><input name="display_name" required maxLength={150} /></Field><Field label="Correo personal de acceso"><input name="email" type="email" required /></Field><p>Si es nuevo, recibirá una invitación para crear su contraseña. Si ya tiene cuenta, se asignará a esta campaña conservando su contraseña.</p></>}
+        {editing && <p>{text(users.get(String(editing.user_id))?.email, text(editing.user_id))}</p>}
+        <Field label="Permisos en esta campaña"><select key={text(editing?.user_id, "new")} name="member_role" defaultValue={text(editing?.member_role, roles[0])}>{roles.map(r => <option key={r} value={r}>{campaignRoleNames[r]}</option>)}{editing && <option value="remove">Retirar acceso a esta campaña</option>}</select></Field>
+        <p>Retirar acceso conserva los datos de la campaña y los accesos a otros municipios. Para retirar al último administrador, asigna primero a su reemplazo.</p>
+        <Field label="Motivo del cambio"><textarea name="reason" required minLength={3} maxLength={1000} /></Field>
+        <button className="superadmin-primary" type="submit" disabled={busy}>{busy ? "Guardando…" : "Guardar acceso"}</button>
+      </form>
+    </Dialog>
+  </Panel>;
+}
+
 function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Record<
@@ -1020,6 +1082,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
   );
   return (
     <>
+      <CampaignMembersPanel snapshot={snapshot} action={action} busy={busy} />
       <Panel
         eyebrow="CUENTAS ADMINISTRATIVAS"
         title="Personas del equipo RADAR"
@@ -1034,7 +1097,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
         }
       >
         <EmptyOr
-          rows={snapshot.users}
+          rows={snapshot.users.filter(user => user.platform_role)}
           empty="Tu rol no permite listar identidades o todavía no hay usuarios."
         >
           <DataTable
@@ -1047,7 +1110,7 @@ function UsersModule({ snapshot, action, busy }: ActionModuleProps) {
               "",
             ]}
           >
-            {snapshot.users.map((user) => (
+            {snapshot.users.filter(user => user.platform_role).map((user) => (
               <tr key={text(user.id)}>
                 <td>
                   <strong>{text(user.email, "Identidad restringida")}</strong>
