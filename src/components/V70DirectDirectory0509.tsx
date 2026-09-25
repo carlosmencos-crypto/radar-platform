@@ -163,7 +163,8 @@ function readPrivateImage(file: File) {
 }
 
 function ElectorsDirectoryCanonical() {
-  const { municipality_code, municipality_name, is_demo } = useMunicipalityContext();
+  const { municipality_code, municipality_name, consumer } = useMunicipalityContext();
+  const is_demo = consumer.context.is_demo;
   const readiness = getInstalledRadarRuntime(municipality_code)?.client_readiness;
   const directoryReady = Boolean(readiness?.campaign_connected && readiness.possible_voters_loaded);
   const [nominal, setNominal] = useState<NominalDirectoryAvailability | null>(null);

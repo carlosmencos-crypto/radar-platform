@@ -152,7 +152,8 @@ function displayActivityDate(value: string | null) {
 }
 
 function AgendaContent() {
-  const { campaign_id, municipality_code, municipality_name, department_name, is_demo } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name, consumer } = useMunicipalityContext();
+  const is_demo = consumer.context.is_demo;
   const communities =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const [view, setView] = useState<"calendar" | "list">("calendar");

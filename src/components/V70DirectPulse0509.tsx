@@ -38,7 +38,8 @@ function TrendChart({ surveys }: { surveys: Survey[] }) {
 }
 
 function PulseContent() {
-  const { municipality_code, municipality_name, department_name, is_demo } = useMunicipalityContext();
+  const { municipality_code, municipality_name, department_name, consumer } = useMunicipalityContext();
+  const is_demo = consumer.context.is_demo;
   const [election,setElection]=useState<Election>("ALCALDIA");
   const [mode,setMode]=useState<"demo"|"radar">("demo");
   const [radarSurveys,setRadarSurveys]=useState<Survey[]>([]);
