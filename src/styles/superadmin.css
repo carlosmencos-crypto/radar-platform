@@ -1523,7 +1523,7 @@ html[data-theme="dark"] .client-workspace input,html[data-theme="dark"] .client-
 .client-card button:disabled,.client-drawer button:disabled {opacity:.55;cursor:wait}
 
 /* Premium daily workspace: quiet surfaces, clear hierarchy, consistent controls. */
-.superadmin-identity {grid-template-columns:38px minmax(0,1fr);gap:12px;margin:20px 18px 18px;padding:18px 0 0}
+.superadmin-identity {grid-template-columns:38px minmax(0,1fr);gap:12px;margin:auto 18px 18px;padding:18px 0 0}
 .superadmin-identity > span {width:38px;height:38px;border-radius:12px;background:#eee9f3;color:#552676;font-size:12px}
 .superadmin-identity strong {font-size:12px;font-weight:650}
 .superadmin-identity small {font-size:10px;color:#b3c0c0;margin-top:5px}
@@ -1619,3 +1619,7 @@ html[data-theme="dark"] .client-home-links span,html[data-theme="dark"] .client-
 .rtd-table-wrap {overflow-x:auto}.rtd-table-wrap table {width:100%;border-collapse:collapse}.rtd-table-wrap th {font-size:11px;font-weight:500;text-align:right;padding:10px 12px;border-bottom:1px solid var(--sa-line);color:var(--sa-muted);white-space:nowrap}.rtd-table-wrap td {padding:15px 12px;border-bottom:1px solid var(--sa-line);font-size:13px;text-align:right}.rtd-table-wrap th:first-child,.rtd-table-wrap td:first-child {text-align:left}.rtd-table-wrap tr:last-child td {border-bottom:0}.rtd-table-wrap td small {display:block;font-size:10px;color:var(--sa-muted);margin-top:4px}.rtd-table-wrap button {border:0;padding:5px;background:transparent;color:#08576e;cursor:pointer;font-size:12px;white-space:nowrap}.rtd-method {padding:18px 0;font-size:12px;border-top:1px solid var(--sa-line)}.rtd-method summary {cursor:pointer;color:#08576e;font-weight:500}.rtd-method p {max-width:900px;font-size:12px}.rtd-national .rtd-error {background:#fff1e9;border-left:3px solid #974d39;padding:13px 17px;border-radius:5px;color:#823d31;font-size:12px}
 html[data-theme="dark"] .rtd-national :is(.rtd-national-metrics strong,.rtd-method summary,.rtd-table-wrap button,.rtd-update-row button) {color:#9cc4c9}
 @media(max-width:900px){.rtd-national-metrics {grid-template-columns:repeat(2,minmax(0,1fr))}.rtd-national-heading,.rtd-panel-heading {flex-direction:column;gap:12px}.rtd-panel-heading label {max-width:none;width:100%}.rtd-update-row>span {margin-left:0}.rtd-results-panel {padding:20px}}
+
+/* Keep account controls at the bottom while long navigation scrolls independently. */
+.superadmin-sidebar > .superadmin-brand,.superadmin-sidebar > .superadmin-identity {flex-shrink:0}
+.superadmin-sidebar > nav {min-height:0;flex-shrink:1;align-content:start}
