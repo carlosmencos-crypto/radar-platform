@@ -1,0 +1,46 @@
+name: Hostinger connection preflight
+on:
+  push:
+    branches: [ops/hostinger-connection-check]
+    paths: [.github/workflows/hostinger-preflight.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate configuration and inspect public server identity
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::Missing configuration: $name"; exit 1; fi
+          done
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          umask 077
+          task_dir=$(mktemp -d)
+          trap 'rm -rf "$task_dir"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
+          ssh-keygen -y -P '' -f "$task_dir/identity" > "$task_dir/public"
+          echo 'Private key format valid; no authentication attempted.'
+          ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
+          test -s "$task_dir/server_keys"
+          {
+            echo '## Hostinger preflight'
+            echo 'All four settings present. Private key format valid.'
+            echo 'SSH endpoint reachable. Server fingerprint below is OBSERVED, not yet trusted.'
+            echo 'Compare against a fingerprint verified with the hosting provider before enabling authentication.'
+            echo 'No login, upload, or production change performed.'
+            echo '\`\`\`'
+            ssh-keygen -lf "$task_dir/server_keys" | awk '{print $1, $2, $NF}'
+            echo '\`\`\`'
+          } >> "$GITHUB_STEP_SUMMARY"
