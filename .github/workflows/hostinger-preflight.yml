@@ -36,4 +36,12 @@ jobs:
           test -s "$task_dir/server_keys"
           observed=$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')
           test "$observed" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
-          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'printf "SSH_AUTH_OK\n"; for d in "$HOME/domains/radargt.wowlatam.com/public_html" "$HOME/domains/wowlatam.com/public_html/radargt"; do if [ -d "$d" ]; then printf "RADAR_DIR %s\n" "$d"; ls -ld "$d/index.html" "$d/radar-app.html"; command -v python3; fi; done'
+          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PY'
+          from pathlib import Path
+          import hashlib,json,re
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          for name in ['index.html','radar-app.html','.htaccess','landing-assets/script.js']:
+              p=root/name
+              s=p.read_text()
+              print('PUBLIC_FILE '+json.dumps({'path':name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'content':s}))
+          PY
