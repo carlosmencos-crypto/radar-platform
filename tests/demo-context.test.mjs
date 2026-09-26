@@ -42,6 +42,13 @@ test("demo context survives municipal navigation and report generation", () => {
   assert.match(reportGate, /assertDemoContext\(consumer\.runtime\.context, municipalityCode\)/);
 });
 
+test("municipality demo alias redirects into isolated demo context", () => {
+  const gate = readFileSync(new URL("../src/components/MunicipalityAccessGate.tsx", import.meta.url), "utf8");
+  assert.match(gate, /demoAliasCode = \/\^\(\\d\{4\}\)d\$\//);
+  assert.match(gate, /if \(demoAliasCode\) \{\s*return \(\) =>/);
+  assert.match(gate, /to=\{`\/municipio\/\$\{demoAliasCode\}\?demo=1`\}/);
+});
+
 test("0509 demo provisioning is isolated and has no real-campaign fallback", () => {
   const migration = readFileSync(new URL("../supabase/migrations/20260925044904_enable_demo_0509_isolation.sql", import.meta.url), "utf8");
   assert.match(migration, /'radar-demo-0509', true, 'active'/);

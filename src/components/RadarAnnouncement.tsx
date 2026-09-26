@@ -1,0 +1,7 @@
+import {useEffect,useState} from "react";
+import {useMunicipalityContext} from "../context/MunicipalityContext";
+import {loadSharedContent,acknowledgeNotice,type SharedContent} from "../data/radarSharedContent";
+export function RadarAnnouncement(){const {campaign_id}=useMunicipalityContext();const [items,setItems]=useState<SharedContent[]>([]);const [error,setError]=useState("");const [busy,setBusy]=useState(false);
+ useEffect(()=>{let live=true;let timer:ReturnType<typeof setTimeout>;setItems([]);async function refresh(){try{if(campaign_id&&!document.hidden){const rows=await loadSharedContent(campaign_id);if(live)setItems(rows.filter(c=>c.kind==='notice'));}}catch{}finally{if(live)timer=setTimeout(refresh,30000);}}void refresh();return()=>{live=false;clearTimeout(timer);};},[campaign_id]);
+ if(!items.length)return null;const item=items[0];return <div className="agenda-modal" role="dialog" aria-modal="true" aria-label="Aviso RADAR"><section className="materials-folder-modal"><header><div><small>AVISO RADAR</small><h2>{item.title}</h2></div></header><p style={{whiteSpace:"pre-wrap",padding:"24px",lineHeight:1.7}}>{item.body}</p>{error&&<p role="alert">{error}</p>}<button type="button" disabled={busy} onClick={async()=>{setBusy(true);try{await acknowledgeNotice(campaign_id,item.id);setItems(items.slice(1));}catch(e){setError(e instanceof Error?e.message:"Intenta de nuevo");}finally{setBusy(false);}}}>{busy?"Guardando…":"Entendido"}</button></section></div>;
+}

@@ -22,6 +22,11 @@ test("every municipal route is gated by authenticated Supabase runtime before re
   assert.match(gate, /status: "auth_required"/);
   assert.match(gate, /<Navigate to=\{`\/acceso\?next=/);
   assert.match(gate, /AuthorizedRuntimeProvider/);
+  assert.match(gate, /withTransientRetry/);
+  assert.match(gate, /isTransientRuntimeFailure/);
+  assert.match(gate, /const consumer = await withTransientRetry/);
+  assert.match(gate, /const geoBundle = await withTransientRetry/);
+  assert.doesNotMatch(gate, /await Promise\.all\(\[\s*resolveAuthorizedRadarConsumer/);
   assert.doesNotMatch(gate, /public-demo/);
 });
 

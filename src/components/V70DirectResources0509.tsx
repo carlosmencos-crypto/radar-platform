@@ -1,3 +1,4 @@
+import { loadSharedContent, downloadSharedResource, type SharedContent } from "../data/radarSharedContent";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
@@ -104,10 +105,10 @@ function useCampaignRecords(moduleKey: string) {
 }
 
 function Materials() {
-  const store = useCampaignRecords("recursos");
-  const [folder, setFolder] = useState<string | null>(null);
-  const assets = store.records.filter((record) => record.category === `Material · ${folder}` && record.status !== "ARCHIVADO");
-  return <><div className="preloaded-resource-grid">{materialFolders.map(([title, detail]) => <article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={() => setFolder(title)}>Abrir</button></article>)}</div>{folder ? <div className="agenda-modal" role="dialog" aria-modal="true"><section className="materials-folder-modal"><header><div><small>BIBLIOTECA · DOCUMENTOS PRECARGADOS</small><h2>{folder}</h2></div><button aria-label="Cerrar" onClick={() => setFolder(null)}>×</button></header><div>{assets.length ? assets.map((record) => <article key={record.id}><span><b>{record.title}</b><small>{record.details || "Material validado por RADAR"}</small></span>{filePath(record) ? <button type="button" onClick={() => void deliverRecordFile(record).catch((error: Error) => store.setMessage(error.message))}>Descargar</button> : null}</article>) : <p>La carpeta está lista. Los materiales aparecerán aquí cuando sean publicados por el superadministrador.</p>}</div>{store.message ? <p className="agenda-message">{store.message}</p> : null}</section></div> : null}</>;
+ const { campaign_id }=useMunicipalityContext();const [folder,setFolder]=useState<string|null>(null);const [records,setRecords]=useState<SharedContent[]>([]);const [message,setMessage]=useState("");
+ useEffect(()=>{let live=true;void loadSharedContent(campaign_id).then(rows=>{if(live)setRecords(rows.filter(r=>r.kind==="resource"));}).catch(e=>{if(live)setMessage(e.message);});return()=>{live=false;};},[campaign_id]);
+ const assets=records.filter(r=>r.category===folder);
+ return <><div className="preloaded-resource-grid">{materialFolders.map(([title,detail])=><article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={()=>setFolder(title)}>Abrir · {records.filter(r=>r.category===title).length}</button></article>)}</div>{message&&<p role="status">{message}</p>}{folder&&<div className="agenda-modal" role="dialog" aria-modal="true"><section className="materials-folder-modal"><header><div><small>BIBLIOTECA RADAR</small><h2>{folder}</h2></div><button aria-label="Cerrar" onClick={()=>setFolder(null)}>×</button></header><div>{assets.length?assets.map(record=><article key={record.id}><span><b>{record.title}</b><small>{record.body} · Versión {record.version}</small></span><button type="button" onClick={()=>void downloadSharedResource(record).catch(e=>setMessage(e.message))}>Descargar</button></article>):<p>No hay documentos publicados en esta carpeta todavía.</p>}</div></section></div>}</>;
 }
 
 type PhysicalForm = { type: string; customType: string; name: string; responsible: string; pilot: string; notes: string; latitude: string; longitude: string; locationName: string; values: Record<string, string> };

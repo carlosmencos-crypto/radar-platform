@@ -1,3 +1,4 @@
+import { RadarAnnouncement } from "./RadarAnnouncement";
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
@@ -75,7 +76,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
   const topbarEyebrow = <small>{eyebrow}{isDemo ? <span className="topbar-demo-label">DEMO</span> : null}</small>;
 
-  const controls = <div className="top-actions">
+  const controls = <div className="top-actions"><RadarAnnouncement />
     <button className="print-top-action" type="button" onClick={() => setReportOpen(true)}><span className="control-icon" aria-hidden="true">⇩</span><span className="control-label">Reporte PDF</span></button>
     <button className="text-size-action" type="button" onClick={increaseTextSize} title="Cambiar tamaño del texto" aria-label={`Tamaño de texto ${textSize === "large" ? "cómodo" : "compacto"}`}>A<span>A</span></button>
     <button className="theme-switch" type="button" onClick={toggleTheme} aria-label={`Cambiar a modo ${theme === "dark" ? "claro" : "oscuro"}`} title={`Cambiar a modo ${theme === "dark" ? "claro" : "oscuro"}`}><span className="control-icon" aria-hidden="true">{theme === "dark" ? "☀" : "◐"}</span><span className="control-label">{theme === "dark" ? "Claro" : "Oscuro"}</span></button>

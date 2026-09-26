@@ -61,21 +61,52 @@ function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function isTransientRuntimeFailure(error: unknown) {
+  if (error instanceof TypeError) return true;
+  const message = error instanceof Error ? error.message : String(error);
+  return ["(408)", "(429)", "(500)", "(502)", "(503)", "(504)"].some((status) =>
+    message.includes(status),
+  );
+}
+
+async function withTransientRetry<T>(operation: () => Promise<T>) {
+  const retryDelays = [280, 760];
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!isTransientRuntimeFailure(error) || attempt >= retryDelays.length) throw error;
+      await delay(retryDelays[attempt]);
+    }
+  }
+}
+
 async function loadMunicipalityRuntime(
   municipalityCode: string,
   accessToken: string,
   demoRequested: boolean,
 ) {
   const routeKind = demoRequested ? "demo" : "municipality";
-  const [consumer, geoBundle, electoralLayers, voterCommunities] =
-    await Promise.all([
-      resolveAuthorizedRadarConsumer(municipalityCode, accessToken, routeKind),
-      loadAuthorizedGeoBundle(municipalityCode, accessToken, [
+  // Load the contract first, then the heavier geography. This avoids sending four
+  // large RPCs at once for dense municipalities such as 0101. Each request retries
+  // only transient transport/server failures; authorization and validation remain
+  // fail-closed and are never retried into a different context.
+  const consumer = await withTransientRetry(() =>
+    resolveAuthorizedRadarConsumer(municipalityCode, accessToken, routeKind),
+  );
+  const geoBundle = await withTransientRetry(() =>
+    loadAuthorizedGeoBundle(municipalityCode, accessToken, [
         ...RADAR_PUBLIC_MAP_FEATURE_TYPES,
       ], routeKind),
+  );
+  const [electoralLayers, voterCommunities] = await Promise.all([
+    withTransientRetry(() =>
       loadAuthorizedElectoralTerritoryLayers(municipalityCode, accessToken, routeKind),
+    ),
+    withTransientRetry(() =>
       loadAuthorizedVoterCommunities(municipalityCode, accessToken, routeKind),
-    ]);
+    ),
+  ]);
   return { consumer, geoBundle, electoralLayers, voterCommunities };
 }
 
@@ -104,6 +135,7 @@ function directV70(section: string | undefined): ReactNode | null {
 export function MunicipalityAccessGate() {
   const { municipalityCode, section } = useParams();
   const location = useLocation();
+  const demoAliasCode = /^(\d{4})d$/.exec(municipalityCode ?? "")?.[1];
   const queryDemoRequested = new URLSearchParams(location.search).get("demo") === "1";
   const installedRuntime = getInstalledRadarRuntime(municipalityCode);
   const stickyDemoRequested =
@@ -114,6 +146,14 @@ export function MunicipalityAccessGate() {
 
   useEffect(() => {
     let cancelled = false;
+    // The alias is redirected during render. Do not mark it forbidden first:
+    // that state can win the navigation race and send a valid demo to the
+    // restricted-access page before the canonical route starts loading.
+    if (demoAliasCode) {
+      return () => {
+        cancelled = true;
+      };
+    }
     if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) {
       setState({ status: "forbidden" });
       return () => {
@@ -141,13 +181,7 @@ export function MunicipalityAccessGate() {
           if (demoRequested) assertDemoContext(bundle.consumer.runtime.context, municipalityCode, demoCampaign);
           return bundle;
         };
-        try {
-          return await load();
-        } catch (error) {
-          if (isAuthenticationFailure(error)) throw error;
-          await delay(250);
-          return load();
-        }
+        return load();
       })
       .then(({ consumer, geoBundle, electoralLayers, voterCommunities }) => {
         if (cancelled) return;
@@ -201,6 +235,11 @@ export function MunicipalityAccessGate() {
         replace
       />
     );
+  }
+
+  // Accept the human-friendly demo alias both at /0509d and /municipio/0509d.
+  if (demoAliasCode) {
+    return <Navigate to={`/municipio/${demoAliasCode}?demo=1`} replace />;
   }
 
   if (demoUnavailable) return <div className="page page--compact"><span className="eyebrow">DEMO</span><h1>Demo pendiente de habilitación</h1><p>Esta cuenta todavía no tiene un espacio de demostración autorizado para este municipio. No se abrió el espacio de un cliente real.</p></div>;
