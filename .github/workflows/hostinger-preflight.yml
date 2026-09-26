@@ -43,4 +43,4 @@ jobs:
             echo '\`\`\`'
             ssh-keygen -lf "$task_dir/server_keys" | awk '{print $1, $2, $NF}'
             echo '\`\`\`'
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
