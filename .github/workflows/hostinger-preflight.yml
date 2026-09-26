@@ -1,5 +1,8 @@
 name: Hostinger connection preflight
 on:
+  push:
+    branches: [ops/hostinger-connection-check]
+    paths: [.github/workflows/hostinger-preflight.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,4 +36,46 @@ jobs:
           test -s "$task_dir/server_keys"
           observed=$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')
           test "$observed" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
-          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'printf "SSH_AUTH_OK\n"; for d in "$HOME/domains/radargt.wowlatam.com/public_html" "$HOME/domains/wowlatam.com/public_html/radargt"; do if [ -d "$d" ]; then printf "RADAR_DIR %s\n" "$d"; ls -ld "$d/index.html" "$d/radar-app.html"; command -v python3; fi; done'
+          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PY'
+          from pathlib import Path
+          import json,hashlib,shutil,os,datetime,fcntl
+          payload=json.loads("{\"expected\":{\"assets/radar-access-gate-20260926.js\":\"ebff6acf04177770689f02c5fb2ba5d2f747390675246cbfa35ca8584e1e18d6\"},\"files\":{\"assets/radar-access-gate-20260926.js\":\"/* Verify identity and municipal authorization before loading the existing app. */\\nconst url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';\\nconst apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';\\nconst key='radar-supabase-session-v1';\\nconst entry='/assets/index-f2ULqrmd.js';\\nconst municipal=location.pathname.match(/^\\\\/municipio\\\\/(\\\\d{4})(d)?(?:\\\\/|$)/)||location.pathname.match(/^\\\\/(\\\\d{4})(d)(?:\\\\/|$)/);\\nconst protectedRoute=Boolean(municipal)||/^\\\\/(municipios|demos)\\\\/?$/.test(location.pathname);\\nfunction login(){localStorage.removeItem(key);location.replace(`/?login=1&next=${encodeURIComponent(location.pathname+location.search)}`);}\\nasync function verify(){\\n if(!protectedRoute)return true;\\n if(localStorage.getItem('radar-session-persistence')==='session'&&!sessionStorage.getItem('radar-session-tab')){login();return false;}\\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{login();return false;}\\n if(!session?.access_token){login();return false;}\\n if(session.expires_at<=Date.now()+60000){\\n  const response=await fetch(`${url}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});\\n  if(!response.ok){login();return false;}const data=await response.json();session={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+data.expires_in*1000,token_type:data.token_type};localStorage.setItem(key,JSON.stringify(session));\\n }\\n const headers={apikey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'};\\n const identity=await fetch(`${url}/auth/v1/user`,{headers});if(!identity.ok){login();return false;}\\n if(municipal){const demo=Boolean(municipal[2])||new URLSearchParams(location.search).get('demo')==='1';const response=await fetch(`${url}/rest/v1/rpc/radar_authorized_context_v2`,{method:'POST',headers,body:JSON.stringify({route_kind:demo?'demo':'municipality',route_key:municipal[1]})});const data=await response.json();if(!response.ok||!Array.isArray(data)||!data.length){showError('Tu cuenta no tiene acceso a este municipio.');return false;}}\\n return true;\\n}\\nfunction showError(message){document.body.replaceChildren();const panel=document.createElement('main');panel.style.cssText='max-width:560px;margin:15vh auto;padding:32px;font:18px system-ui;line-height:1.7';const title=document.createElement('h1');title.textContent='Acceso RADAR';const description=document.createElement('p');description.textContent=message;const link=document.createElement('a');link.href='/?login=1';link.textContent='Volver al ingreso';panel.append(title,description,link);document.body.append(panel);}\\ndocument.addEventListener('click',async event=>{const element=event.target instanceof Element?event.target.closest('a,button'):null;if(!element)return;if(element.textContent?.trim()!=='Cerrar sesión'&&!element.getAttribute('href')?.includes('signout-with-chatgpt'))return;event.preventDefault();event.stopImmediatePropagation();let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{}localStorage.removeItem(key);sessionStorage.removeItem('radar-session-tab');sessionStorage.removeItem('radar-supabase-callback-v1');try{if(session?.access_token)await fetch(`${url}/auth/v1/logout`,{method:'POST',headers:{apikey,Authorization:`Bearer ${session.access_token}`},signal:AbortSignal.timeout(5000)});}catch{}location.replace('/');},true);\\nwindow.addEventListener('pageshow',event=>{if(event.persisted&&protectedRoute)location.reload();});\\ntry{if(await verify())await import(entry);}catch{showError('No pudimos verificar el acceso. Revisa tu conexión y vuelve a intentar.');}\\n\\n\"}}")
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          backup_root=Path.home()/'radar-deploy-backups'
+          backup_root.mkdir(mode=0o700,exist_ok=True)
+          with (backup_root/'deploy.lock').open('w') as lock:
+              fcntl.flock(lock,fcntl.LOCK_EX)
+              for name,want in payload['expected'].items():
+                  assert hashlib.sha256((root/name).read_bytes()).hexdigest()==want, 'Live file changed; stop: '+name
+              assert (root/'assets/index-f2ULqrmd.js').is_file()
+              backup=backup_root/('login-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
+              backup.mkdir(mode=0o700)
+              original={}
+              for name in payload['files']:
+                  target=root/name
+                  original[name]=target.exists()
+                  if target.exists():
+                      dest=backup/name
+                      dest.parent.mkdir(parents=True,exist_ok=True)
+                      shutil.copy2(target,dest)
+              (backup/'manifest.json').write_text(json.dumps({'original':original,'expected':payload['expected']},indent=2))
+              touched=[]
+              try:
+                  for name,content in payload['files'].items():
+                      target=root/name
+                      staged=target.with_name(target.name+'.radar-staged')
+                      staged.write_text(content)
+                      staged.chmod(0o644)
+                      os.replace(staged,target)
+                      touched.append(name)
+                  for name,content in payload['files'].items():
+                      assert (root/name).read_text()==content
+              except BaseException:
+                  for name in reversed(touched):
+                      if original[name]: shutil.copy2(backup/name,root/name)
+                      else: (root/name).unlink()
+                  raise
+              print('RELEASE_OK backup='+backup.name)
+              for name in payload['files']: print('VERIFIED '+name+' '+hashlib.sha256((root/name).read_bytes()).hexdigest())
+          
+          PY
