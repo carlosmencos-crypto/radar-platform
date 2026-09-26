@@ -4,7 +4,7 @@ const apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';
 const key='radar-supabase-session-v1';
 const entry='/assets/index-f2ULqrmd.js';
 const municipal=location.pathname.match(/^\/municipio\/(\d{4})(d)?(?:\/|$)/)||location.pathname.match(/^\/(\d{4})(d)(?:\/|$)/);
-const protectedRoute=Boolean(municipal)||location.pathname==='/municipios';
+const protectedRoute=Boolean(municipal)||/^\/(municipios|demos)\/?$/.test(location.pathname);
 function login(){localStorage.removeItem(key);location.replace(`/?login=1&next=${encodeURIComponent(location.pathname+location.search)}`);}
 async function verify(){
  if(!protectedRoute)return true;
