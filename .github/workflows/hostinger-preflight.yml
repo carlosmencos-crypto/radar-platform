@@ -40,7 +40,9 @@ jobs:
           from pathlib import Path
           import json,hashlib
           root=Path.home()/'domains/radargt.wowlatam.com/public_html'
-          for name in ['assets/radar-access-gate-20260926.js','radar-app.html']:
-              path=root/name
-              print('PUBLIC_FILE '+json.dumps({'name':name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'content':path.read_text()}))
+          expected={'assets/radar-access-gate-61c30bcb9128.js': '61c30bcb9128972f410a0578fa546c774448b5180ccc0bb60c35d27bf0ad3859', 'assets/radar-access-gate-20260926.js': '61c30bcb9128972f410a0578fa546c774448b5180ccc0bb60c35d27bf0ad3859', 'radar-app.html': '17eea95c72a58e3860e9f33c71df45cf2b215a4d5e85b693acbadcca0fb60854'}
+          for name,digest in expected.items():
+              observed=hashlib.sha256((root/name).read_bytes()).hexdigest()
+              assert observed==digest,'Published file mismatch: '+name
+              print('VERIFIED '+name+' '+observed)
           PYREMOTE
