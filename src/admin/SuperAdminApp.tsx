@@ -1,4 +1,5 @@
-import { DailyHome, ContentWorkspace, DemoWorkspace } from "./ContentWorkspace";
+import { useDismissibleDialog } from "./useDismissibleDialog";
+import { DailyHome, ContentWorkspace, DemoWorkspace, AssignedUsers } from "./ContentWorkspace";
 import { ClientsWorkspace } from "./ClientsWorkspace";
 import {
   useEffect,
@@ -7,7 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import { signOutRadar } from "../data/radarAuth";
 import {
   runAdminAction,
@@ -18,6 +19,7 @@ import {
 
 const sections = [
   ["resumen", "Inicio", "⌂"],
+  ["equipos", "Equipos de campaña", "♙"],
   ["recursos", "Recursos", "▣"],
   ["avisos", "Avisos", "◇"],
   ["demos", "Demostraciones", "↻"],
@@ -48,6 +50,7 @@ interface ActionModuleProps {
 
 const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
   {
+    equipos: {eyebrow:"EQUIPOS DE CAMPAÑA",description:"Cada persona, su función y el municipio al que tiene acceso."},
     recursos: {eyebrow:"BIBLIOTECA RADAR",description:"Manuales, plantillas y tutoriales para tus clientes."},
     avisos: {eyebrow:"COMUNICACIÓN",description:"Mensajes importantes, con destinatarios y vigencia definidos."},
     demos: {eyebrow:"DEMOSTRACIONES",description:"Gestiona los espacios de presentación separados de las campañas reales."},
@@ -199,7 +202,7 @@ export function SuperAdminApp({
   const active = (
     sections.some(([id]) => id === section) ? section : "resumen"
   ) as SectionId;
-  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -226,7 +229,7 @@ export function SuperAdminApp({
     try {
       await runAdminAction<T>(operation, input);
       setActionMessage(
-        "Operación completada. El cambio quedó registrado en auditoría.",
+        operation === "purge_campaign" ? "Campaña eliminada. Sus accesos y datos privados fueron retirados." : "Cambios guardados correctamente.",
       );
       await onRefresh();
       return true;
@@ -253,8 +256,11 @@ export function SuperAdminApp({
   }
 
   async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
     try { await signOutRadar(); }
-    finally { navigate("/acceso?next=/admin", { replace: true }); }
+    catch { /* Local credentials are cleared by signOutRadar even if the network fails. */ }
+    finally { window.location.replace("https://radargt.wowlatam.com/"); }
   }
 
   return (
@@ -276,7 +282,7 @@ export function SuperAdminApp({
           <img src={logo} alt="RADAR Inteligencia Electoral" />
         </div>
         <nav aria-label="Navegación del superadministrador">
-          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "avisos", "demos"].includes(id)).map(([id, label, icon]) => (
+          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "avisos", "demos"].includes(id)).sort((a,b)=>["resumen","municipios","recursos","pulso","avisos","demos"].indexOf(a[0])-["resumen","municipios","recursos","pulso","avisos","demos"].indexOf(b[0])).map(([id, label, icon]) => (
             <NavLink
               key={id}
               to={`/admin/${id}`}
@@ -302,9 +308,12 @@ export function SuperAdminApp({
           <button
             type="button"
             onClick={() => void logout()}
-            aria-label="Cerrar sesión"
+            className="superadmin-logout"
+            disabled={loggingOut}
+            aria-busy={loggingOut}
+            aria-label="Cerrar sesión y volver a RADAR"
           >
-            Cerrar sesión
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5v16h4M13 8l4 4-4 4M8 12h12" /></svg><span>{loggingOut ? "Cerrando sesión…" : "Cerrar sesión"}</span>
           </button>
         </div>
       </aside>
@@ -406,6 +415,7 @@ function SectionRouter({
   action: Action;
   busy: boolean;
 }) {
+  if (active === "equipos") return <AssignedUsers snapshot={snapshot} />;
   if (active === "resumen") return <DailyHome snapshot={snapshot} />;
   if (active === "resumen-tecnico") return <NationalSummary snapshot={snapshot} />;
   if (active === "recursos" || active === "avisos") return <ContentWorkspace kind={active === "recursos" ? "resource" : "notice"} snapshot={snapshot} action={action} busy={busy} refresh={refresh} />;
@@ -2844,6 +2854,7 @@ function Dialog({
   wide?: boolean;
   children: ReactNode;
 }) {
+  useDismissibleDialog(open,onClose);
   if (!open) return null;
   return (
     <div

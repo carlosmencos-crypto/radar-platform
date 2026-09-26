@@ -24,7 +24,7 @@ export function SuperAdminAccessGate() {
   const [gate, setGate] = useState<GateState>({ status: "loading" });
 
   async function refresh() {
-    setGate({ status: "loading" });
+    setGate(current => current.status === "ready" ? current : { status: "loading" });
     try {
       const snapshot = await loadAdminSnapshot();
       setGate({ status: "ready", snapshot });

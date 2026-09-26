@@ -346,6 +346,14 @@ Deno.serve(async (req: Request) => {
       if (error) { if (path) await service.storage.from("radar-shared-resources").remove([path]); throw error; }
       return response(req, { data, request_id: requestId });
     }
+    if (action === "purge_campaign") {
+      assertPermission(role, context, "users:write");
+      if (role !== "super_admin") throw Object.assign(new Error("Solo superadministradores"), { status: 403 });
+      if (!allowedOrigins().has(req.headers.get("Origin") ?? "")) throw new Error("Origen no permitido");
+      const { data, error } = await service.rpc("radar_admin_purge_campaign_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_input: input });
+      if (error) throw error;
+      return response(req, { data, request_id: requestId });
+    }
     if (["client_limit", "reactivate_client", "reset_demo"].includes(action)) {
       assertPermission(role, context, "users:write");
       const operation = action === "client_limit" ? "limit" : action === "reactivate_client" ? "reactivate" : "reset_demo";
