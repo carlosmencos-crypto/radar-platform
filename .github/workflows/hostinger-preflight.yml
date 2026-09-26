@@ -34,13 +34,6 @@ jobs:
           echo 'Private key format valid; no authentication attempted.'
           ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
           test -s "$task_dir/server_keys"
-          {
-            echo '## Hostinger preflight'
-            echo 'All four settings present. Private key format valid.'
-            echo 'SSH endpoint reachable. Server fingerprint below is OBSERVED, not yet trusted.'
-            echo 'Compare against a fingerprint verified with the hosting provider before enabling authentication.'
-            echo 'No login, upload, or production change performed.'
-            echo '\`\`\`'
-            ssh-keygen -lf "$task_dir/server_keys" | awk '{print $1, $2, $NF}'
-            echo '\`\`\`'
-          } | tee -a "$GITHUB_STEP_SUMMARY"
+          observed=$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')
+          test "$observed" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'printf "SSH_AUTH_OK\n"; for d in "$HOME/domains/radargt.wowlatam.com/public_html" "$HOME/domains/wowlatam.com/public_html/radargt"; do if [ -d "$d" ]; then printf "RADAR_DIR %s\n" "$d"; ls -ld "$d/index.html" "$d/radar-app.html"; command -v python3; fi; done'
