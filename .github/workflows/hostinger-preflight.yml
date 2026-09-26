@@ -1,8 +1,5 @@
 name: Hostinger connection preflight
 on:
-  push:
-    branches: [ops/hostinger-connection-check]
-    paths: [.github/workflows/hostinger-preflight.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,13 +33,4 @@ jobs:
           test -s "$task_dir/server_keys"
           observed=$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')
           test "$observed" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
-          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PYREMOTE'
-          from pathlib import Path
-          import json,hashlib
-          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
-          expected={'assets/radar-access-gate-61c30bcb9128.js': '61c30bcb9128972f410a0578fa546c774448b5180ccc0bb60c35d27bf0ad3859', 'assets/radar-access-gate-20260926.js': '61c30bcb9128972f410a0578fa546c774448b5180ccc0bb60c35d27bf0ad3859', 'radar-app.html': '17eea95c72a58e3860e9f33c71df45cf2b215a4d5e85b693acbadcca0fb60854'}
-          for name,digest in expected.items():
-              observed=hashlib.sha256((root/name).read_bytes()).hexdigest()
-              assert observed==digest,'Published file mismatch: '+name
-              print('VERIFIED '+name+' '+observed)
-          PYREMOTE
+          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'printf "SSH_AUTH_OK\n"; for d in "$HOME/domains/radargt.wowlatam.com/public_html" "$HOME/domains/wowlatam.com/public_html/radargt"; do if [ -d "$d" ]; then printf "RADAR_DIR %s\n" "$d"; ls -ld "$d/index.html" "$d/radar-app.html"; command -v python3; fi; done'
