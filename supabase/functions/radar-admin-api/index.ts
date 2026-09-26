@@ -290,6 +290,13 @@ Deno.serve(async (req: Request) => {
       return response(req, { error: "METHOD_NOT_ALLOWED", request_id: requestId }, 405);
     }
 
+    if (action === "national_rtd") {
+      assertPermission(role, context, "rtd:read");
+      if (role !== "super_admin") throw Object.assign(new Error("Consolidado exclusivo de superadministración"), { status: 403 });
+      const { data, error } = await service.rpc("radar_admin_national_rtd_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_input: input });
+      if (error) throw error;
+      return response(req, { data, request_id: requestId });
+    }
     if (action === "snapshot") {
       assertPermission(role, context, "snapshot:read");
       const secondCode = urlObject.searchParams.get("second_municipality_code") ?? String(input.second_municipality_code ?? "1901");

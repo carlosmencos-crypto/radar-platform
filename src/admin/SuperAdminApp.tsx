@@ -1,3 +1,4 @@
+import { NationalRtd } from "./NationalRtd";
 import { useDismissibleDialog } from "./useDismissibleDialog";
 import { DailyHome, ContentWorkspace, DemoWorkspace, AssignedUsers } from "./ContentWorkspace";
 import { ClientsWorkspace } from "./ClientsWorkspace";
@@ -282,7 +283,7 @@ export function SuperAdminApp({
           <img src={logo} alt="RADAR Inteligencia Electoral" />
         </div>
         <nav aria-label="Navegación del superadministrador">
-          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "avisos", "demos"].includes(id)).sort((a,b)=>["resumen","municipios","recursos","pulso","avisos","demos"].indexOf(a[0])-["resumen","municipios","recursos","pulso","avisos","demos"].indexOf(b[0])).map(([id, label, icon]) => (
+          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "rtd", "avisos", "demos"].includes(id)).sort((a,b)=>["resumen","municipios","recursos","pulso","rtd","avisos","demos"].indexOf(a[0])-["resumen","municipios","recursos","pulso","rtd","avisos","demos"].indexOf(b[0])).map(([id, label, icon]) => (
             <NavLink
               key={id}
               to={`/admin/${id}`}
@@ -293,8 +294,8 @@ export function SuperAdminApp({
               {id === "rtd" ? <small>DÍA D</small> : null}
             </NavLink>
           ))}
-          <details open={!["resumen","municipios","recursos","pulso","avisos","demos"].includes(active)}><summary>Administración técnica</summary>
-            {sections.filter(([id]) => !["resumen","municipios","recursos","pulso","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
+          <details open={!["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(active)}><summary>Administración técnica</summary>
+            {sections.filter(([id]) => !["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
           </details>
         </nav>
         <div className="superadmin-identity">
@@ -2321,127 +2322,7 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
 }
 
 function RtdModule({ snapshot }: { snapshot: AdminSnapshot }) {
-  return (
-    <>
-      <div className="superadmin-kpis superadmin-kpis--compact">
-        <Kpi
-          label="Campañas monitoreadas"
-          value={number(snapshot.rtd.length)}
-          note="Con recepción RTD registrada"
-          tone="petrol"
-        />
-        <Kpi
-          label="Actas recibidas"
-          value={number(
-            snapshot.rtd_monitoring.reduce(
-              (sum, item) => sum + Number(item.actas_received ?? 0),
-              0,
-            ),
-          )}
-          note="Cinco elecciones controladas"
-          tone="purple"
-        />
-        <Kpi
-          label="JRV retrasadas"
-          value={number(
-            snapshot.rtd_monitoring.reduce(
-              (sum, item) => sum + Number(item.delayed_jrv ?? 0),
-              0,
-            ),
-          )}
-          note="Según el último corte"
-          tone="graphite"
-        />
-      </div>
-      <Panel eyebrow="MONITOREO AGREGADO" title="RTD Día D">
-        <p className="superadmin-help">
-          Este panel muestra el avance de recepción y los incidentes por campaña.
-          Los resultados por candidato y la revisión de imágenes de actas aún no están disponibles aquí.
-        </p>
-        <EmptyOr
-          rows={snapshot.rtd}
-          empty="No hay campañas RTD reales con recepción registrada."
-        >
-          <DataTable
-            headers={[
-              "Municipio",
-              "Fiscales",
-              "Centros",
-              "JRV",
-              "Borradores",
-              "Confirmadas",
-              "Alertas",
-              "Actualización",
-            ]}
-          >
-            {snapshot.rtd.map((item) => (
-              <tr key={text(item.campaign_id)}>
-                <td>
-                  <strong>
-                    {municipalityLabel(snapshot, item.municipality_code)}
-                  </strong>
-                  <small>{text(item.municipality_code)}</small>
-                </td>
-                <td>{number(item.fiscales)}</td>
-                <td>{number(item.centers_received)}</td>
-                <td>{number(item.jrv_received)}</td>
-                <td>{number(item.drafts)}</td>
-                <td>{number(item.confirmed)}</td>
-                <td>
-                  <Status
-                    value={
-                      Number(item.open_incidents)
-                        ? `${number(item.open_incidents)} alertas`
-                        : "Sin alertas"
-                    }
-                  />
-                </td>
-                <td>{date(item.last_update)}</td>
-              </tr>
-            ))}
-          </DataTable>
-        </EmptyOr>
-      </Panel>
-      <Panel eyebrow="CINCO ACTAS Y RETRASOS" title="Últimos cortes operativos">
-        <EmptyOr
-          rows={snapshot.rtd_monitoring}
-          empty="No hay cortes agregados registrados."
-        >
-          <DataTable
-            headers={[
-              "Territorio",
-              "Centros",
-              "JRV",
-              "Fiscales",
-              "Esperadas",
-              "Recibidas",
-              "Con error",
-              "Retrasos",
-              "Corte",
-            ]}
-          >
-            {snapshot.rtd_monitoring.map((item) => (
-              <tr key={text(item.id)}>
-                <td>
-                  {item.municipality_code
-                    ? municipalityLabel(snapshot, item.municipality_code)
-                    : text(item.department_code, "Guatemala")}
-                </td>
-                <td>{number(item.centers_total)}</td>
-                <td>{number(item.jrv_total)}</td>
-                <td>{number(item.fiscales_assigned)}</td>
-                <td>{number(item.actas_expected)}</td>
-                <td>{number(item.actas_received)}</td>
-                <td>{number(item.actas_with_error)}</td>
-                <td>{number(item.delayed_jrv)}</td>
-                <td>{date(item.snapshot_at)}</td>
-              </tr>
-            ))}
-          </DataTable>
-        </EmptyOr>
-      </Panel>
-    </>
-  );
+  return <NationalRtd snapshot={snapshot} />;
 }
 
 function QaModule({ snapshot }: { snapshot: AdminSnapshot }) {
