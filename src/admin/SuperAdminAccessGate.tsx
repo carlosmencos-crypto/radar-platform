@@ -14,6 +14,7 @@ function messageFor(code: string) {
   if (code === "RADAR_ADMIN_NOT_CONFIGURED") return "La API administrativa no está configurada en este ambiente.";
   if (code === "RADAR_AUTH_REQUIRED" || code === "AUTH_REQUIRED" || code === "AUTH_INVALID") return "Necesitas iniciar sesión para entrar a la consola.";
   if (code === "MFA_AAL2_REQUIRED") return "La consola exige verificación MFA para esta sesión.";
+  if (code.includes("permission denied for")) return "No se pudo cargar la información por un permiso interno del servidor. Tu contraseña no necesita cambios.";
   if (code === "ADMIN_ROLE_REQUIRED" || code.includes("permission") || code.includes("scope")) return "Tu cuenta no tiene el rol o alcance necesario para esta consola.";
   return "No fue posible verificar el control-plane administrativo.";
 }

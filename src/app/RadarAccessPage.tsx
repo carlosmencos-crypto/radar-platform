@@ -146,6 +146,7 @@ export function RadarAccessPage() {
       ) : callbackType && !challenge ? (
         <form onSubmit={submitPasswordSetup} autoComplete="new-password">
           <h2>{callbackType === "invite" ? "Activa tu cuenta RADAR" : "Crea una contraseña nueva"}</h2>
+          {callbackType === "invite" && <a href="/guias/primeros-pasos.html" target="_blank" rel="noreferrer">Guía de primeros pasos ↗</a>}
           <p>Define una contraseña exclusiva para RADAR.{nextPath().startsWith("/admin") ? " Después activarás la verificación en dos pasos." : " Después podrás entrar a tu municipio."}</p>
           <label>
             Contraseña nueva

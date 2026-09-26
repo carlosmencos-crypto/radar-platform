@@ -1,3 +1,5 @@
+import { DailyHome, ContentWorkspace, DemoWorkspace } from "./ContentWorkspace";
+import { ClientsWorkspace } from "./ClientsWorkspace";
 import {
   useEffect,
   useMemo,
@@ -15,8 +17,12 @@ import {
 } from "./radarAdminApi";
 
 const sections = [
-  ["resumen", "Resumen nacional", "⌂"],
-  ["municipios", "Municipios y campañas", "◎"],
+  ["resumen", "Inicio", "⌂"],
+  ["recursos", "Recursos", "▣"],
+  ["avisos", "Avisos", "◇"],
+  ["demos", "Demostraciones", "↻"],
+  ["resumen-tecnico", "Resumen técnico", "▥"],
+  ["municipios", "Clientes y municipios", "◎"],
   ["exclusividad", "Disponibilidad y contratos", "◇"],
   ["usuarios", "Usuarios y permisos", "♙"],
   ["data-vault", "Datos municipales", "▥"],
@@ -42,6 +48,10 @@ interface ActionModuleProps {
 
 const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
   {
+    recursos: {eyebrow:"BIBLIOTECA RADAR",description:"Manuales, plantillas y tutoriales para tus clientes."},
+    avisos: {eyebrow:"COMUNICACIÓN",description:"Mensajes importantes, con destinatarios y vigencia definidos."},
+    demos: {eyebrow:"DEMOSTRACIONES",description:"Gestiona los espacios de presentación separados de las campañas reales."},
+    "resumen-tecnico": {eyebrow:"CONTROL NACIONAL",description:"Indicadores técnicos y estado de la plataforma."},
     resumen: {
       eyebrow: "OPERACIÓN NACIONAL",
       description:
@@ -50,7 +60,7 @@ const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
     municipios: {
       eyebrow: "COBERTURA TERRITORIAL",
       description:
-        "Buscá un municipio, revisá su estado y administrá campañas sin duplicar aplicaciones.",
+        "Asigna municipios, administra equipos y acompaña a tus clientes desde una sola ficha.",
     },
     exclusividad: {
       eyebrow: "PROTECCIÓN COMERCIAL",
@@ -266,7 +276,7 @@ export function SuperAdminApp({
           <img src={logo} alt="RADAR Inteligencia Electoral" />
         </div>
         <nav aria-label="Navegación del superadministrador">
-          {sections.map(([id, label, icon]) => (
+          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "avisos", "demos"].includes(id)).map(([id, label, icon]) => (
             <NavLink
               key={id}
               to={`/admin/${id}`}
@@ -277,6 +287,9 @@ export function SuperAdminApp({
               {id === "rtd" ? <small>DÍA D</small> : null}
             </NavLink>
           ))}
+          <details open={!["resumen","municipios","recursos","pulso","avisos","demos"].includes(active)}><summary>Administración técnica</summary>
+            {sections.filter(([id]) => !["resumen","municipios","recursos","pulso","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
+          </details>
         </nav>
         <div className="superadmin-identity">
           <span>
@@ -369,6 +382,7 @@ export function SuperAdminApp({
           ) : null}
           <SectionRouter
             active={active}
+            refresh={onRefresh}
             snapshot={snapshot}
             action={action}
             busy={actionBusy}
@@ -380,20 +394,25 @@ export function SuperAdminApp({
 }
 
 function SectionRouter({
+  refresh,
   active,
   snapshot,
   action,
   busy,
 }: {
   active: SectionId;
+  refresh: () => Promise<void>;
   snapshot: AdminSnapshot;
   action: Action;
   busy: boolean;
 }) {
-  if (active === "resumen") return <NationalSummary snapshot={snapshot} />;
+  if (active === "resumen") return <DailyHome snapshot={snapshot} />;
+  if (active === "resumen-tecnico") return <NationalSummary snapshot={snapshot} />;
+  if (active === "recursos" || active === "avisos") return <ContentWorkspace kind={active === "recursos" ? "resource" : "notice"} snapshot={snapshot} action={action} busy={busy} refresh={refresh} />;
+  if (active === "demos") return <DemoWorkspace snapshot={snapshot} action={action} busy={busy} />;
   if (active === "municipios")
     return (
-      <MunicipalitiesModule snapshot={snapshot} action={action} busy={busy} />
+      <ClientsWorkspace snapshot={snapshot} action={action} busy={busy} />
     );
   if (active === "exclusividad")
     return (
@@ -2028,7 +2047,7 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
         <div>
           <span>03</span>
           <strong>Nacional</strong>
-          <small>Presidencia, listado nacional y Parlacen · GT</small>
+          <small>Presidencia y Lista Nacional · GT</small>
         </div>
       </div>
       <Panel
@@ -2120,7 +2139,6 @@ function PulseModule({ snapshot, action, busy }: ActionModuleProps) {
                 <option value="DIP_DIST">Diputación distrital</option>
                 <option value="PRESIDENTE">Presidencia</option>
                 <option value="DIP_NAC">Listado nacional</option>
-                <option value="PARLACEN">Parlacen</option>
               </select>
             </Field>
             <Field label="Folio">

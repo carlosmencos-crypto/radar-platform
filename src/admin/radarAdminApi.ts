@@ -55,6 +55,8 @@ export interface AdminSnapshot {
   audit: Array<Record<string, unknown>>;
   support: Array<Record<string, unknown>>;
   users: Array<Record<string, unknown>>;
+  shared_content?: Array<Record<string, unknown>>;
+  client_accounts?: Array<Record<string, unknown>>;
   campaign_members?: Array<Record<string, unknown>>;
   operator_context: {
     user_id: string;
@@ -130,4 +132,10 @@ export async function uploadPublicationPreview(file: File, input: Record<string,
   form.set("input", JSON.stringify(input));
   form.set("file", file, file.name);
   return adminRequest<Record<string, unknown>>(apiUrl, { method: "POST", body: form });
+}
+
+export async function uploadSharedResource(file: File, input: Record<string, unknown>) {
+ const { apiUrl } = adminConfig(); const form = new FormData();
+ form.set("action", "upload_resource"); form.set("input", JSON.stringify(input)); form.set("file", file);
+ return adminRequest<Record<string, unknown>>(apiUrl, { method: "POST", body: form });
 }

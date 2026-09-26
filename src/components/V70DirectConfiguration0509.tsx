@@ -1,3 +1,4 @@
+import { CampaignTeamSettings } from "./CampaignTeamSettings";
 import { useState, type ChangeEvent } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
@@ -45,6 +46,7 @@ function ConfigurationContent() {
         </div>
       </section>
       <main className="configuration-center simplified">
+        <CampaignTeamSettings />
         <section className="config-overview">
           <article>
             <small>CAMPAÑA</small>

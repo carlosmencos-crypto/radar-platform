@@ -315,10 +315,52 @@ Deno.serve(async (req: Request) => {
           if (!members || members.length < 1000) break;
         }
       }
+      let clientAccounts: unknown[] = [];
+      let sharedContent: unknown[] = [];
+      if (role === "super_admin") {
+        const { data: accounts, error } = await service.rpc("radar_admin_clients_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: "list", p_input: {} });
+        if (error) throw error;
+        clientAccounts = accounts ?? [];
+        const { data: content, error: contentError } = await service.rpc("radar_admin_content_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: "list", p_input: {} });
+        if (contentError) throw contentError;
+        sharedContent = content ?? [];
+      }
       const visibleSnapshot = scopedSnapshot(asObject(data), context, role);
-      return response(req, { data: { ...visibleSnapshot, users, campaign_members: campaignMembers, operator_context: context }, request_id: requestId });
+      return response(req, { data: { ...visibleSnapshot, users, campaign_members: campaignMembers, client_accounts: clientAccounts, shared_content: sharedContent, operator_context: context }, request_id: requestId });
     }
 
+    if (["save_notice", "publish_content", "archive_content", "upload_resource"].includes(action)) {
+      assertPermission(role, context, "users:write");
+      let path: string | null = null;
+      if (action === "upload_resource") {
+        if (!uploadedFile || !uploadedFile.size || uploadedFile.size > 25 * 1024 * 1024) throw new Error("Selecciona un archivo de hasta 25 MB");
+        if (!/\.(pdf|docx|xlsx|pptx|png|jpg|jpeg|webp|mp4)$/i.test(uploadedFile.name)) throw new Error("Formato no admitido. Usa PDF, Office, imagen o MP4.");
+        path = `${crypto.randomUUID()}/${safePathPart(uploadedFile.name)}`;
+        const { error } = await service.storage.from("radar-shared-resources").upload(path, uploadedFile, { contentType: uploadedFile.type || "application/octet-stream" });
+        if (error) throw error;
+        input = { ...input, kind: "resource", storage_path: path, file_name: uploadedFile.name };
+      }
+      if (action === "save_notice") input = { ...input, kind: "notice" };
+      const operation = action === "publish_content" ? "publish" : action === "archive_content" ? "archive" : "save";
+      const { data, error } = await service.rpc("radar_admin_content_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: operation, p_input: input });
+      if (error) { if (path) await service.storage.from("radar-shared-resources").remove([path]); throw error; }
+      return response(req, { data, request_id: requestId });
+    }
+    if (["client_limit", "reactivate_client", "reset_demo"].includes(action)) {
+      assertPermission(role, context, "users:write");
+      const operation = action === "client_limit" ? "limit" : action === "reactivate_client" ? "reactivate" : "reset_demo";
+      const { data, error } = await service.rpc("radar_admin_clients_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: operation, p_input: input });
+      if (error) throw error;
+      return response(req, { data, request_id: requestId });
+    }
+    if (action === "onboard_client") {
+      assertPermission(role, context, "users:write");
+      if (!allowedOrigins().has(req.headers.get("Origin") ?? "")) throw new Error("Origen no permitido");
+      const { data, error } = await service.rpc("radar_admin_clients_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: "onboard", p_input: input });
+      if (error) throw error;
+      input = { ...input, campaign_id: data.campaign_id, member_role: "campaign_admin", reason: "Administrador principal asignado durante contratación" };
+      action = "invite_campaign_member";
+    }
     if (action === "assign_campaign_member" || action === "invite_campaign_member") {
       assertPermission(role, context, "users:write");
       if (role !== "super_admin") throw new Error("Solo superadministradores");
