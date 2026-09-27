@@ -98,7 +98,10 @@ function persistRadarSession(response: SupabaseTokenResponse) {
     token_type: response.token_type,
     expires_at: Date.now() + Math.max(response.expires_in, 1) * 1000,
   };
-  if (storageAvailable()) window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  if (storageAvailable()) {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    window.sessionStorage.setItem("radar-session-tab", "1");
+  }
   return session;
 }
 
@@ -199,7 +202,7 @@ async function tokenRequest(grantType: "password" | "refresh_token", body: Recor
   });
 
   if (!response.ok) {
-    clearRadarSession();
+    if (grantType === "password") clearRadarSession();
     throw new Error(`RADAR_AUTH_${response.status}`);
   }
 
@@ -311,23 +314,38 @@ async function refreshRadarSession(refreshToken: string) {
   return tokenRequest("refresh_token", { refresh_token: refreshToken });
 }
 
-export async function ensureRadarAccessToken() {
-  const session = readRadarSession();
-  if (!session) throw new Error("RADAR_AUTH_REQUIRED");
-  if (session.expires_at - EXPIRY_SKEW_MS > Date.now()) return session.access_token;
+let refreshInFlight: Promise<string> | null = null;
 
-  if (!session.refresh_token) {
-    clearRadarSession();
-    throw new Error("RADAR_AUTH_REQUIRED");
-  }
-
-  try {
-    const refreshed = await refreshRadarSession(session.refresh_token);
-    return refreshed.access_token;
-  } catch {
-    clearRadarSession();
-    throw new Error("RADAR_AUTH_REQUIRED");
-  }
+export async function ensureRadarAccessToken(): Promise<string> {
+  const current = readRadarSession();
+  if (!current) throw new Error("RADAR_AUTH_REQUIRED");
+  if (current.expires_at - EXPIRY_SKEW_MS > Date.now()) return current.access_token;
+  if (refreshInFlight) return refreshInFlight;
+  const refresh = async () => {
+    // A second tab may have renewed the session while this one waited.
+    const session = readRadarSession();
+    if (!session) throw new Error("RADAR_AUTH_REQUIRED");
+    if (session.expires_at - EXPIRY_SKEW_MS > Date.now()) return session.access_token;
+    if (!session.refresh_token) throw new Error("RADAR_AUTH_REQUIRED");
+    try {
+      const refreshed = await refreshRadarSession(session.refresh_token);
+      return refreshed.access_token;
+    } catch (error) {
+      const latest = readRadarSession();
+      if (latest && latest.access_token !== session.access_token && latest.expires_at > Date.now()) return latest.access_token;
+      const code = error instanceof Error ? error.message : "";
+      if (["RADAR_AUTH_400", "RADAR_AUTH_401", "RADAR_AUTH_403"].includes(code)) {
+        if (latest?.refresh_token === session.refresh_token) clearRadarSession();
+        throw new Error("RADAR_AUTH_REQUIRED");
+      }
+      // Network failures and rate limits do not invalidate credentials.
+      throw new Error("No pudimos renovar la sesión. Revisá tu conexión e intentá guardar de nuevo.");
+    }
+  };
+  refreshInFlight = (typeof navigator !== "undefined" && navigator.locks
+    ? navigator.locks.request("radar-auth-refresh", refresh)
+    : refresh()).finally(() => { refreshInFlight = null; });
+  return refreshInFlight;
 }
 
 export async function signOutRadar() {

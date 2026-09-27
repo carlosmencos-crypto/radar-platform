@@ -238,7 +238,7 @@ export function SuperAdminApp({
       setActionFailed(true);
       setActionMessage(
         error instanceof Error
-          ? error.message
+          ? (["RADAR_AUTH_REQUIRED", "AUTH_REQUIRED", "AUTH_INVALID"].includes(error.message) ? "Tu sesión terminó. Volvé a ingresar para guardar; el formulario sigue abierto." : error.message)
           : "No se pudo completar la operación.",
       );
       return false;
@@ -381,6 +381,7 @@ export function SuperAdminApp({
             <div className={`superadmin-action-message${actionFailed ? " is-error" : ""}`} role={actionFailed ? "alert" : "status"}>
               <span>{actionFailed ? "!" : "✓"}</span>
               {actionMessage}
+              {actionMessage.startsWith("Tu sesión terminó") && <a href={`/acceso?next=${encodeURIComponent(window.location.pathname)}`} target="_blank" rel="noopener" style={{textDecoration:"underline",marginLeft:12}}>Volver a ingresar</a>}
               <button
                 type="button"
                 onClick={() => setActionMessage(null)}
