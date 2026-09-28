@@ -409,12 +409,12 @@ Deno.serve(async (req: Request) => {
         }
         if (existing) targetId = existing.id;
         else {
-          const { data: municipality, error } = await service.from("municipalities").select("municipality_code").eq("id", campaign.municipality_id).single();
+          const { data: municipality, error } = await service.from("municipalities").select("municipality_code,municipality_name,department_name").eq("id", campaign.municipality_id).single();
           if (error) throw error;
           const origin = req.headers.get("Origin") ?? "";
           if (!allowedOrigins().has(origin)) throw new Error("Origen de invitación no permitido");
           const { data: invitation, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, {
-            data: { display_name: asString(input.display_name, "display_name") },
+            data: { display_name: asString(input.display_name, "display_name"), municipality_name: municipality.municipality_name, department_name: municipality.department_name },
             redirectTo: `${origin}/acceso?next=${encodeURIComponent(`/municipio/${municipality.municipality_code}`)}`,
           });
           if (inviteError || !invitation.user) throw inviteError ?? new Error("No se pudo enviar la invitación");

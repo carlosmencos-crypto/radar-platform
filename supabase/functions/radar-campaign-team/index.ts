@@ -20,7 +20,7 @@ Deno.serve(async(req:Request)=>{
    const scope=await rpc("prepare_invite");const email=String(input.email??"").trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error("Correo inválido");
    let target;
    for(let page=1;;page++){const {data,error}=await service.auth.admin.listUsers({page,perPage:1000});if(error)throw error;target=data.users.find(u=>u.email?.toLowerCase()===email);if(target||data.users.length<1000)break;}
-   if(!target){const {data,error}=await service.auth.admin.inviteUserByEmail(email,{data:{display_name:String(input.display_name??"")},redirectTo:`${origin}/acceso?next=${encodeURIComponent(`/municipio/${scope.municipality_code}`)}`});if(error)throw error;target=data.user;}
+   if(!target){const {data:municipality,error:municipalityError}=await service.from("municipalities").select("municipality_name,department_name").eq("municipality_code",scope.municipality_code).single();if(municipalityError)throw municipalityError;const {data,error}=await service.auth.admin.inviteUserByEmail(email,{data:{display_name:String(input.display_name??""),municipality_name:municipality.municipality_name,department_name:municipality.department_name},redirectTo:`${origin}/acceso?next=${encodeURIComponent(`/municipio/${scope.municipality_code}`)}`});if(error)throw error;target=data.user;}
    if(!target)throw new Error("No se pudo preparar el acceso");return reply({data:await rpc("assign",{user_id:target.id,member_role:input.member_role})});
   }
   if(action==="assign"||action==="remove")return reply({data:await rpc(action,input)});
