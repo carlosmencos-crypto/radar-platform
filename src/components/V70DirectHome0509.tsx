@@ -6,7 +6,7 @@ import {
   useMunicipalityContext,
 } from "../context/MunicipalityContext";
 import { resolveRadarConsumer } from "../data/radarConsumer";
-import { ensureRadarAccessToken } from "../data/radarAuth";
+import { ensureRadarAccessToken, radarCurrentIdentity } from "../data/radarAuth";
 import { loadCampaignBundle, loadCampaignRecords, type CampaignActivityRecord, type CampaignCommitmentRecord, type CampaignModuleRecord } from "../data/radarRuntime";
 import { buildMunicipalIntelligenceModel, finite, formatDecimal, formatInteger, formatPercent } from "../data/v70MunicipalIntelligence";
 import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
@@ -74,6 +74,15 @@ function HomeContent() {
     [runtime, electoralLayers],
   );
   const { slate } = useV70CampaignBrand();
+  const [firstName, setFirstName] = useState("");
+  useEffect(() => {
+    let active = true;
+    void radarCurrentIdentity().then(identity => {
+      const name = identity?.user_metadata?.display_name?.trim() ?? "";
+      if (active) setFirstName(name.split(/\s+/)[0] ?? "");
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [commitments, setCommitments] = useState<CampaignCommitmentRecord[]>([]);
   const [commitmentRecords, setCommitmentRecords] = useState<CampaignModuleRecord[]>([]);
@@ -109,7 +118,7 @@ function HomeContent() {
     <>
       <section className="command-hero home-welcome">
         <div className="home-welcome-copy">
-          <p>{greetingForGuatemala()}, EQUIPO</p>
+          <p>{greetingForGuatemala()}{firstName ? `, ${firstName}` : ""}</p>
           <small>Centro de control electoral 2027</small>
           <h1>{municipality_name}</h1>
           <span className="campaign-type">Campaña Alcaldía</span>
