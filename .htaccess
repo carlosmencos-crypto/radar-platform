@@ -14,9 +14,9 @@ Options -Indexes
   Header always set Content-Security-Policy "default-src 'self'; connect-src 'self' https://xxobbhnhxhcjkdxmjmwj.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
-  <Files "worker.min.js">
+  <FilesMatch "^worker-v7\.min\.js$">
     Header always set Content-Security-Policy "default-src 'self'; connect-src 'self' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net"
-  </Files>
+  </FilesMatch>
 
   <FilesMatch "^(index\.html|radar-fiscal-config\.js|sw\.js)$">
     Header set Cache-Control "no-store, max-age=0"
