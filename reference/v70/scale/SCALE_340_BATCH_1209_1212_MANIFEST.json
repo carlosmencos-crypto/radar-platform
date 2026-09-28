@@ -1,0 +1,135 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1209-1212",
+  "protocol": "ACCELERATED_PILOT_4",
+  "status": "COMPLETE_QUALITY_SUCCESS",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "c19198583115e74f2a6025190460f3196b2f938f",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1209",
+      "municipality_name": "Tajumulco",
+      "checkpoint": "SCALE_340_CHECKPOINT_1209_COMPLETE.json",
+      "generated_at": "2026-09-19T00:21:56.876990+00:00",
+      "artifact_file": "RADAR_V70_1209_STAGE_EXACT_4cc1a61a.json",
+      "artifact_sha256": "4cc1a61a11fcd8ffe9f7a86b77b159b1874e7c759dd1845c6ae6c4865042ad87",
+      "artifact_file_sha256": "fea89307c674eed138029bd34d5f34d0332b8ac5188ff6f5872633e1f8ebc26b",
+      "drive_id": "1ojCqNcmlPbaeScCEqiMOtCBxbiscCWHk",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1210",
+      "municipality_name": "Tejutla",
+      "checkpoint": "SCALE_340_CHECKPOINT_1210_COMPLETE.json",
+      "generated_at": "2026-09-19T00:21:58.494437+00:00",
+      "artifact_file": "RADAR_V70_1210_STAGE_EXACT_9d338c8f.json",
+      "artifact_sha256": "9d338c8f6f01a082a014564bdf73f4d4cb033e022ba6e6d0d88f918c851a2b52",
+      "artifact_file_sha256": "295897cf3eab2f9cadd53b64f2a2e6bdb79cffc2adee54ff900db6842b1f39ec",
+      "drive_id": "1Ilukuz8OUBAWtC2Jv_cYGsihLWXag4JI",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1211",
+      "municipality_name": "San Rafael Pie De La Cuesta",
+      "checkpoint": "SCALE_340_CHECKPOINT_1211_COMPLETE.json",
+      "generated_at": "2026-09-19T00:21:59.956258+00:00",
+      "artifact_file": "RADAR_V70_1211_STAGE_EXACT_9896c773.json",
+      "artifact_sha256": "9896c77393e253df801bbc339dbf51622bd36741b0cab76f0b834159918f9560",
+      "artifact_file_sha256": "5656c2b9e9cc09b72fdbe5ea305e3c5b29b748a6e62866a7c8ccfff2eef0dd82",
+      "drive_id": "1hSnohIXg7ekUdsyoSVpo9yqb3R0VHr9J",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1212",
+      "municipality_name": "Nuevo Progreso",
+      "checkpoint": "SCALE_340_CHECKPOINT_1212_COMPLETE.json",
+      "generated_at": "2026-09-19T00:22:01.340009+00:00",
+      "artifact_file": "RADAR_V70_1212_STAGE_EXACT_304a4ed5.json",
+      "artifact_sha256": "304a4ed5cf1cb36fb6ddbeb9b475256fcde57c25b4ef5d8e6b5a4a8185bdecf0",
+      "artifact_file_sha256": "deab64b6e505fc1a7d07cda6d4dfecc757f4958f6314f9bc7c2e8e4d89ea7958",
+      "drive_id": "1LTeIfYrlUu6ew3dHDgFUVk4v_V4uMxdw",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 4,
+    "prevalidated": 4,
+    "promoted": 4,
+    "quarantined": 0,
+    "six_of_six": 4,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0
+  },
+  "national_after": {
+    "complete_6_of_6": 179,
+    "semantic_special": 2,
+    "zero_of_6": 159
+  },
+  "quality": {
+    "status": "SUCCESS",
+    "completed_at": "2026-09-19T00:33:33+00:00",
+    "node": "22.22.0",
+    "github_actions": {
+      "workflow": "Quality",
+      "run_id": 35320178018,
+      "commit_sha": "c19198583115e74f2a6025190460f3196b2f938f",
+      "conclusion": "success",
+      "note": "Same application code as this checkpoint-only batch; no code, configuration, migration, or contract changes."
+    },
+    "local": {
+      "npm_ci": "PASS",
+      "lint": "PASS_0_WARNINGS_0_ERRORS",
+      "typecheck": "PASS",
+      "tests": "PASS_58_OF_58",
+      "xlsx": "PASS_3_SHEETS",
+      "smoke_340": "PASS_340_OF_340",
+      "v70_parity": "PASS_11_OF_11",
+      "build": "PASS",
+      "preview": "PASS_340_OF_340",
+      "bundle_audit": "PASS_0_SECRETS_0_PII",
+      "render_0509": "PASS_11_OF_11_WITH_PINNED_LOCAL_LEAFLET",
+      "interaction_runner_note": "Local restricted headless shell cannot emit the browser-native Escape fullscreen exit; the identical application code passed the canonical interaction/PDF/artifact gate in GitHub Actions run 35320178018."
+    },
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1213",
+      "1214",
+      "1215",
+      "1216",
+      "1217",
+      "1218",
+      "1219",
+      "1220"
+    ],
+    "size": 8,
+    "eligible_after_quality_success": true
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "1602-1613",
+  "municipality_code": "1613",
+  "municipality_name": "Chisec",
+  "department_code": "16",
+  "department_name": "Alta Verapaz",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-19T20:07:30.449567+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_1613_STAGE_CANONICAL_4e4773c5.json",
+    "artifact_drive_id": "180pADCm_Vja-FAjzJhMHy8Iy4BHkCX8s",
+    "artifact_sha256": "4e4773c5c017682de00bc0cff89340b4fca17a308f8e8f1552fab34a16fe87df",
+    "artifact_file_sha256": "852afa350153b56af33bf850d3799de105a2a7854ff11aa50c43be29b07fabcf",
+    "layers": 6,
+    "physical_centers": 27,
+    "expected_jrv": 117,
+    "registered_voters": 44067,
+    "geo_exact": 27,
+    "geo_held": 0,
+    "dense_rows": 2943,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 271,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 273,
+    "zero_of_6": 67,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [
+      "1614",
+      "1615",
+      "1616",
+      "1617",
+      "1701",
+      "1702",
+      "1703",
+      "1704",
+      "1705",
+      "1706",
+      "1707",
+      "1708"
+    ],
+    "size": 12,
+    "started": false
+  }
+}

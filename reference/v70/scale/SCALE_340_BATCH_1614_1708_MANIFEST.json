@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1614-1708",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "a2e4ff9563ea37f52b10521bfd7975eb4ec20d92",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1614",
+      "municipality_name": "Chahal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1614_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:07.971639+00:00",
+      "artifact_file": "RADAR_V70_1614_STAGE_CANONICAL_77d685ae.json",
+      "artifact_sha256": "77d685aef16ef069268458b7bce5891c92821766be44f2ee9876f4c4f40f9dab",
+      "artifact_file_sha256": "1b5e69229533fcae87292507fcf0077061d6992517ff220af8eeef0f40a7dfcd",
+      "drive_id": "1o9SGTPPummlmtw5YUHXCAj9Y8NJOvdJn",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1615",
+      "municipality_name": "Fray Bartolomé de Las Casas",
+      "checkpoint": "SCALE_340_CHECKPOINT_1615_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:10.137673+00:00",
+      "artifact_file": "RADAR_V70_1615_STAGE_CANONICAL_1b846ff7.json",
+      "artifact_sha256": "1b846ff7117feb6e30adfc5878e457f686b39bad1c72d81a9d5e4d3946c01641",
+      "artifact_file_sha256": "9cb996cce9532b5daf39c9b80dbc9893b5c92d9a190f5640df2a3c8eef8e2dfb",
+      "drive_id": "1Swb4j_7_1K9iLFKTtCbWU6nS9SW3NuTB",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1616",
+      "municipality_name": "Santa Catalina La Tinta",
+      "checkpoint": "SCALE_340_CHECKPOINT_1616_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:11.921822+00:00",
+      "artifact_file": "RADAR_V70_1616_STAGE_CANONICAL_cacbe3da.json",
+      "artifact_sha256": "cacbe3da9fe066de34d43fc17286efca29d6796826db440ae1f73385ee8561d4",
+      "artifact_file_sha256": "12c2f0dc1bc2f6a1b361d0557097bc3c08aceb0b0b7f724e4f21b0fa52427a0c",
+      "drive_id": "1TYuqm7iBI6WwHmhq2r3XCp3a64GrTZIe",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1617",
+      "municipality_name": "Raxruhá",
+      "checkpoint": "SCALE_340_CHECKPOINT_1617_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:13.837658+00:00",
+      "artifact_file": "RADAR_V70_1617_STAGE_CANONICAL_25a6c1a9.json",
+      "artifact_sha256": "25a6c1a9051781b65c7237f945398db449e437c11f83558e7846329e121633ad",
+      "artifact_file_sha256": "8e9ab3ca3faec9317fd90a210a1f38d88e786ac27e5feaad3a7103d02bc877d0",
+      "drive_id": "1s4KjiZWtIRqFTFbIA6aQu-F_s1kLYlhH",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1701",
+      "municipality_name": "Flores",
+      "checkpoint": "SCALE_340_CHECKPOINT_1701_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:15.914639+00:00",
+      "artifact_file": "RADAR_V70_1701_STAGE_CANONICAL_6df69cc3.json",
+      "artifact_sha256": "6df69cc3d393378501d215d2835cbecee5de9452e0fbd8cb3faab2ef140e4367",
+      "artifact_file_sha256": "73735e3cc53d390eaf4b1477f03dd08ff83eb44fd6bd8e6997f9f6032115c00f",
+      "drive_id": "1-sLXWan0TqO2L0C0l0DTjgXvbR_-Cm6B",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1702",
+      "municipality_name": "San José",
+      "checkpoint": "SCALE_340_CHECKPOINT_1702_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:17.952931+00:00",
+      "artifact_file": "RADAR_V70_1702_STAGE_CANONICAL_76f33d85.json",
+      "artifact_sha256": "76f33d850c7648001d5b964e510b5cc8980a51159ef3aaa39ce4a8466677a5dd",
+      "artifact_file_sha256": "1cda8dadb1014d02db07ad5ddd046eac1d8f174174730d266a87da413e90f4c0",
+      "drive_id": "1CtNJCC4Qn1B83NyDyKvPgoIX59i_9Adr",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1703",
+      "municipality_name": "San Benito",
+      "checkpoint": "SCALE_340_CHECKPOINT_1703_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:19.847043+00:00",
+      "artifact_file": "RADAR_V70_1703_STAGE_CANONICAL_dc5f2156.json",
+      "artifact_sha256": "dc5f215697904defa84a7d96779ee1ac05f1ed8a619608afbabae8387836ee99",
+      "artifact_file_sha256": "3cb59347618a75f593c7d7ce0b7548af3d2caae7cee7ccc530e44180a300c4fb",
+      "drive_id": "1R3rgWFO3tK6PHNAEg8qzTvWwvjZWU3JD",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1704",
+      "municipality_name": "San Andrés",
+      "checkpoint": "SCALE_340_CHECKPOINT_1704_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:21.809874+00:00",
+      "artifact_file": "RADAR_V70_1704_STAGE_CANONICAL_464b02d6.json",
+      "artifact_sha256": "464b02d636c56bea3455793e24d67ce68e69fddea301e4a18036d0ab8ff3bc0c",
+      "artifact_file_sha256": "8a64827913d68c1579c9082120c025bbb61271cddc6c4c3901c15bc7938f9cbf",
+      "drive_id": "1QYtz_ABKpk9TcBcbOqqs2Hw-Q3oGt5eI",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1705",
+      "municipality_name": "La Libertad",
+      "checkpoint": "SCALE_340_CHECKPOINT_1705_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:23.729470+00:00",
+      "artifact_file": "RADAR_V70_1705_STAGE_CANONICAL_27175dde.json",
+      "artifact_sha256": "27175dde1fe568985c72af575c435f11dfa803b86ce44f49fa005e5beba3dc44",
+      "artifact_file_sha256": "614652dacf807fcca17dabe5b556b780726f73df9ef37ca4bd0b26dfc31e492f",
+      "drive_id": "1u2R6ouhx-kqwxto_LNJYBPist7JXtW1w",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1706",
+      "municipality_name": "San Francisco",
+      "checkpoint": "SCALE_340_CHECKPOINT_1706_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:25.574804+00:00",
+      "artifact_file": "RADAR_V70_1706_STAGE_CANONICAL_e7e16e70.json",
+      "artifact_sha256": "e7e16e704c2fd15ed685be4a973eec2cdb9fe11896826c0774c90e47c054637c",
+      "artifact_file_sha256": "d47ba8c55fb3bc2602278df5fe591bd5b49cad9e596f202f3ec568bc363a5213",
+      "drive_id": "1FhVprOtSLbNaWmksBINUj5LNjAmbEjpp",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1707",
+      "municipality_name": "Santa Ana",
+      "checkpoint": "SCALE_340_CHECKPOINT_1707_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:27.398942+00:00",
+      "artifact_file": "RADAR_V70_1707_STAGE_CANONICAL_2f815f64.json",
+      "artifact_sha256": "2f815f640752ddecd9362961de9caccebc665e735d1a6342917224d459c36612",
+      "artifact_file_sha256": "db2e3e135d1638aaf8a7092fa102c656cb75007ee8b6d85ba2c8a2033a30dff0",
+      "drive_id": "1vdcvVF_dwDMszpX2I72zdF3gcAcv2pAn",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1708",
+      "municipality_name": "Dolores",
+      "checkpoint": "SCALE_340_CHECKPOINT_1708_COMPLETE.json",
+      "generated_at": "2026-09-19T21:11:29.451439+00:00",
+      "artifact_file": "RADAR_V70_1708_STAGE_CANONICAL_143b5212.json",
+      "artifact_sha256": "143b52124dfc16deda1b845452e972466189f445d6d9550a0190dea029ba8141",
+      "artifact_file_sha256": "4fc624a1a1873be4dcb1ae18d32f0e2b1aeb69d6fd31654d2ea2fc5928929cd6",
+      "drive_id": "1bfVL3MJhErnFgSaNUHNBy6rBqVY544Hh",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 100,
+    "geo_held": 0
+  },
+  "national_after": {
+    "complete_6_of_6": 283,
+    "semantic_special": 2,
+    "zero_of_6": 55
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1709",
+      "1710",
+      "1711",
+      "1712",
+      "1713",
+      "1714",
+      "1801",
+      "1802",
+      "1803",
+      "1804",
+      "1805",
+      "1901"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

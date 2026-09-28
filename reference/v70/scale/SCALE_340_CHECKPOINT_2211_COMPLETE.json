@@ -1,0 +1,95 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "2211-2217",
+  "municipality_code": "2211",
+  "municipality_name": "Comapa",
+  "department_code": "22",
+  "department_name": "Jutiapa",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-20T02:07:22.379011+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_2211_STAGE_CANONICAL_7cfcdc0e.json",
+    "artifact_drive_id": "1BexYwDhG2drK1e1xgpuORISXpsPUvHnp",
+    "artifact_sha256": "7cfcdc0e0a5b31e7f818197d97d726be6e799178216eaed7f4b4c1ed842e0773",
+    "artifact_file_sha256": "48e9fd8dd17d784a596ef38f84cb0fd49aeb6582df445268bf4267b4426591ef",
+    "layers": 6,
+    "physical_centers": 9,
+    "expected_jrv": 55,
+    "registered_voters": 20102,
+    "geo_exact": 9,
+    "geo_held": 0,
+    "dense_rows": 918,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 338,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 340,
+    "zero_of_6": 0,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [],
+    "size": 0,
+    "started": false
+  },
+  "territorial_scaling_complete": true
+}

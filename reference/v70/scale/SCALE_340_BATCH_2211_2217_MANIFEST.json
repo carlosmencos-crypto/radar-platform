@@ -1,0 +1,143 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "2211-2217",
+  "protocol": "ACCELERATED_FINAL_BATCH_7",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "084a1ba6eebe2fb95c540e44d0b300abfacf5868",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "2211",
+      "municipality_name": "Comapa",
+      "checkpoint": "SCALE_340_CHECKPOINT_2211_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:22.379011+00:00",
+      "artifact_file": "RADAR_V70_2211_STAGE_CANONICAL_7cfcdc0e.json",
+      "artifact_sha256": "7cfcdc0e0a5b31e7f818197d97d726be6e799178216eaed7f4b4c1ed842e0773",
+      "artifact_file_sha256": "48e9fd8dd17d784a596ef38f84cb0fd49aeb6582df445268bf4267b4426591ef",
+      "drive_id": "1BexYwDhG2drK1e1xgpuORISXpsPUvHnp",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2212",
+      "municipality_name": "Jalpatagua",
+      "checkpoint": "SCALE_340_CHECKPOINT_2212_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:24.763065+00:00",
+      "artifact_file": "RADAR_V70_2212_STAGE_CANONICAL_59d7b4fb.json",
+      "artifact_sha256": "59d7b4fb558b83b13d3a548e3a7d9ce489882dc22c3eedf6e90732cd4182309d",
+      "artifact_file_sha256": "3b8e9d0ce668431d3cb86b23f1953e011f792c5df936c9593b8f5101d1c8f0e8",
+      "drive_id": "1WNINnX91nQA1GZMNlWwXEiFGE_UZP5xJ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2213",
+      "municipality_name": "Conguaco",
+      "checkpoint": "SCALE_340_CHECKPOINT_2213_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:27.266356+00:00",
+      "artifact_file": "RADAR_V70_2213_STAGE_CANONICAL_425a14f7.json",
+      "artifact_sha256": "425a14f78f22b8d98cd55ba7b298c0cc9491d622644ac13338417348c1ca406f",
+      "artifact_file_sha256": "8e3968243f837022ddb150ed86a2db1079badad4da39dab9df51771f3a99f19a",
+      "drive_id": "1mxB0ZNcFFy9fL7H9OGHE4LivDWelNxvZ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2214",
+      "municipality_name": "Moyuta",
+      "checkpoint": "SCALE_340_CHECKPOINT_2214_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:29.424097+00:00",
+      "artifact_file": "RADAR_V70_2214_STAGE_CANONICAL_2b943b0f.json",
+      "artifact_sha256": "2b943b0f136c34d5add2cf6284f5b90b9fd16e8fb78baa3f4186fd60594d0d0b",
+      "artifact_file_sha256": "89b82bc8ce416e08f1a51cc7589fced5a84835b5a0b9e8bbdb8a0b3f0fb620d4",
+      "drive_id": "1XjCqpPaYs7edn9L5Kkmk2oK4G5Z6PhYW",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2215",
+      "municipality_name": "Pasaco",
+      "checkpoint": "SCALE_340_CHECKPOINT_2215_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:31.889807+00:00",
+      "artifact_file": "RADAR_V70_2215_STAGE_CANONICAL_25c499f9.json",
+      "artifact_sha256": "25c499f978f84a1c573c68adb1772f856c815f95ce79efcc9e64e283dc23f185",
+      "artifact_file_sha256": "915c4b9f02cfcfec44d6b9a739910a11ec4c53401e86479d8fc525d2f4511f7a",
+      "drive_id": "1GekRuVGd6o6I0SCWnYx8ceqFi2pgLXMs",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2216",
+      "municipality_name": "San José Acatempa",
+      "checkpoint": "SCALE_340_CHECKPOINT_2216_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:34.684822+00:00",
+      "artifact_file": "RADAR_V70_2216_STAGE_CANONICAL_2953eeee.json",
+      "artifact_sha256": "2953eeee0dde9c2a776d9c7f8be097233e73cc93fb5039470fc9c8d79b7fcbc0",
+      "artifact_file_sha256": "e85edac7459456e87ff7a1dea344bf796d44fee30f7a93ac16ad90081a3d0d7d",
+      "drive_id": "103mFRPzazFLh-wm4DORn0Utq_1GRRKGL",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "2217",
+      "municipality_name": "Quesada",
+      "checkpoint": "SCALE_340_CHECKPOINT_2217_COMPLETE.json",
+      "generated_at": "2026-09-20T02:07:36.976950+00:00",
+      "artifact_file": "RADAR_V70_2217_STAGE_CANONICAL_20642d09.json",
+      "artifact_sha256": "20642d09d91bca32a12d004ff850ae1e8390578afc9a8d4441e862afbbffafce",
+      "artifact_file_sha256": "301bd53bde4374ef3fdb6cd3afeb077c63e39ae570c73d504dbce82a8003dabc",
+      "drive_id": "1GqFMpjvB9UsmhNiDLIqFzoj7rmPP-blP",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 7,
+    "prevalidated": 7,
+    "promoted": 7,
+    "quarantined": 0,
+    "six_of_six": 7,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 47,
+    "geo_held": 1
+  },
+  "national_after": {
+    "complete_6_of_6": 338,
+    "semantic_special": 2,
+    "resolved_territorial_contracts": 340,
+    "zero_of_6": 0
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [],
+    "size": 0,
+    "eligible_after_quality_success": false
+  },
+  "territorial_scaling_complete": true
+}

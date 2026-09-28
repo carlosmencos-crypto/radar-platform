@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1327-1405",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "f1a5a1328202866501d7e6a17b2dd912cbd90e7a",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1327",
+      "municipality_name": "Aguacatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1327_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:25.894763+00:00",
+      "artifact_file": "RADAR_V70_1327_STAGE_CANONICAL_3a94e706.json",
+      "artifact_sha256": "3a94e706dd7e39a232599e8b5b21bf288fbcc3f97b869664ad18ca815a1ae1ff",
+      "artifact_file_sha256": "eccfe7659cc87bca36364e58dcf29e1ee9c349841fb350ec4cd62f523dd08276",
+      "drive_id": "10p8Epjo5e1zPpk7lig41RUM9EQ9TK30W",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1328",
+      "municipality_name": "San Rafael Petzal",
+      "checkpoint": "SCALE_340_CHECKPOINT_1328_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:27.854578+00:00",
+      "artifact_file": "RADAR_V70_1328_STAGE_CANONICAL_74464787.json",
+      "artifact_sha256": "74464787e4182ae62f0bb0df5907aeb523de379147dd344f6bb47003945d6c35",
+      "artifact_file_sha256": "a5fb03ca8d9e607fb80a996adf18bb4141798ebd11e8bb01b4d03ff1650dfd91",
+      "drive_id": "1nuIcrQrBewzdmF4MdOl1tzqUbUOcxe2O",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1329",
+      "municipality_name": "San Gaspar Ixchil",
+      "checkpoint": "SCALE_340_CHECKPOINT_1329_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:29.936748+00:00",
+      "artifact_file": "RADAR_V70_1329_STAGE_CANONICAL_3b6acd86.json",
+      "artifact_sha256": "3b6acd862798d6d803b4b570a13aaa0d0c3f9233fe5fbdc1c540a1b7f7fbe862",
+      "artifact_file_sha256": "73d0aabf427e1890a0dbe7dd4843fb996c7aeb3bfc7740143d2c9f498117c54b",
+      "drive_id": "1eHG27YPB40a2RDxnJLu7mCUbIqunpanj",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1330",
+      "municipality_name": "Santiago Chimaltenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1330_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:31.814772+00:00",
+      "artifact_file": "RADAR_V70_1330_STAGE_CANONICAL_91f26e5c.json",
+      "artifact_sha256": "91f26e5c37e425115fcdf826ec333d135196c7e17e0dff34db774fbb5e927bd5",
+      "artifact_file_sha256": "e6468ac025d9e6e2f632e8a891ebe13f32bf893f82207c40ec2dc78137cb1a40",
+      "drive_id": "1GW3QBMQoLk14Rs9S0pLypYciVL2y1H-v",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1331",
+      "municipality_name": "Santa Ana Huista",
+      "checkpoint": "SCALE_340_CHECKPOINT_1331_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:33.582173+00:00",
+      "artifact_file": "RADAR_V70_1331_STAGE_CANONICAL_9e708e53.json",
+      "artifact_sha256": "9e708e53b9a0800fc16ab86808611c00669b799803e76d2cf2ed610d0769e304",
+      "artifact_file_sha256": "89425ee0079e8af9f14243ec004f32d49ea16d665493c73d0a702b6e120037e9",
+      "drive_id": "1oG_vyccdjAeRRHnkMOreiU102LdhZlQZ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1332",
+      "municipality_name": "Unión Cantinil",
+      "checkpoint": "SCALE_340_CHECKPOINT_1332_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:35.531054+00:00",
+      "artifact_file": "RADAR_V70_1332_STAGE_CANONICAL_bdc3a73c.json",
+      "artifact_sha256": "bdc3a73c22da60af0b9c42ce487aad29836732a48ca0b0e0275862fd0f7eb1ed",
+      "artifact_file_sha256": "1d2a1bdd994f1ef7f249fd2bc5a9804f1414d60175b9e68c58be111ad694de03",
+      "drive_id": "16JsvbqwLDu9YzpcG9eLrv82_wnC_FZnr",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1333",
+      "municipality_name": "Petatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1333_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:37.444385+00:00",
+      "artifact_file": "RADAR_V70_1333_STAGE_CANONICAL_31637bd5.json",
+      "artifact_sha256": "31637bd54c22e64ac7c3d3c61703aa55f5adba739149d05e21703b6cf581d927",
+      "artifact_file_sha256": "9fccb31a1bccbdbe01a39bc7d5bdee4ef8be83a3b89581db0df58f3e6fe440d9",
+      "drive_id": "1O8g19GTLUc-YJXOLb1QSmmnZk_TgeGg_",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1401",
+      "municipality_name": "Santa Cruz Del Quiché",
+      "checkpoint": "SCALE_340_CHECKPOINT_1401_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:43.383423+00:00",
+      "artifact_file": "RADAR_V70_1401_STAGE_CANONICAL_94c515ad.json",
+      "artifact_sha256": "94c515ad0b06cab4dab311874343ba688967068c8fb5997271e19a5295e38664",
+      "artifact_file_sha256": "506a94653575967f130e3c11334862e0e28bc86ba4c57ec0a0303335c628b728",
+      "drive_id": "1VNMchtjy7R8DMmK1kfJ_TIn3Zu6BrzXj",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1402",
+      "municipality_name": "Chiché",
+      "checkpoint": "SCALE_340_CHECKPOINT_1402_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:45.288896+00:00",
+      "artifact_file": "RADAR_V70_1402_STAGE_CANONICAL_c3bf4e14.json",
+      "artifact_sha256": "c3bf4e145613347a85cf7c0d5adfd1ff013b1e12db4fc37edc09fefa427d2f0c",
+      "artifact_file_sha256": "b10f0215202c94fc908529c44cbfbba199bce75e1a4a0c51bb378e7cb757815d",
+      "drive_id": "1aVlzGpvnYtTobxlKmoRht8JBT-hqnd2i",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1403",
+      "municipality_name": "Chinique",
+      "checkpoint": "SCALE_340_CHECKPOINT_1403_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:47.384212+00:00",
+      "artifact_file": "RADAR_V70_1403_STAGE_CANONICAL_da5fa4df.json",
+      "artifact_sha256": "da5fa4dfb606173d21f8d0960ed94122c4cc59441525631a66bcb1196603bafc",
+      "artifact_file_sha256": "d7a18958478116f74538777b00f1a43eacaeda7ecec2c2376fa1b9e4bd26fd92",
+      "drive_id": "15_H0XvV1SRQJQh2CV-Rnv6rhZjzC4DFS",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1404",
+      "municipality_name": "Zacualpa",
+      "checkpoint": "SCALE_340_CHECKPOINT_1404_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:49.343590+00:00",
+      "artifact_file": "RADAR_V70_1404_STAGE_CANONICAL_56f34dcc.json",
+      "artifact_sha256": "56f34dcc9307309975d0f2fa1208789fc004f389e1f68b8c7384dd9c4ef50cda",
+      "artifact_file_sha256": "91e219d67b3a5ad06f844a6cfb601f5d1d54b9bfee21776700bfe32dd3b972cd",
+      "drive_id": "1BUnUjxuIb4nGAmvAu4zrnOd70RUIHdtP",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1405",
+      "municipality_name": "Chajul",
+      "checkpoint": "SCALE_340_CHECKPOINT_1405_COMPLETE.json",
+      "generated_at": "2026-09-19T17:10:51.577730+00:00",
+      "artifact_file": "RADAR_V70_1405_STAGE_CANONICAL_568228a7.json",
+      "artifact_sha256": "568228a756f3d8426844434c200ba9d532553f83da641ec64fd16d54537f7f79",
+      "artifact_file_sha256": "5c2d59021f85a8c3ccabfaaf480b69037a6665fa07e9b59a7d7d09a9a1a33261",
+      "drive_id": "1z6FAHjh3sreqtM-VtZ7F9X0XQYFtVs6Z",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 107,
+    "geo_held": 3
+  },
+  "national_after": {
+    "complete_6_of_6": 235,
+    "semantic_special": 2,
+    "zero_of_6": 103
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1406",
+      "1407",
+      "1408",
+      "1409",
+      "1410",
+      "1411",
+      "1412",
+      "1413",
+      "1414",
+      "1415",
+      "1416",
+      "1417"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

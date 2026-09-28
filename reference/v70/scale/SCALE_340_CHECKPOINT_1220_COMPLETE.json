@@ -1,0 +1,107 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "1213-1220",
+  "municipality_code": "1220",
+  "municipality_name": "El Quetzal",
+  "department_code": "12",
+  "department_name": "San Marcos",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-19T13:13:19.147340+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_1220_STAGE_CANONICAL_064a5456.json",
+    "artifact_drive_id": "1vkKe1IHpbRNBbbQ91jWlo7aJTmyb1qy8",
+    "artifact_sha256": "064a54563bf6f2f83c70cabebcae3c3ff5f65ca00668d75c582e475f806755bc",
+    "artifact_file_sha256": "482fb485c82d3ad673f724488e9447a0640585ce645a3071fc40f9a5ba83e589",
+    "layers": 6,
+    "physical_centers": 7,
+    "expected_jrv": 40,
+    "registered_voters": 14257,
+    "geo_exact": 6,
+    "geo_held": 1,
+    "dense_rows": 812,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 187,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 189,
+    "zero_of_6": 151,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [
+      "1221",
+      "1222",
+      "1223",
+      "1224",
+      "1225",
+      "1226",
+      "1227",
+      "1228",
+      "1229",
+      "1230",
+      "1301",
+      "1302"
+    ],
+    "size": 12,
+    "started": false
+  }
+}

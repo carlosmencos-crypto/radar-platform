@@ -1,0 +1,107 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "1418-1508",
+  "municipality_code": "1420",
+  "municipality_name": "Playa Grande Ixcán",
+  "department_code": "14",
+  "department_name": "Quiché",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-19T19:15:13.415614+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_1420_STAGE_CANONICAL_27462dac.json",
+    "artifact_drive_id": "1bs6IZJU0FG41_bmAxYGxJVhctfIPswSW",
+    "artifact_sha256": "27462dace4dd5079c3eb6a6b458c20009b064b12cffb5a56db970e715d078924",
+    "artifact_file_sha256": "87824e2f770747cc165cab32dc81acf4de444e43db922c5dc8cebd7c13952996",
+    "layers": 6,
+    "physical_centers": 17,
+    "expected_jrv": 120,
+    "registered_voters": 44970,
+    "geo_exact": 17,
+    "geo_held": 0,
+    "dense_rows": 1887,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 259,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 261,
+    "zero_of_6": 79,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [
+      "1602",
+      "1603",
+      "1604",
+      "1605",
+      "1606",
+      "1607",
+      "1608",
+      "1609",
+      "1610",
+      "1611",
+      "1612",
+      "1613"
+    ],
+    "size": 12,
+    "started": false
+  }
+}

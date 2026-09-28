@@ -1,0 +1,214 @@
+{
+  "schema": "radar_v70_scale_batch_manifest_v1",
+  "batch": "1315-1326",
+  "protocol": "ACCELERATED_BATCH_12",
+  "status": "PROMOTED_AWAITING_QUALITY",
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "79001505bd469ce559b0ca579f663cb3a71ac9b3",
+  "source": {
+    "source_id": "GT-TSE-TREP-2023-4C594249",
+    "package_sha256": "4c594249a19e206839457e2de0cb6a5a643e3bf239da38f9685b8b7a59bfbb52",
+    "snapshot": "2023-06-29T08:48:00-06:00"
+  },
+  "municipalities": [
+    {
+      "municipality_code": "1315",
+      "municipality_name": "Todos Santos Cuchumatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1315_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:06.516136+00:00",
+      "artifact_file": "RADAR_V70_1315_STAGE_CANONICAL_be7f77d6.json",
+      "artifact_sha256": "be7f77d6a6381b2a9821230f543decba91797d042049276050e0756c7c342add",
+      "artifact_file_sha256": "821c72b0937a07fc649a4a3ad3286191ae4f29039bc856d043781208511983af",
+      "drive_id": "15-8fjhhYwShxpYb3swsZazGCOJnKA1Fk",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1316",
+      "municipality_name": "San Juan Atitán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1316_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:08.869067+00:00",
+      "artifact_file": "RADAR_V70_1316_STAGE_CANONICAL_8dcec5cd.json",
+      "artifact_sha256": "8dcec5cd62289c5197322c01151b8f10c70337a8a6fa95c06146987dbc1ea048",
+      "artifact_file_sha256": "022c0d961557f31fda68e6b4cb0fe7b401d04cdd88726a739d79feffac67928a",
+      "drive_id": "1xDsiBvaoDwrLhBreCg6ntsKI80Z2UdMa",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1317",
+      "municipality_name": "Santa Eulalia",
+      "checkpoint": "SCALE_340_CHECKPOINT_1317_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:11.094109+00:00",
+      "artifact_file": "RADAR_V70_1317_STAGE_CANONICAL_d9d279fe.json",
+      "artifact_sha256": "d9d279feb3f63ffa0b774ea79837de878318fd3eb31a2f663d29b371feb83b6d",
+      "artifact_file_sha256": "5dcd02f0617ee30690b0c4208efe134dd8e3c159af9448b3f3ef6b89042fd996",
+      "drive_id": "1upQD4jhMiioOkzfE2aew7tFoGK7FVlX8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1318",
+      "municipality_name": "San Mateo Ixtatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1318_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:13.498763+00:00",
+      "artifact_file": "RADAR_V70_1318_STAGE_CANONICAL_e2fa1bd4.json",
+      "artifact_sha256": "e2fa1bd490e0164091fff53a1003f1702c2b5253f15cf76c800a77a7eca9b846",
+      "artifact_file_sha256": "6eb4e3ee5ff26b0cb7aebfb2e44bb88dea955cb7accd31191f578f1aed86fa47",
+      "drive_id": "1pHHy62LEA10XoPtAIFlELoAgQYiYnKG8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1319",
+      "municipality_name": "Colotenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1319_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:15.754884+00:00",
+      "artifact_file": "RADAR_V70_1319_STAGE_CANONICAL_3e573499.json",
+      "artifact_sha256": "3e573499670c2cc4ceb8ddea8eb035b9eac4e5ef687bd388676a7d4ec77791e4",
+      "artifact_file_sha256": "47b5a629ed3a6a5076b039c3e96343c6ccec2cd9025344c410bbeabce93b1a86",
+      "drive_id": "1A5F4KFqQSaaqq-uxwuXR-lIMkFg2YnBz",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1320",
+      "municipality_name": "San Sebastián Huehuetenango",
+      "checkpoint": "SCALE_340_CHECKPOINT_1320_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:17.857015+00:00",
+      "artifact_file": "RADAR_V70_1320_STAGE_CANONICAL_5659a3ba.json",
+      "artifact_sha256": "5659a3baf6d8ef04c7915a7dde798828eb7f0aad17a167ec46f25642d321043f",
+      "artifact_file_sha256": "6b517736548db464d1efe54e10c0691124f580255de124e13d055c7e17a8929b",
+      "drive_id": "12DUeCVApoOwfZ6N-cIcvH53wtWSry0Dn",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1321",
+      "municipality_name": "Tectitán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1321_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:19.870133+00:00",
+      "artifact_file": "RADAR_V70_1321_STAGE_CANONICAL_4d8cb643.json",
+      "artifact_sha256": "4d8cb6439dfe06e9558a96c5b33b0063ede3854e7dac26f791dbcc838d0b5b93",
+      "artifact_file_sha256": "3c40569fd184a7f3aeff3acc411a3819c11906ad089666e8d82796071ef9c8b9",
+      "drive_id": "13QAkCFDASo9YwVr9kNhjWOcgenP-0zOY",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1322",
+      "municipality_name": "Concepción Huista",
+      "checkpoint": "SCALE_340_CHECKPOINT_1322_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:22.038275+00:00",
+      "artifact_file": "RADAR_V70_1322_STAGE_CANONICAL_7001cd84.json",
+      "artifact_sha256": "7001cd847c21cab533e35be4b8ce84ee3d4e5d917339e68252212e1bc474e24e",
+      "artifact_file_sha256": "61f4a01011dfa9797107c458fd9ea1878b7485d4d0bbd34fe9446ad221553244",
+      "drive_id": "1RHlJj8DHqdJtBnCdbh7sdc4ElC3T5-up",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1323",
+      "municipality_name": "San Juan Ixcoy",
+      "checkpoint": "SCALE_340_CHECKPOINT_1323_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:24.130472+00:00",
+      "artifact_file": "RADAR_V70_1323_STAGE_CANONICAL_3f66ad78.json",
+      "artifact_sha256": "3f66ad78bec38290f08fe7a1e5fb78c5fb60c90a2d8b643dece0a230ae1ec077",
+      "artifact_file_sha256": "dde0979e8cf103ccf5edb2fb65bffa4ade02703222f91a44068fb238060d3b3a",
+      "drive_id": "139PbXLN8ToK51ddGobEf0rxm03OFHPc8",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1324",
+      "municipality_name": "San Antonio Huista",
+      "checkpoint": "SCALE_340_CHECKPOINT_1324_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:26.095836+00:00",
+      "artifact_file": "RADAR_V70_1324_STAGE_CANONICAL_ee3f3490.json",
+      "artifact_sha256": "ee3f3490a17e5aca5ffe5064fb66afcec8f219e9b77cc9363bfb813761d9eea1",
+      "artifact_file_sha256": "b2b22151020088c15466c642fe84b98a33d09b6cbeaf635ad34d88c53fa154a3",
+      "drive_id": "1QLxTx7u3UHbDTS7Brt4UIpqEecA6gDIZ",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1325",
+      "municipality_name": "San Sebastián Coatán",
+      "checkpoint": "SCALE_340_CHECKPOINT_1325_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:28.220676+00:00",
+      "artifact_file": "RADAR_V70_1325_STAGE_CANONICAL_9fbf34d8.json",
+      "artifact_sha256": "9fbf34d8f7f7cd6ed6cf9bce6f79c6adadb243cddfd3c74ac492f129f7f3e925",
+      "artifact_file_sha256": "1be32f238e0ca5f45e1f9cd74c60c47c116290d4b4fa12eeae1bc67b039ab746",
+      "drive_id": "1DuNVrrUTXnCtV3j2tkGK13VUBzzCXZ_M",
+      "layers": 6,
+      "qa": "PASS"
+    },
+    {
+      "municipality_code": "1326",
+      "municipality_name": "Barillas",
+      "checkpoint": "SCALE_340_CHECKPOINT_1326_COMPLETE.json",
+      "generated_at": "2026-09-19T16:08:30.503583+00:00",
+      "artifact_file": "RADAR_V70_1326_STAGE_CANONICAL_b856da67.json",
+      "artifact_sha256": "b856da677a23350c87c38fdba7c3fb359fbf2c0014bcbb795ac22a6d3c79e896",
+      "artifact_file_sha256": "f29af3837e870ad2bb2f7afae28654608c40af152f304fc5511f1a5f077cd91d",
+      "drive_id": "1rbhs9lsTbaBK2Ab2Z4Bcgeg2_cF_RsoA",
+      "layers": 6,
+      "qa": "PASS"
+    }
+  ],
+  "summary": {
+    "requested": 12,
+    "prevalidated": 12,
+    "promoted": 12,
+    "quarantined": 0,
+    "six_of_six": 12,
+    "duplicates": 0,
+    "cross_municipality": 0,
+    "campaigns_created": 0,
+    "geo_exact": 130,
+    "geo_held": 0
+  },
+  "national_after": {
+    "complete_6_of_6": 223,
+    "semantic_special": 2,
+    "zero_of_6": 115
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "suite": [
+      "npm_ci",
+      "lint",
+      "typecheck",
+      "tests",
+      "xlsx",
+      "smoke_340",
+      "v70_parity",
+      "build",
+      "preview",
+      "bundle_audit",
+      "render_0509",
+      "interactions",
+      "pdf",
+      "artifacts"
+    ]
+  },
+  "next_batch": {
+    "municipality_codes": [
+      "1327",
+      "1328",
+      "1329",
+      "1330",
+      "1331",
+      "1332",
+      "1333",
+      "1401",
+      "1402",
+      "1403",
+      "1404",
+      "1405"
+    ],
+    "size": 12,
+    "eligible_after_quality_success": true
+  }
+}

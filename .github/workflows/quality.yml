@@ -20,6 +20,7 @@ jobs:
       - run: npm test
       - run: npm run test:xlsx
       - run: npm run smoke:340
+      - run: npm run smoke:client-ready
       - run: node scripts/smoke-v70-parity.mjs
       - run: npm run build
       - run: node scripts/smoke-preview.mjs
@@ -31,6 +32,8 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: qa-render-publishable
       - name: Render all 0509 routes without white-screen regressions
         run: node scripts/render-smoke-0509.mjs
+      - name: Render clean-client shell across all 22 departments
+        run: npm run render:client-ready-22
       - name: Exercise 0509 SPA navigation, report modal and printable report
         run: node scripts/render-interaction-0509-canonical.mjs
       - uses: actions/upload-artifact@v4
@@ -45,6 +48,13 @@ jobs:
         with:
           name: v70-interaction-smoke-0509
           path: render-interaction-0509
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v70-client-ready-22
+          path: render-client-ready-22
           if-no-files-found: error
           retention-days: 1
       - run: rm -rf dist-render

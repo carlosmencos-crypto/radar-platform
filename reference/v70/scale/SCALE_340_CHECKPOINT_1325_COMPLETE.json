@@ -1,0 +1,107 @@
+{
+  "schema": "radar_v70_scale_checkpoint_v2",
+  "permanent_scope": {
+    "final_goal": "FULL_GOLDEN_V70_340_CLIENT_EXPERIENCE",
+    "runtime_key": [
+      "municipality_code",
+      "campaign_id",
+      "user_role",
+      "permissions"
+    ],
+    "architecture": "ONE_PARAMETRIZED_APPLICATION",
+    "trep_6_of_6_is_client_ready": false,
+    "client_ready_requires": [
+      "official_data",
+      "navigation",
+      "golden_visual_functional_parity",
+      "permissions",
+      "territorial_isolation",
+      "new_client_state"
+    ],
+    "campaign_vault_rule": "EMPTY_FOR_MUNICIPALITIES_WITHOUT_REAL_ACTIVE_CAMPAIGN",
+    "fictitious_campaigns_for_340": false
+  },
+  "branch": "scale/v70-340-runtime",
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "batch": "1315-1326",
+  "municipality_code": "1325",
+  "municipality_name": "San Sebastián Coatán",
+  "department_code": "13",
+  "department_name": "Huehuetenango",
+  "territorial_status": "TREP_CONTRACT_READY",
+  "client_ready": false,
+  "client_ready_blocker": "FULL_GOLDEN_SHELL_NAV_APPEARANCE_PERMISSIONS_ISOLATION_NOT_YET_VERIFIED",
+  "promotion": {
+    "mode": "ATOMIC_IDEMPOTENT_FAIL_CLOSED",
+    "generated_at": "2026-09-19T16:08:28.220676+00:00",
+    "artifact_drive_path": "/Google Drive/RADAR_V70_1325_STAGE_CANONICAL_9fbf34d8.json",
+    "artifact_drive_id": "1DuNVrrUTXnCtV3j2tkGK13VUBzzCXZ_M",
+    "artifact_sha256": "9fbf34d8f7f7cd6ed6cf9bce6f79c6adadb243cddfd3c74ac492f129f7f3e925",
+    "artifact_file_sha256": "1be32f238e0ca5f45e1f9cd74c60c47c116290d4b4fa12eeae1bc67b039ab746",
+    "layers": 6,
+    "physical_centers": 10,
+    "expected_jrv": 38,
+    "registered_voters": 14417,
+    "geo_exact": 10,
+    "geo_held": 0,
+    "dense_rows": 1000,
+    "math_failures": 0,
+    "center_id_failures": 0,
+    "territorial_identity_failures": 0
+  },
+  "new_client_state": {
+    "campaign_count": 0,
+    "campaign_vault_rows": 0,
+    "state": "EMPTY_NO_CAMPAIGN",
+    "private_data_exposed": false
+  },
+  "national_after": {
+    "canonical_municipalities": 340,
+    "complete_6_of_6": 223,
+    "semantic_special": 2,
+    "semantic_special_codes": [
+      "0104",
+      "1104"
+    ],
+    "resolved_territorial_contracts": 225,
+    "zero_of_6": 115,
+    "accidental_partial_2_to_5": 0,
+    "duplicate_rows_over_6": 0
+  },
+  "protected_0509": {
+    "status": "UNCHANGED",
+    "trep_layers": 6,
+    "voter_roll_2023": 36878,
+    "voter_directory_rows": 36878,
+    "reconciliation_delta": 0
+  },
+  "security": "PASS_RLS_STRICT",
+  "excluded_fronts": [
+    "PDM_PDMOT",
+    "MOBILE_APP",
+    "FISCAL_PORTAL_RTD",
+    "SUPERADMIN_PORTAL_CHANGES",
+    "PULSE"
+  ],
+  "pulse_migration_applied": false,
+  "production_deploy": false,
+  "pr34_merge_allowed": false,
+  "next_batch": {
+    "municipality_codes": [
+      "1327",
+      "1328",
+      "1329",
+      "1330",
+      "1331",
+      "1332",
+      "1333",
+      "1401",
+      "1402",
+      "1403",
+      "1404",
+      "1405"
+    ],
+    "size": 12,
+    "started": false
+  }
+}

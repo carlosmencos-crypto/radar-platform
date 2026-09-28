@@ -1,0 +1,53 @@
+{
+  "schema": "radar_v70_client_ready_batch_manifest_v1",
+  "batch": "CLIENT_READY_02_VISUAL_QA_22_CLEAN_STATE",
+  "status": "IMPLEMENTED_AWAITING_GITHUB_QUALITY",
+  "generated_at": "2026-09-20T04:01:20Z",
+  "branch": "scale/v70-340-runtime",
+  "pr": 34,
+  "golden_base": "579caa8a58e5f8b7368a3500e723c9fc7d0401a2",
+  "parent_head": "ebb1a1923c540078f0a0c55e9788ee21ad0cdb29",
+  "scope": {
+    "application_instances": 1,
+    "departments": 22,
+    "representative_municipalities": 22,
+    "campaign_state": "CLEAN_NO_CAMPAIGN",
+    "readiness_state": "BLOCKED_WITH_CANONICAL_MISSING_REQUIREMENTS",
+    "user_role": "campaign_viewer",
+    "permissions": ["data_vault:read"],
+    "assertions": [
+      "Cada departamento renderiza un municipio canónico en el shell parametrizado.",
+      "municipality_code y nombres territoriales coinciden con el contrato 340.",
+      "Campaign Vault permanece oculto cuando campaign_id es nulo.",
+      "Pulso permanece oculto sin permiso pulse:read.",
+      "El estado BLOCKED conserva requisitos faltantes sin imputar evidencia.",
+      "Cada captura supera el umbral anti-white-screen y queda como artefacto Quality."
+    ]
+  },
+  "supabase_snapshot": {
+    "municipalities": 340,
+    "departments": 22,
+    "intelligence_ready": 15,
+    "intelligence_pending": 325,
+    "active_campaign_municipalities": 2,
+    "clean_without_campaign": 338,
+    "note": "Los perfiles pendientes no se imputaron ni modificaron."
+  },
+  "quality": {
+    "status": "PENDING_CURRENT_COMMIT",
+    "new_gate": "render:client-ready-22",
+    "expected_artifact": "v70-client-ready-22"
+  },
+  "remaining_before_final_client_ready": [
+    "Completar 325 perfiles municipales de inteligencia únicamente cuando exista evidencia fuente.",
+    "Ejercitar sesiones autenticadas de campaign_admin, editor y viewer con campañas reales autorizadas.",
+    "Habilitar protección de contraseñas filtradas en Supabase Auth mediante configuración autorizada."
+  ],
+  "constraints": {
+    "merge": false,
+    "deploy": false,
+    "production_write": false,
+    "hostinger_write": false,
+    "golden_redesign": false
+  }
+}
