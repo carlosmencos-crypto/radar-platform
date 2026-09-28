@@ -1,24 +1,18 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-GT">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#08576E" />
-    <meta name="description" content="RADAR · Inteligencia Electoral" />
-    <link rel="icon" type="image/svg+xml" href="/brand/radar-isotipo.svg" sizes="any" />
-    <link rel="shortcut icon" href="/brand/radar-isotipo.svg" />
-    <title>RADAR · Inteligencia Electoral</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#283137" />
+    <meta name="description" content="Portal Fiscal RADAR para la operación segura de Día D." />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="manifest" href="/fiscal-manifest.webmanifest" />
+    <title>RADAR · Portal Fiscal</title>
+    <script src="/radar-fiscal-config.js"></script>
+    <script type="module" crossorigin src="/assets/index-DU8GJrMn.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-kDFP_N3m.css">
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      (() => {
-        const theme = localStorage.getItem("radar-theme") === "dark" ? "dark" : "light";
-        const textSize = localStorage.getItem("radar-text-size-v3") === "large" ? "large" : "normal";
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.dataset.textSize = textSize;
-      })();
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
