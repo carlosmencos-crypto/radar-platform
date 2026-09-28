@@ -211,7 +211,8 @@ function rtdDate(value: unknown) {
 }
 
 function DayDContent() {
-  const { campaign_id, municipality_code, is_demo } = useMunicipalityContext();
+  const { campaign_id, municipality_code, consumer } = useMunicipalityContext();
+  const is_demo = Boolean(consumer.context.is_demo);
   const layers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
   const electoral = useMemo(() => {
     try {
@@ -326,7 +327,7 @@ function DayDContent() {
   const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const incidentRows = assignments.filter((record) => record.category === "INCIDENCIA_FISCAL");
-  const rtdRows = assignments.filter((record) => record.category === "RTD_FOLIO" && Boolean(record.payload.is_demo) === is_demo && !Boolean(record.payload.is_test));
+  const rtdRows = assignments.filter((record) => record.category === "RTD_FOLIO" && Boolean(record.payload.is_demo) === is_demo && !record.payload.is_test);
   const selectedRtdRows = rtdRows.filter((record) => String(record.payload.election_type) === canonicalRtdElection[rtdElection]);
   const submittedRtdRows = selectedRtdRows.filter((record) => submittedRtdStatuses.has(String(record.payload.rtd_status || record.status).toUpperCase()));
   const visibleRtdRows = selectedRtdRows.filter((record) => {
