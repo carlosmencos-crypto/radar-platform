@@ -115,6 +115,7 @@ export interface RadarContextKey {
   campaign_id: string;
   user_role: UserRole;
   permissions: string[];
+  is_demo: boolean;
 }
 
 export interface ConsumerModule {

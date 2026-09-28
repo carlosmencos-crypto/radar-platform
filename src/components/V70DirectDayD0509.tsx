@@ -181,8 +181,37 @@ function rtdActaProgress(record: CampaignModuleRecord) {
   })}</span>;
 }
 
+const canonicalRtdElection: Record<string, string> = {
+  PRESIDENTE: "PRESIDENTE",
+  CORPORACION_MUNICIPAL: "CORPORACION_MUNICIPAL",
+  DIPUTADOS_DISTRITO: "DIP_DIST",
+  DIPUTADOS_NACIONAL: "DIP_NAC",
+  PARLACEN: "DIP_PAR",
+};
+const submittedRtdStatuses = new Set(["ENVIADO", "PENDIENTE_REVISION", "VALIDADO", "CORREGIDO", "OBSERVADO"]);
+function rtdNumber(value: unknown) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function rtdVotes(record: CampaignModuleRecord) {
+  const rows = record.payload.votes;
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => {
+    const value = row && typeof row === "object" ? row as Record<string, unknown> : {};
+    return {
+      code: String(value.option_code || "SIN_CODIGO"),
+      label: String(value.option_label || value.option_code || "Opción electoral"),
+      votes: rtdNumber(value.votes),
+    };
+  });
+}
+function rtdDate(value: unknown) {
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime()) ? "Sin fecha de envío" : new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
 function DayDContent() {
-  const { campaign_id, municipality_code } = useMunicipalityContext();
+  const { campaign_id, municipality_code, is_demo } = useMunicipalityContext();
   const layers = getInstalledRadarElectoralLayers(municipality_code) ?? [];
   const electoral = useMemo(() => {
     try {
@@ -222,6 +251,10 @@ function DayDContent() {
   const [logisticsStatusFilter, setLogisticsStatusFilter] = useState("all");
   const [incidentFilter, setIncidentFilter] = useState("ABIERTAS");
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [rtdElection, setRtdElection] = useState("CORPORACION_MUNICIPAL");
+  const [rtdCenterFilter, setRtdCenterFilter] = useState("all");
+  const [rtdStatusFilter, setRtdStatusFilter] = useState("all");
+  const [rtdJrvFilter, setRtdJrvFilter] = useState("");
   const [logisticsForm, setLogisticsForm] = useState({
     category: "TRANSPORTE_ELECTORES",
     subtype: "",
@@ -293,6 +326,28 @@ function DayDContent() {
   const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const incidentRows = assignments.filter((record) => record.category === "INCIDENCIA_FISCAL");
+  const rtdRows = assignments.filter((record) => record.category === "RTD_FOLIO" && Boolean(record.payload.is_demo) === is_demo && !Boolean(record.payload.is_test));
+  const selectedRtdRows = rtdRows.filter((record) => String(record.payload.election_type) === canonicalRtdElection[rtdElection]);
+  const submittedRtdRows = selectedRtdRows.filter((record) => submittedRtdStatuses.has(String(record.payload.rtd_status || record.status).toUpperCase()));
+  const visibleRtdRows = selectedRtdRows.filter((record) => {
+    const status = String(record.payload.rtd_status || record.status).toUpperCase();
+    return (rtdCenterFilter === "all" || String(record.payload.center_id) === rtdCenterFilter)
+      && (rtdStatusFilter === "all" || status === rtdStatusFilter)
+      && (!rtdJrvFilter.trim() || String(record.payload.jrv).includes(rtdJrvFilter.trim()));
+  });
+  const receivedJrvs = new Set(submittedRtdRows.map((record) => String(record.payload.jrv))).size;
+  const rtdDenominator = Math.max(totalJrv, new Set(assignmentRows.map((record) => String(record.payload.jrv))).size);
+  const rtdProgress = rtdDenominator ? Math.min(100, Math.round((receivedJrvs / rtdDenominator) * 100)) : 0;
+  const rtdResultRows = Array.from(submittedRtdRows.reduce((totals, record) => {
+    rtdVotes(record).forEach((vote) => {
+      const current = totals.get(vote.code) ?? { ...vote, votes: 0 };
+      current.votes += vote.votes;
+      totals.set(vote.code, current);
+    });
+    return totals;
+  }, new Map<string, { code: string; label: string; votes: number }>()).values()).sort((a, b) => b.votes - a.votes);
+  const totalValidRtdVotes = rtdResultRows.reduce((sum, row) => sum + row.votes, 0);
+  const selectedRtdLabel = rtdElectionTypes.find(([key]) => key === rtdElection)?.[1] ?? "Elección";
   const openIncidentRows = incidentRows.filter((record) => !incidentIsResolved(record));
   const visibleIncidentRows = incidentRows.filter((record) => {
     if (incidentFilter === "ABIERTAS") return !incidentIsResolved(record);
@@ -823,26 +878,33 @@ function DayDContent() {
         <span className="rtd-live">CONTROL PROPIO · RESULTADOS PRELIMINARES NO OFICIALES</span>
       </header>
       <aside className="rtd-catalog-note"><b>Participantes oficiales precargados</b><span>RADAR utilizará el catálogo electoral oficial validado para que cada fiscal vea únicamente las opciones que corresponden a su tipo de elección.</span></aside>
+      <p className={`day-d-demo-mode${is_demo ? "" : " historical"}`}>
+        {is_demo ? "Pruebas demo aisladas: estos folios no se mezclan con resultados reales." : "Operación real Día D: esta vista muestra únicamente folios de la campaña activa."}
+      </p>
       <div className="rtd-controlbar">
-        <label><span>Datos mostrados</span><select defaultValue="REAL"><option value="REAL">Resultados reales Día D</option><option value="DEMO">Validación demostrativa</option></select></label>
-        <label><span>Tipo de elección</span><select defaultValue="CORPORACION_MUNICIPAL"><option value="PRESIDENTE">Presidente y Vicepresidente</option><option value="CORPORACION_MUNICIPAL">Corporación Municipal</option><option value="DIPUTADOS_DISTRITO">Diputados por distrito</option><option value="DIPUTADOS_NACIONAL">Listado nacional</option><option value="PARLACEN">Parlamento Centroamericano</option></select></label>
+        <label><span>Datos mostrados</span><select value={is_demo ? "DEMO" : "REAL"} disabled><option value="REAL">Resultados reales Día D</option><option value="DEMO">Validación demostrativa</option></select></label>
+        <label><span>Tipo de elección</span><select value={rtdElection} onChange={(event) => setRtdElection(event.target.value)}><option value="PRESIDENTE">Presidente y Vicepresidente</option><option value="CORPORACION_MUNICIPAL">Corporación Municipal</option><option value="DIPUTADOS_DISTRITO">Diputados por distrito</option><option value="DIPUTADOS_NACIONAL">Listado nacional</option><option value="PARLACEN">Parlamento Centroamericano</option></select></label>
         <span><small>Lectura permitida</small><b>Mayoría relativa; concejalías sujetas a regla legal</b></span>
       </div>
-      <div className="rtd-progress-card">
-        <header><span><small>JRV con RTD recibido · JRV reales recibidas</small><b>0 de {totalJrv}</b></span><strong>0%</strong></header>
-        <div><i style={{ width: "0%" }} /></div>
+      <div className={`rtd-progress-card${is_demo ? " demo" : ""}`}>
+        <header><span><small>JRV con RTD recibido · {is_demo ? "prueba demo" : "operación real"}</small><b>{receivedJrvs} de {rtdDenominator}</b></span><strong>{rtdProgress}%</strong></header>
+        <div><i style={{ width: `${rtdProgress}%` }} /></div>
       </div>
       <div className="rtd-results">
-        <section><header><small>GRÁFICA DE RESULTADOS · RESULTADO PARCIAL REAL</small><h3>Corporación Municipal</h3></header><p>No hay folios enviados para esta elección en el modo seleccionado.</p></section>
-        <aside><small>CONTROL DE RECEPCIÓN</small><span><b>0</b> folios reales enviados</span><span><b>0</b> folios demostrativos</span><span><b>0</b> borradores en servidor</span><span><b>0</b> con acta</span><span><b>0</b> observados</span><span><b>0</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
+        <section><header><small>GRÁFICA DE RESULTADOS · {is_demo ? "VALIDACIÓN DEMOSTRATIVA" : "RESULTADO PARCIAL REAL"}</small><h3>{selectedRtdLabel}</h3></header>{rtdResultRows.length ? rtdResultRows.map((row, index) => <article key={row.code}><b>{index + 1}</b><span><strong>{row.label}</strong><i><em style={{ width: `${totalValidRtdVotes ? (row.votes / totalValidRtdVotes) * 100 : 0}%` }} /></i></span><span><strong>{row.votes.toLocaleString("es-GT")}</strong><small>{totalValidRtdVotes ? ((row.votes / totalValidRtdVotes) * 100).toFixed(1) : "0.0"}%</small></span></article>) : <p>No hay folios enviados para esta elección en el entorno de la campaña.</p>}</section>
+        <aside><small>CONTROL DE RECEPCIÓN</small><span><b>{is_demo ? 0 : submittedRtdRows.length}</b> folios reales enviados</span><span><b>{is_demo ? submittedRtdRows.length : 0}</b> folios demostrativos</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "BORRADOR").length}</b> borradores en servidor</span><span><b>{selectedRtdRows.filter((record) => rtdNumber(record.payload.evidence_count) > 0).length}</b> con acta</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "OBSERVADO").length}</b> observados</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "CORREGIDO").length}</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
       </div>
       <div className="day-d-filters">
-        <label><span>Centro</span><select><option>Todos</option>{centers.map((center) => <option key={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
-        <label><span>Estado</span><select><option>Todos</option><option>BORRADOR</option><option>PENDIENTE REVISION</option><option>OBSERVADO</option><option>VALIDADO</option><option>CORREGIDO</option></select></label>
-        <label><span>JRV</span><input inputMode="numeric" placeholder="Buscar JRV" /></label>
+        <label><span>Centro</span><select value={rtdCenterFilter} onChange={(event) => setRtdCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
+        <label><span>Estado</span><select value={rtdStatusFilter} onChange={(event) => setRtdStatusFilter(event.target.value)}><option value="all">Todos</option><option value="BORRADOR">BORRADOR</option><option value="ENVIADO">ENVIADO</option><option value="PENDIENTE_REVISION">PENDIENTE REVISIÓN</option><option value="OBSERVADO">OBSERVADO</option><option value="VALIDADO">VALIDADO</option><option value="CORREGIDO">CORREGIDO</option></select></label>
+        <label><span>JRV</span><input inputMode="numeric" value={rtdJrvFilter} onChange={(event) => setRtdJrvFilter(event.target.value.replace(/\D/g, ""))} placeholder="Buscar JRV" /></label>
       </div>
       <div className="day-d-rtd-list">
-        <p>No hay folios para estos filtros.</p>
+        {visibleRtdRows.length ? visibleRtdRows.map((record) => {
+          const validVotes = rtdVotes(record).reduce((sum, vote) => sum + vote.votes, 0);
+          const status = String(record.payload.rtd_status || record.status).toUpperCase();
+          return <article key={record.id}><span><small>{String(record.payload.folio || record.title)}</small><b>{String(record.payload.center_name || "Centro sin nombre")} · JRV {String(record.payload.jrv || "—")}</b><em>{String(record.payload.fiscal_name || "Fiscal no identificado")} · {rtdDate(record.payload.submitted_at || record.updated_at)}</em></span><span><small>VOTOS VÁLIDOS</small><strong>{validVotes.toLocaleString("es-GT")}</strong><em>{rtdNumber(record.payload.evidence_count)} evidencia(s)</em></span><span><small>ESTADO</small><strong>{status.replaceAll("_", " ")}</strong><em>Total digitado: {rtdNumber(record.payload.total_digitized).toLocaleString("es-GT")}</em></span></article>;
+        }) : <p>No hay folios para estos filtros.</p>}
       </div>
     </section>
   );

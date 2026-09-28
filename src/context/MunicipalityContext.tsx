@@ -9,6 +9,7 @@ export interface MunicipalityRuntimeContext {
   campaign_id: string;
   user_role: UserRole;
   permissions: string[];
+  is_demo: boolean;
   consumer: RadarMunicipalConsumer;
 }
 
@@ -23,6 +24,7 @@ export function MunicipalityProvider({ consumer, children }: { consumer: RadarMu
     campaign_id: consumer.context.campaign_id,
     user_role: consumer.context.user_role,
     permissions: consumer.context.permissions,
+    is_demo: consumer.context.is_demo,
     consumer,
   };
 
