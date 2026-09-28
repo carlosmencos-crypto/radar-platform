@@ -15,8 +15,8 @@ const recordsMigration = read("supabase/migrations/20260915143000_add_v70_campai
 const indexedSearchMigration = read("supabase/migrations/20260915194630_optimize_voter_directory_name_search.sql");
 const materializedSearchMigration = read("supabase/migrations/20260915195200_materialize_voter_directory_search.sql");
 
-test("municipal navigation retains one authorized runtime across section changes", () => {
-  assert.match(gate, /useEffect\([\s\S]*?\}, \[municipalityCode\]\);/);
+test("real and demo municipal navigation retain one authorized runtime across section changes", () => {
+  assert.match(gate, /useEffect\([\s\S]*?\}, \[routeMunicipalityCode\]\);/);
   assert.doesNotMatch(gate, /\[municipalityCode, section\]/);
   assert.match(gate, /installRadarGeoBundle\(geoBundle\)/);
   assert.match(gate, /installRadarVoterCommunities\(municipalityCode, voterCommunities\)/);

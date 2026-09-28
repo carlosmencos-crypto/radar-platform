@@ -24,6 +24,7 @@ import {
   loadAuthorizedElectoralTerritoryLayers,
   loadAuthorizedGeoBundle,
   loadAuthorizedVoterCommunities,
+  parseMunicipalityRouteCode,
 } from "../data/radarRuntime";
 import { MunicipalDashboardV70Runtime } from "./MunicipalDashboardV70Runtime";
 import { V70DirectAgenda0509 } from "./V70DirectAgenda0509";
@@ -98,18 +99,21 @@ function direct0509(section: string | undefined): ReactNode | null {
 }
 
 export function MunicipalityAccessGate() {
-  const { municipalityCode, section } = useParams();
+  const { municipalityCode: routeMunicipalityCode, section } = useParams();
   const location = useLocation();
   const [state, setState] = useState<GateState>({ status: "loading" });
 
   useEffect(() => {
     let cancelled = false;
-    if (!municipalityCode || !/^\d{4}$/.test(municipalityCode)) {
+    const route = parseMunicipalityRouteCode(routeMunicipalityCode);
+    if (!route) {
       setState({ status: "forbidden" });
       return () => {
         cancelled = true;
       };
     }
+
+    const municipalityCode = route.municipalityCode;
 
     clearInstalledRadarRuntime(municipalityCode);
     clearInstalledRadarGeoBundle(municipalityCode);
@@ -163,7 +167,7 @@ export function MunicipalityAccessGate() {
       clearInstalledRadarElectoralLayers(municipalityCode);
       clearInstalledRadarVoterCommunities(municipalityCode);
     };
-  }, [municipalityCode]);
+  }, [routeMunicipalityCode]);
 
   if (state.status === "loading") {
     return (
@@ -199,7 +203,8 @@ export function MunicipalityAccessGate() {
     return <Navigate to="/acceso-restringido" replace />;
   }
 
-  if (municipalityCode === "0509") {
+  const canonicalMunicipalityCode = parseMunicipalityRouteCode(routeMunicipalityCode)?.municipalityCode;
+  if (canonicalMunicipalityCode === "0509") {
     const direct = direct0509(section);
     if (direct)
       return (

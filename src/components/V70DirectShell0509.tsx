@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
+import { municipalityRouteCode } from "../data/radarRuntime";
 import { V70DirectModalEscape } from "./V70DirectModalEscape";
 import { V70DirectReportBuilder } from "./V70DirectReportBuilder";
 
@@ -16,7 +17,10 @@ const sections: ReadonlyArray<readonly [string, string, SectionSlug]> = [
   ["✦", "IA RADAR", "ia-radar"], ["⚙", "Configuración", "configuracion"],
 ];
 
-function routeFor(code: string, section: SectionSlug) { return section === "inicio" ? `/municipio/${code}` : `/municipio/${code}/${section}`; }
+function routeFor(code: string, section: SectionSlug) {
+  const routeCode = municipalityRouteCode(code);
+  return section === "inicio" ? `/municipio/${routeCode}` : `/municipio/${routeCode}/${section}`;
+}
 function canonicalAsset(path: string) { const base = import.meta.env.BASE_URL || "/"; return `${base}${path.replace(/^\//, "")}`; }
 
 function useRadarPreferences() {

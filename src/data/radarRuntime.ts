@@ -296,6 +296,31 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 const campaignVaultBucket = "radar-campaign-vault" as const;
 
+export type RadarRouteKind = "municipality" | "demo";
+
+export function parseMunicipalityRouteCode(value?: string) {
+  const match = value?.match(/^(\d{4})(d)?$/);
+  if (!match) return null;
+  return {
+    municipalityCode: match[1],
+    routeKind: (match[2] ? "demo" : "municipality") as RadarRouteKind,
+  };
+}
+
+export function radarRouteKindFromPathname(pathname: string): RadarRouteKind {
+  return /(?:^|\/)municipio\/\d{4}d(?:\/|$)/.test(pathname)
+    || /^\/\d{4}d(?:\/|$)/.test(pathname)
+    ? "demo"
+    : "municipality";
+}
+
+export function municipalityRouteCode(municipalityCode: string, pathname?: string) {
+  const currentPathname = pathname ?? (typeof window === "undefined" ? "" : window.location.pathname);
+  return radarRouteKindFromPathname(currentPathname) === "demo"
+    ? `${municipalityCode}d`
+    : municipalityCode;
+}
+
 export const radarRuntimeConfigured = Boolean(supabaseUrl && publishableKey);
 
 const electoralTerritoryLayerIds = new Set([
@@ -330,6 +355,9 @@ async function rpc<T>(
       apikey: publishableKey,
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
+      "X-Client-Info": `radar-platform/7.0; radar-route=${radarRouteKindFromPathname(
+        typeof window === "undefined" ? "" : window.location.pathname,
+      )}`,
     },
     body: JSON.stringify(body),
   });
