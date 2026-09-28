@@ -7,6 +7,7 @@ export interface AuthorizedConsumerContext {
   campaign_id: string | null;
   user_role: string;
   permissions: string[];
+  is_demo: boolean;
 }
 
 export interface AuthorizedRadarConsumer extends Omit<RadarMunicipalConsumer, "context"> {
@@ -58,6 +59,7 @@ export async function resolveAuthorizedRadarConsumer(
       campaign_id: runtime.context.campaign_id,
       user_role: runtime.context.user_role,
       permissions: [...runtime.context.permissions],
+      is_demo: runtime.context.is_demo,
     },
     runtime,
   };

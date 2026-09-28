@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { findMunicipalProfile } from "../data/municipalProfiles";
 import { resolveRadarConsumer } from "../data/radarConsumer";
+import { municipalityRouteCode, parseMunicipalityRouteCode } from "../data/radarRuntime";
 import { getInstalledRadarGeoBundle, getInstalledRadarRuntime } from "../data/radarRuntimeCache";
 import type { AvailabilityState } from "../types/radar";
 import { RuntimeSynchronizedMap } from "./RuntimeSynchronizedMap";
@@ -85,7 +86,10 @@ function PortalControls({ theme, textSize, onExport, onTextSize, onTheme }: Port
   </div>;
 }
 
-function routeFor(code: string, section: string) { return section === "inicio" ? `/municipio/${code}` : `/municipio/${code}/${section}`; }
+function routeFor(code: string, section: string) {
+  const routeCode = municipalityRouteCode(code);
+  return section === "inicio" ? `/municipio/${routeCode}` : `/municipio/${routeCode}/${section}`;
+}
 function Status({ state }: { state: AvailabilityState }) { return <span className={`canonical-state canonical-state--${state}`}>{labels[state]}</span>; }
 function SectionBanner({ eyebrow, title, description, status }: { eyebrow: string; title: string; description: string; status?: AvailabilityState }) { return <section className="section-banner"><div className="section-banner-copy"><p>{eyebrow}</p><h1>{title}</h1><span>{description}</span></div>{status ? <div className="section-banner-actions"><Status state={status} /></div> : null}</section>; }
 function numberFromText(value?: string) { if (!value) return undefined; const parsed = Number(value.replace(/[^0-9.-]/g, "")); return Number.isFinite(parsed) ? parsed : undefined; }
@@ -164,7 +168,8 @@ function ProtectedModule({ title, eyebrow }: { title: string; eyebrow: string })
 
 export function MunicipalDashboardV70Runtime() {
   const { municipalityCode } = useParams();
-  const consumer = resolveRadarConsumer(municipalityCode);
+  const route = parseMunicipalityRouteCode(municipalityCode);
+  const consumer = resolveRadarConsumer(route?.municipalityCode);
   if (!consumer) return <Navigate to="/" replace />;
   return <MunicipalityProvider consumer={consumer}><MunicipalDashboardShell /></MunicipalityProvider>;
 }

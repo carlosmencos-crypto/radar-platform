@@ -66,3 +66,45 @@ test("V70 electoral adapter is RLS-neutral and preserves Golden semantics", asyn
     stdio: "pipe",
   });
 });
+
+test("V70 electoral runtime retains Golden DOM vocabulary and fail-closed states", async () => {
+  const component = await text("src/components/V70ElectoralTerritory.tsx");
+  const unavailable = await text("src/components/V70ElectoralTerritoryUnavailable.tsx");
+  const gate = await text("src/components/MunicipalityAccessGate.tsx");
+  const cache = await text("src/data/radarRuntimeCache.ts");
+
+  for (const token of [
+    "INTELIGENCIA ELECTORAL TERRITORIAL",
+    "El voto centro por centro",
+    "election-switch",
+    "map-workspace",
+    "directory",
+    "center-list",
+    "intelligence-map-toolbar",
+    "metric-switch",
+    "layer-switch",
+    "layer-electoral",
+    "layer-schools",
+    "layer-territory",
+    "layer-health",
+    "layer-works",
+    "real-map",
+    "center-card",
+    "mini-ranking",
+    "electoral-depth",
+    "election-kpis",
+    "full-ranking",
+    "preliminary-note",
+  ]) assert.ok(component.includes(token), `missing Golden DOM token ${token}`);
+
+  for (const label of ["Presidencia", "Lista nacional", "Distrito", "Alcaldía", "Parlacen", "Electoral", "Escuelas", "CEM", "Salud", "Obras"])
+    assert.ok(component.includes(label) || unavailable.includes(label), `missing Golden control ${label}`);
+  for (const state of ["NO_PUBLICADO", "SIN_REGISTRO", "SIN_ASOCIACION"])
+    assert.ok(component.includes(state) || unavailable.includes(state), `missing semantic state ${state}`);
+
+  assert.ok(gate.includes("loadAuthorizedElectoralTerritoryLayers"));
+  assert.ok(gate.includes("installRadarElectoralLayers"));
+  assert.ok(cache.includes("authorizedElectoralLayersByMunicipality"));
+  assert.equal(component.includes("VITE_SUPABASE"), false);
+  assert.equal(unavailable.includes("VITE_SUPABASE"), false);
+});
