@@ -9,7 +9,7 @@
   RewriteRule ^login/?$ /acceso [R=302,L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(municipio|municipios|departamento|comparar|acceso|acceso-restringido|admin|reporte)(/.*)?$ /radar-app.html [L]
+  RewriteRule ^(municipio|municipios|mis-municipios|departamento|comparar|acceso|acceso-restringido|admin|reporte)(/.*)?$ /radar-app.html [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
