@@ -79,7 +79,7 @@ function HomeContent() {
     let active = true;
     void radarCurrentIdentity().then(identity => {
       const name = identity?.user_metadata?.display_name?.trim() ?? "";
-      if (active) setFirstName(name.split(/\s+/)[0] ?? "");
+      if (active) setFirstName((name.split(/\s+/)[0] ?? "").toLocaleUpperCase("es-GT"));
     }).catch(() => {});
     return () => { active = false; };
   }, []);
