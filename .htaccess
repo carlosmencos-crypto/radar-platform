@@ -17,7 +17,7 @@ Options -Indexes
   <FilesMatch "^(index\.html|radar-fiscal-config\.js|sw\.js)$">
     Header set Cache-Control "no-store, max-age=0"
   </FilesMatch>
-  <FilesMatch "\.(?:css|js|svg|png|jpg|jpeg|webp|woff2)$">
+  <FilesMatch "\.(?:css|js|svg|png|jpg|jpeg|webp|woff2|gz)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 </IfModule>
