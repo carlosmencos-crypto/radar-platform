@@ -163,7 +163,7 @@ function readPrivateImage(file: File) {
 }
 
 function ElectorsDirectoryCanonical() {
-  const { municipality_code, municipality_name, consumer } = useMunicipalityContext();
+  const { municipality_code, municipality_name, consumer, campaign_id } = useMunicipalityContext();
   const is_demo = consumer.context.is_demo;
   const readiness = getInstalledRadarRuntime(municipality_code)?.client_readiness;
   const directoryReady = Boolean(readiness?.campaign_connected && readiness.possible_voters_loaded);
@@ -175,22 +175,17 @@ function ElectorsDirectoryCanonical() {
     let cancelled = false;
     setNominal(null);
     setAvailabilityError(false);
-    if (is_demo) { setChecking(false); return () => { cancelled = true; }; }
-    if (directoryReady) { setChecking(false); return; }
+    if (is_demo && !campaign_id) { setChecking(false); setAvailabilityError(true); return; }
+    if (directoryReady && !is_demo) { setChecking(false); return; }
     setChecking(true);
-    void ensureRadarAccessToken().then((token) => loadNominalDirectoryAvailability(municipality_code, token))
+    void ensureRadarAccessToken().then((token) => loadNominalDirectoryAvailability(municipality_code, token, is_demo ? campaign_id ?? undefined : undefined))
       .then((result) => { if (!cancelled) setNominal(result); })
       .catch(() => { if (!cancelled) setAvailabilityError(true); })
       .finally(() => { if (!cancelled) setChecking(false); });
     return () => { cancelled = true; };
-  }, [municipality_code, directoryReady, availabilityAttempt, is_demo]);
-  if (is_demo) return <section className="canonical-protected-page directory-readiness-page" role="status">
-    <small>DEMO AISLADA</small>
-    <h2>Directorio privado separado</h2>
-    <p>Esta demostración no consulta ni usa el padrón o los posibles votantes de una campaña real. Usa Equipo de campaña para crear contactos exclusivos del espacio demo.</p>
-  </section>;
-  if (directoryReady) return <ElectorsDirectoryReady key={municipality_code} />;
-  if (nominal?.municipality_code === municipality_code && nominal.available) return <ElectorsDirectoryReady key={municipality_code} nationalRegister nominalCommunities={nominal.communities} />;
+  }, [municipality_code, directoryReady, availabilityAttempt, is_demo, campaign_id]);
+  if (directoryReady && !is_demo) return <ElectorsDirectoryReady key={municipality_code} />;
+  if (nominal?.municipality_code === municipality_code && nominal.available) return <ElectorsDirectoryReady key={`${municipality_code}:${campaign_id ?? "national"}`} nationalRegister nominalCommunities={nominal.communities} />;
   if (checking) return <section className="canonical-protected-page" role="status">Verificando acceso al padrón municipal…</section>;
   if (availabilityError) return <section className="canonical-protected-page" role="alert"><p>No se pudo verificar el acceso al padrón de {municipality_name}.</p><button type="button" onClick={() => setAvailabilityAttempt((value) => value + 1)}>Reintentar</button></section>;
   return <section className="canonical-protected-page directory-readiness-page" role="status">
@@ -207,7 +202,8 @@ function ElectorsDirectoryCanonical() {
 
 function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities = [] }: { nationalRegister?: boolean; nominalCommunities?: string[] }) {
   const directoryCache = useRef(new Map<string, { items: AuthorizedVoterDirectoryRow[]; total: number | null; hasMore: boolean }>()).current;
-  const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, consumer } = useMunicipalityContext();
+  const demoCampaign = consumer.context.is_demo ? campaign_id ?? undefined : undefined;
   const municipalRuntime = getInstalledRadarRuntime(municipality_code);
   const communityOptions = nationalRegister
     ? nominalCommunities.map((name) => ({ community_normalized: name, community_label: name }))
@@ -286,6 +282,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     const cacheKey = JSON.stringify({
       municipality_code,
       nationalRegister,
+      demoCampaign,
       query,
       dpi,
       community,
@@ -328,7 +325,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
       void ensureRadarAccessToken()
         .then(async (token) => {
           const filters = { query, dpi, community, ...age, status, affiliation, responsible, role, offset: (page - 1) * pageSize, limit: pageSize };
-          if (nationalRegister) return loadAuthorizedContactDirectoryPage(municipality_code, filters, token, controller.signal);
+          if (nationalRegister) return loadAuthorizedContactDirectoryPage(municipality_code, filters, token, controller.signal, demoCampaign);
           const rows = await loadAuthorizedVoterDirectory(municipality_code, filters, token, false, controller.signal);
           const count = rows[0]?.total_count ?? 0;
           return { items: rows, total_count: count, has_more: page * pageSize < count };
@@ -377,6 +374,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     status,
     revision,
     nationalRegister,
+    demoCampaign,
     directoryCache,
   ]);
 
@@ -390,6 +388,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         municipality_code,
         voterId,
         token,
+        demoCampaign,
       );
       if (!loaded) throw new Error("No se pudo abrir la ficha.");
       setDetail(loaded);
@@ -429,6 +428,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           longitude: profile.longitude || null,
         },
         token,
+        demoCampaign,
       );
       directoryCache.clear();
       setRevision((value) => value + 1);
@@ -490,6 +490,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           municipality_code,
           detail.elector.id,
           token,
+          demoCampaign,
         )) ?? "No disponible",
       );
     } catch {
@@ -516,6 +517,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
             interaction.responsible_contact_id || null,
         },
         token,
+        demoCampaign,
       );
       setInteraction({
         interaction_type: "LLAMADA",
@@ -547,7 +549,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
     try {
       const token = await ensureRadarAccessToken();
       const rows = await loadAuthorizedVoterDirectory(municipality_code,
-        { query, dpi, community, ...age, status, affiliation, responsible, role, offset: 0, limit: 1 }, token, true);
+        { query, dpi, community, ...age, status, affiliation, responsible, role, offset: 0, limit: 1 }, token, true, undefined, demoCampaign);
       if (request === countRequest.current) setTotal(rows[0]?.total_count ?? 0);
     } catch {
       if (request === countRequest.current) setMessage("No se pudo calcular el total. Podés seguir consultando las páginas.");
@@ -576,7 +578,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
 
   return (
     <>
-      {nationalRegister ? <p className="agenda-message">Directorio privado de {municipality_name} · Base inicial 2023 y edad estimada a 2026. Completá cada ficha con los datos que el contacto te proporcione. Tus actualizaciones e interacciones se conservan en tu espacio privado.</p> : null}
+      {nationalRegister ? <p className="agenda-message">Directorio privado de {municipality_name} · Base inicial 2023 y edad estimada a 2026. Completá cada ficha con los datos que el contacto te proporcione. {demoCampaign ? "Los cambios de esta demostración están separados de las campañas reales y se eliminan al reiniciarla." : "Tus actualizaciones e interacciones se conservan en tu espacio privado."}</p> : null}
       <section className="elector-kpis" aria-label="Resumen del Directorio">
         <span>
           <b>{error || total === null ? "—" : fmt.format(total)}</b>

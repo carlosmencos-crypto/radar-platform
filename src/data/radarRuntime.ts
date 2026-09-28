@@ -760,12 +760,12 @@ export async function loadAuthorizedVoterSuggestions(
 export async function loadAuthorizedVoterDetail(
   municipalityCode: string,
   voterId: number,
-  accessToken: string,
+  accessToken: string, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
   const detail = await rpc<AuthorizedVoterDetail | null>(
-    voterId < 0 ? "radar_authorized_nominal_detail_v1" : "radar_authorized_voter_detail_v1",
-    { p_municipality_code: municipalityCode, p_voter_id: voterId },
+    voterId < 0 ? (demoCampaign ? "radar_demo_authorized_nominal_detail_v1" : "radar_authorized_nominal_detail_v1") : "radar_authorized_voter_detail_v1",
+    { ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode, p_voter_id: voterId },
     accessToken,
   );
   if (detail && detail.elector.municipality_code !== municipalityCode) {
@@ -777,12 +777,12 @@ export async function loadAuthorizedVoterDetail(
 export async function revealAuthorizedVoterIdentification(
   municipalityCode: string,
   voterId: number,
-  accessToken: string,
+  accessToken: string, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
   return rpc<string | null>(
-    voterId < 0 ? "radar_reveal_nominal_identification_v1" : "radar_reveal_voter_identification_v1",
-    { p_municipality_code: municipalityCode, p_voter_id: voterId },
+    voterId < 0 ? (demoCampaign ? "radar_demo_reveal_nominal_identification_v1" : "radar_reveal_nominal_identification_v1") : "radar_reveal_voter_identification_v1",
+    { ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode, p_voter_id: voterId },
     accessToken,
   );
 }
@@ -802,21 +802,21 @@ export async function saveAuthorizedVoterProfile(
 
 /** Owner-scoped updates; the original municipal source remains immutable. */
 export async function saveAuthorizedContactProfile(
-  municipalityCode: string, voterId: number, profile: Record<string, unknown>, accessToken: string,
+  municipalityCode: string, voterId: number, profile: Record<string, unknown>, accessToken: string, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
   if (!Number.isSafeInteger(voterId) || voterId >= 0) throw new Error("Identificador de contacto inválido.");
-  return rpc<{ saved: boolean }>("radar_save_contact_profile_v1",
-    { p_municipality_code: municipalityCode, p_voter_id: voterId, p_profile: profile }, accessToken);
+  return rpc<{ saved: boolean }>((demoCampaign ? "radar_demo_save_contact_profile_v1" : "radar_save_contact_profile_v1"),
+    { ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode, p_voter_id: voterId, p_profile: profile }, accessToken);
 }
 
 export async function addAuthorizedContactInteraction(
-  municipalityCode: string, voterId: number, interaction: Record<string, unknown>, accessToken: string,
+  municipalityCode: string, voterId: number, interaction: Record<string, unknown>, accessToken: string, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
   if (!Number.isSafeInteger(voterId) || voterId >= 0) throw new Error("Identificador de contacto inválido.");
-  return rpc<Record<string, unknown>>("radar_add_contact_interaction_v1",
-    { p_municipality_code: municipalityCode, p_voter_id: voterId, p_interaction: interaction }, accessToken);
+  return rpc<Record<string, unknown>>((demoCampaign ? "radar_demo_add_contact_interaction_v1" : "radar_add_contact_interaction_v1"),
+    { ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode, p_voter_id: voterId, p_interaction: interaction }, accessToken);
 }
 
 export async function createManualVoter(
@@ -984,15 +984,15 @@ export async function loadAuthorizedVoterDirectory(
   filters: VoterDirectoryFilters,
   accessToken: string,
   nationalRegister = false,
-  signal?: AbortSignal,
+  signal?: AbortSignal, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
   const result = await rpc<AuthorizedVoterDirectoryRow[] | {
     municipality_code: string; items: AuthorizedVoterDirectoryRow[];
   }>(
-    nationalRegister ? "radar_authorized_nominal_directory_v1" : "radar_authorized_voter_directory_v1",
+    nationalRegister ? (demoCampaign ? "radar_demo_authorized_nominal_directory_v1" : "radar_authorized_nominal_directory_v1") : "radar_authorized_voter_directory_v1",
     {
-      p_municipality_code: municipalityCode,
+      ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode,
       p_query: filters.query?.trim() || null,
       p_dpi: filters.dpi?.trim() || null,
       p_community: filters.community || null,
@@ -1027,11 +1027,11 @@ export interface ContactDirectoryPage {
 }
 
 export async function loadAuthorizedContactDirectoryPage(
-  municipalityCode: string, filters: VoterDirectoryFilters, accessToken: string, signal?: AbortSignal,
+  municipalityCode: string, filters: VoterDirectoryFilters, accessToken: string, signal?: AbortSignal, demoCampaign?: string,
 ) {
   assertMunicipalityCode(municipalityCode);
-  const page = await rpc<ContactDirectoryPage>("radar_authorized_contact_directory_page_v1", {
-    p_municipality_code: municipalityCode, p_query: filters.query?.trim() || null,
+  const page = await rpc<ContactDirectoryPage>((demoCampaign ? "radar_demo_authorized_contact_directory_page_v1" : "radar_authorized_contact_directory_page_v1"), {
+    ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode, p_query: filters.query?.trim() || null,
     p_dpi: filters.dpi?.trim() || null, p_community: filters.community || null,
     p_age_min: filters.ageMin ?? null, p_age_max: filters.ageMax ?? null,
     p_status: filters.status || null, p_affiliation: filters.affiliation || null,
@@ -1055,10 +1055,11 @@ export interface NominalDirectoryAvailability {
   communities: string[];
 }
 
-export async function loadNominalDirectoryAvailability(municipalityCode: string, accessToken: string) {
+export async function loadNominalDirectoryAvailability(municipalityCode: string, accessToken: string, demoCampaign?: string,
+) {
   assertMunicipalityCode(municipalityCode);
   const result = await rpc<NominalDirectoryAvailability | null>(
-    "radar_authorized_nominal_availability_v1", { p_municipality_code: municipalityCode }, accessToken,
+    (demoCampaign ? "radar_demo_authorized_nominal_availability_v1" : "radar_authorized_nominal_availability_v1"), { ...(demoCampaign ? { p_demo_campaign: demoCampaign } : {}), p_municipality_code: municipalityCode }, accessToken,
   );
   if (result && (result.municipality_code !== municipalityCode || result.source_year !== 2023 ||
     result.read_only !== true || typeof result.available !== "boolean" ||
