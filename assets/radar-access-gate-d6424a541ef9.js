@@ -2,7 +2,7 @@
 const url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';
 const apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';
 const key='radar-supabase-session-v1';
-const entry='/assets/index-BZrG8wKk.js';
+const entry='/assets/index-Dd_r7zLJ.js';
 const municipal=location.pathname.match(/^\/municipio\/(\d{4})(d)?(?:\/|$)/)||location.pathname.match(/^\/(\d{4})(d)(?:\/|$)/);
 const protectedRoute=Boolean(municipal)||/^\/(municipios|mis-municipios|demos)\/?$/.test(location.pathname);
 let loggingOut=false;
@@ -57,4 +57,3 @@ document.addEventListener('click',event=>{
 },true);
 window.addEventListener('pageshow',event=>{if(event.persisted&&protectedRoute)location.reload();});
 try{if(await verify()&&!loggingOut)await import(entry);}catch(error){console.error('RADAR_BOOT_FAILED',error);showError('Tu acceso fue verificado, pero RADAR no pudo terminar de cargar. Recarga la página para intentarlo de nuevo.');}
-
