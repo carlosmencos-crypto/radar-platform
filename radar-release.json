@@ -1,23 +1,34 @@
 {
-  "source_sha": "36026414d409f1c89766a9a9091bae08b8c2a73c",
-  "source_branch": "qa/v70-national-client-readiness",
-  "date": "2026-09-25",
-  "scope": "Harden municipal runtime, demo alias, premium sign-in, and deployment integrity",
+  "source_sha": "baaa0534a8668d1e7fcb2ac5b828db8800d7ad8a",
+  "source_branch": "integration/superadmin-hostinger-20260926",
+  "date": "2026-09-28",
+  "scope": "Integrate canonical fiscal RTD into municipal and superadministrator dashboards with strict real/demo isolation",
   "environment": {
     "supabase_project": "xxobbhnhxhcjkdxmjmwj",
     "credential_class": "publishable"
   },
   "quality": {
-    "tests": 129,
+    "tests": 138,
     "municipalities_validated": 340,
     "browser_parse_required": true,
+    "integral_route_gate": true,
     "max_transport_bytes": 740000
   },
   "files": [
     {
-      "path": "assets/index-f2ULqrmd.js",
-      "size": 604210,
-      "sha256": "bd8f48b70c0557bca65c0c960374849a44d4df5a0e982bdcbb6cda0dd72487c7"
+      "path": "assets/index-DUlr3_sC.js",
+      "size": 737079,
+      "sha256": "2e0a850ddc954fe4c89fa0352c4837a3845896667b7763b27817ebf680939567"
+    },
+    {
+      "path": "assets/index-CHJIUqF_.css",
+      "size": 734177,
+      "sha256": "0521291844ec208363fa646e404b98b19d39bed75136182343aad962c157bdab"
+    },
+    {
+      "path": "assets/radar-access-gate-d6424a541ef9.js",
+      "size": 4873,
+      "sha256": "1a3e513e9345bbb442fe46acab6d4dfc734d103abf9d358cb57e50025cf5767c"
     },
     {
       "path": "assets/radar-contract-WSpO9eWF.js",
@@ -35,14 +46,9 @@
       "sha256": "bbf7c5086ae414dc3f33777e3eebf16ea8631325b8bb4690d25091c03567f31a"
     },
     {
-      "path": "assets/index-cZH3Ilm4.css",
-      "size": 685856,
-      "sha256": "aea037dc98bed43a8389c74be96e61a1b55b0990bc92457658b4983811a9d37a"
-    },
-    {
       "path": "radar-app.html",
-      "size": 1306,
-      "sha256": "eb842c7e9a38fc7024518dbe8d822e39404582480d7f8f7903c4864fdcea6380"
+      "size": 1478,
+      "sha256": "a74dd58674a3a95a069d2e704fafdacdafc3686f73647499fa456cfd4c80f96a"
     }
   ]
 }
