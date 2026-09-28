@@ -316,7 +316,7 @@ function DayDContent() {
         current?.id ?? null,
       );
       setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]);
-      const link = `https://radar-portal-fiscal.carlos-mencos.chatgpt.site/?code=${encodeURIComponent(code)}`;
+      const link = `https://fiscales-qa.wowlatam.com/?code=${encodeURIComponent(code)}`;
       setIssuedAccess({
         link,
         code,
@@ -563,7 +563,7 @@ function DayDContent() {
         </div>
         <a
           className="day-d-open-fiscal"
-          href="https://radar-portal-fiscal.carlos-mencos.chatgpt.site"
+          href="https://fiscales-qa.wowlatam.com"
           target="_blank"
           rel="noreferrer"
         >
