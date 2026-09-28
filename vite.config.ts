@@ -2,7 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), {
+    name: "radar-require-runtime-config",
+    configResolved(config) {
+      if (config.command === "build" && (!config.env.VITE_SUPABASE_URL?.trim() || !config.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim())) {
+        throw new Error("Falta la configuración de Supabase: no se puede publicar un RADAR sin conexión municipal.");
+      }
+    },
+  }],
   build: {
     outDir: "dist",
     sourcemap: false,
