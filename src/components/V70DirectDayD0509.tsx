@@ -88,6 +88,17 @@ function displayCenterName(value: string) {
     .map((word) => word ? `${word.charAt(0).toLocaleUpperCase("es-GT")}${word.slice(1)}` : word)
     .join(" ");
 }
+function incidentIsResolved(record: CampaignModuleRecord) {
+  return ["RESUELTA", "RESUELTO", "CERRADA", "CERRADO"].includes(
+    String(record.payload.incident_status || record.status || "ABIERTA").toUpperCase(),
+  );
+}
+function incidentDate(value: unknown) {
+  const date = new Date(String(value || ""));
+  return Number.isNaN(date.getTime())
+    ? "Hora no registrada"
+    : new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
 function jrvNumbers(range: string, expected: number) {
   const parsed = range.split(/[;,]+/).flatMap((segment) => {
     const values = (segment.match(/\d+/g) ?? []).map(Number).filter(Number.isFinite);
@@ -209,6 +220,8 @@ function DayDContent() {
   const [logisticsFilter, setLogisticsFilter] = useState("all");
   const [logisticsCenterFilter, setLogisticsCenterFilter] = useState("all");
   const [logisticsStatusFilter, setLogisticsStatusFilter] = useState("all");
+  const [incidentFilter, setIncidentFilter] = useState("ABIERTAS");
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [logisticsForm, setLogisticsForm] = useState({
     category: "TRANSPORTE_ELECTORES",
     subtype: "",
@@ -250,12 +263,43 @@ function DayDContent() {
       .catch((error: unknown) => { if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo cargar la operación Día D."); });
     return () => { cancelled = true; };
   }, [campaign_id]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!campaign_id) return;
+    const refreshDayD = async () => {
+      try {
+        const token = await ensureRadarAccessToken();
+        const records = await loadCampaignRecords(campaign_id, "dia-d", token);
+        if (!cancelled) setAssignments(records ?? []);
+      } catch (error) {
+        if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo sincronizar Día D.");
+      }
+    };
+    const refreshWhenVisible = () => { if (!document.hidden) void refreshDayD(); };
+    const interval = window.setInterval(() => void refreshDayD(), 15_000);
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [campaign_id]);
   const fiscalContacts = useMemo(() => contacts.filter((person) => /fiscal/i.test(`${person.contact_type} ${person.role ?? ""}`)), [contacts]);
   const selectedCenter = centers.find((center) => center.id === selectedCenterId) ?? centers[0];
   const selectedCenterJrvs = selectedCenter ? jrvNumbers(selectedCenter.jrvRange, selectedCenter.jrv) : [];
   const assignmentRows = assignments.filter((record) => record.category === "ASIGNACION_JRV");
   const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
+  const incidentRows = assignments.filter((record) => record.category === "INCIDENCIA_FISCAL");
+  const openIncidentRows = incidentRows.filter((record) => !incidentIsResolved(record));
+  const visibleIncidentRows = incidentRows.filter((record) => {
+    if (incidentFilter === "ABIERTAS") return !incidentIsResolved(record);
+    if (incidentFilter === "RESUELTAS") return incidentIsResolved(record);
+    return true;
+  });
+  const selectedIncident = incidentRows.find((record) => record.id === selectedIncidentId) ?? null;
   const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
   const assignmentsForCenter = (centerId: string) => assignmentRows.filter((record) => String(record.payload.center_id) === centerId);
   const centerResponsible = (centerId: string) => {
@@ -463,7 +507,7 @@ function DayDContent() {
         </button>
         <button type="button" onClick={() => openDayDView("incidencias")}>
           <small>Incidencias abiertas</small>
-          <b>0</b>
+          <b>{openIncidentRows.length}</b>
           <span>Abrir incidencias →</span>
         </button>
       </div>
@@ -643,16 +687,31 @@ function DayDContent() {
       <div className="day-d-filters">
         <label>
           <span>Estado</span>
-          <select>
-            <option>ABIERTAS</option>
-            <option>RESUELTAS</option>
-            <option>TODAS</option>
+          <select value={incidentFilter} onChange={(event) => setIncidentFilter(event.target.value)}>
+            <option value="ABIERTAS">ABIERTAS</option>
+            <option value="RESUELTAS">RESUELTAS</option>
+            <option value="TODAS">TODAS</option>
           </select>
         </label>
       </div>
       <div className="day-d-incident-list">
-        <p>No hay incidencias con este filtro.</p>
+        {visibleIncidentRows.length ? visibleIncidentRows.map((record) => {
+          const resolved = incidentIsResolved(record);
+          return (
+            <article key={record.id}>
+              <span>
+                <small>{String(record.payload.folio || record.title || "INCIDENCIA")} · {String(record.payload.urgency || "SIN PRIORIDAD")}</small>
+                <b>{String(record.payload.category || "OTRA").replaceAll("_", " ")}</b>
+                <p>{String(record.payload.description || record.details || "Sin descripción")}</p>
+                <small>{String(record.payload.fiscal_name || "Fiscal")} · {displayCenterName(String(record.payload.center_name || "Centro"))} · JRV {String(record.payload.jrv || "—")} · {incidentDate(record.payload.occurred_at || record.created_at)}</small>
+              </span>
+              <em className={resolved ? "resolved" : "open"}>{resolved ? "RESUELTA" : "ABIERTA"}</em>
+              <button type="button" onClick={() => setSelectedIncidentId(record.id)}>Ver detalle</button>
+            </article>
+          );
+        }) : <p>No hay incidencias con este filtro.</p>}
       </div>
+      {selectedIncident ? <div className="agenda-modal" role="dialog" aria-modal="true" aria-labelledby="day-d-incident-title"><section className="day-d-incident-modal"><header><div><small>{String(selectedIncident.payload.folio || "INCIDENCIA FISCAL")}</small><h2 id="day-d-incident-title">{String(selectedIncident.payload.category || "Incidencia").replaceAll("_", " ")}</h2></div><button type="button" aria-label="Cerrar detalle" onClick={() => setSelectedIncidentId(null)}>×</button></header><div className="day-d-center-modal-summary"><span><small>Estado</small><b>{String(selectedIncident.payload.incident_status || selectedIncident.status || "ABIERTA")}</b></span><span><small>Urgencia</small><b>{String(selectedIncident.payload.urgency || "Sin prioridad")}</b></span><span><small>Fiscal / JRV</small><b>{String(selectedIncident.payload.fiscal_name || "Fiscal")} · JRV {String(selectedIncident.payload.jrv || "—")}</b></span><span><small>Registro</small><b>{incidentDate(selectedIncident.payload.occurred_at || selectedIncident.created_at)}</b></span></div><p>{String(selectedIncident.payload.description || selectedIncident.details || "Sin descripción")}</p>{selectedIncident.payload.action_taken ? <p><b>Acción tomada:</b> {String(selectedIncident.payload.action_taken)}</p> : null}<footer><button className="primary" type="button" onClick={() => setSelectedIncidentId(null)}>Cerrar</button></footer></section></div> : null}
     </section>
   );
   const logistica = (
