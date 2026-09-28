@@ -10,6 +10,7 @@ const app = read("src/app/App.tsx");
 const municipalRtd = read("src/components/V70DirectDayD0509.tsx");
 const nationalRtd = read("src/admin/NationalRtd.tsx");
 const migration = read("supabase/migrations/20260928191500_connect_canonical_rtd_dashboards.sql");
+const isolationMigration = read("supabase/migrations/20260928211155_enforce_rtd_real_demo_isolation.sql");
 
 test("integral release retains municipal, access and superadmin routes", () => {
   assert.match(app, /path="mis-municipios"/);
@@ -46,4 +47,18 @@ test("database publication and national aggregation preserve demo isolation and 
   assert.match(migration, /raw_app_meta_data->>'platform_role' = 'super_admin'/);
   assert.match(migration, /revoke all on function public\.radar_admin_national_rtd_v1\(uuid, text, jsonb\) from public, anon, authenticated/);
   assert.match(migration, /grant execute on function public\.radar_admin_national_rtd_v1\(uuid, text, jsonb\) to service_role/);
+});
+
+test("database rejects every real/demo crossing before fiscal data is written", () => {
+  assert.match(isolationMigration, /VAULT_ENVIRONMENT_MISMATCH/);
+  assert.match(isolationMigration, /radar_vault_environment_guard/);
+  assert.match(isolationMigration, /DAY_D_SUBMISSION_SCOPE_MISMATCH/);
+  assert.match(isolationMigration, /DAY_D_GRANT_SCOPE_MISMATCH/);
+  assert.match(isolationMigration, /DAY_D_SESSION_SCOPE_MISMATCH/);
+  assert.match(isolationMigration, /DAY_D_EVIDENCE_CAMPAIGN_MISMATCH/);
+  assert.match(isolationMigration, /DAY_D_EVIDENCE_PATH_MISMATCH/);
+  assert.match(isolationMigration, /DAY_D_ASSIGNMENT_SCOPE_LOCKED/);
+  assert.match(isolationMigration, /before insert or update on public\.day_d_rtd_folios/);
+  assert.match(isolationMigration, /before insert or update on public\.day_d_incidents/);
+  assert.match(isolationMigration, /before insert or update on public\.day_d_evidence/);
 });
