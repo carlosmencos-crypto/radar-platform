@@ -336,6 +336,13 @@ Deno.serve(async (req: Request) => {
       return response(req, { data: { ...visibleSnapshot, users, campaign_members: campaignMembers, client_accounts: clientAccounts, shared_content: sharedContent, operator_context: context }, request_id: requestId });
     }
 
+    if(action === "delete_notice") {
+      assertPermission(role, context, "users:write");
+      if(role !== "super_admin" || !allowedOrigins().has(req.headers.get("Origin") ?? "")) throw new Error("Operación no autorizada");
+      const {data,error}=await service.rpc("radar_admin_delete_notice_v1",{p_actor_user_id:userData.user.id,p_actor_role:role,p_input:input});
+      if(error)throw error;
+      return response(req,{data,request_id:requestId});
+    }
     if (["save_notice", "publish_content", "archive_content", "upload_resource"].includes(action)) {
       assertPermission(role, context, "users:write");
       let path: string | null = null;

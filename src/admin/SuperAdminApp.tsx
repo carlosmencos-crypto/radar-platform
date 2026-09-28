@@ -1,3 +1,4 @@
+import {AdminReverification} from "./AdminReverification";
 import { NationalRtd } from "./NationalRtd";
 import { useDismissibleDialog } from "./useDismissibleDialog";
 import { DailyHome, ContentWorkspace, DemoWorkspace, AssignedUsers } from "./ContentWorkspace";
@@ -206,6 +207,7 @@ export function SuperAdminApp({
   const [loggingOut, setLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
+  const [reverify,setReverify]=useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
   const [dark, setDark] = useState(false);
@@ -235,10 +237,11 @@ export function SuperAdminApp({
       await onRefresh();
       return true;
     } catch (error) {
+      if(error instanceof Error && error.message === "MFA_AAL2_REQUIRED") setReverify(true);
       setActionFailed(true);
       setActionMessage(
         error instanceof Error
-          ? (["RADAR_AUTH_REQUIRED", "AUTH_REQUIRED", "AUTH_INVALID"].includes(error.message) ? "Tu sesión terminó. Volvé a ingresar para guardar; el formulario sigue abierto." : error.message)
+          ? (error.message === "MFA_AAL2_REQUIRED" ? "Confirmá tu identidad para continuar. El formulario sigue abierto." : ["RADAR_AUTH_REQUIRED", "AUTH_REQUIRED", "AUTH_INVALID"].includes(error.message) ? "Tu sesión terminó. Volvé a ingresar para guardar; el formulario sigue abierto." : error.message)
           : "No se pudo completar la operación.",
       );
       return false;
@@ -377,6 +380,7 @@ export function SuperAdminApp({
             </aside>
           </section>
 
+          {reverify && <AdminReverification onClose={()=>setReverify(false)} onDone={()=>{setReverify(false);setActionFailed(false);setActionMessage("Identidad verificada. Ya podés confirmar la operación pendiente.");}} />}
           {actionMessage ? (
             <div className={`superadmin-action-message${actionFailed ? " is-error" : ""}`} role={actionFailed ? "alert" : "status"}>
               <span>{actionFailed ? "!" : "✓"}</span>

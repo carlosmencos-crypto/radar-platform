@@ -1,4 +1,11 @@
 const SESSION_STORAGE_KEY = "radar-supabase-session-v1";
+const ADMIN_SESSION_STORAGE_KEY = "radar-admin-session-v1";
+function sessionStorageKey() {
+  if (typeof window === "undefined" || !window.location) return SESSION_STORAGE_KEY;
+  const path = window.location.pathname;
+  const next = new URLSearchParams(window.location.search).get("next") ?? "";
+  return path.startsWith("/admin") || (path === "/acceso" && next.startsWith("/admin")) ? ADMIN_SESSION_STORAGE_KEY : SESSION_STORAGE_KEY;
+}
 const CALLBACK_STORAGE_KEY = "radar-supabase-callback-v1";
 const EXPIRY_SKEW_MS = 60_000;
 
@@ -71,7 +78,7 @@ function storageAvailable() {
 
 export function readRadarSession(): RadarAuthSession | null {
   if (!storageAvailable()) return null;
-  const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+  const raw = window.localStorage.getItem(sessionStorageKey());
   if (!raw) return null;
 
   try {
@@ -88,7 +95,7 @@ export function readRadarSession(): RadarAuthSession | null {
 }
 
 export function clearRadarSession() {
-  if (storageAvailable()) window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  if (storageAvailable()) window.localStorage.removeItem(sessionStorageKey());
 }
 
 function persistRadarSession(response: SupabaseTokenResponse) {
@@ -99,7 +106,7 @@ function persistRadarSession(response: SupabaseTokenResponse) {
     expires_at: Date.now() + Math.max(response.expires_in, 1) * 1000,
   };
   if (storageAvailable()) {
-    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    window.localStorage.setItem(sessionStorageKey(), JSON.stringify(session));
     window.sessionStorage.setItem("radar-session-tab", "1");
   }
   return session;
@@ -353,7 +360,7 @@ export async function signOutRadar() {
   try {
     const { url, publishableKey } = requireAuthConfig();
     if (session?.access_token) {
-      await fetch(`${url}/auth/v1/logout`, {
+      await fetch(`${url}/auth/v1/logout?scope=local`, {
         method: "POST",
         headers: {
           apikey: publishableKey,

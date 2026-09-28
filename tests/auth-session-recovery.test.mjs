@@ -24,5 +24,15 @@ test('session recovery retains transient failures and coalesces renewal',async()
  await assert.rejects(auth.ensureRadarAccessToken(),/conexión/);assert.ok(window.localStorage.getItem(key));
  globalThis.fetch=async()=>({ok:false,status:400});
  await assert.rejects(auth.ensureRadarAccessToken(),/RADAR_AUTH_REQUIRED/);assert.equal(window.localStorage.getItem(key),null);
+ window.location={pathname:'/admin/avisos',search:''};
+ globalThis.fetch=async()=>({ok:true,json:async()=>({access_token:'admin-token',refresh_token:'admin-refresh',expires_in:3600})});
+ await auth.signInRadar('test@example.invalid','test-only');
+ assert.equal(auth.readRadarSession().access_token,'admin-token');
+ window.location={pathname:'/acceso',search:''};
+ assert.equal(auth.readRadarSession(),null);
+ globalThis.fetch=async()=>({ok:true,json:async()=>({access_token:'municipal-token',refresh_token:'municipal-refresh',expires_in:3600})});
+ await auth.signInRadar('test@example.invalid','test-only');
+ window.location={pathname:'/admin/demos',search:''};
+ assert.equal(auth.readRadarSession().access_token,'admin-token','municipal login must not replace admin MFA session');
  }finally{globalThis.window=previousWindow;globalThis.fetch=previousFetch;}
 });
