@@ -1,3 +1,4 @@
+import { deliverLifecycleMail } from "./lifecycle-mail.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
 
@@ -333,7 +334,8 @@ Deno.serve(async (req: Request) => {
         sharedContent = content ?? [];
       }
       const visibleSnapshot = scopedSnapshot(asObject(data), context, role);
-      return response(req, { data: { ...visibleSnapshot, users, campaign_members: campaignMembers, client_accounts: clientAccounts, shared_content: sharedContent, operator_context: context }, request_id: requestId });
+      const mailList = role === "super_admin" ? await service.rpc("radar_lifecycle_mail_v1", { p_operation: "list" }) : { data: [] };
+      return response(req, { data: { ...visibleSnapshot, lifecycle_mail: mailList.data ?? [], users, campaign_members: campaignMembers, client_accounts: clientAccounts, shared_content: sharedContent, operator_context: context }, request_id: requestId });
     }
 
     if(action === "delete_notice") {
@@ -360,20 +362,25 @@ Deno.serve(async (req: Request) => {
       if (error) { if (path) await service.storage.from("radar-shared-resources").remove([path]); throw error; }
       return response(req, { data, request_id: requestId });
     }
+    if (action === "retry_lifecycle_mail") {
+      assertPermission(role, context, "users:write");
+      if (role !== "super_admin") throw new Error("Solo superadministradores");
+      return response(req, { data: await deliverLifecycleMail(service, asString(input.id, "id")), request_id: requestId });
+    }
     if (action === "purge_campaign") {
       assertPermission(role, context, "users:write");
       if (role !== "super_admin") throw Object.assign(new Error("Solo superadministradores"), { status: 403 });
       if (!allowedOrigins().has(req.headers.get("Origin") ?? "")) throw new Error("Origen no permitido");
       const { data, error } = await service.rpc("radar_admin_purge_campaign_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_input: input });
       if (error) throw error;
-      return response(req, { data, request_id: requestId });
+      return response(req, { data: { ...data, ...await deliverLifecycleMail(service, data?.mail_id) }, request_id: requestId });
     }
     if (["client_limit", "reactivate_client", "reset_demo"].includes(action)) {
       assertPermission(role, context, "users:write");
       const operation = action === "client_limit" ? "limit" : action === "reactivate_client" ? "reactivate" : "reset_demo";
       const { data, error } = await service.rpc("radar_admin_clients_v1", { p_actor_user_id: userData.user.id, p_actor_role: role, p_operation: operation, p_input: input });
       if (error) throw error;
-      return response(req, { data, request_id: requestId });
+      return response(req, { data: { ...data, ...await deliverLifecycleMail(service, data?.mail_id) }, request_id: requestId });
     }
     if (action === "onboard_client") {
       assertPermission(role, context, "users:write");
@@ -499,7 +506,7 @@ Deno.serve(async (req: Request) => {
         p_confirmation: asString(input.confirmation, "confirmation"), p_reason: asString(input.reason, "reason"),
       });
       if (error) throw error;
-      return response(req, { data, request_id: requestId });
+      return response(req, { data: { ...data, ...await deliverLifecycleMail(service, data?.mail_id) }, request_id: requestId });
     }
 
     if (action === "reserve_contract") {

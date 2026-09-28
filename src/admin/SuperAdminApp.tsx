@@ -230,9 +230,10 @@ export function SuperAdminApp({
     setActionMessage(null);
     setActionFailed(false);
     try {
-      await runAdminAction<T>(operation, input);
+      const result = await runAdminAction<T>(operation, input);
+      const delivery = result as Record<string, unknown>;
       setActionMessage(
-        operation === "purge_campaign" ? "Campaña eliminada. Sus accesos y datos privados fueron retirados." : "Cambios guardados correctamente.",
+        delivery?.mail_status === "failed" || delivery?.mail_status === "pending" ? "Cambios guardados. El correo quedó pendiente: revisa Notificaciones por correo en Clientes y municipios." : delivery?.mail_status === "sent" ? "Cambios guardados. El servidor de correo aceptó la notificación." : operation === "purge_campaign" ? "Campaña eliminada. Sus accesos y datos privados fueron retirados." : "Cambios guardados correctamente.",
       );
       await onRefresh();
       return true;

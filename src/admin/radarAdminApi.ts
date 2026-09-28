@@ -56,6 +56,7 @@ export interface AdminSnapshot {
   support: Array<Record<string, unknown>>;
   users: Array<Record<string, unknown>>;
   shared_content?: Array<Record<string, unknown>>;
+  lifecycle_mail?: Array<Record<string, unknown>>;
   client_accounts?: Array<Record<string, unknown>>;
   campaign_members?: Array<Record<string, unknown>>;
   operator_context: {

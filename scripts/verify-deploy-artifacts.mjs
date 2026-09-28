@@ -28,7 +28,7 @@ for (const asset of deployAssets) {
 
 const html = readFileSync(join(distDir, "index.html"), "utf8");
 const referencedAssets = [...html.matchAll(/(?:src|href)="\/assets\/([^"]+)"/g)].map(
-  ([, name]) => name,
+  ([, name]) => name.split("?")[0],
 );
 
 for (const name of referencedAssets) {

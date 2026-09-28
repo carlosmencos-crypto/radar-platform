@@ -15,7 +15,7 @@ import {
 function safeNextPath(search: string) {
   const next = new URLSearchParams(search).get("next");
   if (next && (/^\/municipio\/\d{4}(?:\/[a-z0-9-]+)?(?:\?.*)?$/.test(next) || /^\/admin(?:\/[a-z0-9-]+)?$/.test(next))) return next;
-  return "/";
+  return "/mis-municipios?auto=1";
 }
 
 function qrSource(value: string) {

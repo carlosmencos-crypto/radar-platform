@@ -74,7 +74,7 @@ export function V70DirectShell0509({ active, eyebrow, topbarTitle, accountRole =
   useEffect(() => { let active = true; void radarCurrentIdentity().then(identity => { if(active && identity) setUserLabel(identity.user_metadata?.display_name?.trim() || identity.email || "Mi cuenta"); }).catch(() => {}); return () => { active = false; }; }, []);
   const fallbackAvatar = userLabel.split(/\s+/).map(part => part[0]).slice(0,2).join("").toUpperCase();
   const avatar = userPhoto ? <img src={userPhoto} alt="" /> : fallbackAvatar;
-  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>{municipality_name} · sesión protegida</span><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
+  const accountMenu = <div className="account-menu"><b>{userLabel}</b><span>{municipality_name} · sesión protegida</span><a href="/mis-municipios">Cambiar municipio</a><a href="/signout-with-chatgpt?return_to=%2F">Cerrar sesión</a></div>;
   const intelligenceExport = active === "inteligencia" ? <><button className="floating-export" onClick={() => setReportOpen(true)}><span>↓</span><div><b>Exportar informe</b><small>Reporte PDF integral</small></div></button>{reportOpen ? <V70DirectReportBuilder section="inicio" onClose={() => setReportOpen(false)} /> : null}</> : null;
   const topbarEyebrow = <small>{eyebrow}{isDemo ? <span className="topbar-demo-label">DEMO</span> : null}</small>;
 

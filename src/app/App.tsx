@@ -1,3 +1,4 @@
+import { MyMunicipalitiesPage } from "./MyMunicipalitiesPage";
 import { SuperAdminAccessGate } from "../admin/SuperAdminAccessGate";
 import { Link, Route, Routes } from "react-router-dom";
 import { Layout } from "./Layout";
@@ -24,6 +25,7 @@ function AccessDeniedPage() {
 export function App() {
   return (
     <Routes>
+      <Route path="mis-municipios" element={<MyMunicipalitiesPage />} />
       <Route path="admin/:section?" element={<SuperAdminAccessGate />} />
       <Route path=":demoCode" element={<DemoMunicipalityEntry />} />
       <Route path="municipios/:demoCode" element={<DemoMunicipalityEntry />} />
