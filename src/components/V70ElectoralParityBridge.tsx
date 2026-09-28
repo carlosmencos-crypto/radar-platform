@@ -4,6 +4,7 @@ import { useAuthorizedRadarRuntime } from "../context/AuthorizedRuntimeContext";
 import { getInstalledRadarElectoralLayers, getInstalledRadarGeoBundle } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers, type V70ElectoralViewModel } from "../data/v70ElectoralAdapter";
 import { V70CanonicalRich0509 } from "./V70CanonicalRich0509";
+import { V70CanonicalTail0509 } from "./V70CanonicalTail0509";
 import { V70ElectoralTerritory } from "./V70ElectoralTerritory";
 import { V70ElectoralTerritoryUnavailable } from "./V70ElectoralTerritoryUnavailable";
 
@@ -16,6 +17,11 @@ function resolveViewModel(municipalityCode: string): V70ElectoralViewModel | nul
     console.error("RADAR_V70_ELECTORAL_ADAPTER_FAIL_CLOSED", municipalityCode, error);
     return null;
   }
+}
+
+function isTechnicalTraceability(node: HTMLElement) {
+  const text = node.textContent?.replace(/\s+/g, " ").trim() ?? "";
+  return text.includes("FUENTES Y TRAZABILIDAD") && text.includes("Detalle institucional del expediente");
 }
 
 export function V70ElectoralParityBridge() {
@@ -38,7 +44,7 @@ export function V70ElectoralParityBridge() {
 
     const hidden: Array<{ node: HTMLElement; previous: boolean }> = [];
     const hide = (node?: HTMLElement | null) => {
-      if (!node) return;
+      if (!node || hidden.some((item) => item.node === node)) return;
       hidden.push({ node, previous: node.hidden === true });
       node.hidden = true;
     };
@@ -53,7 +59,15 @@ export function V70ElectoralParityBridge() {
         section.querySelector("h2")?.textContent?.trim() === "Lo que define el municipio",
       );
       hide(genericDefinition);
-      document.querySelectorAll<HTMLElement>(".portal-content > .trace-note, .portal-content > .canonical-coverage-secondary").forEach(hide);
+
+      document.querySelectorAll<HTMLElement>("details.canonical-coverage-secondary").forEach((node) => {
+        if (isTechnicalTraceability(node)) hide(node);
+      });
+
+      document.querySelectorAll<HTMLElement>(".trace-note").forEach((node) => {
+        const next = node.nextElementSibling;
+        if (next instanceof HTMLElement && isTechnicalTraceability(next)) hide(node);
+      });
     }
 
     setHost(slot);
@@ -71,7 +85,7 @@ export function V70ElectoralParityBridge() {
       {electoralView
         ? <V70ElectoralTerritory viewModel={electoralView} geoBundle={geoBundle} />
         : <V70ElectoralTerritoryUnavailable municipalityName={municipality_name} geoBundle={geoBundle} state="NO_PUBLICADO" />}
-      {municipality_code === "0509" ? <V70CanonicalRich0509 /> : null}
+      {municipality_code === "0509" ? <><V70CanonicalRich0509 /><V70CanonicalTail0509 /></> : null}
     </>,
     host,
   );
