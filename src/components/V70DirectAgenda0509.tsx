@@ -155,8 +155,9 @@ function displayActivityDate(value: string | null) {
 }
 
 function AgendaContent() {
-  const { campaign_id, municipality_code, municipality_name, department_name, consumer } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, department_name, consumer, permissions } = useMunicipalityContext();
   const is_demo = consumer.context.is_demo;
+  const canEdit = permissions.includes(is_demo ? "demo_vault:write" : "campaign_vault:write");
   const communities =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
   const [view, setView] = useState<"calendar" | "list">(() => new URLSearchParams(window.location.search).get("view") === "list" ? "list" : "calendar");
@@ -814,7 +815,7 @@ function AgendaContent() {
               <div>
                 <small>CAMPAIGN VAULT</small>
                 <h2 id="new-activity-title">
-                  {editing ? "Modificar elemento" : "Nuevo elemento de Agenda"}
+                  {!canEdit ? "Detalle de actividad" : editing ? "Modificar elemento" : "Nuevo elemento de Agenda"}
                 </h2>
               </div>
               <button
@@ -825,7 +826,7 @@ function AgendaContent() {
                 ×
               </button>
             </header>
-            <div className="agenda-form-grid">
+            <fieldset disabled={!canEdit} style={{border:0,padding:0,minWidth:0}}><div className="agenda-form-grid">
               {editing && activities.find(a => a.id === editing)?.details?.admin_activity_batch_id ? <p className="agenda-admin-origin wide">Actividad creada por el administrador de campaña.</p> : null}
               <label>
                 <span>Clase *</span>
@@ -920,16 +921,16 @@ function AgendaContent() {
                 />
               </label>
             </div>
-            <V70RouteSnapshot activity={formPreview} />
+            </fieldset><V70RouteSnapshot activity={formPreview} />
             {message ? <p className="form-error">{message}</p> : null}
             <footer className="agenda-form-footer">
-              {editing ? <button className="record-delete-action" type="button" onClick={() => void removeActivity(editing)}>Eliminar actividad</button> : null}
+              {editing && canEdit ? <button className="record-delete-action" type="button" onClick={() => void removeActivity(editing)}>Eliminar actividad</button> : null}
               {editing ? <button className="agenda-print-action" type="button" onClick={() => printActivity(formPreview)}>Imprimir PNG</button> : null}
               {editing ? <span className="agenda-footer-spacer" /> : null}
               <button type="button" onClick={() => setOpen(false)}>
                 Cancelar
               </button>
-              <button disabled={saving}>
+              <button disabled={saving || !canEdit}>
                 {saving ? "Guardando…" : editing ? "Guardar cambios" : "Guardar en Agenda"}
               </button>
             </footer>

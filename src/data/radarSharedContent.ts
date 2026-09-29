@@ -1,5 +1,5 @@
 import { ensureRadarAccessToken } from "./radarAuth";
-export type SharedContent = {id:string;kind:"resource"|"notice";title:string;body:string;category:string;storage_path:string;file_name:string;version:string};
+export type SharedContent = {id:string;kind:"resource"|"notice";title:string;body:string;category:string;storage_path:string;file_name:string;version:string;activity_id?:string|null;campaign_id?:string|null};
 async function sharedRequest<T>(name:string,body:Record<string,unknown>):Promise<T>{
  const token=await ensureRadarAccessToken();if(!token)throw new Error("Inicia sesión para continuar");
  const response=await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});
