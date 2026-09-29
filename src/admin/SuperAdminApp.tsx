@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+const SharedActivities = lazy(() => import("./SharedActivities"));
 const AiUsage = lazy(() => import("./AiUsage"));
 import {AdminReverification} from "./AdminReverification";
 import { NationalRtd } from "./NationalRtd";
@@ -23,6 +24,7 @@ import {
 
 const sections = [
   ["resumen", "Inicio", "⌂"],
+  ["agenda-central", "Actividades", "▦"],
   ["ia-consumo", "IA · consumo", "✦"],
   ["equipos", "Equipos de campaña", "♙"],
   ["recursos", "Recursos", "▣"],
@@ -55,6 +57,7 @@ interface ActionModuleProps {
 
 const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
   {
+    "agenda-central": {eyebrow:"AGENDA CENTRAL",description:"Crea actividades para los equipos de los municipios que selecciones."},
     "ia-consumo": {eyebrow:"ASISTENCIA RADAR",description:"Disponibilidad y consumo de IA, solo para superadministración."},
     equipos: {eyebrow:"EQUIPOS DE CAMPAÑA",description:"Cada persona, su función y el municipio al que tiene acceso."},
     recursos: {eyebrow:"BIBLIOTECA RADAR",description:"Manuales, plantillas y tutoriales para tus clientes."},
@@ -291,7 +294,7 @@ export function SuperAdminApp({
           <img src={logo} alt="RADAR Inteligencia Electoral" />
         </div>
         <nav aria-label="Navegación del superadministrador">
-          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "rtd", "avisos", "demos"].includes(id)).sort((a,b)=>["resumen","municipios","recursos","pulso","rtd","avisos","demos"].indexOf(a[0])-["resumen","municipios","recursos","pulso","rtd","avisos","demos"].indexOf(b[0])).map(([id, label, icon]) => (
+          {sections.filter(([id]) => ["resumen", "municipios", "recursos", "pulso", "rtd", "avisos", "agenda-central", "demos"].includes(id)).sort((a,b)=>["resumen","municipios","recursos","pulso","rtd","avisos","agenda-central","demos"].indexOf(a[0])-["resumen","municipios","recursos","pulso","rtd","avisos","agenda-central","demos"].indexOf(b[0])).map(([id, label, icon]) => (
             <NavLink
               key={id}
               to={`/admin/${id}`}
@@ -302,8 +305,8 @@ export function SuperAdminApp({
               {id === "rtd" ? <small>DÍA D</small> : null}
             </NavLink>
           ))}
-          <details open={!["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(active)}><summary>Administración técnica</summary>
-            {sections.filter(([id]) => (id !== "ia-consumo" || snapshot.operator_context.user_role === "super_admin") && !["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
+          <details open={!["resumen","municipios","recursos","pulso","rtd","avisos","agenda-central","demos"].includes(active)}><summary>Administración técnica</summary>
+            {sections.filter(([id]) => (id !== "ia-consumo" || snapshot.operator_context.user_role === "super_admin") && !["resumen","municipios","recursos","pulso","rtd","avisos","agenda-central","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
           </details>
         </nav>
         <div className="superadmin-identity">
@@ -426,6 +429,7 @@ function SectionRouter({
   action: Action;
   busy: boolean;
 }) {
+  if (active === "agenda-central") return snapshot.operator_context.user_role === "super_admin" ? <Suspense fallback={<p>Cargando actividades…</p>}><SharedActivities snapshot={snapshot}/></Suspense> : <p>Acceso exclusivo de superadministración.</p>;
   if (active === "ia-consumo") return snapshot.operator_context.user_role === "super_admin" ? <Suspense fallback={<p>Cargando consumo…</p>}><AiUsage /></Suspense> : <p>Acceso exclusivo de superadministración.</p>;
   if (active === "equipos") return <AssignedUsers snapshot={snapshot} />;
   if (active === "resumen") return <DailyHome snapshot={snapshot} />;

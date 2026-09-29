@@ -27,6 +27,7 @@ const taskOptions = [
   { value: "resumir", label: "Resumen ejecutivo", short: true },
   { value: "revisar", label: "Mejorar un campo", short: true },
   { value: "consulta", label: "Análisis de campaña", short: false },
+  { value: "discurso", label: "Discurso público general", short: false },
   { value: "intervencion", label: "Plan de acción", short: false },
 ] as const;
 type TaskValue = (typeof taskOptions)[number]["value"];
@@ -124,6 +125,8 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
   const municipality = useMunicipalityContext();
   const isDemo = municipality.consumer.context.is_demo;
   const [task, setTask] = useState<TaskValue>(compact ? "revisar" : "organizar");
+  const [speechTone, setSpeechTone] = useState("Claro y cercano");
+  const [speechDuration, setSpeechDuration] = useState("3");
   const [input, setInput] = useState(initialPrompt);
   const [conversation, setConversation] = useState<ConversationTurn[]>([]);
   const [portalContext, setPortalContext] = useState<RadarPortalContext | null>(null);
@@ -167,7 +170,7 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
     setConversation((current) => [...current, userTurn, { id: assistantId, role: "assistant", content: "" }]);
     setInput(""); setWorking(true); setStatus("");
     try {
-      const { text } = await radarAiRequest<{text:string}>({action:"chat",campaign_id:municipality.campaign_id,municipality_code:municipality.municipality_code,is_demo:isDemo,prompt:`${selectedTask.label}: ${prompt}`,context:portalContext.text,history:history.map(({role,content})=>({role,content}))});
+      const { text } = await radarAiRequest<{text:string}>({action:"chat",campaign_id:municipality.campaign_id,municipality_code:municipality.municipality_code,is_demo:isDemo,prompt:task === "discurso" ? `Redacta un discurso público general sobre este tema: ${prompt}. Tono: ${speechTone}. Duración aproximada: ${speechDuration} minutos. Dirigido al público general; no adaptes persuasión electoral a grupos, personas ni municipios. No inventes logros ni promesas. Entrega un borrador para revisión.` : `${selectedTask.label}: ${prompt}`,context:task === "discurso" ? "Discurso general: no utilizar contexto territorial ni perfiles de electores para personalizar el mensaje." : portalContext.text,history:task === "discurso" ? [] : history.map(({role,content})=>({role,content}))});
       setConversation((current) => current.map((turn) => turn.id === assistantId ? { ...turn, content: text } : turn));
     } catch (error) {
       setConversation((current) => current.filter((turn) => turn.id !== assistantId));
@@ -184,7 +187,8 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       {!compact && !conversation.length ? <div className="radar-ai-starters"><small>PREGUNTAS PARA EMPEZAR</small>{starterQuestions.map((question) => <button type="button" key={question} onClick={() => { setInput(question); setTask("consulta"); }}>{question}</button>)}</div> : null}
       {conversation.length ? <div className="radar-ai-conversation" aria-live="polite">{conversation.map((turn) => <article className={turn.role} key={turn.id}><small>{turn.role === "user" ? "TÚ" : "IA RADAR"}</small><div>{turn.content || "Analizando el contexto autorizado…"}</div></article>)}</div> : null}
       <div className="radar-ai-toolbar"><label><span>Tipo de ayuda</span><select value={task} onChange={(event) => setTask(event.target.value as TaskValue)}>{taskOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><p><span>Asistencia integrada · contexto RADAR</span><small>{selectedTask.short ? "Respuesta breve y puntual" : "Análisis con mayor desarrollo"}</small></p>{conversation.length ? <button type="button" onClick={() => { setConversation([]); setStatus(""); }}>Nueva conversación</button> : null}</div>
-      <label className="radar-ai-prompt"><span>{conversation.length ? "Continuar la conversación" : "Información o consulta"}</span><textarea rows={compact ? 5 : 7} value={input} maxLength={2900} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta sobre inteligencia, estrategia, agenda, mapa, finanzas, recursos o Día D. No incluyas DPI ni datos personales." /><small>{input.length.toLocaleString("es-GT")} / 2,900</small></label>
+      {task === "discurso" ? <div className="radar-speech-options"><label><span>Tono</span><select value={speechTone} onChange={e=>setSpeechTone(e.target.value)}><option>Claro y cercano</option><option>Formal</option><option>Solemne</option></select></label><label><span>Duración aproximada</span><select value={speechDuration} onChange={e=>setSpeechDuration(e.target.value)}><option value="2">2 minutos</option><option value="3">3 minutos</option><option value="5">5 minutos</option></select></label><p>Para público general. Incluí el tema central y los hechos que deba mencionar; revisá el borrador antes de utilizarlo.</p></div> : null}
+      <label className="radar-ai-prompt"><span>{task === "discurso" ? "Tema central y hechos a incluir" : conversation.length ? "Continuar la conversación" : "Información o consulta"}</span><textarea rows={compact ? 5 : 7} value={input} maxLength={task === "discurso" ? 2400 : 2900} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta sobre inteligencia, estrategia, agenda, mapa, finanzas, recursos o Día D. No incluyas DPI ni datos personales." /><small>{input.length.toLocaleString("es-GT")} / {task === "discurso" ? "2,400" : "2,900"}</small></label>
       <div className="radar-ai-actions"><button type="button" className="primary" disabled={working || !input.trim() || !portalContext} onClick={() => void run()}>{working ? "IA RADAR está respondiendo…" : conversation.length ? "Enviar mensaje" : "Preparar propuesta"}</button><span>Usa resúmenes autorizados del portal; no envía el CRM individual.</span></div>
       {latestResult ? <div className="radar-ai-result-actions">{onApply ? <button type="button" onClick={() => onApply(latestResult)}>Aplicar la última respuesta</button> : null}<button type="button" onClick={() => void copy()}>{copied ? "Copiado" : "Copiar última respuesta"}</button></div> : null}
     </div>

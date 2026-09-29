@@ -145,6 +145,7 @@ const fmt = new Intl.NumberFormat("es-GT");
 const mapActivityTypes = [
   "VISITA",
   "REUNION",
+  "ASAMBLEA",
   "MITIN",
   "CAMINATA",
   "EVENTO",
@@ -155,6 +156,7 @@ const mapActivityTypes = [
 const mapActivityLabels: Record<string, string> = {
   VISITA: "Visitas",
   REUNION: "Reuniones",
+  ASAMBLEA: "ASAMBLEA",
   MITIN: "Mitines",
   CAMINATA: "Caminatas / caravanas",
   EVENTO: "Eventos",
@@ -165,6 +167,7 @@ const mapActivityLabels: Record<string, string> = {
 const mapActivityColors: Record<string, string> = {
   VISITA: "#D69070",
   REUNION: "#5A2973",
+  ASAMBLEA: "#09566C",
   MITIN: "#b84e3e",
   CAMINATA: "#20a286",
   EVENTO: "#09566C",

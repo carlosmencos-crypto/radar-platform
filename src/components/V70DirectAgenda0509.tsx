@@ -76,6 +76,7 @@ const electoralMilestones = [
 const activityTypes = [
   "VISITA",
   "REUNION",
+  "ASAMBLEA",
   "MITIN",
   "CAMINATA",
   "EVENTO",
@@ -86,6 +87,7 @@ const activityTypes = [
 const activityTypeLabels: Record<string, string> = {
   VISITA: "Visita",
   REUNION: "Reunión",
+  ASAMBLEA: "ASAMBLEA",
   MITIN: "Mitin",
   CAMINATA: "Caminata / caravana",
   EVENTO: "Evento",
@@ -361,6 +363,7 @@ function AgendaContent() {
           status: form.status,
           notes: form.notes,
           details: {
+            ...(editing ? activities.find(a => a.id === editing)?.details : {}),
             item_kind: form.item_kind,
             category: form.category,
             deadline: form.deadline,
@@ -709,6 +712,7 @@ function AgendaContent() {
                 <div>
                   <small>{activity.activity_type || "ACTIVIDAD"}</small>
                   <h3>{activity.title}</h3>
+                  {activity.details?.admin_activity_batch_id ? <span className="agenda-admin-origin">Creada por el administrador de campaña</span> : null}
                   <p>{activity.community || "Sin comunidad"}</p>
                 </div>
                 <em>{displayActivityDate(activity.starts_at)}</em>
@@ -822,6 +826,7 @@ function AgendaContent() {
               </button>
             </header>
             <div className="agenda-form-grid">
+              {editing && activities.find(a => a.id === editing)?.details?.admin_activity_batch_id ? <p className="agenda-admin-origin wide">Actividad creada por el administrador de campaña.</p> : null}
               <label>
                 <span>Clase *</span>
                 <select value={form.item_kind} onChange={(event) => setForm({ ...form, item_kind: event.target.value })}>
