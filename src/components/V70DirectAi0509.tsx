@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
+import { radarAiRequest } from "../data/radarAi";
 import { ensureRadarAccessToken } from "../data/radarAuth";
 import { findMunicipalProfile } from "../data/municipalProfiles";
 import { resolveRadarConsumer } from "../data/radarConsumer";
@@ -20,23 +21,6 @@ import {
   getInstalledRadarVoterCommunities,
 } from "../data/radarRuntimeCache";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
-
-type PuterUser = { username?: string };
-type PuterResponse = string | { text?: string; message?: { content?: string | Array<{ text?: string }> } };
-type PuterChunk = { type?: string; text?: string; message?: string };
-type PuterStream = AsyncIterable<PuterChunk>;
-type PuterMessage = { role: "system" | "assistant" | "user"; content: string };
-type PuterApi = {
-  auth: {
-    isSignedIn: () => boolean;
-    signIn: (options?: { attempt_temp_user_creation?: boolean }) => Promise<unknown>;
-    signOut: () => Promise<unknown>;
-    getUser: () => Promise<PuterUser>;
-  };
-  ai: { chat: (messages: PuterMessage[], options?: Record<string, unknown>) => Promise<PuterResponse | PuterStream> };
-};
-
-declare global { interface Window { puter?: PuterApi } }
 
 const taskOptions = [
   { value: "organizar", label: "Ordenar y priorizar", short: true },
@@ -63,17 +47,6 @@ const starterQuestions = [
   "Compara los últimos pulsos electorales sin mezclar universos ni fechas.",
 ];
 
-function extractText(response: PuterResponse) {
-  if (typeof response === "string") return response;
-  if (response.text) return response.text;
-  const content = response.message?.content;
-  if (typeof content === "string") return content;
-  if (Array.isArray(content)) return content.map((item) => item.text || "").join("\n");
-  return "";
-}
-function isStream(value: PuterResponse | PuterStream): value is PuterStream {
-  return typeof value === "object" && value !== null && Symbol.asyncIterator in value;
-}
 function clip(value: unknown, limit = 260) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   return text.length > limit ? `${text.slice(0, limit - 1)}…` : text;
@@ -150,16 +123,12 @@ function buildPortalContext({ municipalityCode, municipalityName, departmentName
 export function RadarAssistant({ initialPrompt = "", compact = false, onApply }: { initialPrompt?: string; compact?: boolean; onApply?: (value: string) => void } = {}) {
   const municipality = useMunicipalityContext();
   const isDemo = municipality.consumer.context.is_demo;
-  const [scriptReady, setScriptReady] = useState(Boolean(typeof window !== "undefined" && window.puter));
-  const [puterUser, setPuterUser] = useState<PuterUser | null>(null);
-  const [connecting, setConnecting] = useState(false);
   const [task, setTask] = useState<TaskValue>(compact ? "revisar" : "organizar");
   const [input, setInput] = useState(initialPrompt);
   const [conversation, setConversation] = useState<ConversationTurn[]>([]);
   const [portalContext, setPortalContext] = useState<RadarPortalContext | null>(null);
   const [contextStatus, setContextStatus] = useState("Cargando contexto autorizado…");
   const [status, setStatus] = useState("");
-  const [providerBlocked, setProviderBlocked] = useState(false);
   const [working, setWorking] = useState(false);
   const [copied, setCopied] = useState(false);
   const selectedTask = useMemo(() => taskOptions.find((option) => option.value === task) ?? taskOptions[0], [task]);
@@ -167,22 +136,8 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
 
   useEffect(() => { setInput(initialPrompt); setConversation([]); }, [initialPrompt]);
   useEffect(() => {
-    if (window.puter) {
-      setScriptReady(true);
-      if (window.puter.auth.isSignedIn()) void window.puter.auth.getUser().then(setPuterUser).catch(() => setPuterUser(null));
-      return;
-    }
-    const existing = document.getElementById("puter-js") as HTMLScriptElement | null;
-    const script = existing ?? document.createElement("script");
-    const ready = () => { setScriptReady(true); if (window.puter?.auth.isSignedIn()) void window.puter.auth.getUser().then(setPuterUser).catch(() => setPuterUser(null)); };
-    const failed = () => setStatus("No se pudo cargar la conexión de IA. Revisa la conexión y recarga esta página.");
-    script.addEventListener("load", ready);
-    script.addEventListener("error", failed);
-    if (!existing) { script.id = "puter-js"; script.src = "https://js.puter.com/v2/"; script.async = true; document.head.appendChild(script); }
-    return () => { script.removeEventListener("load", ready); script.removeEventListener("error", failed); };
-  }, []);
-  useEffect(() => {
     let cancelled = false;
+    setPortalContext(null); setConversation([]); setStatus("");
     if (!municipality.campaign_id) { setContextStatus("La sesión no tiene una campaña autorizada."); return; }
     void ensureRadarAccessToken().then(async (token) => {
       const moduleKeys = ["estrategia", "legal", "finanzas", "medios", "agenda", "dia-d", "recursos"];
@@ -201,16 +156,8 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
     return () => { cancelled = true; };
   }, [isDemo, municipality.campaign_id, municipality.department_name, municipality.municipality_code, municipality.municipality_name, municipality.user_role]);
 
-  async function connect() {
-    if (!window.puter) { setStatus("La conexión todavía está cargando. Intenta nuevamente en unos segundos."); return; }
-    setConnecting(true); setStatus("");
-    try { if (!window.puter.auth.isSignedIn()) await window.puter.auth.signIn({ attempt_temp_user_creation: false }); setPuterUser(await window.puter.auth.getUser()); }
-    catch (error) { setStatus(error instanceof Error ? error.message : "No se pudo completar la conexión."); }
-    finally { setConnecting(false); }
-  }
-  async function disconnect() { if (!window.puter) return; await window.puter.auth.signOut(); setPuterUser(null); setConversation([]); setStatus("Cuenta Puter desconectada de este navegador."); }
   async function run() {
-    if (!window.puter || !puterUser) { setStatus("Conecta tu cuenta Puter para usar la asistencia."); return; }
+    if (working) return;
     if (!portalContext) { setStatus(contextStatus); return; }
     if (!input.trim()) return;
     const prompt = input.trim();
@@ -219,51 +166,29 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
     const history = conversation.slice(-10);
     setConversation((current) => [...current, userTurn, { id: assistantId, role: "assistant", content: "" }]);
     setInput(""); setWorking(true); setStatus("");
-    const system = `Eres IA RADAR, asistente interno de una campaña municipal. Responde como un analista operativo claro, conversacional y útil. Usa el contexto autorizado de abajo para los hechos de esta campaña. Puedes aportar conocimientos generales, ejemplos y alternativas útiles de organización, documentación, logística y gestión administrativa, distinguiéndolos de los datos registrados. No diseñes mensajes, tácticas ni estrategias de persuasión electoral dirigidas a personas, grupos demográficos o municipios concretos. Ante esas solicitudes ofrece apoyo administrativo neutral. No inventes cifras, actividades, acuerdos ni responsables; cuando falte un dato, di "no está registrado en RADAR". Separa hechos, inferencias y recomendaciones. Cita el módulo entre corchetes cuando uses un dato, por ejemplo [Agenda] o [Inteligencia Municipal]. No solicites ni reproduzcas DPI/CUI, teléfonos, correos ni perfiles individuales de electores. No publiques ni apruebes decisiones: entrega material listo para revisión humana. Mantén separados los universos municipal, departamental y nacional.\n\n${portalContext.text}`;
-    const messages: PuterMessage[] = [
-      { role: "system", content: system },
-      ...history.map((turn) => ({ role: turn.role, content: turn.content })),
-      { role: "user", content: `Tarea seleccionada: ${selectedTask.label}.\n\n${prompt}` },
-    ];
     try {
-      const response = await window.puter.ai.chat(messages, { model: "gpt-5.5", stream: true, normalize: true, max_tokens: selectedTask.short ? 1400 : 3000, reasoning_effort: selectedTask.short ? "low" : "medium", verbosity: selectedTask.short ? "low" : "medium" });
-      let text = "";
-      if (isStream(response)) {
-        for await (const chunk of response) {
-          if (chunk.type === "error") throw new Error(chunk.message || "El modelo interrumpió la respuesta.");
-          if (!chunk.text || (chunk.type && chunk.type !== "text")) continue;
-          text += chunk.text;
-          setConversation((current) => current.map((turn) => turn.id === assistantId ? { ...turn, content: text } : turn));
-        }
-      } else {
-        text = extractText(response).trim();
-        setConversation((current) => current.map((turn) => turn.id === assistantId ? { ...turn, content: text } : turn));
-      }
-      if (!text.trim()) throw new Error("El servicio respondió sin texto. Probá de nuevo.");
+      const { text } = await radarAiRequest<{text:string}>({action:"chat",campaign_id:municipality.campaign_id,municipality_code:municipality.municipality_code,is_demo:isDemo,prompt:`${selectedTask.label}: ${prompt}`,context:portalContext.text,history:history.map(({role,content})=>({role,content}))});
+      setConversation((current) => current.map((turn) => turn.id === assistantId ? { ...turn, content: text } : turn));
     } catch (error) {
       setConversation((current) => current.filter((turn) => turn.id !== assistantId));
       setInput(prompt);
-      const providerError = error as { message?: string; error?: { message?: string } };
-      const message = providerError?.message || providerError?.error?.message || "";
-      const blocked = /policy violation|blocked for a previous/i.test(message);
-      setProviderBlocked(blocked);
-      setStatus(blocked ? "Puter informa que esta cuenta está bloqueada por sus políticas. Solicita una revisión a su soporte. Tu consulta se conservó y puedes seguir usando las demás funciones de RADAR." : "No se pudo completar la consulta. Revisa la conexión y disponibilidad de tu cuenta Puter. Tu consulta se conservó.");
+      setStatus(error instanceof Error ? error.message : "No se pudo completar la consulta. Tu texto se conservó.");
     } finally { setWorking(false); }
   }
   async function copy() { if (!latestResult) return; await navigator.clipboard.writeText(latestResult); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
 
   return <section className={`radar-ai-assistant${compact ? " compact" : ""}`}>
-    <header className="radar-ai-statusbar"><div><span className={`radar-ai-dot ${portalContext ? "ready" : ""}`} /><p><b>{municipality.municipality_name}</b><small>{contextStatus}</small></p></div>{puterUser ? <div className="radar-ai-account"><span>Conectado como <b>{puterUser.username ?? "usuario Puter"}</b></span><button type="button" onClick={() => void disconnect()}>Desconectar</button></div> : null}</header>
+    <header className="radar-ai-statusbar"><div><span className={`radar-ai-dot ${portalContext ? "ready" : ""}`} /><p><b>{municipality.municipality_name}</b><small>{contextStatus}</small></p></div></header>
     <div className="radar-ai-context-strip" aria-label="Fuentes disponibles">{(portalContext?.sources ?? []).map((source) => <span className={source.ready ? "ready" : "pending"} key={source.label}><b>{source.label}</b><small>{source.detail}</small></span>)}</div>
-    {!puterUser ? <div className="radar-ai-gate"><div><b>Conecta tu cuenta Puter.</b><span>RADAR no recibe ni guarda tu contraseña. La conexión vive en este navegador.</span></div><button type="button" disabled={!scriptReady || connecting} onClick={() => void connect()}>{connecting ? "Conectando…" : scriptReady ? "Conectar Puter" : "Cargando conexión…"}</button></div> : <div className="radar-ai-workbench">
+    <div className="radar-ai-workbench">
       {!compact && !conversation.length ? <div className="radar-ai-starters"><small>PREGUNTAS PARA EMPEZAR</small>{starterQuestions.map((question) => <button type="button" key={question} onClick={() => { setInput(question); setTask("consulta"); }}>{question}</button>)}</div> : null}
       {conversation.length ? <div className="radar-ai-conversation" aria-live="polite">{conversation.map((turn) => <article className={turn.role} key={turn.id}><small>{turn.role === "user" ? "TÚ" : "IA RADAR"}</small><div>{turn.content || "Analizando el contexto autorizado…"}</div></article>)}</div> : null}
-      <div className="radar-ai-toolbar"><label><span>Tipo de ayuda</span><select value={task} onChange={(event) => setTask(event.target.value as TaskValue)}>{taskOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><p><span>GPT-5.5 · contexto RADAR</span><small>{selectedTask.short ? "Respuesta breve y puntual" : "Análisis con mayor desarrollo"}</small></p>{conversation.length ? <button type="button" onClick={() => { setConversation([]); setStatus(""); }}>Nueva conversación</button> : null}</div>
-      <label className="radar-ai-prompt"><span>{conversation.length ? "Continuar la conversación" : "Información o consulta"}</span><textarea rows={compact ? 5 : 7} value={input} maxLength={8000} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta sobre inteligencia, estrategia, agenda, mapa, finanzas, recursos o Día D. No incluyas DPI ni datos personales." /><small>{input.length.toLocaleString("es-GT")} / 8,000</small></label>
-      <div className="radar-ai-actions"><button type="button" className="primary" disabled={working || providerBlocked || !input.trim() || !portalContext} onClick={() => void run()}>{working ? "IA RADAR está respondiendo…" : conversation.length ? "Enviar mensaje" : "Preparar propuesta"}</button><span>Usa resúmenes autorizados del portal; no envía el CRM individual.</span></div>
+      <div className="radar-ai-toolbar"><label><span>Tipo de ayuda</span><select value={task} onChange={(event) => setTask(event.target.value as TaskValue)}>{taskOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><p><span>Asistencia integrada · contexto RADAR</span><small>{selectedTask.short ? "Respuesta breve y puntual" : "Análisis con mayor desarrollo"}</small></p>{conversation.length ? <button type="button" onClick={() => { setConversation([]); setStatus(""); }}>Nueva conversación</button> : null}</div>
+      <label className="radar-ai-prompt"><span>{conversation.length ? "Continuar la conversación" : "Información o consulta"}</span><textarea rows={compact ? 5 : 7} value={input} maxLength={2900} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta sobre inteligencia, estrategia, agenda, mapa, finanzas, recursos o Día D. No incluyas DPI ni datos personales." /><small>{input.length.toLocaleString("es-GT")} / 2,900</small></label>
+      <div className="radar-ai-actions"><button type="button" className="primary" disabled={working || !input.trim() || !portalContext} onClick={() => void run()}>{working ? "IA RADAR está respondiendo…" : conversation.length ? "Enviar mensaje" : "Preparar propuesta"}</button><span>Usa resúmenes autorizados del portal; no envía el CRM individual.</span></div>
       {latestResult ? <div className="radar-ai-result-actions">{onApply ? <button type="button" onClick={() => onApply(latestResult)}>Aplicar la última respuesta</button> : null}<button type="button" onClick={() => void copy()}>{copied ? "Copiado" : "Copiar última respuesta"}</button></div> : null}
-    </div>}
-    {status ? <div className="radar-ai-message" role="status"><p>{status}</p>{providerBlocked ? <a href="mailto:hey@puter.com?subject=Account%20policy%20block%20review">Contactar soporte de Puter ↗</a> : null}</div> : null}
+    </div>
+    {status ? <div className="radar-ai-message" role="status"><p>{status}</p></div> : null}
     <footer className="radar-ai-boundary"><span>Uso interno</span><p>IA RADAR usa el contexto autorizado del municipio y la campaña, pero toda recomendación requiere revisión humana. No recibe DPI/CUI, teléfonos ni correos del directorio.</p></footer>
   </section>;
 }

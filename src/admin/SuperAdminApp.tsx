@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+const AiUsage = lazy(() => import("./AiUsage"));
 import {AdminReverification} from "./AdminReverification";
 import { NationalRtd } from "./NationalRtd";
 import { useDismissibleDialog } from "./useDismissibleDialog";
@@ -21,6 +23,7 @@ import {
 
 const sections = [
   ["resumen", "Inicio", "⌂"],
+  ["ia-consumo", "IA · consumo", "✦"],
   ["equipos", "Equipos de campaña", "♙"],
   ["recursos", "Recursos", "▣"],
   ["avisos", "Avisos", "◇"],
@@ -52,6 +55,7 @@ interface ActionModuleProps {
 
 const sectionCopy: Record<SectionId, { eyebrow: string; description: string }> =
   {
+    "ia-consumo": {eyebrow:"ASISTENCIA RADAR",description:"Disponibilidad y consumo de IA, solo para superadministración."},
     equipos: {eyebrow:"EQUIPOS DE CAMPAÑA",description:"Cada persona, su función y el municipio al que tiene acceso."},
     recursos: {eyebrow:"BIBLIOTECA RADAR",description:"Manuales, plantillas y tutoriales para tus clientes."},
     avisos: {eyebrow:"COMUNICACIÓN",description:"Mensajes importantes, con destinatarios y vigencia definidos."},
@@ -299,7 +303,7 @@ export function SuperAdminApp({
             </NavLink>
           ))}
           <details open={!["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(active)}><summary>Administración técnica</summary>
-            {sections.filter(([id]) => !["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
+            {sections.filter(([id]) => (id !== "ia-consumo" || snapshot.operator_context.user_role === "super_admin") && !["resumen","municipios","recursos","pulso","rtd","avisos","demos"].includes(id)).map(([id,label,icon]) => <NavLink key={id} to={`/admin/${id}`} className={active===id?"active":undefined}><span>{icon}</span><b>{label}</b></NavLink>)}
           </details>
         </nav>
         <div className="superadmin-identity">
@@ -422,6 +426,7 @@ function SectionRouter({
   action: Action;
   busy: boolean;
 }) {
+  if (active === "ia-consumo") return snapshot.operator_context.user_role === "super_admin" ? <Suspense fallback={<p>Cargando consumo…</p>}><AiUsage /></Suspense> : <p>Acceso exclusivo de superadministración.</p>;
   if (active === "equipos") return <AssignedUsers snapshot={snapshot} />;
   if (active === "resumen") return <DailyHome snapshot={snapshot} />;
   if (active === "resumen-tecnico") return <NationalSummary snapshot={snapshot} />;
