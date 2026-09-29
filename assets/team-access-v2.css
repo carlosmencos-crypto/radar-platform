@@ -57,3 +57,12 @@
 @media(max-width:700px){.agenda-viewbar .agenda-filter{flex:1;min-width:150px}.agenda-viewbar>a{margin-left:0}.resource-preview-backdrop{padding:10px}.resource-preview{height:calc(100dvh - 20px)}.resource-preview>header{padding:16px;flex-wrap:wrap}.resource-preview-body{padding:12px}.resource-preview-toolbar{align-items:flex-start;flex-direction:column;gap:10px}.resource-document-page{padding:16px}}
 
 [data-theme="dark"] .agenda-viewbar,[data-theme="dark"] .agenda-viewbar>div:first-child{background:#293239;border-color:#475652}[data-theme="dark"] .agenda-viewbar .agenda-filter select{background:#303c40;border-color:#54645f;color:#f7f5ef}[data-theme="dark"] .agenda-viewbar .agenda-filter span,[data-theme="dark"] .agenda-viewbar>a{color:#bdd4ca}
+
+/* Align Agenda controls to the same 4vw content rail as the calendar. */
+.agenda-viewbar{margin:0 4vw 16px;padding:0!important;border:0;border-radius:0;background:transparent;box-shadow:none;align-items:center;justify-content:flex-start;gap:12px}
+.agenda-viewbar .agenda-filter{display:flex;align-items:center;gap:9px;flex:0 1 auto;min-width:0}.agenda-viewbar .agenda-filter span{white-space:nowrap;font-size:10px}.agenda-viewbar .agenda-filter select{width:170px;max-width:100%;height:40px;min-height:40px}
+.agenda-viewbar>a{align-self:center;margin-left:auto;padding:8px 0 8px 8px;white-space:nowrap;font-size:12px}
+.materials-folder-modal article{justify-content:flex-start;gap:8px}.materials-folder-modal article>span{flex:1;min-width:0;margin-right:12px}.materials-folder-modal article>button{flex:0 0 auto;margin:0}.materials-folder-modal article>button:first-of-type{margin-left:auto}
+[data-theme="dark"] .agenda-viewbar{background:transparent;border:0}
+@media(max-width:1100px){.agenda-viewbar .agenda-filter{flex:1}.agenda-viewbar .agenda-filter select{width:100%;min-width:130px}.agenda-viewbar>a{margin-left:0}}
+@media(max-width:760px){.agenda-viewbar{margin:0 14px 16px;gap:12px}.agenda-viewbar .agenda-filter{flex:1 1 100%;justify-content:space-between}.agenda-viewbar .agenda-filter select{width:min(210px,55%)}.agenda-viewbar>a{margin-left:auto}.materials-folder-modal article{flex-wrap:wrap}.materials-folder-modal article>span{flex-basis:100%;margin:0 0 6px}.materials-folder-modal article>button:first-of-type{margin-left:0}}
