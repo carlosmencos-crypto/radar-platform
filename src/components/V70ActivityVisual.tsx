@@ -92,15 +92,22 @@ function drawParticipantGroup(context: CanvasRenderingContext2D, title: string, 
 export async function downloadActivityPng(activity: ActivityLike, brand: ActivityPngBrand = {}) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
-  canvas.height = 1350;
+  const hasMap = routePoints(activity).length > 1 || (activity.latitude != null && activity.longitude != null && Number.isFinite(Number(activity.latitude)) && Number.isFinite(Number(activity.longitude)) && Math.abs(Number(activity.latitude)) <= 90 && Math.abs(Number(activity.longitude)) <= 180);
+  const compactOffset = hasMap ? 0 : activity.community?.trim() ? 280 : 370;
+  canvas.height = 1350 - compactOffset;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("No fue posible preparar la imagen de la actividad.");
-  context.fillStyle = "#F8F6F0"; context.fillRect(0, 0, 1080, 1350); context.fillStyle = "#1C272D"; context.fillRect(0, 0, 1080, 348); context.fillStyle = "#D69070"; context.fillRect(0, 0, 16, 348);
+  context.fillStyle = "#F8F6F0"; context.fillRect(0, 0, 1080, canvas.height); context.fillStyle = "#1C272D"; context.fillRect(0, 0, 1080, 348); context.fillStyle = "#D69070"; context.fillRect(0, 0, 16, 348);
   context.fillStyle = "#D69070"; context.font = "800 21px Arial"; context.fillText("AGENDA TERRITORIAL · RADAR", 70, 67); context.fillStyle = "#FFFFFF"; context.font = "800 54px Arial"; wrapLines(context, activity.title, 760, 3).forEach((line, index) => context.fillText(line, 70, 135 + index * 61));
   context.fillStyle = "#C9D2CE"; context.font = "600 22px Arial"; context.fillText(`${brand.municipality || "Municipio no especificado"} · ${brand.campaignName || "Campaña municipal"}`, 70, 308);
   if (brand.partyLogoUrl) { try { const logo = await loadImage(brand.partyLogoUrl); fillRoundedRect(context, 872, 52, 142, 142, 71, "#FFFFFF"); context.save(); context.beginPath(); context.arc(943, 123, 65, 0, Math.PI * 2); context.clip(); const ratio = Math.min(126 / logo.width, 126 / logo.height); context.drawImage(logo, 943 - logo.width * ratio / 2, 123 - logo.height * ratio / 2, logo.width * ratio, logo.height * ratio); context.restore(); } catch { /* el PNG conserva identidad textual */ } }
   context.fillStyle = "#FFFFFF"; context.font = "700 17px Arial"; context.textAlign = "center"; wrapLines(context, brand.partyName || "PARTIDO POLÍTICO", 160, 2).forEach((line, index) => context.fillText(line, 943, 225 + index * 21)); context.textAlign = "left";
+  if (hasMap) {
   await drawMap(context, activity, 55, 382, 970, 350); fillRoundedRect(context, 78, 654, 710, 56, 14, "rgba(28,39,45,.88)"); context.fillStyle = "#FFFFFF"; context.font = "700 20px Arial"; context.fillText(`⌖  ${activity.community || "Ubicación por confirmar"}`, 100, 690, 655);
+  } else if (activity.community?.trim()) {
+    fillRoundedRect(context, 55, 382, 970, 70, 16, "#FFFFFF"); context.fillStyle = "#59706B"; context.font = "800 15px Arial"; context.fillText("LUGAR / REFERENCIA", 77, 407); context.fillStyle = "#1C272D"; context.font = "600 20px Arial"; context.fillText(fitSingleLine(context, activity.community, 924), 77, 435);
+  }
+  context.translate(0, -compactOffset);
   const date = activity.starts_at ? new Date(activity.starts_at) : null; const dateLabel = date ? `${new Intl.DateTimeFormat("es-GT", { day: "2-digit", month: "short" }).format(date).replace(".", "").toUpperCase()} · ${new Intl.DateTimeFormat("es-GT", { hour: "numeric", minute: "2-digit" }).format(date)}` : "FECHA PENDIENTE";
   const cards = [["FECHA Y HORA", dateLabel], ["RESPONSABLE", activityDetailText(activity, "responsible") || "Por asignar"], ["ESTADO", activity.status.replace(/_/g, " ")]];
   cards.forEach(([label, value], index) => { const x = 55 + index * 326; fillRoundedRect(context, x, 752, 308, 78, 18, "#FFFFFF"); context.fillStyle = "#59706B"; context.font = "800 15px Arial"; context.fillText(label, x + 22, 779); context.fillStyle = "#1C272D"; context.font = "700 21px Arial"; context.fillText(fitSingleLine(context, value, 264), x + 22, 810); });
