@@ -253,6 +253,7 @@ export interface CampaignBundle {
 }
 
 export interface AuthorizedVoterDirectoryRow {
+  photo_url?: string | null;
   municipality_code?: string;
   id: number;
   full_name: string;
@@ -744,17 +745,13 @@ export async function saveCampaignContact(
 }
 
 export async function loadAuthorizedVoterSuggestions(
-  municipalityCode: string,
-  query: string,
-  accessToken: string,
-  limit = 8,
+  municipalityCode: string, query: string, accessToken: string, limit = 8, demoCampaign?: string,
 ) {
-  assertMunicipalityCode(municipalityCode);
-  return rpc<AuthorizedVoterSuggestion[]>(
-    "radar_authorized_voter_suggestions_v1",
-    { p_municipality_code: municipalityCode, p_query: query, p_limit: limit },
-    accessToken,
-  );
+  if (query.trim().length < 2) return [];
+  const page = await loadAuthorizedContactDirectoryPage(municipalityCode,
+    { query, limit }, accessToken, undefined, demoCampaign);
+  return page.items.map(({ id, full_name, community, estimated_age_2026 }) =>
+    ({ id, full_name, community, estimated_age_2026 }));
 }
 
 export async function loadAuthorizedVoterDetail(
@@ -1068,4 +1065,27 @@ export async function loadNominalDirectoryAvailability(municipalityCode: string,
     throw new Error("La disponibilidad del padrón no corresponde al municipio autorizado.");
   }
   return result;
+}
+
+export interface RtdEvidence {
+  id: string; folio_id: string; bucket_id: string; object_path: string; file_name: string;
+  mime_type: string; file_size: number; election_type: string; jrv_number: number;
+  municipality_code: string; municipality_name: string; center_name: string; status: string;
+}
+export async function loadRtdEvidence(campaignId: string, accessToken: string) {
+  const all: RtdEvidence[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const rows = await rpc<RtdEvidence[]>("radar_rtd_evidence_list_v1", { p_campaign_id: campaignId, p_offset: offset }, accessToken);
+    all.push(...rows);
+    if (rows.length < 500) return all;
+  }
+}
+export async function downloadRtdEvidence(file: RtdEvidence, accessToken: string) {
+  assertStorageConfigured(accessToken);
+  if (file.bucket_id !== "radar-day-d-evidence") throw new Error("Archivo no autorizado.");
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/authenticated/${file.bucket_id}/${encodedStoragePath(file.object_path)}`, {
+    headers: { apikey: publishableKey!, Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) throw new Error(`No se pudo descargar ${file.file_name}. Revisa tu sesión e intenta nuevamente.`);
+  return response.blob();
 }

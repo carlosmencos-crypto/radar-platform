@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
@@ -18,6 +18,8 @@ import { getInstalledRadarElectoralLayers } from "../data/radarRuntimeCache";
 import { adaptAuthorizedElectoralTerritoryLayers } from "../data/v70ElectoralAdapter";
 import { fiscalJrvCoverage } from "../data/fiscalJrvCoverage";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
+
+const RtdActas = lazy(() => import("./RtdActas"));
 
 const FISCAL_PORTAL_URL =
   (import.meta.env.VITE_FISCAL_PORTAL_URL as string | undefined)?.replace(/\/+$/, "") ||
@@ -524,7 +526,7 @@ function DayDContent() {
     try { const token = await ensureRadarAccessToken(); await deleteCampaignRecord(campaign_id, record.id, token); setAssignments((rows) => rows.filter((item) => item.id !== record.id)); setMessage("Previsión eliminada."); }
     catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo eliminar la previsión."); }
   }
-  const visibleFiscalRows = assignmentRows
+  const visibleFiscalRows = assignmentRows.slice().sort((a, b) => String(a.payload.jrv || "").localeCompare(String(b.payload.jrv || ""), "es", { numeric: true }) || a.id.localeCompare(b.id))
     .filter((record) => centerFilter === "all" || String(record.payload.center_id || "") === centerFilter)
     .filter((record) => {
       if (pendingFilter === "all") return true;
@@ -915,6 +917,7 @@ function DayDContent() {
         <label><span>Estado</span><select value={rtdStatusFilter} onChange={(event) => setRtdStatusFilter(event.target.value)}><option value="all">Todos</option><option value="BORRADOR">BORRADOR</option><option value="ENVIADO">ENVIADO</option><option value="PENDIENTE_REVISION">PENDIENTE REVISIÓN</option><option value="OBSERVADO">OBSERVADO</option><option value="VALIDADO">VALIDADO</option><option value="CORREGIDO">CORREGIDO</option></select></label>
         <label><span>JRV</span><input inputMode="numeric" value={rtdJrvFilter} onChange={(event) => setRtdJrvFilter(event.target.value.replace(/\D/g, ""))} placeholder="Buscar JRV" /></label>
       </div>
+      {campaign_id ? <Suspense fallback={<p>Cargando archivo de actas…</p>}><RtdActas key={campaign_id} campaignId={campaign_id} /></Suspense> : null}
       <div className="day-d-rtd-list">
         {visibleRtdRows.length ? visibleRtdRows.map((record) => {
           const validVotes = rtdVotes(record).reduce((sum, vote) => sum + vote.votes, 0);

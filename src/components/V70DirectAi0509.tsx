@@ -54,9 +54,9 @@ const starterQuestions = [
   "¿Cuáles son las tres prioridades reales de la campaña esta semana y por qué?",
   "¿Qué información falta para tomar mejores decisiones en el municipio?",
   "Resume el estado de Agenda, responsables y compromisos abiertos.",
-  "¿Qué comunidades grandes tienen menor cobertura operativa?",
-  "Propón un plan de 7 días con responsables y resultados verificables.",
-  "Revisa nuestro mensaje central frente a los problemas municipales documentados.",
+  "¿Cómo organizo un archivo documental con versiones y responsables?",
+  "Organiza los pendientes administrativos registrados para los próximos 7 días.",
+  "Revisa la claridad y ortografía de un documento sin cambiar su sentido.",
   "¿Qué riesgos legales, financieros u operativos requieren atención inmediata?",
   "Prepara un brief para la próxima actividad territorial.",
   "¿Qué debe verificar el centro de mando antes del Día D?",
@@ -173,10 +173,12 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
     }
     const existing = document.getElementById("puter-js") as HTMLScriptElement | null;
     const script = existing ?? document.createElement("script");
-    if (!existing) { script.id = "puter-js"; script.src = "https://js.puter.com/v2/"; script.async = true; document.head.appendChild(script); }
     const ready = () => { setScriptReady(true); if (window.puter?.auth.isSignedIn()) void window.puter.auth.getUser().then(setPuterUser).catch(() => setPuterUser(null)); };
+    const failed = () => setStatus("No se pudo cargar la conexión de IA. Revisa la conexión y recarga esta página.");
     script.addEventListener("load", ready);
-    return () => script.removeEventListener("load", ready);
+    script.addEventListener("error", failed);
+    if (!existing) { script.id = "puter-js"; script.src = "https://js.puter.com/v2/"; script.async = true; document.head.appendChild(script); }
+    return () => { script.removeEventListener("load", ready); script.removeEventListener("error", failed); };
   }, []);
   useEffect(() => {
     let cancelled = false;
@@ -207,14 +209,16 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
   }
   async function disconnect() { if (!window.puter) return; await window.puter.auth.signOut(); setPuterUser(null); setConversation([]); setStatus("Cuenta Puter desconectada de este navegador."); }
   async function run() {
-    if (!window.puter || !puterUser || !input.trim() || !portalContext) return;
+    if (!window.puter || !puterUser) { setStatus("Conecta tu cuenta Puter para usar la asistencia."); return; }
+    if (!portalContext) { setStatus(contextStatus); return; }
+    if (!input.trim()) return;
     const prompt = input.trim();
     const userTurn: ConversationTurn = { id: `user-${Date.now()}`, role: "user", content: prompt };
     const assistantId = `assistant-${Date.now()}`;
     const history = conversation.slice(-10);
     setConversation((current) => [...current, userTurn, { id: assistantId, role: "assistant", content: "" }]);
     setInput(""); setWorking(true); setStatus("");
-    const system = `Eres IA RADAR, asistente interno de una campaña municipal. Responde como un analista operativo claro, conversacional y útil. Usa únicamente el contexto autorizado que aparece abajo. No inventes cifras, actividades, acuerdos ni responsables; cuando falte un dato, di "no está registrado en RADAR". Separa hechos, inferencias y recomendaciones. Cita el módulo entre corchetes cuando uses un dato, por ejemplo [Agenda] o [Inteligencia Municipal]. No solicites ni reproduzcas DPI/CUI, teléfonos, correos ni perfiles individuales de electores. No publiques ni apruebes decisiones: entrega material listo para revisión humana. Mantén separados los universos municipal, departamental y nacional.\n\n${portalContext.text}`;
+    const system = `Eres IA RADAR, asistente interno de una campaña municipal. Responde como un analista operativo claro, conversacional y útil. Usa el contexto autorizado de abajo para los hechos de esta campaña. Puedes aportar conocimientos generales, ejemplos y alternativas útiles de organización, documentación, logística y gestión administrativa, distinguiéndolos de los datos registrados. No diseñes mensajes, tácticas ni estrategias de persuasión electoral dirigidas a personas, grupos demográficos o municipios concretos. Ante esas solicitudes ofrece apoyo administrativo neutral. No inventes cifras, actividades, acuerdos ni responsables; cuando falte un dato, di "no está registrado en RADAR". Separa hechos, inferencias y recomendaciones. Cita el módulo entre corchetes cuando uses un dato, por ejemplo [Agenda] o [Inteligencia Municipal]. No solicites ni reproduzcas DPI/CUI, teléfonos, correos ni perfiles individuales de electores. No publiques ni apruebes decisiones: entrega material listo para revisión humana. Mantén separados los universos municipal, departamental y nacional.\n\n${portalContext.text}`;
     const messages: PuterMessage[] = [
       { role: "system", content: system },
       ...history.map((turn) => ({ role: turn.role, content: turn.content })),
@@ -226,7 +230,7 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       if (isStream(response)) {
         for await (const chunk of response) {
           if (chunk.type === "error") throw new Error(chunk.message || "El modelo interrumpió la respuesta.");
-          if (chunk.type !== "text" || !chunk.text) continue;
+          if (!chunk.text || (chunk.type && chunk.type !== "text")) continue;
           text += chunk.text;
           setConversation((current) => current.map((turn) => turn.id === assistantId ? { ...turn, content: text } : turn));
         }
@@ -237,7 +241,9 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       if (!text.trim()) throw new Error("El servicio respondió sin texto. Probá de nuevo.");
     } catch (error) {
       setConversation((current) => current.filter((turn) => turn.id !== assistantId));
-      setStatus(error instanceof Error ? error.message : "No se pudo completar la consulta.");
+      setInput(prompt);
+      const providerError = error as { message?: string; error?: { message?: string } };
+      setStatus(providerError?.message || providerError?.error?.message || "No se pudo completar la consulta. Revisa tu conexión y disponibilidad de la cuenta Puter; tu consulta se conservó.");
     } finally { setWorking(false); }
   }
   async function copy() { if (!latestResult) return; await navigator.clipboard.writeText(latestResult); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }

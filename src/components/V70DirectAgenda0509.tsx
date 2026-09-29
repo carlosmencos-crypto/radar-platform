@@ -1,3 +1,4 @@
+import { matchesAgendaFilters } from "../data/agendaFilters";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -156,7 +157,10 @@ function AgendaContent() {
   const is_demo = consumer.context.is_demo;
   const communities =
     getInstalledRadarVoterCommunities(municipality_code) ?? [];
-  const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [view, setView] = useState<"calendar" | "list">(() => new URLSearchParams(window.location.search).get("view") === "list" ? "list" : "calendar");
+  const [personFilter, setPersonFilter] = useState(() => new URLSearchParams(window.location.search).get("person") || "");
+  const [statusFilter, setStatusFilter] = useState("");
+  const candidateLabel = new URLSearchParams(window.location.search).get("personName");
   const [month, setMonth] = useState(() => new Date());
   const [activities, setActivities] = useState<CampaignActivityRecord[]>([]);
   const [people, setPeople] = useState<CampaignContactRecord[]>([]);
@@ -172,6 +176,7 @@ function AgendaContent() {
   const [form, setForm] = useState(initialActivity);
   const [teamQuery, setTeamQuery] = useState("");
   const [electorQuery, setElectorQuery] = useState("");
+  const [electorStatus, setElectorStatus] = useState("");
   const [electorResults, setElectorResults] = useState<AuthorizedVoterSuggestion[]>([]);
   const [selectedElectors, setSelectedElectors] = useState<AuthorizedVoterSuggestion[]>(() => {
     const params = new URLSearchParams(window.location.search);
@@ -230,35 +235,34 @@ function AgendaContent() {
 
   useEffect(() => {
     let cancelled = false;
-    if (is_demo) {
-      setElectorResults([]);
-      return () => { cancelled = true; };
-    }
     if (electorQuery.trim().length < 2) {
+      setElectorStatus("");
       setElectorResults([]);
       return;
     }
+    setElectorStatus("Buscando en el directorio autorizado…");
+    setElectorResults([]);
     const timer = window.setTimeout(() => {
       void ensureRadarAccessToken()
         .then((token) =>
           loadAuthorizedVoterSuggestions(
             municipality_code,
             electorQuery,
-            token,
+            token, 8, is_demo ? campaign_id ?? undefined : undefined,
           ),
         )
         .then((rows) => {
-          if (!cancelled) setElectorResults(rows);
+          if (!cancelled) { setElectorResults(rows); setElectorStatus(rows.length ? "" : "No hay coincidencias. Prueba otro nombre o apellido."); }
         })
-        .catch(() => {
-          if (!cancelled) setElectorResults([]);
+        .catch((error: unknown) => {
+          if (!cancelled) { setElectorResults([]); setElectorStatus(error instanceof Error ? error.message : "No se pudo consultar el directorio."); }
         });
     }, 250);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [electorQuery, municipality_code, is_demo]);
+  }, [electorQuery, municipality_code, is_demo, campaign_id]);
 
   const selectedTeam = useMemo(
     () =>
@@ -280,6 +284,8 @@ function AgendaContent() {
       .slice(0, 8);
   }, [form.participant_ids, people, teamQuery]);
 
+  const filteredActivities = useMemo(() => activities.filter(activity => matchesAgendaFilters(activity, personFilter, statusFilter))
+    .sort((a, b) => new Date(a.starts_at ?? 0).getTime() - new Date(b.starts_at ?? 0).getTime()), [activities, personFilter, statusFilter]);
   const upcoming = useMemo(
     () =>
       activities
@@ -297,7 +303,7 @@ function AgendaContent() {
   );
   const monthActivities = useMemo(
     () =>
-      activities.filter((activity) => {
+      filteredActivities.filter((activity) => {
         if (!activity.starts_at) return false;
         const date = new Date(activity.starts_at);
         return (
@@ -305,7 +311,7 @@ function AgendaContent() {
           date.getFullYear() === month.getFullYear()
         );
       }),
-    [activities, month],
+    [filteredActivities, month],
   );
   const openCommitments = commitments.filter(
     (item) => item.status !== "cumplido",
@@ -602,6 +608,8 @@ function AgendaContent() {
             Lista
           </button>
         </div>
+        <label className="agenda-filter"><span>Persona CRM · responsable o participante</span><select value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><option value="">Todas las personas</option>{personFilter && !people.some(person => person.id === personFilter) ? <option value={personFilter}>{candidateLabel || "Candidato sin asignar"}</option> : null}{people.map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
+        <label className="agenda-filter"><span>Estado</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="">Todos los estados</option>{["PLANIFICADA", "CONFIRMADA", "COMPLETADA", "CANCELADA"].map(status => <option key={status} value={status}>{status.charAt(0) + status.slice(1).toLowerCase()}</option>)}</select></label>
         <Link to={`/municipio/${municipality_code}/mapa`}>
           Ver actividades en el mapa →
         </Link>
@@ -617,7 +625,7 @@ function AgendaContent() {
                       month: "long",
                       year: "numeric",
                     })
-                  : "Próximas actividades"}
+                  : "Actividades"}
               </h2>
             </div>
             {view === "calendar" ? (
@@ -685,8 +693,8 @@ function AgendaContent() {
                 )}
               </div>
             </div>
-          ) : upcoming.length ? (
-            upcoming.map((activity) => (
+          ) : filteredActivities.length ? (
+            filteredActivities.map((activity) => (
               <article key={activity.id}>
                 <time>
                   <b>{new Date(activity.starts_at ?? 0).getDate()}</b>
@@ -715,7 +723,7 @@ function AgendaContent() {
             ))
           ) : (
             <div className="agenda-empty">
-              <b>No hay actividades próximas.</b>
+              <b>{personFilter ? "No hay actividades para esta persona o candidato con los filtros seleccionados." : "No hay actividades con estos filtros."}</b>
               <span>
                 Crea una actividad con responsable del Directorio y
                 participantes opcionales.
@@ -889,6 +897,7 @@ function AgendaContent() {
               <fieldset className="wide agenda-elector-picker">
                 <legend>Electores participantes (opcional)</legend>
                 <label><input value={electorQuery} onChange={(event) => setElectorQuery(event.target.value)} placeholder="Buscar por nombre" /></label>
+                {electorStatus ? <small role="status">{electorStatus}</small> : null}
                 {electorResults.length ? <div className="agenda-elector-results">{electorResults.map((elector) => <button type="button" key={elector.id} onClick={() => addElector(elector)}><b>{elector.full_name}</b><span>{elector.community}</span></button>)}</div> : null}
                 <div className="agenda-selected-electors">{selectedElectors.map((elector) => <span key={elector.id}><b>{elector.full_name}</b><small>{elector.community}</small><button type="button" onClick={() => { setSelectedElectors((current) => current.filter((item) => item.id !== elector.id)); setForm((current) => ({ ...current, elector_ids: current.elector_ids.filter((id) => id !== elector.id) })); }}>×</button></span>)}</div>
               </fieldset>

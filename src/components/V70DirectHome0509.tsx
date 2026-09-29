@@ -30,7 +30,7 @@ function SlateMember({
 }: {
   member: V70SlateMember;
 }) {
-  const { municipality_code } = useMunicipalityContext();
+  const { municipality_code, consumer } = useMunicipalityContext();
   return (
     <article className="slate-member">
       <span className="slate-member-avatar">
@@ -47,7 +47,7 @@ function SlateMember({
         <em>{member.positionLabel}</em>
       </span>
       <nav>
-        <Link to={`/municipio/${municipality_code}/agenda?new=1&responsiblePersonId=${member.contact?.id ?? ""}&responsible=${encodeURIComponent(member.fullName)}`}>Agenda</Link>
+        <Link to={`/municipio/${municipality_code}/agenda?view=list&person=${encodeURIComponent(member.contact?.id ?? `unassigned-${member.code}`)}&personName=${encodeURIComponent(member.fullName)}${consumer.context.is_demo ? "&demo=1" : ""}`}>Agenda</Link>
         <Link to={`/municipio/${municipality_code}/estrategia-legal?candidate=${member.code}`}>Documentos</Link>
       </nav>
     </article>

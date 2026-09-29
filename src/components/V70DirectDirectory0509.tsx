@@ -759,7 +759,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
                 onClick={() => void openDetail(item.id)}
               >
                 <span className="elector-person">
-                  <i aria-hidden="true">{initials(item.full_name)}</i>
+                  <i aria-hidden="true">{item.photo_url ? <img src={item.photo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} /> : initials(item.full_name)}</i>
                   <span>
                     <b>{item.full_name}</b>
                     <small>
@@ -1169,7 +1169,7 @@ async function carnetPng(
   ctx.restore(); ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "rgba(47,52,58,.82)"; roundedRectPath(ctx, 100, 100, 330, 58, 29); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.font = "800 22px Inter, Arial, sans-serif"; ctx.fillText("CARNET DE CAMPAÑA", 134, 138);
   const partyCenterX = 890; const partyCenterY = photoY + photoHeight; ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.arc(partyCenterX, partyCenterY, 112, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = "#F7F5EF"; ctx.stroke();
-  if (partyLogo) { const wide = partyLogo.naturalWidth / Math.max(1, partyLogo.naturalHeight) > 1.15; const logoWidth = wide ? 190 : 152; const logoHeight = wide ? 132 : 152; ctx.save(); ctx.beginPath(); ctx.arc(partyCenterX, partyCenterY, 99, 0, Math.PI * 2); ctx.clip(); drawContainImage(ctx, partyLogo, partyCenterX - logoWidth / 2, partyCenterY - logoHeight / 2, logoWidth, logoHeight); ctx.restore(); }
+  if (partyLogo) { const wide = partyLogo.naturalWidth / Math.max(1, partyLogo.naturalHeight) > 1.15; const logoWidth = wide ? 204 : 190; const logoHeight = wide ? 156 : 190; ctx.save(); ctx.beginPath(); ctx.arc(partyCenterX, partyCenterY, 99, 0, Math.PI * 2); ctx.clip(); drawContainImage(ctx, partyLogo, partyCenterX - logoWidth / 2, partyCenterY - logoHeight / 2, logoWidth, logoHeight); ctx.restore(); }
   else { ctx.fillStyle = "#552676"; ctx.font = "800 42px Inter, Arial, sans-serif"; ctx.textAlign = "center"; ctx.fillText((identity.party_name || "LOGO").slice(0, 4).toUpperCase(), partyCenterX, partyCenterY + 15); ctx.textAlign = "left"; }
   ctx.fillStyle = "#2F343A"; roundedRectPath(ctx, 76, 800, 210, 54, 27); ctx.fill(); ctx.fillStyle = "#FFFFFF"; ctx.font = "850 24px Inter, Arial, sans-serif"; ctx.fillText(person.file_code || `CRM-${person.id.slice(0, 8).toUpperCase()}`, 102, 836);
   const printed = splitContactName(person.full_name); ctx.fillStyle = "#2F343A"; drawFittedText(ctx, printed.first_names || "Sin nombre", 76, 930, 720); drawFittedText(ctx, printed.last_names || "\u00a0", 76, 1005, 720);

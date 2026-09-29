@@ -12,7 +12,9 @@ begin
  vid:=(r->'items'->0->>'id')::bigint;
  before_profile:=public.radar_authorized_nominal_detail_v1('0509',vid);
  if exists(select 1 from admin_vault.demo_usage where campaign_id=demo) then raise exception 'Read marked dirty'; end if;
- perform public.radar_demo_save_contact_profile_v1(demo,'0509',vid,'{"notes":"ROLLBACK demo isolated","contact_status":"CONTACTADO"}');
+ perform public.radar_demo_save_contact_profile_v1(demo,'0509',vid,'{"notes":"ROLLBACK demo isolated","contact_status":"CONTACTADO","photo_url":"https://example.org/rollback-avatar.png"}');
+ r:=public.radar_demo_authorized_contact_directory_page_v1(demo,'0509');
+ if not exists(select 1 from jsonb_array_elements(r->'items') item where (item->>'id')::bigint=vid and item->>'photo_url'='https://example.org/rollback-avatar.png') then raise exception 'List photo missing'; end if;
  perform public.radar_demo_add_contact_interaction_v1(demo,'0509',vid,'{"interaction_type":"LLAMADA","notes":"ROLLBACK demo interaction"}');
  r:=public.radar_demo_authorized_nominal_detail_v1(demo,'0509',vid);
  if r->'profile'->>'notes'<>'ROLLBACK demo isolated' or jsonb_array_length(r->'interactions')<>1 then raise exception 'Demo save/detail failed'; end if;
