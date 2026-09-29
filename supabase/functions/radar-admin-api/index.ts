@@ -1,3 +1,10 @@
+const resourceUploadMime: Record<string, string> = {
+ pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+ xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+ ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+ csv: "text/csv", txt: "text/plain", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", mp4: "video/mp4",
+};
+
 import { deliverLifecycleMail } from "./lifecycle-mail.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "@supabase/supabase-js";
@@ -350,9 +357,9 @@ Deno.serve(async (req: Request) => {
       let path: string | null = null;
       if (action === "upload_resource") {
         if (!uploadedFile || !uploadedFile.size || uploadedFile.size > 25 * 1024 * 1024) throw new Error("Selecciona un archivo de hasta 25 MB");
-        if (!/\.(pdf|docx|xlsx|pptx|png|jpg|jpeg|webp|mp4)$/i.test(uploadedFile.name)) throw new Error("Formato no admitido. Usa PDF, Office, imagen o MP4.");
+        if (!/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|csv|txt|png|jpg|jpeg|webp|mp4)$/i.test(uploadedFile.name)) throw new Error("Formato no admitido. Usa PDF, Office, imagen o MP4.");
         path = `${crypto.randomUUID()}/${safePathPart(uploadedFile.name)}`;
-        const { error } = await service.storage.from("radar-shared-resources").upload(path, uploadedFile, { contentType: uploadedFile.type || "application/octet-stream" });
+        const { error } = await service.storage.from("radar-shared-resources").upload(path, uploadedFile, { contentType: resourceUploadMime[uploadedFile.name.split(".").pop()!.toLowerCase()] || "application/octet-stream" });
         if (error) throw error;
         input = { ...input, kind: "resource", storage_path: path, file_name: uploadedFile.name };
       }
@@ -589,7 +596,7 @@ Deno.serve(async (req: Request) => {
         new Date().toISOString().slice(0, 10), `${crypto.randomUUID()}-${safePathPart(uploadedFile.name)}`,
       ].join("/");
       const { error: uploadError } = await service.storage.from("radar-admin-staging").upload(storagePath, bytes, {
-        contentType: uploadedFile.type || "application/octet-stream", upsert: false,
+        contentType: resourceUploadMime[uploadedFile.name.split(".").pop()!.toLowerCase()] || "application/octet-stream", upsert: false,
         metadata: { sha256: fileSha256, uploader: userData.user.id },
       });
       if (uploadError) throw uploadError;

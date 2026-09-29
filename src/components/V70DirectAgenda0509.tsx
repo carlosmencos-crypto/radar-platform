@@ -608,7 +608,7 @@ function AgendaContent() {
             Lista
           </button>
         </div>
-        <label className="agenda-filter"><span>Persona CRM · responsable o participante</span><select value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><option value="">Todas las personas</option>{personFilter && !people.some(person => person.id === personFilter) ? <option value={personFilter}>{candidateLabel || "Candidato sin asignar"}</option> : null}{people.map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
+        <label className="agenda-filter"><span>Responsable / participante CRM</span><select value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><option value="">Todas las personas</option>{personFilter && !people.some(person => person.id === personFilter) ? <option value={personFilter}>{candidateLabel || "Candidato sin asignar"}</option> : null}{people.map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>
         <label className="agenda-filter"><span>Estado</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="">Todos los estados</option>{["PLANIFICADA", "CONFIRMADA", "COMPLETADA", "CANCELADA"].map(status => <option key={status} value={status}>{status.charAt(0) + status.slice(1).toLowerCase()}</option>)}</select></label>
         <Link to={`/municipio/${municipality_code}/mapa`}>
           Ver actividades en el mapa →

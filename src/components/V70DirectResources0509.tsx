@@ -1,5 +1,5 @@
 import { loadSharedContent, downloadSharedResource, type SharedContent } from "../data/radarSharedContent";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { MunicipalityProvider, useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
@@ -104,11 +104,14 @@ function useCampaignRecords(moduleKey: string) {
   return { campaign_id, records, setRecords, message, setMessage };
 }
 
+const ResourcePreview = lazy(() => import("./ResourcePreview"));
+
 function Materials() {
+ const [preview, setPreview] = useState<SharedContent | null>(null);
  const { campaign_id }=useMunicipalityContext();const [folder,setFolder]=useState<string|null>(null);const [records,setRecords]=useState<SharedContent[]>([]);const [message,setMessage]=useState("");
  useEffect(()=>{let live=true;void loadSharedContent(campaign_id).then(rows=>{if(live)setRecords(rows.filter(r=>r.kind==="resource"));}).catch(e=>{if(live)setMessage(e.message);});return()=>{live=false;};},[campaign_id]);
  const assets=records.filter(r=>r.category===folder);
- return <><div className="preloaded-resource-grid">{materialFolders.map(([title,detail])=><article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={()=>setFolder(title)}>Abrir · {records.filter(r=>r.category===title).length}</button></article>)}</div>{message&&<p role="status">{message}</p>}{folder&&<div className="agenda-modal" role="dialog" aria-modal="true"><section className="materials-folder-modal"><header><div><small>BIBLIOTECA RADAR</small><h2>{folder}</h2></div><button aria-label="Cerrar" onClick={()=>setFolder(null)}>×</button></header><div>{assets.length?assets.map(record=><article key={record.id}><span><b>{record.title}</b><small>{record.body} · Versión {record.version}</small></span><button type="button" onClick={()=>void downloadSharedResource(record).catch(e=>setMessage(e.message))}>Descargar</button></article>):<p>No hay documentos publicados en esta carpeta todavía.</p>}</div></section></div>}</>;
+ return <><div className="preloaded-resource-grid">{materialFolders.map(([title,detail])=><article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={()=>setFolder(title)}>Abrir · {records.filter(r=>r.category===title).length}</button></article>)}</div>{message&&<p role="status">{message}</p>}{folder&&<div className="agenda-modal" role="dialog" aria-modal="true"><section className="materials-folder-modal"><header><div><small>BIBLIOTECA RADAR</small><h2>{folder}</h2></div><button aria-label="Cerrar" onClick={()=>setFolder(null)}>×</button></header><div>{assets.length?assets.map(record=><article key={record.id}><span><b>{record.title}</b><small>{record.body} · Versión {record.version}</small></span><button type="button" onClick={()=>setPreview(record)}>Previsualizar</button><button type="button" onClick={()=>void downloadSharedResource(record).catch(e=>setMessage(e.message))}>Descargar</button></article>):<p>No hay documentos publicados en esta carpeta todavía.</p>}</div></section></div>}{preview ? <Suspense fallback={<p role="status">Cargando visor…</p>}><ResourcePreview key={preview.id} resource={preview} onClose={()=>setPreview(null)} /></Suspense> : null}</>;
 }
 
 type PhysicalForm = { type: string; customType: string; name: string; responsible: string; pilot: string; notes: string; latitude: string; longitude: string; locationName: string; values: Record<string, string> };

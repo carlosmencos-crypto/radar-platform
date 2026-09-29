@@ -159,6 +159,7 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
   const [portalContext, setPortalContext] = useState<RadarPortalContext | null>(null);
   const [contextStatus, setContextStatus] = useState("Cargando contexto autorizado…");
   const [status, setStatus] = useState("");
+  const [providerBlocked, setProviderBlocked] = useState(false);
   const [working, setWorking] = useState(false);
   const [copied, setCopied] = useState(false);
   const selectedTask = useMemo(() => taskOptions.find((option) => option.value === task) ?? taskOptions[0], [task]);
@@ -243,7 +244,10 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       setConversation((current) => current.filter((turn) => turn.id !== assistantId));
       setInput(prompt);
       const providerError = error as { message?: string; error?: { message?: string } };
-      setStatus(providerError?.message || providerError?.error?.message || "No se pudo completar la consulta. Revisa tu conexión y disponibilidad de la cuenta Puter; tu consulta se conservó.");
+      const message = providerError?.message || providerError?.error?.message || "";
+      const blocked = /policy violation|blocked for a previous/i.test(message);
+      setProviderBlocked(blocked);
+      setStatus(blocked ? "Puter informa que esta cuenta está bloqueada por sus políticas. Solicita una revisión a su soporte. Tu consulta se conservó y puedes seguir usando las demás funciones de RADAR." : "No se pudo completar la consulta. Revisa la conexión y disponibilidad de tu cuenta Puter. Tu consulta se conservó.");
     } finally { setWorking(false); }
   }
   async function copy() { if (!latestResult) return; await navigator.clipboard.writeText(latestResult); setCopied(true); window.setTimeout(() => setCopied(false), 1600); }
@@ -256,10 +260,10 @@ export function RadarAssistant({ initialPrompt = "", compact = false, onApply }:
       {conversation.length ? <div className="radar-ai-conversation" aria-live="polite">{conversation.map((turn) => <article className={turn.role} key={turn.id}><small>{turn.role === "user" ? "TÚ" : "IA RADAR"}</small><div>{turn.content || "Analizando el contexto autorizado…"}</div></article>)}</div> : null}
       <div className="radar-ai-toolbar"><label><span>Tipo de ayuda</span><select value={task} onChange={(event) => setTask(event.target.value as TaskValue)}>{taskOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><p><span>GPT-5.5 · contexto RADAR</span><small>{selectedTask.short ? "Respuesta breve y puntual" : "Análisis con mayor desarrollo"}</small></p>{conversation.length ? <button type="button" onClick={() => { setConversation([]); setStatus(""); }}>Nueva conversación</button> : null}</div>
       <label className="radar-ai-prompt"><span>{conversation.length ? "Continuar la conversación" : "Información o consulta"}</span><textarea rows={compact ? 5 : 7} value={input} maxLength={8000} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta sobre inteligencia, estrategia, agenda, mapa, finanzas, recursos o Día D. No incluyas DPI ni datos personales." /><small>{input.length.toLocaleString("es-GT")} / 8,000</small></label>
-      <div className="radar-ai-actions"><button type="button" className="primary" disabled={working || !input.trim() || !portalContext} onClick={() => void run()}>{working ? "IA RADAR está respondiendo…" : conversation.length ? "Enviar mensaje" : "Preparar propuesta"}</button><span>Usa resúmenes autorizados del portal; no envía el CRM individual.</span></div>
+      <div className="radar-ai-actions"><button type="button" className="primary" disabled={working || providerBlocked || !input.trim() || !portalContext} onClick={() => void run()}>{working ? "IA RADAR está respondiendo…" : conversation.length ? "Enviar mensaje" : "Preparar propuesta"}</button><span>Usa resúmenes autorizados del portal; no envía el CRM individual.</span></div>
       {latestResult ? <div className="radar-ai-result-actions">{onApply ? <button type="button" onClick={() => onApply(latestResult)}>Aplicar la última respuesta</button> : null}<button type="button" onClick={() => void copy()}>{copied ? "Copiado" : "Copiar última respuesta"}</button></div> : null}
     </div>}
-    {status ? <p className="radar-ai-message" role="status">{status}</p> : null}
+    {status ? <div className="radar-ai-message" role="status"><p>{status}</p>{providerBlocked ? <a href="mailto:hey@puter.com?subject=Account%20policy%20block%20review">Contactar soporte de Puter ↗</a> : null}</div> : null}
     <footer className="radar-ai-boundary"><span>Uso interno</span><p>IA RADAR usa el contexto autorizado del municipio y la campaña, pero toda recomendación requiere revisión humana. No recibe DPI/CUI, teléfonos ni correos del directorio.</p></footer>
   </section>;
 }
