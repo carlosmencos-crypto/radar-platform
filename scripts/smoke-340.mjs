@@ -175,7 +175,8 @@ assert(contract.nav["0509"].municipality_name === "San José" && contract.nav["0
 assert(contract.nav["1901"].municipality_name === "Zacapa" && contract.nav["1901"].department_name === "Zacapa", "Ruta externa 1901 incorrecta.");
 assert(consumerSource.includes("RUNTIME_GATE_340[municipalityCode]") && consumerSource.includes("gate.status !== \"PASS\""), "El consumer no aplica RUNTIME_GATE_340.");
 assert(consumerSource.includes("CANONICAL_LAYER_DEFINITIONS.map") && !consumerSource.includes("publicModules") && !consumerSource.includes("campaignModules"), "El consumer conserva aliases genéricos.");
-assert(appSource.includes('path="admin"') && appSource.includes('<Navigate to="/acceso-restringido" replace'), "/admin no está fail-closed.");
+const adminGateSource = fs.readFileSync(path.join(root, 'src/admin/SuperAdminAccessGate.tsx'), 'utf8');
+assert(appSource.includes('path="admin/:section?" element={<SuperAdminAccessGate />}') && adminGateSource.includes('await loadAdminSnapshot()') && adminGateSource.includes('gate.status === "error"') && adminGateSource.includes('gate.status === "loading"'), "/admin debe verificar el backend y bloquear carga o error.");
 assert(appSource.includes('path="municipio/:municipalityCode/:section?" element={<MunicipalDashboard />}'), "La ruta municipal V70 fue modificada.");
 
 const expectedSections = ["inicio", "inteligencia", "estrategia", "directorio", "agenda", "mapa", "dia-d", "recursos", "pulso", "ia-radar", "configuracion"];
@@ -243,11 +244,13 @@ assert(tseGeo.guardrail.includes("geolocalización") && tseGeo.guardrail.include
 assert(snip.period === "2026" && snip.guardrail.includes("no equivalen a contratos"), "SNIP 2026 mezcló universos.");
 assert(!/\b\d{13}\b/.test(read("src/data/radarContract.generated.json")), "Posible DPI detectado en contrato público.");
 
+// Baseline: approved integration release 93888ae (2026-09-29).
+// Hash changes require review; never regenerate at test runtime.
 const preservedUiHashes = {
   "src/components/MunicipalDashboard.tsx": "18cbbc452f2b4fae9bd6ce0b4d22815d939f8b8b5da5d3f2c7bef2531280369f",
   "src/context/MunicipalityContext.tsx": "6e34556c4fbe1ce3a2f74a0c9ff30afaea8319a06cb5c18495dafbdb26857d1d",
-  "src/styles/global.css": "1cf04126b387386fd370155b671d81d97271771044a1b1833a2a122d24fbed07",
-  "index.html": "3c983bfcbf465c8726eda038ee2cb8dd7658a636604f4abf902bdfb1e02a8a31",
+  "src/styles/global.css": "01a0c677e10172b6cba658d88d75c60d656ef04cb43f24cf5464b189edeef607",
+  "index.html": "f0c219a9e3e12ceacde014777ebd22d1d2623180f04752932ca7bd022a9b8ce1",
   "src/styles/v70/fonts.css": "cff4e41e8c82d1b7e8b44cc3ceeee2a435819d6d897b6c55dc7f8b62a6969e05",
   "src/styles/v70/globals.css": "72cb2595f0bd5c386c7530a30435f253244e83dfc157ef10ddd47af665bb9a57",
   "src/styles/v70/portal.css": "b7b6e1d529f36a8f57fb201d599a31f59a788d76dee68ab0f4ac9f8c5bcaf7ec",

@@ -1,5 +1,5 @@
 import { resourceAccept, validateResource } from "../data/resourceFormats";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useDismissibleDialog } from "./useDismissibleDialog";
 import { Link } from "react-router-dom";
 import { uploadSharedResource, type AdminSnapshot } from "./radarAdminApi";
@@ -33,13 +33,37 @@ export function ContentWorkspace({snapshot,action,busy,refresh,kind}:{kind:"reso
 }
 export function DemoWorkspace({snapshot,action,busy}:Omit<Props,"refresh">){
  const [selected,setSelected]=useState<Row|null>(null);
+ const [batch,setBatch]=useState<Row[]|null>(null);
+ const [running,setRunning]=useState(false);
+ const [completed,setCompleted]=useState(0);
+ const [batchMessage,setBatchMessage]=useState("");
+ const batchLock=useRef(false);
+ const locked=busy||running;
+ async function resetAll(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(batchLock.current||!batch?.length||new FormData(event.currentTarget).get("confirmation")!=="REINICIAR DEMOS")return;
+  batchLock.current=true;setRunning(true);setBatchMessage("");
+  const targets=[...batch];let done=0;
+  try{
+   for(const demo of targets){
+    if(demo.is_demo!==true)throw new Error("El lote contiene una campaña que no es demo.");
+    if(!await action("reset_demo",{campaign_id:demo.id,confirmation:demo.name})){
+     setBatchMessage(`Proceso detenido en ${String(demo.name)}. ${done} demos reiniciadas; ${targets.length-done} pendientes. Podés reintentar después de resolver el aviso.`);return;
+    }
+    done++;setCompleted(done);setBatch(targets.slice(done));
+   }
+   setBatchMessage(`${done} demos reiniciadas. Todas las seleccionadas quedaron sin cambios.`);
+  }catch(error){setBatchMessage(error instanceof Error?error.message:"No se pudo completar el reinicio.");}
+  finally{batchLock.current=false;setRunning(false);}
+ }
  const [filter,setFilter]=useState("changed");
  const [query,setQuery]=useState("");
- useDismissibleDialog(Boolean(selected),()=>setSelected(null),busy);
- const demos=snapshot.campaigns.filter(c=>c.is_demo&&c.status!=="archived");
+ useDismissibleDialog(Boolean(selected||batch),()=>{setSelected(null);setBatch(null);},locked);
+ const demos=snapshot.campaigns.filter(c=>c.is_demo===true&&c.status!=="archived");
  const changed=demos.filter(c=>c.demo_has_changes===true);
  const visible=demos.filter(c=>(filter!=="changed"||c.demo_has_changes===true)&&`${c.name} ${c.municipality_code??""}`.toLocaleLowerCase("es-GT").includes(query.toLocaleLowerCase("es-GT"))).sort((a,b)=>Number(b.demo_has_changes===true)-Number(a.demo_has_changes===true)||String(b.demo_last_changed_at??"").localeCompare(String(a.demo_last_changed_at??""))||String(a.municipality_code??"").localeCompare(String(b.municipality_code??"")));
  return <><p>Una demo se marca cuando se guardan cambios. Navegar o consultar información no cambia su estado.</p>
- <div className="demo-controls"><div className="demo-segments" role="group" aria-label="Filtrar demostraciones"><button type="button" aria-pressed={filter==="changed"} onClick={()=>setFilter("changed")}><span>Con cambios</span><b>{changed.length}</b></button><button type="button" aria-pressed={filter==="all"} onClick={()=>setFilter("all")}><span>Todos los municipios</span><b>{demos.length}</b></button></div><label className="demo-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input aria-label="Buscar municipio por nombre o código" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar municipio o código…"/></label></div>
+ <div className="demo-controls"><div className="demo-segments" role="group" aria-label="Filtrar demostraciones"><button type="button" aria-pressed={filter==="changed"} onClick={()=>setFilter("changed")}><span>Con cambios</span><b>{changed.length}</b></button><button type="button" aria-pressed={filter==="all"} onClick={()=>setFilter("all")}><span>Todos los municipios</span><b>{demos.length}</b></button></div><label className="demo-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input aria-label="Buscar municipio por nombre o código" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar municipio o código…"/></label><button className="demo-reset-all" type="button" disabled={locked||!changed.length} onClick={()=>{setBatch([...changed]);setCompleted(0);setBatchMessage("");}}>↻ Reiniciar todos ({changed.length})</button></div>
+ {batch&&<div className="client-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!locked)setBatch(null);}}><section className="client-drawer" role="dialog" aria-modal="true" aria-labelledby="reset-all-title"><header><h2 id="reset-all-title">Reiniciar todas las demos</h2><button disabled={locked} aria-label="Cerrar" onClick={()=>setBatch(null)}>×</button></header><form className="client-body superadmin-form" onSubmit={resetAll}><p>Se reiniciarán las <strong>{batch.length} demos pendientes</strong> de todos los municipios, independientemente de la búsqueda actual. Se eliminarán sus cambios privados; se conservarán la información oficial y las campañas reales.</p><p>Las demos que ya están sin cambios no necesitan reiniciarse. Mantené esta pantalla abierta hasta terminar.</p><div role="status" aria-live="polite">{running?`Reiniciando demos · ${completed} completadas…`:batchMessage}</div>{batch.length>0&&<><label>Escribí REINICIAR DEMOS para confirmar<input name="confirmation" required pattern="REINICIAR DEMOS" autoComplete="off" disabled={locked}/></label><button className="superadmin-primary" disabled={locked}>{running?"Reiniciando…":"Confirmar reinicio de todas"}</button></>}<button type="button" disabled={locked} onClick={()=>setBatch(null)}>{batch.length?"Cancelar":"Listo"}</button></form></section></div>}
  {!visible.length&&<div className="client-callout"><h3>{query?"Sin coincidencias":filter==="changed"?"Todo listo para demostrar":"No hay demostraciones disponibles"}</h3><p>{query?"Prueba con otro nombre o código.":"Las demos sin cambios están en el listado de Todas."}</p></div>}
- <div className="client-grid">{visible.map(c=><article className="client-card" key={String(c.id)}><span className="client-pill">{c.demo_has_changes===true?"Con cambios · pendiente de reiniciar":"Sin cambios"}</span><h3>{String(c.name)}</h3><p>{String(c.municipality_code??"Demostración interna")}</p>{typeof c.demo_last_changed_at==="string"&&<p>Último cambio: {new Date(c.demo_last_changed_at).toLocaleString("es-GT",{timeZone:"America/Guatemala",dateStyle:"medium",timeStyle:"short"})}</p>}<button disabled={busy||c.demo_has_changes!==true} onClick={()=>setSelected(c)}>Reiniciar datos privados</button></article>)}</div>{selected&&<div className="client-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setSelected(null);}}><section className="client-drawer" role="dialog" aria-modal="true" aria-label="Reiniciar demo"><header><h2>Reiniciar demostración</h2><button disabled={busy} onClick={()=>setSelected(null)}>×</button></header><form className="client-body superadmin-form" onSubmit={async e=>{e.preventDefault();if(await action("reset_demo",{campaign_id:selected.id,...Object.fromEntries(new FormData(e.currentTarget))}))setSelected(null);}}><p>Se eliminarán los cambios privados de esta demo y volverá a «Sin cambios». La información oficial y las campañas reales se conservan.</p><label>Escribe {String(selected.name)}<input name="confirmation" required/></label><button className="superadmin-primary" disabled={busy}>Confirmar reinicio</button></form></section></div>}</>;}
+ <div className="client-grid">{visible.map(c=><article className="client-card" key={String(c.id)}><span className="client-pill">{c.demo_has_changes===true?"Con cambios · pendiente de reiniciar":"Sin cambios"}</span><h3>{String(c.name)}</h3><p>{String(c.municipality_code??"Demostración interna")}</p>{typeof c.demo_last_changed_at==="string"&&<p>Último cambio: {new Date(c.demo_last_changed_at).toLocaleString("es-GT",{timeZone:"America/Guatemala",dateStyle:"medium",timeStyle:"short"})}</p>}<button disabled={locked||c.demo_has_changes!==true} onClick={()=>setSelected(c)}>Reiniciar datos privados</button></article>)}</div>{selected&&<div className="client-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!locked)setSelected(null);}}><section className="client-drawer" role="dialog" aria-modal="true" aria-label="Reiniciar demo"><header><h2>Reiniciar demostración</h2><button disabled={locked} onClick={()=>setSelected(null)}>×</button></header><form className="client-body superadmin-form" onSubmit={async e=>{e.preventDefault();if(await action("reset_demo",{campaign_id:selected.id,...Object.fromEntries(new FormData(e.currentTarget))}))setSelected(null);}}><p>Se eliminarán los cambios privados de esta demo y volverá a «Sin cambios». La información oficial y las campañas reales se conservan.</p><label>Escribe {String(selected.name)}<input name="confirmation" required/></label><button className="superadmin-primary" disabled={locked}>Confirmar reinicio</button></form></section></div>}</>;}

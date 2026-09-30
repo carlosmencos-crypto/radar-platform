@@ -21,7 +21,7 @@ for (const [slug, file, component] of routes) { const source = read(`src/compone
 for (const bridge of ["V70HomeParityBridge","V70ElectoralParityBridge","V70StrategyParityBridge","V70DirectoryParityBridge","V70AgendaParityBridge","V70MapParityBridge","V70DayDParityBridge","V70ResourcesParityBridge","V70PulseParityBridge","V70AiParityBridge","V70ConfigurationParityBridge","V70ClientChromeParityBridge","V70ProductParityBridge"]) assert(!gate.includes(bridge), `Legacy DOM bridge still mounted by access gate: ${bridge}`);
 
 assert(!shell.includes("createPortal") && !shell.includes("querySelector"), "Direct 0509 shell must not mutate a pre-existing shell.");
-assert(shell.includes("Cuenta RADAR") && shell.includes("sesión protegida") && shell.includes("Cerrar sesión"), "Canonical V70 account block is incomplete.");
+assert(shell.includes("{userLabel}") && shell.includes("sesión protegida") && shell.includes("Cerrar sesión"), "Canonical V70 account block is incomplete.");
 for (const asset of ["radar-electoral-logo-horizontal-oscuro-transparente.svg","radar-electoral-isotipo.svg","radar-isotipo.svg"]) assert(shell.includes(asset), `Official V70 asset missing: ${asset}`);
 assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>{municipality_code}</b>"), "Canonical V70 top controls are incomplete.");
 assert(shell.includes('slug==="dia-d"&&dayDNext') && shell.includes("PRÓXIMO"), "Canonical Intelligence-only Día D próximo marker support is missing.");
@@ -39,7 +39,7 @@ const directPulse = read("src/components/V70DirectPulse0509.tsx");
 const directAi = read("src/components/V70DirectAi0509.tsx");
 const directConfiguration = read("src/components/V70DirectConfiguration0509.tsx");
 
-assert(directHome.includes("BUENOS DÍAS") && directHome.includes("BUENAS TARDES") && directHome.includes("BUENAS NOCHES") && directHome.includes("EQUIPO"), "Canonical time-aware account greeting is missing from Inicio.");
+assert(directHome.includes("BUENOS DÍAS") && directHome.includes("BUENAS TARDES") && directHome.includes("BUENAS NOCHES") && directHome.includes("firstName"), "Canonical time-aware account greeting is missing from Inicio.");
 assert(campaignIdentity.includes("Perfil de ${candidateName}") && campaignIdentity.includes("Candidato a alcalde · {municipality_name}"), "Canonical 0509 campaign identity copy drifted on Inicio.");
 assert(campaignIdentity.includes('className="party-signature party-signature-trigger"') && campaignIdentity.includes("saveCampaignIdentity") && directHome.includes("TERRITORIO CUBIERTO") && directHome.includes("Planilla Municipal"), "Canonical Inicio structure or persisted identity action is incomplete.");
 assert(!directHome.includes("Campaign Vault listo para asociar"), "Non-canonical Campaign Vault placeholder returned to Inicio.");
@@ -51,9 +51,9 @@ assert(!directStrategy.includes("sesión QA") && !directAgenda.includes("Campaig
 
 assert(directDayD.includes("window.location.hash") && directDayD.includes("23-${id.padStart(3") && directDayD.includes("CEM ·") && directDayD.includes("fiscales-qa.wowlatam.com") && directDayD.includes("JRV con RTD recibido"), "Canonical Día D navigation/reference controls drifted.");
 for (const label of ["Manuales","Checklists","Plantillas","Tutoriales y Capacitación","Fotografías oficiales","Logotipos","Piezas de campaña","Material para medios"]) assert(directResources.includes(label), `Canonical Recursos label missing: ${label}`);
-assert(directResources.includes("BIBLIOTECA · DOCUMENTOS PRECARGADOS") && directResources.includes("BANCO OFICIAL") && directResources.includes("Banco oficial listo para recibir piezas."), "Canonical Recursos initial modal/empty states are incomplete.");
+assert(directResources.includes("BIBLIOTECA") && directResources.includes("Documentos precargados") && directResources.includes("BANCO OFICIAL") && directResources.includes("Banco oficial listo para recibir piezas."), "Canonical Recursos initial modal/empty states are incomplete.");
 assert(directPulse.includes("SIMULACIÓN VISUAL") && directPulse.includes("No es una encuesta ni un resultado electoral."), "Canonical Pulso demonstration guardrail drifted.");
-assert(directAi.includes("https://js.puter.com/v2/") && directAi.includes("Conectar Puter") && directAi.includes("radar-ai-workbench") && directAi.includes("Preparar propuesta"), "Canonical IA RADAR Puter workbench is incomplete.");
+assert(!directAi.includes("https://js.puter.com/v2/") && directAi.includes("radarAiRequest") && directAi.includes("radar-ai-workbench") && directAi.includes("Preparar propuesta"), "Canonical IA RADAR server workbench is incomplete.");
 assert(directConfiguration.includes("radar-user-photo-v2") && directConfiguration.includes("/signout-with-chatgpt?return_to=%2Flogin") && directConfiguration.includes("El alcance está protegido por la sesión."), "Canonical Configuración session/profile behavior drifted.");
 
 assert(directMap.includes("<V70OperationalMap />") && directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"'), "Direct 0509 map does not render canonical operational map chrome.");
