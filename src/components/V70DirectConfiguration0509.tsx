@@ -8,6 +8,7 @@ import {
 import { resolveRadarConsumer } from "../data/radarConsumer";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { useV70CampaignBrand } from "./useV70CampaignBrand";
+import { signOutRadar } from "../data/radarAuth";
 
 function ConfigurationContent() {
   const { municipality_code, municipality_name, department_name } = useMunicipalityContext();
@@ -130,11 +131,8 @@ function ConfigurationContent() {
             </p>
             <button
               type="button"
-              onClick={() =>
-                window.location.assign(
-                  "/signout-with-chatgpt?return_to=%2Flogin",
-                )
-              }
+              data-radar-logout
+              onClick={() => void signOutRadar().finally(() => window.location.replace("/"))}
             >
               Cerrar sesión
             </button>
