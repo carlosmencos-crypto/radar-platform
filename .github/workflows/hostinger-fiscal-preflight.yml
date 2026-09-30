@@ -1,0 +1,76 @@
+name: RADAR fiscal production preflight
+on:
+  push:
+    branches: [ops/fiscal-recovery-20260930]
+    paths: [.github/workflows/hostinger-fiscal-preflight.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: radar-hostinger-release
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check availability of existing Hostinger API credential
+        env:
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+        run: |
+          python3 - <<'PYCODE'
+          import os,json
+          print(json.dumps({'hostinger_api_credential_configured':bool(os.environ.get('HOSTINGER_API_TOKEN','').strip())}))
+          PYCODE
+      - name: Inspect fiscal deployment through the existing SSH connection
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do test -n "${!name}"; done
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          umask 077
+          task_dir=$(mktemp -d)
+          trap 'rm -rf "$task_dir"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
+          ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
+          test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          options=(-i "$task_dir/identity" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" -o ConnectTimeout=15)
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PYCODE'
+          from pathlib import Path
+          import hashlib,json,re
+          home=Path.home()
+          candidates=[
+            ('fiscal-production','domains/fiscales.wowlatam.com/public_html'),
+            ('fiscal-qa','domains/fiscales-qa.wowlatam.com/public_html'),
+            ('main-production','domains/radargt.wowlatam.com/public_html'),
+            ('fiscal-production-subfolder','domains/wowlatam.com/public_html/fiscales'),
+            ('fiscal-qa-subfolder','domains/wowlatam.com/public_html/fiscales-qa'),
+          ]
+          for label,relative in candidates:
+            root=home/relative
+            result={'site':label,'directory_exists':root.is_dir()}
+            if root.is_dir():
+              for filename in ('index.html','radar-app.html','radar-release.json','radar-fiscal-config.js','fiscal-manifest.webmanifest','.htaccess'):
+                path=root/filename
+                if path.is_file():
+                  raw=path.read_bytes()
+                  result[filename]={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+                  if filename in ('index.html','radar-app.html'):
+                    text=raw.decode('utf-8',errors='replace')
+                    result[filename]['title']=re.findall(r'<title[^>]*>(.*?)</title>',text)
+                    result[filename]['script_assets']=re.findall(r'src="([^"]+\\.js)"',text)
+                  if filename=='radar-release.json':
+                    release=json.loads(raw)
+                    result['source_sha']=release.get('source_sha')
+                  if filename=='radar-fiscal-config.js':
+                    text=raw.decode('utf-8',errors='replace')
+                    result['fiscal_api_configured']='xxobbhnhxhcjkdxmjmwj.supabase.co/functions/v1/fiscal-api' in text
+            print(json.dumps(result))
+          PYCODE
