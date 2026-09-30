@@ -76,7 +76,7 @@ test("RTD restores JRV coverage and the canonical fiscal portal", () => {
   assert.match(dayD, /\{receivedJrvs\} de \{rtdDenominator\}/);
   assert.match(dayD, /rtdResultRows\.map/);
   assert.match(dayD, /Cobertura municipal de JRV con fiscal/);
-  assert.match(dayD, /fiscales-qa\.wowlatam\.com/);
+  assert.match(dayD, /fiscales\.wowlatam\.com/);
 });
 
 test("voter directory uses indexed page order and an in-memory revisit cache", () => {
