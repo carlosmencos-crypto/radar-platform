@@ -2,7 +2,7 @@
 const url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';
 const apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';
 const key='radar-supabase-session-v1';
-const entry='/assets/index-Djvyt7Ep.js';
+const entry='/assets/index-BEaqfzxg.js';
 const municipal=location.pathname.match(/^\/municipio\/(\d{4})(d)?(?:\/|$)/)||location.pathname.match(/^\/(\d{4})(d)(?:\/|$)/);
 const protectedRoute=Boolean(municipal)||/^\/(municipios|mis-municipios|demos)\/?$/.test(location.pathname);
 let loggingOut=false;

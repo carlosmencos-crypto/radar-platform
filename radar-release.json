@@ -1,51 +1,51 @@
 {
-  "source_sha": "03a4cf6c439e86df4b068e0e609647d5bfd4dbc9",
+  "source_sha": "fb82c56aa96118f5a4726987fd505a4a1b84da3f",
   "source_branch": "integration/superadmin-hostinger-20260926",
   "date": "2026-09-30",
-  "scope": "Promote the fiscal portal to fiscales.wowlatam.com for real and demo municipalities; keep RTD data paths isolated and production-only",
+  "scope": "Production fiscal domain, native RADAR logout, strict real/demo RTD isolation, and complete demo Day D reset",
   "environment": {
     "supabase_project": "xxobbhnhxhcjkdxmjmwj",
     "credential_class": "publishable",
     "fiscal_portal_url": "https://fiscales.wowlatam.com"
   },
   "quality": {
-    "tests": 150,
+    "tests": 152,
     "municipalities_validated": 340,
     "browser_parse_required": true,
     "integral_route_gate": true,
     "max_transport_bytes": 740000,
-    "quality_workflow": 36669574136
+    "quality_workflow": 36671183434
   },
   "files": [
     {
-      "path": "assets/index-Djvyt7Ep.js",
-      "size": 737481,
-      "sha256": "1814388bbdb7aa73c3c2b6ba0a67293eb7d29ec407b10d13c19ac0428e44f575"
+      "path": "assets/index-BEaqfzxg.js",
+      "size": 737741,
+      "sha256": "741bd35186dda317719f1b210c2ffdfcf06f548e35797adfb7445c063f20ca8a"
     },
     {
-      "path": "assets/index-C_-TkfG6.css",
-      "size": 734206,
-      "sha256": "d9a5686420097db44f81abc65d5d722f673f855cbbb0ea91e3b8caf2be754090"
+      "path": "assets/index-DAmjJIrT.css",
+      "size": 734491,
+      "sha256": "65d2255db0c345e8b6fc1b4c088fe7ef2d33a656fcd7dc2cef0e491a74264349"
     },
     {
-      "path": "assets/AiUsage-COQztEFq.js",
+      "path": "assets/AiUsage-CSaTcBkr.js",
       "size": 3634,
-      "sha256": "cf6164abd6f7684d11d4577c0a2c82c9665ab2d5b4d1f64d48791cc7b2f83d6e"
+      "sha256": "24862cd5c5c34b7e64863ad52b5337f51e924da531e8414a147b70a4320d193d"
     },
     {
-      "path": "assets/ResourcePreview-BHLLx3Wr.js",
+      "path": "assets/ResourcePreview-yqwkkwC1.js",
       "size": 7126,
-      "sha256": "14c36b5623a3b61abc0a1c7f4bc0a3cec26e1d91dccd581849d5cd70aa7f364f"
+      "sha256": "32444fc0fd4e77149298a9b8c5bea11363acbc9c5e4451e79f68f3e5e57d9ba8"
     },
     {
-      "path": "assets/RtdActas-B0IsNvJY.js",
+      "path": "assets/RtdActas-CJOflpaK.js",
       "size": 4346,
-      "sha256": "74f1434c29bee0aeda2f3e58b21c5606b7a6ff8e9c0e400e23b124cf8f9a1896"
+      "sha256": "7e5157ec232cec7ce9e97c1713c27531cbb7a337efe6ce3c69cd0dd058cb894d"
     },
     {
-      "path": "assets/SharedActivities-DcnYTkm9.js",
+      "path": "assets/SharedActivities-BS3sNpjy.js",
       "size": 9765,
-      "sha256": "d383fd18676918a1884feabc4f541471f46880c1c45a36c98b04a77bdb098f89"
+      "sha256": "3a38c80587d30126229d5c1d1d12506669d85a47001a89e34f058f141ac30a82"
     },
     {
       "path": "assets/activity-export-CHbBcgJy.js",
@@ -55,7 +55,7 @@
     {
       "path": "assets/radar-access-gate-c4cb14b0dbca.js",
       "size": 4873,
-      "sha256": "90559f7d889f5a84e85002812ffee0c6e279c2f23e9d27b7f32cbbed7b3ecbc3"
+      "sha256": "b6a1cfe78c676290bfafa0a6d623920f89ed13ca4de4774eafc05bfb4853b6c1"
     },
     {
       "path": "assets/radar-contract-WSpO9eWF.js",
@@ -74,8 +74,8 @@
     },
     {
       "path": "radar-app.html",
-      "size": 1558,
-      "sha256": "64cd92bf677fd381337768f2e2aea4574a8deaba1cfb784149eb830b3c6d9389"
+      "size": 1560,
+      "sha256": "a146104eceaf816f8da575cf8b5d0e15d73ee6246ce795a32df0bde667ad3560"
     }
   ]
 }
