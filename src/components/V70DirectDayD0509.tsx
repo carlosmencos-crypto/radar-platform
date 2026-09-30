@@ -23,7 +23,7 @@ const RtdActas = lazy(() => import("./RtdActas"));
 
 const FISCAL_PORTAL_URL =
   (import.meta.env.VITE_FISCAL_PORTAL_URL as string | undefined)?.replace(/\/+$/, "") ||
-  "https://fiscales-qa.wowlatam.com";
+  "https://fiscales.wowlatam.com";
 
 function InternalViews({
   views,
