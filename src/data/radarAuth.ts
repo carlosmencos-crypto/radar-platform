@@ -95,7 +95,10 @@ export function readRadarSession(): RadarAuthSession | null {
 }
 
 export function clearRadarSession() {
-  if (storageAvailable()) window.localStorage.removeItem(sessionStorageKey());
+  if (!storageAvailable()) return;
+  window.localStorage.removeItem(sessionStorageKey());
+  window.localStorage.removeItem("radar-session-persistence");
+  window.sessionStorage.removeItem("radar-session-tab");
 }
 
 function persistRadarSession(response: SupabaseTokenResponse) {
