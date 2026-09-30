@@ -54,7 +54,7 @@ for (const label of ["Manuales","Checklists","Plantillas","Tutoriales y Capacita
 assert(directResources.includes("BIBLIOTECA") && directResources.includes("Documentos precargados") && directResources.includes("BANCO OFICIAL") && directResources.includes("Banco oficial listo para recibir piezas."), "Canonical Recursos initial modal/empty states are incomplete.");
 assert(directPulse.includes("SIMULACIÓN VISUAL") && directPulse.includes("No es una encuesta ni un resultado electoral."), "Canonical Pulso demonstration guardrail drifted.");
 assert(!directAi.includes("https://js.puter.com/v2/") && directAi.includes("radarAiRequest") && directAi.includes("radar-ai-workbench") && directAi.includes("Preparar propuesta"), "Canonical IA RADAR server workbench is incomplete.");
-assert(directConfiguration.includes("radar-user-photo-v2") && directConfiguration.includes("/signout-with-chatgpt?return_to=%2Flogin") && directConfiguration.includes("El alcance está protegido por la sesión."), "Canonical Configuración session/profile behavior drifted.");
+assert(directConfiguration.includes("radar-user-photo-v2") && directConfiguration.includes("data-radar-logout") && directConfiguration.includes("signOutRadar") && directConfiguration.includes("El alcance está protegido por la sesión."), "Canonical Configuración session/profile behavior drifted.");
 
 assert(directMap.includes("<V70OperationalMap />") && directMap.includes('eyebrow="TERRITORIO Y OPERACIÓN"'), "Direct 0509 map does not render canonical operational map chrome.");
 assert(operationalMap.includes("TERRITORIOS DE RADAR") && operationalMap.includes("LUGARES Y DIRECCIONES") && operationalMap.includes("nominatim.openstreetmap.org/search"), "Canonical territorial map search is incomplete.");
