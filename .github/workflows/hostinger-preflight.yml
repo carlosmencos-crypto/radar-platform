@@ -1,14 +1,55 @@
-name: Hostinger connection preflight
+name: RADAR bulk demo reset release
 on:
+  push:
+    branches: [ops/hostinger-connection-check]
+    paths: [.github/workflows/hostinger-preflight.yml]
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
+concurrency:
+  group: radar-hostinger-release
+  cancel-in-progress: false
 jobs:
-  preflight:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
     steps:
-      - name: Validate configuration and inspect public server identity
+      - uses: actions/checkout@v4
+        with:
+          ref: 358a51275dab3551f3cf2befa1e825bd20ab6ab3
+      - name: Require successful source quality checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_api=repos/carlosmencos-crypto/radar-platform/actions/runs/36654825021
+          test "$(gh api "$run_api" --jq .head_sha)" = 7ca02f2300a841c44a451dd79ce45a942ebf4fc9
+          for attempt in $(seq 1 30); do
+            status=$(gh api "$run_api" --jq .status)
+            if [ "$status" = completed ]; then
+              test "$(gh api "$run_api" --jq .conclusion)" = success
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Source checks did not finish; no deployment performed.'
+          exit 1
+      - name: Package and verify reviewed release
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import json,hashlib,tarfile
+          payload=json.loads('{"expected": {"radar-app.html": "768e4e3c713222050297e022147e135fceb6ec72d06838a9af95283dcfa59586", "assets/team-access-v2.css": "c2cc2f9c93711c302f510e84493a85265423d3f92d37386cd1f167a735d58613"}, "files": {"assets/SharedActivities-CIunElvm.js": "ed0ba91ac3a658ec82896c1cd7d2008dd6570cc54f6057e3ba2e144731aab1a0", "assets/RtdActas-B2xrJvbj.js": "7789238b6264781bb5d95064d888d3047d41c4843187e135488e0d4ea84be0fb", "assets/index-CQKP4Ur8.js": "305aab1b0fcd350bb7385a38e1089df19510999eb8fc8d1446c6e9de873df796", "assets/AiUsage-BO9LUe8w.js": "907e09ac20a144ff367938b66520822c1ad62ae781fb1fb9c9946da3b1c0a5b6", "assets/team-access-v2.css": "918c1d18f86ad31bea18641bbd781d69ca3bc7ccfebbb723a02574355783f80d", "assets/ResourcePreview-BNPB3mMi.js": "574a3481c26d255c70433b878a26baaf8a5a86529f68e359bb21eeeeadacfbdf", "assets/radar-access-gate-c4cb14b0dbca.js": "c4cb14b0dbcabd5e30cd974959901515166e92413c39cbf1ca3b8d5e0d4d0215", "radar-app.html": "5c6dc8fa69ad1ddb4d1c6e1f6327f96508018c9990e3e176ff5a73752f81c172"}}')
+          Path('/tmp/manifest.json').write_text(json.dumps(payload))
+          with tarfile.open('/tmp/radar-release.tgz','w:gz') as archive:
+           for name,want in payload['files'].items():
+            assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==want, name
+            archive.add(name,arcname=name)
+           archive.add('/tmp/manifest.json',arcname='manifest.json')
+          PYCODE
+      - name: Publish exact assets with backup and strict host verification
         shell: bash
         env:
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
@@ -17,9 +58,7 @@ jobs:
           SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do
-            if [ -z "${!name}" ]; then echo "::error::Missing configuration: $name"; exit 1; fi
-          done
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do test -n "${!name}"; done
           [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
           [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
           [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
@@ -27,10 +66,58 @@ jobs:
           task_dir=$(mktemp -d)
           trap 'rm -rf "$task_dir"' EXIT
           printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
-          ssh-keygen -y -P '' -f "$task_dir/identity" > "$task_dir/public"
-          echo 'Private key format valid; no authentication attempted.'
           ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
-          test -s "$task_dir/server_keys"
-          observed=$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')
-          test "$observed" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
-          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" "$SSH_USER@$SSH_HOST" 'printf "SSH_AUTH_OK\n"; for d in "$HOME/domains/radargt.wowlatam.com/public_html" "$HOME/domains/wowlatam.com/public_html/radargt"; do if [ -d "$d" ]; then printf "RADAR_DIR %s\n" "$d"; ls -ld "$d/index.html" "$d/radar-app.html"; command -v python3; fi; done'
+          test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          options=(-i "$task_dir/identity" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys")
+          scp -P "$SSH_PORT" "${options[@]}" /tmp/radar-release.tgz "$SSH_USER@$SSH_HOST:radar-demo-release-358a51275dab.tgz"
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PYCODE'
+          from pathlib import Path
+          import os,json,hashlib,tarfile,shutil,datetime,fcntl,tempfile
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          archive=Path.home()/'radar-demo-release-358a51275dab.tgz'
+          backup_root=Path.home()/'radar-deploy-backups'
+          backup_root.mkdir(mode=0o700,exist_ok=True)
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          with (backup_root/'deploy.lock').open('w') as lock:
+           fcntl.flock(lock,fcntl.LOCK_EX)
+           with tempfile.TemporaryDirectory(dir=backup_root) as stage_dir:
+            stage=Path(stage_dir)
+            with tarfile.open(archive,'r:gz') as package:
+             for member in package.getmembers():
+              relative=Path(member.name)
+              assert member.isfile() and not relative.is_absolute() and '..' not in relative.parts, 'Invalid release member'
+              target=stage/relative;target.parent.mkdir(parents=True,exist_ok=True)
+              target.write_bytes(package.extractfile(member).read())
+            payload=json.loads((stage/'manifest.json').read_text())
+            for name,want in payload['files'].items():
+             assert sha(stage/name)==want, 'Invalid staged hash: '+name
+            already=all((root/name).is_file() and sha(root/name)==want for name,want in payload['files'].items())
+            if not already:
+             for name,want in payload['expected'].items():
+              assert sha(root/name)==want, 'Live file changed; stop: '+name
+             backup=backup_root/('demo-reset-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
+             backup.mkdir(mode=0o700)
+             originals={}
+             for name in payload['files']:
+              target=root/name;originals[name]=target.exists()
+              if target.exists():
+               dest=backup/name;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(target,dest)
+             (backup/'manifest.json').write_text(json.dumps({'original':originals,'expected':payload['expected']}))
+             touched=[]
+             try:
+              for name in sorted(payload['files'],key=lambda name:name=='radar-app.html'):
+               target=root/name;target.parent.mkdir(parents=True,exist_ok=True)
+               pending=target.with_name(target.name+'.radar-staged')
+               pending.write_bytes((stage/name).read_bytes());pending.chmod(0o644)
+               os.replace(pending,target);touched.append(name)
+              for name,want in payload['files'].items():assert sha(root/name)==want, 'Post-write mismatch'
+             except BaseException:
+              for name in reversed(touched):
+               if originals[name]:shutil.copy2(backup/name,root/name)
+               else:(root/name).unlink()
+              raise
+             print('RELEASE_OK backup='+backup.name)
+            else:print('RELEASE_ALREADY_CURRENT')
+            for name,want in payload['files'].items():print('VERIFIED '+name+' '+want)
+          archive.unlink()
+          PYCODE
