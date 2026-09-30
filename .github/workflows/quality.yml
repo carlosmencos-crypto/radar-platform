@@ -22,6 +22,9 @@ jobs:
       - run: npm run smoke:340
       - run: npm run smoke-v70-parity
       - run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://xxobbhnhxhcjkdxmjmwj.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn
       - run: node scripts/smoke-preview.mjs
       - run: npm run audit:bundle
       - name: Build isolated 0509 browser render bundle
