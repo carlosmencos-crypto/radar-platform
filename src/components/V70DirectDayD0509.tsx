@@ -922,7 +922,7 @@ function DayDContent() {
         <label><span>Estado</span><select value={rtdStatusFilter} onChange={(event) => setRtdStatusFilter(event.target.value)}><option value="all">Todos</option><option value="BORRADOR">BORRADOR</option><option value="ENVIADO">ENVIADO</option><option value="PENDIENTE_REVISION">PENDIENTE REVISIÓN</option><option value="OBSERVADO">OBSERVADO</option><option value="VALIDADO">VALIDADO</option><option value="CORREGIDO">CORREGIDO</option></select></label>
         <label><span>JRV</span><input inputMode="numeric" value={rtdJrvFilter} onChange={(event) => setRtdJrvFilter(event.target.value.replace(/\D/g, ""))} placeholder="Buscar JRV" /></label>
       </div>
-      {campaign_id ? <Suspense fallback={<p>Cargando archivo de actas…</p>}><RtdActas key={campaign_id} campaignId={campaign_id} testMode={!is_demo && rtdMode === "test"} /></Suspense> : null}
+      {campaign_id ? <Suspense fallback={<p>Cargando archivo de actas…</p>}><RtdActas key={campaign_id} campaignId={campaign_id} testMode={!is_demo && rtdMode === "test"} isDemo={is_demo} /></Suspense> : null}
       <div className="day-d-rtd-list">
         {visibleRtdRows.length ? visibleRtdRows.map((record) => {
           const validVotes = rtdVotes(record).reduce((sum, vote) => sum + vote.votes, 0);
