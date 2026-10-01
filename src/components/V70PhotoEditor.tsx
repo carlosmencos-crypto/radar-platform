@@ -126,7 +126,7 @@ export function V70PhotoEditor({
           </small>
           {currentSrc && !source ? <button type="button" onClick={() => { setSource(currentSrc); setZoom(1); setHorizontal(50); setVertical(50); }}>Ajustar imagen actual</button> : null}
           {allowRemove && (source || currentSrc) ? (
-            <button type="button" onClick={removePhoto}>Borrar fotografía</button>
+            <button type="button" aria-label="Borrar fotografía" onClick={removePhoto}>Borrar fotografía</button>
           ) : null}
         </span>
       </div>
