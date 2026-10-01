@@ -296,9 +296,9 @@ try {
   await waitFor(`!document.querySelector('.campaign-identity-modal')`, "campaign identity close");
   await evaluate(`document.querySelector('.party-signature-trigger')?.click()`);
   await waitFor(`Boolean(document.querySelector('.campaign-identity-modal'))`, "party logo removal modal");
-  const removedLogo = await evaluate(`(()=>{const button=Array.from(document.querySelectorAll('.campaign-identity-modal button')).find(b=>b.textContent==='Quitar logo del partido');if(!button)return false;button.click();return true;})()`);
+  const removedLogo = await evaluate(`(()=>{const button=document.querySelector('.campaign-identity-modal button[aria-label="Borrar fotografía"]');if(!button)return false;button.click();return true;})()`);
   if (!removedLogo) throw new Error("Party logo removal button missing.");
-  await waitFor(`!document.querySelector('.campaign-identity-preview img')`, "empty logo preview");
+  await waitFor(`!document.querySelector('.campaign-identity-modal .photo-editor-preview img')`, "empty logo preview");
   await evaluate(`document.querySelector('.campaign-identity-modal').requestSubmit()`);
   await waitFor(`!document.querySelector('.campaign-identity-modal') && !document.querySelector('.party-logo-button img') && document.body.innerText.includes('Identidad actualizada correctamente.')`, "persisted empty party logo");
   const retainedParty = await evaluate(`document.querySelector('.party-signature strong')?.textContent`);
