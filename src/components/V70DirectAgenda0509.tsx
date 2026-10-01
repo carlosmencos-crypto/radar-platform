@@ -87,7 +87,7 @@ const activityTypes = [
 const activityTypeLabels: Record<string, string> = {
   VISITA: "Visita",
   REUNION: "Reunión",
-  ASAMBLEA: "ASAMBLEA",
+  ASAMBLEA: "Asamblea",
   MITIN: "Mitin",
   CAMINATA: "Caminata / caravana",
   EVENTO: "Evento",
@@ -831,7 +831,7 @@ function AgendaContent() {
               <label>
                 <span>Clase *</span>
                 <select value={form.item_kind} onChange={(event) => setForm({ ...form, item_kind: event.target.value })}>
-                  {["ACTIVIDAD", "COMPROMISO", "TAREA"].map((item) => <option key={item}>{item}</option>)}
+                  {["ACTIVIDAD", "TAREA"].map((item) => <option key={item}>{item}</option>)}
                 </select>
               </label>
               <label>
@@ -856,7 +856,7 @@ function AgendaContent() {
                   value={form.activity_type}
                   onChange={(event) => {
                     const type = event.target.value;
-                    setForm({ ...form, activity_type: type, checklist_template: type === "MITIN" ? "MITIN_OPERATIVO" : type === "CAMINATA" ? "CAMINATA_TERRITORIAL" : "", route_points: type === "CAMINATA" ? form.route_points : [] });
+                    setForm({ ...form, activity_type: type, checklist_template: type === "MITIN" ? "MITIN_OPERATIVO" : type === "CAMINATA" ? "CAMINATA_TERRITORIAL" : "", route_points: ["CAMINATA", "CARAVANA", "RECORRIDO"].includes(type) ? form.route_points : [] });
                   }}
                 >
                   {activityTypes.map((type) => (
@@ -880,7 +880,7 @@ function AgendaContent() {
                 <span>Lugar o punto de encuentro *</span>
                 <div className="location-field">
                   <input required list="agenda-community-options" value={form.community} onChange={(event) => setForm({ ...form, community: event.target.value, place_source: "FREE" })} placeholder="Nombre, dirección, comunidad o referencia" />
-                  <button type="button" onClick={() => setPicker(true)}>{form.activity_type === "CAMINATA" ? "Dibujar ruta" : "Seleccionar punto"}</button>
+                  <button type="button" onClick={() => setPicker(true)}>{["CAMINATA", "CARAVANA", "RECORRIDO"].includes(form.activity_type) ? "Dibujar ruta" : "Seleccionar punto"}</button>
                 </div>
                 <datalist id="agenda-community-options">{communities.map((item) => <option key={item.community_normalized} value={item.community_label} />)}</datalist>
                 <small>{form.latitude !== null && form.longitude !== null ? `Punto exacto del mapa · ${form.latitude.toFixed(6)}, ${form.longitude.toFixed(6)}` : "Escribe el lugar y marca libremente el punto en el mapa."}</small>
@@ -908,7 +908,7 @@ function AgendaContent() {
                 <div className="agenda-selected-electors">{selectedElectors.map((elector) => <span key={elector.id}><b>{elector.full_name}</b><small>{elector.community}</small><button type="button" onClick={() => { setSelectedElectors((current) => current.filter((item) => item.id !== elector.id)); setForm((current) => ({ ...current, elector_ids: current.elector_ids.filter((id) => id !== elector.id) })); }}>×</button></span>)}</div>
               </fieldset>
               <label className="wide"><span>Participantes o grupos de interés escritos manualmente (opcional)</span><textarea rows={2} value={form.manual_participants} onChange={(event) => setForm({ ...form, manual_participants: event.target.value })} placeholder="Ej. COCODE El Progreso; grupo de pescadores; invitados pendientes" /></label>
-              {form.activity_type === "CAMINATA" ? <label><span>Color de ruta</span><input type="color" value={form.route_color} onChange={(event) => setForm({ ...form, route_color: event.target.value })} /></label> : null}
+              {["CAMINATA", "CARAVANA", "RECORRIDO"].includes(form.activity_type) ? <label><span>Color de ruta</span><input type="color" value={form.route_color} onChange={(event) => setForm({ ...form, route_color: event.target.value })} /></label> : null}
               {form.checklist_template ? <label><span>Checklist vinculado</span><input readOnly value={form.checklist_template === "MITIN_OPERATIVO" ? "Mitin · operación y montaje" : "Caminata / caravana · seguridad y territorio"} /></label> : null}
               <label className="wide">
                 <span>Temas / objetivo / notas</span>
@@ -940,7 +940,7 @@ function AgendaContent() {
       {picker ? (
         <div className="agenda-modal">
           <V70LocationPicker
-            routeMode={form.activity_type === "CAMINATA"}
+            routeMode={["CAMINATA", "CARAVANA", "RECORRIDO"].includes(form.activity_type)}
             latitude={form.latitude ?? undefined}
             longitude={form.longitude ?? undefined}
             points={form.route_points}

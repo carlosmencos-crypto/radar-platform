@@ -672,26 +672,18 @@ export function V70OperationalMap() {
           if (activity.latitude === null || activity.longitude === null) return;
           const type = activity.activity_type || "OTRA";
           const color = mapActivityColors[type] || mapActivityColors.OTRA;
-          const coverage = L.circle([activity.latitude, activity.longitude], {
-            radius: 1500,
-            color,
-            weight: 2,
-            fillColor: color,
-            fillOpacity: 0.08,
-            dashArray: "6 8",
-            className: "activity-coverage-zone",
-          })
-            .bindTooltip(
-              `<b>${clean(activity.title)}</b><br>Zona cubierta por actividad · radio operativo de 1.5 km`,
-            )
-            .on("click", () => setSelectedActivity(activity))
-            .addTo(map);
-          drawnRef.current.push(coverage);
           const points = Array.isArray(activity.details?.route_points)
             ? (activity.details.route_points as unknown[]).filter(
                 (point): point is LatLng => Array.isArray(point) && point.length === 2 && Number.isFinite(point[0]) && Number.isFinite(point[1]),
-              )
-            : [];
+              ) : [];
+          const center: LatLng = points.length > 1
+            ? [(Math.min(...points.map(p => p[0])) + Math.max(...points.map(p => p[0]))) / 2, (Math.min(...points.map(p => p[1])) + Math.max(...points.map(p => p[1]))) / 2]
+            : [activity.latitude, activity.longitude];
+          const radius = points.length > 1 ? Math.max(75, ...points.map(p => Math.hypot((p[0] - center[0]) * 111320, (p[1] - center[1]) * 111320 * Math.cos(center[0] * Math.PI / 180)))) : 100;
+          const coverage = L.circle(center, { radius, color, weight: 1, fillColor: color, fillOpacity: 0.06, dashArray: "6 8", className: "activity-coverage-zone" })
+            .bindTooltip(`<b>${clean(activity.title)}</b><br>Referencia visual de ubicación${points.length > 1 ? " y ruta" : ""}`)
+            .on("click", () => setSelectedActivity(activity)).addTo(map);
+          drawnRef.current.push(coverage);
           if (showRoutes && points.length > 1) {
             const route = L.polyline(points, { color, weight: 6, opacity: 0.9 })
               .bindTooltip(`<b>${clean(activity.title)}</b><br>Ruta de ${clean(mapActivityLabels[type] || type)}`)

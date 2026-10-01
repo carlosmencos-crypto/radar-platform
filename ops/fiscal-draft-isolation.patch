@@ -1,0 +1,46 @@
+diff --git a/app/fiscal-portal.tsx b/app/fiscal-portal.tsx
+index 5de8ab5..5813f8c 100644
+--- a/app/fiscal-portal.tsx
++++ b/app/fiscal-portal.tsx
+@@ -733,11 +733,13 @@ function IncidentCard({
+ }
+ 
+ function RtdSection({
++  assignmentId,
+   elections,
+   folios,
+   onSaveDraft,
+   onSubmit,
+ }: {
++  assignmentId: string | number;
+   elections: Election[];
+   folios: RtdFolio[];
+   onSaveDraft: (draft: RtdDraft) => Promise<"server" | "local">;
+@@ -779,7 +781,7 @@ function RtdSection({
+   const [ocrReviewValues, setOcrReviewValues] = useState<Record<string, string>>({});
+   const [ocrReviewSummary, setOcrReviewSummary] = useState<OcrReviewSummary>(emptyOcrReviewSummary);
+   const locked = Boolean(serverFolio && serverFolio.status !== "BORRADOR");
+-  const draftKey = `rtd-${electionType}-${election?.catalogVersion ?? "pendiente"}`;
++  const draftKey = `rtd-${assignmentId}-${electionType}-${election?.catalogVersion ?? "pendiente"}`;
+   useEffect(() => {
+     const serverDraft = serverFolio
+       ? {
+@@ -787,8 +789,8 @@ function RtdSection({
+           votes: Object.fromEntries(
+             serverFolio.votes.map((vote) => [vote.code, String(vote.votes)]),
+           ),
+-          nullVotes: String(serverFolio.nullVotes || ""),
+-          blankVotes: String(serverFolio.blankVotes || ""),
++          nullVotes: String(serverFolio.nullVotes ?? ""),
++          blankVotes: String(serverFolio.blankVotes ?? ""),
+           votersPresent: String(serverFolio.votersPresent ?? serverFolio.ballotTotal ?? ""),
+           ballotsReceived:
+             serverFolio.ballotsReceived === null
+@@ -1921,6 +1923,7 @@ export function FiscalPortal() {
+       </section>
+ 
+       <RtdSection
++        assignmentId={portal.assignment.id}
+         elections={portal.elections}
+         folios={folios}
+         onSaveDraft={saveRtdDraft}

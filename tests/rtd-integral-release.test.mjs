@@ -22,7 +22,7 @@ test("integral release retains municipal, access and superadmin routes", () => {
 test("municipal RTD derives coverage and results from canonical folios", () => {
   assert.match(municipalRtd, /record\.category === "RTD_FOLIO"/);
   assert.match(municipalRtd, /Boolean\(record\.payload\.is_demo\) === is_demo/);
-  assert.match(municipalRtd, /!record\.payload\.is_test/);
+  assert.match(municipalRtd, /Boolean\(record\.payload\.is_test\) === \(!is_demo && rtdMode === "test"\)/);
   assert.match(municipalRtd, /new Set\(submittedRtdRows\.map/);
   assert.match(municipalRtd, /rtdResultRows\.map/);
   assert.match(municipalRtd, /Los folios demo nunca se suman a resultados reales/);

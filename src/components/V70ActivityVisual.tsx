@@ -39,7 +39,7 @@ export function V70RouteSnapshot({
   compact?: boolean;
 }) {
   const points = routePoints(activity);
-  if (activity.activity_type !== "CAMINATA" || points.length < 2) return null;
+  if (!["CAMINATA", "CARAVANA", "RECORRIDO"].includes(activity.activity_type || "") || points.length < 2) return null;
   const xs = points.map(([, x]) => x); const ys = points.map(([y]) => y);
   const minX = Math.min(...xs); const maxX = Math.max(...xs); const minY = Math.min(...ys); const maxY = Math.max(...ys);
   const line = points.map(([y, x]) => `${20 + ((x - minX) / (maxX - minX || 1)) * 360},${180 - ((y - minY) / (maxY - minY || 1)) * 140}`).join(" ");

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
@@ -23,7 +23,7 @@ const RtdActas = lazy(() => import("./RtdActas"));
 
 const FISCAL_PORTAL_URL =
   (import.meta.env.VITE_FISCAL_PORTAL_URL as string | undefined)?.replace(/\/+$/, "") ||
-  "https://fiscales.wowlatam.com";
+  "https://radargt.wowlatam.com/fiscales";
 
 function InternalViews({
   views,
@@ -260,6 +260,7 @@ function DayDContent() {
   const [logisticsStatusFilter, setLogisticsStatusFilter] = useState("all");
   const [incidentFilter, setIncidentFilter] = useState("ABIERTAS");
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [rtdMode, setRtdMode] = useState<"live" | "test">("live");
   const [rtdElection, setRtdElection] = useState("CORPORACION_MUNICIPAL");
   const [rtdCenterFilter, setRtdCenterFilter] = useState("all");
   const [rtdStatusFilter, setRtdStatusFilter] = useState("all");
@@ -340,7 +341,7 @@ function DayDContent() {
   const accessRows = assignments.filter((record) => record.category === "ACCESO_FISCAL");
   const logisticsRows = assignments.filter((record) => record.category === "LOGISTICA");
   const incidentRows = assignments.filter((record) => record.category === "INCIDENCIA_FISCAL");
-  const rtdRows = assignments.filter((record) => record.category === "RTD_FOLIO" && Boolean(record.payload.is_demo) === is_demo && !record.payload.is_test);
+  const rtdRows = assignments.filter((record) => record.category === "RTD_FOLIO" && Boolean(record.payload.is_demo) === is_demo && Boolean(record.payload.is_test) === (!is_demo && rtdMode === "test"));
   const selectedRtdRows = rtdRows.filter((record) => String(record.payload.election_type) === canonicalRtdElection[rtdElection]);
   const submittedRtdRows = selectedRtdRows.filter((record) => submittedRtdStatuses.has(String(record.payload.rtd_status || record.status).toUpperCase()));
   const visibleRtdRows = selectedRtdRows.filter((record) => {
@@ -370,13 +371,15 @@ function DayDContent() {
   });
   const selectedIncident = incidentRows.find((record) => record.id === selectedIncidentId) ?? null;
   const assignmentFor = (centerId: string, jrv: number | string) => assignmentRows.find((record) => String(record.payload.center_id) === centerId && String(record.payload.jrv) === String(jrv));
-  const assignmentsForCenter = (centerId: string) => assignmentRows.filter((record) => String(record.payload.center_id) === centerId);
+  const assignmentsForCenter = (centerId: string) => Array.from(new Map(assignmentRows.filter((record) => String(record.payload.center_id) === centerId).map(record => [Number(record.payload.jrv), record])).values());
   const centerResponsible = (centerId: string) => {
     const assignment = assignmentsForCenter(centerId).find((record) => record.payload.center_responsible_name || record.payload.center_responsible_id);
     return assignment ? String(assignment.payload.center_responsible_name || "Responsable asignado") : "";
   };
+  const assignmentSaving = useRef(false);
   async function saveAssignment(event: FormEvent) {
-    event.preventDefault(); if (!campaign_id || !selectedCenter || !selectedJrv || !fiscalId) return;
+    event.preventDefault(); if (assignmentSaving.current || !campaign_id || !selectedCenter || !selectedJrv || !fiscalId) return;
+    assignmentSaving.current = true;
     setSaving(true); setMessage("");
     try {
       const token = await ensureRadarAccessToken();
@@ -385,7 +388,7 @@ function DayDContent() {
       const current = assignmentFor(selectedCenter.id, selectedJrv);
       const saved = await saveCampaignRecord(campaign_id, { module_key: "dia-d", category: "ASIGNACION_JRV", title: `${selectedCenter.name} · JRV ${selectedJrv}`, details: fiscal?.full_name || null, status: "ASIGNADO", payload: { center_id: selectedCenter.id, center_name: selectedCenter.name, center_reference: centerReference(selectedCenter.id), jrv: Number(selectedJrv), fiscal_id: fiscalId, fiscal_name: fiscal?.full_name || "", center_responsible_id: centerResponsibleId || null, center_responsible_name: responsible?.full_name || null } }, token, current?.id ?? null);
       setAssignments((rows) => [saved, ...rows.filter((item) => item.id !== saved.id)]); setMessage(`JRV ${selectedJrv} asignada a ${fiscal?.full_name || "fiscal"}.`);
-    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar la asignación."); } finally { setSaving(false); }
+    } catch (error) { setMessage(error instanceof Error ? error.message : "No se pudo guardar la asignación."); } finally { assignmentSaving.current = false; setSaving(false); }
   }
   async function removeAssignment(record: CampaignModuleRecord) {
     if (!campaign_id) return;
@@ -895,29 +898,31 @@ function DayDContent() {
         </div>
         <span className="rtd-live">CONTROL PROPIO · RESULTADOS PRELIMINARES NO OFICIALES</span>
       </header>
+      {!is_demo && rtdMode === "live" && assignments.some(r => r.category === "RTD_FOLIO" && r.payload.is_test) && <p className="agenda-message">Hay envíos de ensayo recibidos. Selecciona «Pruebas» para revisarlos.</p>}
       <aside className="rtd-catalog-note"><b>Participantes oficiales precargados</b><span>RADAR utilizará el catálogo electoral oficial validado para que cada fiscal vea únicamente las opciones que corresponden a su tipo de elección.</span></aside>
       <p className={`day-d-demo-mode${is_demo ? "" : " historical"}`}>
         {is_demo ? "Pruebas demo aisladas: estos folios no se mezclan con resultados reales." : "Operación real Día D: esta vista muestra únicamente folios de la campaña activa."}
       </p>
       <div className="rtd-controlbar">
+        {!is_demo && <label><span>Entorno de resultados</span><select value={rtdMode} onChange={e => setRtdMode(e.target.value as "live" | "test")}><option value="live">Operación real</option><option value="test">Pruebas · no suman al resultado real</option></select></label>}
         <label><span>Datos mostrados</span><select value={is_demo ? "DEMO" : "REAL"} disabled><option value="REAL">Resultados reales Día D</option><option value="DEMO">Validación demostrativa</option></select></label>
         <label><span>Tipo de elección</span><select value={rtdElection} onChange={(event) => setRtdElection(event.target.value)}><option value="PRESIDENTE">Presidente y Vicepresidente</option><option value="CORPORACION_MUNICIPAL">Corporación Municipal</option><option value="DIPUTADOS_DISTRITO">Diputados por distrito</option><option value="DIPUTADOS_NACIONAL">Listado nacional</option><option value="PARLACEN">Parlamento Centroamericano</option></select></label>
         <span><small>Lectura permitida</small><b>Mayoría relativa; concejalías sujetas a regla legal</b></span>
       </div>
       <div className={`rtd-progress-card${is_demo ? " demo" : ""}`}>
-        <header><span><small>JRV con RTD recibido · {is_demo ? "prueba demo" : "operación real"}</small><b>{receivedJrvs} de {rtdDenominator}</b></span><strong>{rtdProgress}%</strong></header>
+        <header><span><small>JRV con RTD recibido · {is_demo ? "prueba demo" : rtdMode === "test" ? "prueba de campaña" : "operación real"}</small><b>{receivedJrvs} de {rtdDenominator}</b></span><strong>{rtdProgress}%</strong></header>
         <div><i style={{ width: `${rtdProgress}%` }} /></div>
       </div>
       <div className="rtd-results">
-        <section><header><small>GRÁFICA DE RESULTADOS · {is_demo ? "VALIDACIÓN DEMOSTRATIVA" : "RESULTADO PARCIAL REAL"}</small><h3>{selectedRtdLabel}</h3></header>{rtdResultRows.length ? rtdResultRows.map((row, index) => <article key={row.code}><b>{index + 1}</b><span><strong>{row.label}</strong><i><em style={{ width: `${totalValidRtdVotes ? (row.votes / totalValidRtdVotes) * 100 : 0}%` }} /></i></span><span><strong>{row.votes.toLocaleString("es-GT")}</strong><small>{totalValidRtdVotes ? ((row.votes / totalValidRtdVotes) * 100).toFixed(1) : "0.0"}%</small></span></article>) : <p>No hay folios enviados para esta elección en el entorno de la campaña.</p>}</section>
-        <aside><small>CONTROL DE RECEPCIÓN</small><span><b>{is_demo ? 0 : submittedRtdRows.length}</b> folios reales enviados</span><span><b>{is_demo ? submittedRtdRows.length : 0}</b> folios demostrativos</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "BORRADOR").length}</b> borradores en servidor</span><span><b>{selectedRtdRows.filter((record) => rtdNumber(record.payload.evidence_count) > 0).length}</b> con acta</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "OBSERVADO").length}</b> observados</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "CORREGIDO").length}</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
+        <section><header><small>GRÁFICA DE RESULTADOS · {is_demo || rtdMode === "test" ? "VALIDACIÓN DEMOSTRATIVA" : "RESULTADO PARCIAL REAL"}</small><h3>{selectedRtdLabel}</h3></header>{rtdResultRows.length ? rtdResultRows.map((row, index) => <article key={row.code}><b>{index + 1}</b><span><strong>{row.label}</strong><i><em style={{ width: `${totalValidRtdVotes ? (row.votes / totalValidRtdVotes) * 100 : 0}%` }} /></i></span><span><strong>{row.votes.toLocaleString("es-GT")}</strong><small>{totalValidRtdVotes ? ((row.votes / totalValidRtdVotes) * 100).toFixed(1) : "0.0"}%</small></span></article>) : <p>No hay folios enviados para esta elección en el entorno de la campaña.</p>}</section>
+        <aside><small>CONTROL DE RECEPCIÓN</small><span><b>{is_demo || rtdMode === "test" ? 0 : submittedRtdRows.length}</b> folios reales enviados</span><span><b>{is_demo || rtdMode === "test" ? submittedRtdRows.length : 0}</b> folios demostrativos</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "BORRADOR").length}</b> borradores en servidor</span><span><b>{selectedRtdRows.filter((record) => rtdNumber(record.payload.evidence_count) > 0).length}</b> con acta</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "OBSERVADO").length}</b> observados</span><span><b>{selectedRtdRows.filter((record) => String(record.payload.rtd_status || record.status).toUpperCase() === "CORREGIDO").length}</b> corregidos</span><p>Los folios demo nunca se suman a resultados reales. Los borradores tampoco cuentan como cobertura.</p></aside>
       </div>
       <div className="day-d-filters">
         <label><span>Centro</span><select value={rtdCenterFilter} onChange={(event) => setRtdCenterFilter(event.target.value)}><option value="all">Todos</option>{centers.map((center) => <option key={center.id} value={center.id}>{displayCenterName(center.name)}</option>)}</select></label>
         <label><span>Estado</span><select value={rtdStatusFilter} onChange={(event) => setRtdStatusFilter(event.target.value)}><option value="all">Todos</option><option value="BORRADOR">BORRADOR</option><option value="ENVIADO">ENVIADO</option><option value="PENDIENTE_REVISION">PENDIENTE REVISIÓN</option><option value="OBSERVADO">OBSERVADO</option><option value="VALIDADO">VALIDADO</option><option value="CORREGIDO">CORREGIDO</option></select></label>
         <label><span>JRV</span><input inputMode="numeric" value={rtdJrvFilter} onChange={(event) => setRtdJrvFilter(event.target.value.replace(/\D/g, ""))} placeholder="Buscar JRV" /></label>
       </div>
-      {campaign_id ? <Suspense fallback={<p>Cargando archivo de actas…</p>}><RtdActas key={campaign_id} campaignId={campaign_id} /></Suspense> : null}
+      {campaign_id ? <Suspense fallback={<p>Cargando archivo de actas…</p>}><RtdActas key={campaign_id} campaignId={campaign_id} testMode={!is_demo && rtdMode === "test"} /></Suspense> : null}
       <div className="day-d-rtd-list">
         {visibleRtdRows.length ? visibleRtdRows.map((record) => {
           const validVotes = rtdVotes(record).reduce((sum, vote) => sum + vote.votes, 0);

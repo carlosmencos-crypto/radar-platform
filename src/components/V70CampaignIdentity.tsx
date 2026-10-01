@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { V70PhotoEditor } from "./V70PhotoEditor";
 import { createPortal } from "react-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
@@ -10,23 +11,6 @@ import {
   useV70CampaignBrand,
 } from "./useV70CampaignBrand";
 
-function fileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener(
-      "load",
-      () => resolve(String(reader.result ?? "")),
-      { once: true },
-    );
-    reader.addEventListener(
-      "error",
-      () => reject(new Error("No se pudo leer el logotipo.")),
-      { once: true },
-    );
-    reader.readAsDataURL(file);
-  });
-}
-
 export function V70CampaignIdentity() {
   const { campaign_id, municipality_name } = useMunicipalityContext();
   const {
@@ -37,22 +21,11 @@ export function V70CampaignIdentity() {
   } = useV70CampaignBrand();
   const [open, setOpen] = useState(false);
   const [partyName, setPartyName] = useState("");
-  const [partyLogo, setPartyLogo] = useState<File | null>(null);
+  const [partyLogo, setPartyLogo] = useState<string | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
-  const logoPreview = useMemo(
-    () => (partyLogo ? URL.createObjectURL(partyLogo) : ""),
-    [partyLogo],
-  );
-
-  useEffect(
-    () => () => {
-      if (logoPreview) URL.revokeObjectURL(logoPreview);
-    },
-    [logoPreview],
-  );
   async function save(event: FormEvent) {
     event.preventDefault();
     const normalizedName = partyName.trim();
@@ -60,7 +33,7 @@ export function V70CampaignIdentity() {
       setMessage("Cambia al menos un dato.");
       return;
     }
-    if (partyLogo && partyLogo.size > 1_000_000) {
+    if (partyLogo && partyLogo.length > 1_400_000) {
       setMessage("El logotipo debe pesar menos de 1 MB.");
       return;
     }
@@ -68,7 +41,7 @@ export function V70CampaignIdentity() {
     setMessage("");
     try {
       const logo = partyLogo
-        ? await fileAsDataUrl(partyLogo)
+        ? partyLogo
         : removeLogo ? null : identity.party_logo_data_url;
       const token = await ensureRadarAccessToken();
       const saved = await saveCampaignIdentity(
@@ -100,7 +73,7 @@ export function V70CampaignIdentity() {
     }
   }
 
-  const logo = logoPreview || (removeLogo ? "" : identity.party_logo_data_url) || "";
+  const logo = partyLogo || (removeLogo ? "" : identity.party_logo_data_url) || "";
   return (
     <>
       <aside
@@ -186,33 +159,7 @@ export function V70CampaignIdentity() {
                 placeholder={identity.party_name || "Nombre del partido"}
               />
             </label>
-            <label>
-              <span>Logotipo del partido</span>
-              <span className="campaign-identity-preview">
-                {logo ? (
-                  <img src={logo} alt="Vista previa del logotipo" />
-                ) : (
-                  <i>LOGO</i>
-                )}
-                <b>{partyLogo?.name || "Seleccionar logotipo"}</b>
-              </span>
-              <input
-                key={removeLogo ? "removed" : "selected"}
-                type="file"
-                disabled={saving}
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  setPartyLogo(file);
-                  if (file) setRemoveLogo(false);
-                }}
-              />
-            </label>
-            {logo ? <button type="button" disabled={saving} onClick={() => {
-              setPartyLogo(null);
-              setRemoveLogo(true);
-            }}>Quitar logo del partido</button> : null}
-            {removeLogo ? <p role="status">Sin logotipo. Guarda los cambios para retirarlo de la identidad compartida de la campaña.</p> : null}
+            <div><span>Logotipo del partido</span><V70PhotoEditor logoMode currentSrc={logo} privacyLabel="Ajusta el logotipo dentro del círculo" allowRemove onError={setMessage} onChange={(value) => { setPartyLogo(value || null); setRemoveLogo(!value); }} /></div>
             <p>
               La fotografía y los datos de cada candidato se administran
               únicamente desde su tarjeta CRM.
