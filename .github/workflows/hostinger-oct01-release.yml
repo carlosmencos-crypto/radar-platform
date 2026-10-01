@@ -1,0 +1,150 @@
+name: RADAR October audit release
+on:
+  push:
+    branches: [ops/oct01-release]
+    paths:
+      - .github/workflows/hostinger-oct01-release.yml
+      - ops/prepare-oct01-release.py
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: radar-hostinger-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e9ae248cbd1dbc292800fe9b31ad470a05183279
+          path: main-source
+      - uses: actions/checkout@v4
+        with:
+          path: recovery-source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require the approved source quality gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_api=repos/carlosmencos-crypto/radar-platform/actions/runs/36835427620
+          test "$(gh api "$run_api" --jq .head_sha)" = e9ae248cbd1dbc292800fe9b31ad470a05183279
+          test "$(gh api "$run_api" --jq .conclusion)" = success
+      - name: Build verified municipal source
+        working-directory: main-source
+        env:
+          VITE_SUPABASE_URL: https://xxobbhnhxhcjkdxmjmwj.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn
+        run: |
+          npm ci
+          npm run build
+          npm run verify:deploy
+          npm run audit:bundle
+      - name: Prepare scoped release and verify JavaScript
+        run: python3 recovery-source/ops/prepare-oct01-release.py main-source release-stage
+      - name: Publish with backup and unchanged-live-file guards
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do test -n "${!name}"; done
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          umask 077
+          task_dir=$(mktemp -d)
+          trap 'rm -rf "$task_dir"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
+          ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
+          test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          options=(-i "$task_dir/identity" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" -o ConnectTimeout=15)
+          scp -P "$SSH_PORT" "${options[@]}" radar-oct01-release.tgz "$SSH_USER@$SSH_HOST:radar-oct01-release-20261001.tgz"
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PYCODE'
+          from pathlib import Path
+          import os,json,hashlib,tarfile,shutil,datetime,fcntl,tempfile
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          archive=Path.home()/'radar-oct01-release-20261001.tgz'
+          backup_root=Path.home()/'radar-deploy-backups'
+          backup_root.mkdir(mode=0o700,exist_ok=True)
+          sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
+          with (backup_root/'deploy.lock').open('w') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX)
+            with tempfile.TemporaryDirectory(dir=backup_root) as stage_dir:
+              stage=Path(stage_dir)
+              with tarfile.open(archive,'r:gz') as package:
+                for member in package.getmembers():
+                  relative=Path(member.name)
+                  assert member.isfile() and not relative.is_absolute() and '..' not in relative.parts,'Invalid release member'
+                  target=stage/relative
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(package.extractfile(member).read())
+              plan=json.loads((stage/'release-plan.json').read_text())
+              for name,want in plan['files'].items():
+                assert sha(stage/name)==want,'Invalid staged hash: '+name
+              already=all((root/name).is_file() and sha(root/name)==want for name,want in plan['files'].items())
+              if not already:
+                for name,want in plan['expected'].items():
+                  assert sha(root/name)==want,'Live application changed; stop: '+name
+                backup=backup_root/('oct01-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
+                backup.mkdir(mode=0o700)
+                originals={}
+                for name in plan['files']:
+                  target=root/name
+                  originals[name]=target.exists()
+                  if target.exists():
+                    dest=backup/name
+                    dest.parent.mkdir(parents=True,exist_ok=True)
+                    shutil.copy2(target,dest)
+                (backup/'manifest.json').write_text(json.dumps({'original':originals,'expected':plan['expected'],'files':plan['files']}))
+                touched=[]
+                try:
+                  for name in sorted(plan['files'],key=lambda name:(name in ('radar-app.html','fiscales/index.html'),name)):
+                    target=root/name
+                    target.parent.mkdir(parents=True,exist_ok=True)
+                    target.parent.chmod(0o755)
+                    pending=target.with_name(target.name+'.radar-staged')
+                    pending.write_bytes((stage/name).read_bytes())
+                    pending.chmod(0o644)
+                    os.replace(pending,target)
+                    touched.append(name)
+                  for name,want in plan['files'].items():
+                    assert sha(root/name)==want,'Post-write mismatch: '+name
+                except BaseException:
+                  for name in reversed(touched):
+                    if originals[name]:shutil.copy2(backup/name,root/name)
+                    else:(root/name).unlink()
+                  raise
+                print('FISCAL_PATH_RELEASE_OK backup='+backup.name)
+              else:print('FISCAL_PATH_ALREADY_CURRENT')
+              print(json.dumps({'portal_url':plan['portal_url'],'files_verified':len(plan['files']),'source_sha':plan['source_sha'],'scope':'October audit'}))
+          archive.unlink()
+          PYCODE
+      - name: Verify public portal and main configuration
+        run: |
+          python3 - <<'PYCODE'
+          import urllib.request,json
+          base='https://radargt.wowlatam.com'
+          def fetch(path):
+            request=urllib.request.Request(base+path,headers={'Cache-Control':'no-cache','User-Agent':'RADAR-release-verification'})
+            with urllib.request.urlopen(request,timeout=20) as response:
+              assert response.status==200
+              return response.read()
+          html=fetch('/fiscales/').decode()
+          assert '<title>RADAR · Portal Fiscal</title>' in html
+          assert '/fiscales/radar-fiscal-config.js' in html
+          release=json.loads(fetch('/radar-release.json'))
+          assert release['environment']['fiscal_portal_url']==base+'/fiscales'
+          assert release['source_sha']=='e9ae248cbd1dbc292800fe9b31ad470a05183279'
+          manifest=json.loads(fetch('/fiscales/fiscal-manifest.webmanifest'))
+          assert manifest['scope']=='/fiscales/' and manifest['start_url']=='/fiscales/'
+          print('PUBLIC_FISCAL_PATH_VERIFIED')
+          PYCODE
