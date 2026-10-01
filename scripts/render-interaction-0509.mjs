@@ -382,7 +382,7 @@ try {
     }
     if (slug === "pulso") {
       const pulseTabs = await evaluate(`(()=>{const items=Array.from(document.querySelectorAll('.pulse-election-tabs button')).map((item)=>{const rect=item.getBoundingClientRect();return{label:item.textContent.trim(),top:rect.top,left:rect.left,right:rect.right};});return items;})()`);
-      if (!pulseTabs || pulseTabs.length !== 5 || pulseTabs.some((item) => Math.abs(item.top - pulseTabs[0].top) > 2) || pulseTabs.at(-1)?.label !== "Parlacen") throw new Error(`Pulso election tabs do not fit on one row: ${JSON.stringify(pulseTabs)}`);
+      if (!pulseTabs || pulseTabs.length !== 4 || pulseTabs.some((item) => Math.abs(item.top - pulseTabs[0].top) > 2) || pulseTabs.some((item) => /parlacen/i.test(item.label))) throw new Error(`Pulso election tabs do not fit on one row: ${JSON.stringify(pulseTabs)}`);
     }
     const snap = await snapshot();
     assertHealthy(snap, marker);
