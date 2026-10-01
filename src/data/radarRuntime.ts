@@ -1070,7 +1070,7 @@ export async function loadNominalDirectoryAvailability(municipalityCode: string,
 export interface RtdEvidence {
   id: string; folio_id: string; bucket_id: string; object_path: string; file_name: string;
   mime_type: string; file_size: number; election_type: string; jrv_number: number;
-  municipality_code: string; municipality_name: string; center_name: string; status: string;
+  municipality_code: string; municipality_name: string; center_name: string; status: string; is_test?: boolean;
 }
 export async function loadRtdEvidence(campaignId: string, accessToken: string) {
   const all: RtdEvidence[] = [];

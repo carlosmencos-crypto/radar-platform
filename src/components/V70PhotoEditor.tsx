@@ -6,6 +6,7 @@ type V70PhotoEditorProps = {
   onError?: (message: string) => void;
   privacyLabel?: string;
   allowRemove?: boolean;
+  logoMode?: boolean;
 };
 
 const OUTPUT_SIZE = 900;
@@ -16,18 +17,19 @@ export function V70PhotoEditor({
   onError,
   privacyLabel = "Opcional",
   allowRemove = false,
+  logoMode = false,
 }: V70PhotoEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const renderRevision = useRef(0);
   const onChangeRef = useRef(onChange);
   const onErrorRef = useRef(onError);
-  const [source, setSource] = useState<File | null>(null);
+  const [source, setSource] = useState<File | string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [horizontal, setHorizontal] = useState(50);
   const [vertical, setVertical] = useState(50);
   const previewUrl = useMemo(
-    () => (source ? URL.createObjectURL(source) : ""),
+    () => (typeof source === "string" ? source : source ? URL.createObjectURL(source) : ""),
     [source],
   );
 
@@ -38,7 +40,7 @@ export function V70PhotoEditor({
 
   useEffect(
     () => () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     },
     [previewUrl],
   );
@@ -54,17 +56,17 @@ export function V70PhotoEditor({
       if (!canvas || !context) return;
       canvas.width = OUTPUT_SIZE;
       canvas.height = OUTPUT_SIZE;
-      context.fillStyle = "#F6F2EE";
+      context.fillStyle = logoMode ? "#FFFFFF" : "#F6F2EE";
       context.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-      const baseScale = Math.max(
+      const baseScale = (logoMode ? Math.min : Math.max)(
         OUTPUT_SIZE / image.naturalWidth,
         OUTPUT_SIZE / image.naturalHeight,
       );
       const scale = baseScale * zoom;
       const drawWidth = image.naturalWidth * scale;
       const drawHeight = image.naturalHeight * scale;
-      const drawX = (OUTPUT_SIZE - drawWidth) * (horizontal / 100);
-      const drawY = (OUTPUT_SIZE - drawHeight) * (vertical / 100);
+      const drawX = (OUTPUT_SIZE - drawWidth) / 2 + (horizontal - 50) / 100 * OUTPUT_SIZE;
+      const drawY = (OUTPUT_SIZE - drawHeight) / 2 + (vertical - 50) / 100 * OUTPUT_SIZE;
       context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
       const result = canvas.toDataURL("image/jpeg", 0.92);
       if (revision === renderRevision.current) onChangeRef.current(result);
@@ -74,7 +76,7 @@ export function V70PhotoEditor({
     };
     image.src = previewUrl;
     return () => { renderRevision.current += 1; };
-  }, [horizontal, previewUrl, source, vertical, zoom]);
+  }, [horizontal, previewUrl, source, vertical, zoom, logoMode]);
 
   function selectPhoto(file: File | null) {
     if (file && file.size > 8 * 1024 * 1024) {
@@ -122,8 +124,9 @@ export function V70PhotoEditor({
           <small>
             {privacyLabel} · JPG, PNG o WebP · se guardará ajustada al círculo
           </small>
+          {currentSrc && !source ? <button type="button" onClick={() => { setSource(currentSrc); setZoom(1); setHorizontal(50); setVertical(50); }}>Ajustar imagen actual</button> : null}
           {allowRemove && (source || currentSrc) ? (
-            <button type="button" onClick={removePhoto}>Borrar fotografía</button>
+            <button type="button" aria-label="Borrar fotografía" onClick={removePhoto}>Borrar fotografía</button>
           ) : null}
         </span>
       </div>
@@ -133,7 +136,7 @@ export function V70PhotoEditor({
             <span>Acercar</span>
             <input
               type="range"
-              min="1"
+              min={logoMode ? "0.5" : "1"}
               max="2.5"
               step="0.05"
               value={zoom}

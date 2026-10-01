@@ -222,7 +222,7 @@ export function V70LocationPicker({
   const finalPoint = routeMode && route.length ? route[0] : point;
   return (
     <div className="location-picker">
-      <header><div><small>{routeMode ? "DIBUJAR CAMINATA" : "UBICAR ACTIVIDAD"}</small><h3>{routeMode ? "Marca la ruta punto por punto" : "Busca o toca el mapa"}</h3></div><button type="button" onClick={onClose}>×</button></header>
+      <header><div><small>{routeMode ? "DIBUJAR RUTA" : "UBICAR ACTIVIDAD"}</small><h3>{routeMode ? "Marca la ruta punto por punto" : "Busca o toca el mapa"}</h3></div><button type="button" onClick={onClose}>×</button></header>
       <div className="location-search"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void search(query); } }} placeholder={`Buscar lugar o dirección en ${municipality_name}`} autoComplete="off" /><button type="button" onClick={() => void search(query)}>Buscar</button></div>
       {results.length ? <div className="location-results">{results.map((result) => <button type="button" key={result.key} onClick={() => choose(result)}>{result.display_name}</button>)}</div> : null}
       {status ? <p className="location-status">{status}</p> : null}

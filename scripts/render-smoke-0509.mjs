@@ -549,7 +549,7 @@ try {
     interactions.push({kind:"contact-sheet-approved-pilot-layout",...layout,ok:true});
     await capture('directorio-ficha-completa');
     await waitFor(`document.querySelector('.photo-editor-preview img')?.naturalWidth===1`, "existing synthetic contact photo");
-    await clickSelector('.photo-editor-file button');
+    await clickSelector('.photo-editor-file button[aria-label="Borrar fotografía"]');
     await waitFor(`!document.querySelector('.photo-editor-preview img') && !document.querySelector('.photo-editor-file button') && !document.querySelector('.elector-sheet-person img')`, "contact photo cleared in form");
 
     await clickSelector('.elector-document-preview summary');

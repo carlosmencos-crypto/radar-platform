@@ -12,7 +12,7 @@ type Result = { optionCode: string; candidateName: string; organization: string;
 type Survey = { folio: string; electionType: Election; fieldEnd: string; sampleSize: number; scopeLabel: string; methodology: string; sourceLabel: string; results: Result[] };
 
 const colors = ["#09566C", "#5A2973", "#C47A5A", "#65736B", "#A7ACA5", "#2E343B"];
-const electionTypes: Array<[Election, string]> = [["ALCALDIA", "Alcaldía municipal"], ["PRESIDENTE", "Presidencia"], ["DIP_NAC", "Diputación por Lista Nacional"], ["DIP_DIST", "Diputación distrital"], ["PARLACEN", "Parlacen"]];
+const electionTypes: Array<[Election, string]> = [["ALCALDIA", "Alcaldía municipal"], ["PRESIDENTE", "Presidencia"], ["DIP_NAC", "Diputación por Lista Nacional"], ["DIP_DIST", "Diputación distrital"]];
 const catalogs: Record<Election, Array<[string, string]>> = {
   ALCALDIA: [["Planilla VALOR", "VALOR"], ["Planilla VAMOS", "VAMOS"], ["Planilla UNE", "UNE"], ["Planilla PPN", "PPN"], ["No sabe / no responde", ""]],
   PRESIDENTE: [["Sandra Torres", "UNE"], ["Zury Ríos", "VALOR-UNIONISTA"], ["Manuel Conde", "VAMOS"], ["Bernardo Arévalo", "SEMILLA"], ["No sabe / no responde", ""]],

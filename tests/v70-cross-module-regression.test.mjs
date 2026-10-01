@@ -29,7 +29,7 @@ test("directory search updates the canonical result list without an overlay", ()
   assert.match(directory, /zipSync/);
   assert.match(directory, /carnetPng/);
   assert.match(directory, /V70PhotoEditor/);
-  assert.match(directory, /candidatePositions\.map/);
+  assert.match(directory, /candidatePositions\.filter/);
   assert.match(directory, /className="crm-table crm-table-v2"/);
   assert.match(directory, /className="crm-row crm-head"/);
   assert.match(directory, /className="agenda-create-link"/);
@@ -121,7 +121,7 @@ test("map renders persisted activity points and routes", () => {
   assert.match(map, /L\.polyline/);
   assert.match(map, /agenda-map-marker/);
   assert.match(map, /activity-coverage-zone/);
-  assert.match(map, /radius: 1500/);
+  assert.match(map, /Math\.max\(75,/);
   assert.match(map, /Referencia territorial aproximada dentro del municipio/);
   assert.match(map, /setStatusFilter/);
   assert.match(map, /setResponsibleFilter/);
@@ -179,10 +179,10 @@ test("Día D consumes CRM fiscales and persists JRV assignments", () => {
   assert.match(styles, /\.day-d-access-actions nav\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 });
 
-test("Pulso keeps all five election types on one desktop row", () => {
+test("Pulso exposes four requested elections without Parlacen", () => {
   const pulse = read("src/components/V70DirectPulse0509.tsx");
   const styles = read("src/styles/canonical-adapter.css");
-  assert.match(pulse, /\["PARLACEN", "Parlacen"\]/);
+  assert.doesNotMatch(pulse.split("const simulatedCandidates")[0].split("const electionTypes")[1]?.split(";")[0] || "", /PARLACEN/);
   assert.match(styles, /\.pulse-election-tabs\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)\}/);
 });
 

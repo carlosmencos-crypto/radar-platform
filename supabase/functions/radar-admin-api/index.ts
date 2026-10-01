@@ -345,6 +345,25 @@ Deno.serve(async (req: Request) => {
       return response(req, { data: { ...visibleSnapshot, lifecycle_mail: mailList.data ?? [], users, campaign_members: campaignMembers, client_accounts: clientAccounts, shared_content: sharedContent, operator_context: context }, request_id: requestId });
     }
 
+    if (action === "delete_resource") {
+      assertPermission(role, context, "users:write");
+      if (role !== "super_admin" || !allowedOrigins().has(req.headers.get("Origin") ?? "") || input.confirmation !== "ELIMINAR") throw new Error("Confirma la eliminación del recurso");
+      const params = { p_actor_user_id: userData.user.id, p_actor_role: role };
+      const listing = await service.rpc("radar_admin_content_v1", { ...params, p_operation: "list", p_input: {} });
+      if (listing.error) throw listing.error;
+      const resource = (listing.data as Record<string, unknown>[]).find(row => row.id === input.id && row.kind === "resource");
+      if (!resource) throw new Error("Recurso inexistente");
+      const retired = await service.rpc("radar_admin_content_v1", { ...params, p_operation: "archive", p_input: { id: resource.id } });
+      if (retired.error) throw retired.error;
+      if (typeof resource.storage_path === "string" && resource.storage_path) {
+        const removed = await service.storage.from("radar-shared-resources").remove([resource.storage_path]);
+        if (removed.error) throw new Error("El recurso está retirado, pero falta borrar el archivo. Reintenta eliminarlo.");
+      }
+      const deleted = await service.rpc("radar_admin_delete_resource_v1", { ...params, p_input: input });
+      if (deleted.error) throw deleted.error;
+      return response(req, { data: deleted.data, request_id: requestId });
+    }
+
     if(action === "delete_notice") {
       assertPermission(role, context, "users:write");
       if(role !== "super_admin" || !allowedOrigins().has(req.headers.get("Origin") ?? "")) throw new Error("Operación no autorizada");

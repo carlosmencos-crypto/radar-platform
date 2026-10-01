@@ -1,5 +1,6 @@
+import { V70PhotoEditor } from "./V70PhotoEditor";
 import { CampaignTeamSettings } from "./CampaignTeamSettings";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
@@ -18,22 +19,13 @@ function ConfigurationContent() {
     return window.localStorage.getItem("radar-user-photo-v2") || "";
   });
   const [saved, setSaved] = useState("");
-  function changePhoto(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2_000_000) {
-      setSaved("La fotografía debe pesar menos de 2 MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = String(reader.result || "");
+  function changePhoto(value: string) {
+    try {
       window.localStorage.setItem("radar-user-photo-v2", value);
       setPhoto(value);
       window.dispatchEvent(new Event("radar-profile-updated"));
       setSaved("Fotografía de usuario actualizada en este dispositivo.");
-    };
-    reader.readAsDataURL(file);
+    } catch { setSaved("No se pudo guardar la fotografía en este dispositivo."); }
   }
   return (
     <>
@@ -80,21 +72,7 @@ function ConfigurationContent() {
               <small>PERFIL</small>
               <h2>Fotografía de usuario</h2>
             </header>
-            <div className="config-user-photo">
-              {photo ? (
-                <img src={photo} alt="Fotografía del usuario" />
-              ) : (
-                <i>R</i>
-              )}
-              <label>
-                <span>Cambiar fotografía</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={changePhoto}
-                />
-              </label>
-            </div>
+            <V70PhotoEditor currentSrc={photo} onChange={changePhoto} onError={setSaved} allowRemove />
             <p>
               Se utiliza en el acceso personal y ayuda a distinguir cuentas.
             </p>
