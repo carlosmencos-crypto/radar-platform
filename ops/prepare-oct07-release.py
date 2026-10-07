@@ -1,3 +1,4 @@
+# Guard inputs verified using cache-busted live assets and the deployed manifest.
 from pathlib import Path
 import hashlib,json,re,shutil,subprocess,sys,tarfile,urllib.request
 source,stage=map(Path,sys.argv[1:3])
