@@ -177,7 +177,7 @@ begin
 
   return payload;
 end;
-$function$
+$function$;
 
 
 revoke all on function public.radar_admin_national_rtd_v1(uuid, text, jsonb) from public, anon, authenticated;
