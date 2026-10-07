@@ -172,5 +172,5 @@ export function V70DirectIntelligence0509() {
   const consumer = resolveRadarConsumer(municipalityCode);
   if (!consumer || !municipalityCode) return null;
   const municipalityTitle = `${consumer.municipality.displayName ?? consumer.municipality.name} · ${consumer.municipality.department}`;
-  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="inteligencia" eyebrow="EXPEDIENTE MUNICIPAL 360" topbarTitle={municipalityTitle} accountRole="Cuenta del municipio" dayDNext intelligenceExportSelection={exportSelection}><CanonicalMunicipalIntelligenceContent onSelectionChange={handleSelectionChange} /></V70DirectShell0509></MunicipalityProvider>;
+  return <MunicipalityProvider consumer={consumer}><V70DirectShell0509 active="inteligencia" eyebrow="EXPEDIENTE MUNICIPAL 360" topbarTitle={municipalityTitle} accountRole="Cuenta del municipio" intelligenceExportSelection={exportSelection}><CanonicalMunicipalIntelligenceContent onSelectionChange={handleSelectionChange} /></V70DirectShell0509></MunicipalityProvider>;
 }
