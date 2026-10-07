@@ -1,0 +1,74 @@
+{
+  "audited_at": "2026-10-06 America/Guatemala",
+  "project": "RADAR portal fiscal and RTD",
+  "production_url": "https://radargt.wowlatam.com/fiscales/",
+  "source_base": "c2823465a31474d2dd2eb0a86603beeef60e4c22",
+  "fix_branch": "fix/fiscal-audit-20261007",
+  "fix_commit": "ef4ce1f9d7dae87bc85d1fb327fba66923f196e9",
+  "database_migration": {
+    "name": "fix_national_rtd_municipal_totals",
+    "applied_version": "20261007014417",
+    "source_file": "supabase/migrations/20261007014116_fix_national_rtd_municipal_totals.sql"
+  },
+  "finding": {
+    "component": "National RTD municipal reception table",
+    "cause": "Joining assignments and actas by campaign multiplied vote sums by assignment count.",
+    "example": {
+      "municipality": "0501",
+      "election": "PRESIDENTE",
+      "cycle": 2023,
+      "environment": "DEMO",
+      "before": 816,
+      "after": 408,
+      "national_total": 408
+    },
+    "resolution": "Aggregate assignment counts and acta totals separately per campaign before joining."
+  },
+  "user_acta": {
+    "folio": "RTD-0501-7157-PRESIDENTE-57B097",
+    "jrv": 7157,
+    "status": "ENVIADO",
+    "is_demo": true,
+    "valid_votes": 230,
+    "null_votes": 10,
+    "blank_votes": 10,
+    "voters": 250,
+    "received_ballots": 400,
+    "unused_ballots": 150,
+    "evidence_count": 1,
+    "submitted_at_utc": "2026-10-07T01:36:56.372Z"
+  },
+  "verification": {
+    "source_tests": {
+      "passed": 153,
+      "failed": 0
+    },
+    "typecheck": "PASS",
+    "national_scopes": 24,
+    "negative_database_scope_guards": 4,
+    "sent_folios_checked": 12,
+    "incidents_checked": 5,
+    "evidence_records_checked": 23,
+    "missing_mirrors": 0,
+    "real_demo_crossings": 0,
+    "invalid_sent_totals": 0,
+    "sent_without_photo": 0,
+    "missing_storage_objects": 0,
+    "anonymous_evidence_allowed": 0,
+    "unauthenticated_bootstrap_http": 401,
+    "invalid_session_bootstrap_http": 401,
+    "municipal_rpc_user_acta_returned": 1,
+    "municipal_rpc_foreign_rows": 0
+  },
+  "scope_limits": [
+    "No new authenticated visual browser round trip on the user's session.",
+    "No load or stress testing.",
+    "No portal redesign or Hostinger publication; the fix changes only the database aggregation function.",
+    "Existing unrelated platform security advisories were not modified."
+  ],
+  "next_trial": [
+    "Submit another DEMO acta for a different election and verify the corresponding municipal and national filters.",
+    "Check one intentional nonmatching control and confirm submission remains blocked.",
+    "Check reopening a saved draft and retaining its photo."
+  ]
+}
