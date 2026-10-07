@@ -20,6 +20,7 @@ export default defineConfig({
         // but will fail to parse in the browser.
         manualChunks(id) {
           if (id.includes("node_modules")) return "vendor";
+          if (id.includes("/src/admin/")) return "admin";
           if (id.includes("V70ActivityVisual")) return "activity-export";
           if (id.includes("radarContract.generated.json")) return "radar-contract";
           return undefined;
