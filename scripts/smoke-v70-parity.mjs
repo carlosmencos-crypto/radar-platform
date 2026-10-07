@@ -24,7 +24,7 @@ assert(!shell.includes("createPortal") && !shell.includes("querySelector"), "Dir
 assert(shell.includes("{userLabel}") && shell.includes("sesión protegida") && shell.includes("Cerrar sesión"), "Canonical V70 account block is incomplete.");
 for (const asset of ["radar-electoral-logo-horizontal-oscuro-transparente.svg","radar-electoral-isotipo.svg","radar-isotipo.svg"]) assert(shell.includes(asset), `Official V70 asset missing: ${asset}`);
 assert(shell.includes("Reporte PDF") && shell.includes("Municipio <b>{municipality_code}</b>"), "Canonical V70 top controls are incomplete.");
-assert(shell.includes('slug==="dia-d"&&dayDNext') && shell.includes("PRÓXIMO"), "Canonical Intelligence-only Día D próximo marker support is missing.");
+assert(!shell.includes("dayDNext") && !shell.includes("PRÓXIMO"), "Obsolete Día D upcoming badge must not return to desktop or mobile navigation.");
 
 const directHome = read("src/components/V70DirectHome0509.tsx");
 const campaignIdentity = read("src/components/V70CampaignIdentity.tsx");
@@ -77,7 +77,7 @@ assert(operationalMap.includes("map-layer-${key}"), "Canonical operational map d
 assert(operationalMap.includes("getInstalledRadarVoterCommunities"), "Authorized aggregate community runtime is missing from operational map.");
 assert(!operationalMap.includes("map-stat-chip") && !operationalMap.includes('className="map-privacy"'), "Non-canonical operational map chrome returned.");
 assert(directIntelligence.includes("function CanonicalMunicipalIntelligenceContent") && directIntelligence.includes("<V70ElectoralTerritory") && directIntelligence.includes("<V70CanonicalRichMunicipality") && directIntelligence.includes("<V70Ecosystem0509"), "Direct Intelligence is missing the shared canonical V70 depth components.");
-assert(directIntelligence.includes('eyebrow="EXPEDIENTE MUNICIPAL 360"') && directIntelligence.includes("topbarTitle={municipalityTitle}") && directIntelligence.includes('accountRole="Cuenta del municipio"') && directIntelligence.includes("dayDNext"), "Intelligence chrome drifted from canonical V70.");
+assert(directIntelligence.includes('eyebrow="EXPEDIENTE MUNICIPAL 360"') && directIntelligence.includes("topbarTitle={municipalityTitle}") && directIntelligence.includes('accountRole="Cuenta del municipio"') && !directIntelligence.includes("dayDNext"), "Intelligence chrome drifted from canonical V70.");
 assert(directIntelligence.includes('data-v70-contract="electorate-profile-v70"') && !directIntelligence.includes('municipalityCode === "0509"') && directIntelligence.includes("POBLACIÓN Y TERRITORIO") && directIntelligence.includes("No publicado"), "Canonical 340 Intelligence contract guardrail failed.");
 assert(ecosystem.includes("PORTAL RADAR · VISIÓN DE PRODUCTO") && ecosystem.includes("De la evidencia a la operación diaria") && ecosystem.includes("RADAR Data Vault") && ecosystem.includes("Campaign Vault") && ecosystem.includes("≠"), "Canonical product-vision footer is incomplete.");
 
