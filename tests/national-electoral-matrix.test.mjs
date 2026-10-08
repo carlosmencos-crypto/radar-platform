@@ -81,3 +81,81 @@ for (const code of ['0101','0301','0509','0608','1208','1901']) test(`published 
     assert.ok(local.marginVotes >= 0);
   }
 });
+
+test('metadata-only national batch restores municipal KPIs and territorial acta counters', () => {
+  const fixture = JSON.parse(fs.readFileSync(new URL('../scripts/fixtures/public-municipal-layers-1401.json', import.meta.url)));
+  const model = adapt(fixture.layers);
+  const election = model.elections.find(row => row.code === 'CORPORACION_MUNICIPAL');
+  assert.equal(election.leader, 'VAMOS');
+  assert.equal(election.leaderVotes, 11826);
+  assert.equal(election.runner, 'UNE');
+  assert.equal(election.runnerVotes, 7660);
+  assert.equal(election.marginVotes, 4166);
+  assert.equal(election.marginShare, 4166 / 27879);
+  assert.equal(election.counted, 132);
+  assert.equal(election.expected, 133);
+  assert.equal(election.countedShare, 132 / 133);
+  assert.equal(election.votesCast, 30260);
+  assert.equal(election.turnout, 30260 / 49066);
+  assert.ok(election.snapshot.includes('2023'));
+  for (const item of model.elections) {
+    assert.ok(item.counted !== null && item.expected !== null && item.turnout !== null);
+    assert.equal(item.counted, model.centers.reduce((sum, center) => sum + center.elections[item.code].counted, 0));
+    assert.equal(item.optionVotes, model.centers.reduce((sum, center) => sum + center.elections[item.code].optionVotes, 0));
+  }
+});
+
+test('summary fallback is weighted, retains true zeros and leaves incomplete data unknown', () => {
+  const input = layers();
+  const p = input[1].payload;
+  p.election = { code: 'PRESIDENTE', name: 'Presidencia' };
+  p.center_metric_schema.push('cast','nominal');
+  p.center_metrics[0].push(20,100);
+  p.center_metrics[1].push(90,300);
+  let result = adapt(input).elections[0];
+  assert.equal(result.counted, 2);
+  assert.equal(result.expected, 2);
+  assert.equal(result.turnout, 110/400);
+  assert.equal(result.marginVotes, 0); // tied options remain tied
+  assert.ok(result.top.every(row => row.rank === 1));
+  p.center_metrics[0][p.center_metric_schema.indexOf('cast')] = null;
+  result = adapt(input).elections[0];
+  assert.equal(result.turnout, null);
+  assert.equal(result.votesCast, null);
+  assert.equal(result.counted, 2);
+  delete p.votes_matrix;
+  p.center_metrics.pop();
+  result = adapt(input).elections[0];
+  assert.equal(result.counted, null);
+  assert.equal(result.countedShare, null);
+  assert.equal(result.turnout, null);
+  assert.equal(result.expected, 2);
+  assert.equal(result.leaderVotes, 13); // independent municipal ranking remains available
+  p.center_metrics = [['001',0,0,null,0,null,0,0,0,0,0],['002',0,0,null,0,null,0,0,0,0,0]];
+  p.options.forEach(row => { row[2]=0; row[3]=0; });
+  result = adapt(input).elections[0];
+  assert.equal(result.counted, 0);
+  assert.equal(result.countedShare, 0);
+  assert.equal(result.votesCast, 0);
+  assert.equal(result.turnout, null);
+  assert.equal(result.leader, null);
+  assert.equal(result.runner, null);
+  assert.equal(result.marginVotes, null);
+});
+
+test('complete legacy summaries match their center-derived equivalents', () => {
+  for (const code of ['0101','0301','0509','0608','1208','1901']) {
+    const fixture = JSON.parse(fs.readFileSync(new URL(`../scripts/fixtures/public-municipal-layers-${code}.json`, import.meta.url)));
+    const input = fixture.layers.filter(layer => layer.layer_id.startsWith('TREP_'));
+    const before = adapt(input);
+    for (const layer of input.filter(layer => layer.layer_id.startsWith('TREP_2023_CENTER_RESULTS_'))) {
+      layer.payload.election = {};
+    }
+    const after = adapt(input);
+    for (let i = 0; i < before.elections.length; i++) {
+      for (const key of ['counted','expected','countedShare','votesCast','optionVotes','turnout','leader','runner','marginVotes']) {
+        assert.equal(after.elections[i][key],before.elections[i][key],`${code}/${before.elections[i].code}/${key}`);
+      }
+    }
+  }
+});

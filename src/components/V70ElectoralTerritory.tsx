@@ -314,7 +314,7 @@ export function V70ElectoralTerritory({ viewModel, geoBundle, onSelectionChange 
       </div>
     </section>
     <section className="section electoral-depth exportable include-print">
-      <div className="section-head"><div><p className="eyebrow">LECTURA ELECTORAL MUNICIPAL</p><h2>{election.name}</h2></div><p>Ranking municipal completo de las diez fuerzas principales y lectura de calidad del corte. Los porcentajes se calculan sobre votos por opción.</p></div>
+      <div className="section-head"><div><p className="eyebrow">LECTURA ELECTORAL MUNICIPAL</p><h2>{election.name}</h2></div><p>Ranking municipal completo por organización política y cobertura del corte. Los porcentajes se calculan sobre votos por opción.</p></div>
       <div className="election-summary"><div className="election-kpis">
         <article><small>Liderazgo municipal</small><b>{election.leader ?? election.availability}</b><span>{number(election.leaderVotes)} votos · {pct(election.leaderShare, 2)}</span></article>
         <article><small>Segunda fuerza</small><b>{election.runner ?? "—"}</b><span>{number(election.runnerVotes)} votos</span></article>

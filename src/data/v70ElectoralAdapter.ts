@@ -289,38 +289,58 @@ function centerMetrics(payload: Dict): Map<string, Dict> {
   return metrics;
 }
 
-function buildElectionSummary(code: V70ElectionCode, layer: AuthorizedLayerRecord | undefined): V70ElectionSummary {
+function buildElectionSummary(code: V70ElectionCode, layer: AuthorizedLayerRecord | undefined, indexCenters: unknown[]): V70ElectionSummary {
   const availability = availabilityForLayer(layer);
   if (!layer?.payload) return emptyElection(code, availability);
   const payload = layer.payload;
   if (!isDict(payload)) return emptyElection(code, "SIN_REGISTRO");
   const election = isDict(payload.election) ? payload.election : null;
   if (!election) return emptyElection(code, "PARCIAL");
-  const options = parseOptions(payload)
-    .sort((a, b) => a.municipalRank - b.municipalRank || b.municipalVotes - a.municipalVotes)
-    .map((option) => ({ party: option.source, votes: option.municipalVotes, share: option.municipalShare, rank: option.municipalRank }));
+  const options = tieAwareRanks(parseOptions(payload)
+    .map((option) => ({ party: option.source, votes: option.municipalVotes, share: option.municipalShare })));
+  // Later national batches carry election metadata only. Their complete
+  // aggregate is stored in center rows, not in election.*. Only sum a complete
+  // set of centers; a missing value must never become a plausible zero.
+  const metrics = centerMetrics(payload);
+  const complete = indexCenters.length > 0 && metrics.size === indexCenters.length &&
+    indexCenters.every((center) => isDict(center) && metrics.has(asString(center.voting_center_code)));
+  const sum = (values: unknown[]): number | null => {
+    const numbers = values.map(asNumber);
+    return numbers.length && numbers.every((value) => value !== null && value >= 0)
+      ? numbers.reduce<number>((total, value) => total + (value ?? 0), 0) : null;
+  };
+  const centerSum = (key: string) => complete ? sum([...metrics.values()].map((row) => row[key])) : null;
+  const expected = asNumber(election.expected_actas) ?? sum(indexCenters.map((center) => isDict(center) ? center.total_jrv : null));
+  const counted = asNumber(election.counted_actas) ?? centerSum("counted");
+  const votesCast = asNumber(election.votes_cast_counted) ?? centerSum("cast");
+  const nominal = asNumber(election.nominal_roll_counted) ?? centerSum("nominal");
+  const optionVotes = asNumber(election.ballot_option_votes) ?? sum(options.map((option) => option.votes));
+  const leader = options.some((option) => option.votes > 0) ? options[0] : null;
+  const runner = leader ? options[1] : null;
+  const marginVotes = leader && runner ? leader.votes - runner.votes : null;
+  const source = isDict(payload.source) ? payload.source : null;
   return {
     code,
     shortName: SHORT_NAME[code],
     name: asString(election.election_name, LONG_NAME[code]),
-    expected: asNumber(election.expected_actas),
-    counted: asNumber(election.counted_actas),
-    countedShare: asNumber(election.counted_share),
-    turnout: asNumber(election.turnout_counted),
-    votesCast: asNumber(election.votes_cast_counted),
-    optionVotes: asNumber(election.ballot_option_votes),
-    leader: asNullableString(election.leader),
-    leaderVotes: asNumber(election.leader_votes),
-    leaderShare: asNumber(election.leader_share),
-    runner: asNullableString(election.runner_up),
-    runnerVotes: asNumber(election.runner_up_votes),
-    marginVotes: asNumber(election.margin_votes),
-    marginShare: asNumber(election.margin_share),
+    expected,
+    counted,
+    countedShare: asNumber(election.counted_share) ?? (expected && counted !== null ? counted / expected : null),
+    turnout: asNumber(election.turnout_counted) ?? (nominal && votesCast !== null ? votesCast / nominal : null),
+    votesCast,
+    optionVotes,
+    leader: leader?.party ?? null,
+    leaderVotes: leader?.votes ?? null,
+    leaderShare: leader?.share ?? null,
+    runner: runner?.party ?? null,
+    runnerVotes: runner?.votes ?? null,
+    marginVotes,
+    marginShare: marginVotes !== null && optionVotes ? marginVotes / optionVotes : null,
     top: options,
     availability,
     resultStatus: asNullableString(election.result_status),
-    snapshot: asNullableString(election.snapshot),
-    sourceNotice: isDict(payload.source) ? asNullableString(payload.source.display_notice) : null,
+    snapshot: asNullableString(election.snapshot) ?? asNullableString(source?.snapshot),
+    sourceNotice: asNullableString(source?.display_notice),
   };
 }
 
@@ -434,8 +454,8 @@ export function adaptAuthorizedElectoralTerritoryLayers(layers: AuthorizedLayerR
     V70_ELECTION_ORDER.map((code) => [code, unique.get(RESULT_LAYER_BY_ELECTION[code])]),
   ) as Record<V70ElectionCode, AuthorizedLayerRecord | undefined>;
 
-  const elections = V70_ELECTION_ORDER.map((code) => buildElectionSummary(code, resultLayers[code]));
   const indexCenters = asArray(index.centers);
+  const elections = V70_ELECTION_ORDER.map((code) => buildElectionSummary(code, resultLayers[code], indexCenters));
   const seenCenterCodes = new Set<string>();
   const centers: V70ElectoralCenter[] = indexCenters.map((raw, position) => {
     if (!isDict(raw)) throw new Error(`V70 electoral adapter: centro ${position + 1} inválido.`);

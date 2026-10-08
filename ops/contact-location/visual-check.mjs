@@ -37,11 +37,12 @@ try{
     const form=document.querySelector('.elector-private-form').getBoundingClientRect();
     const card=document.querySelector('.contact-location-card').getBoundingClientRect();
     const grid=document.querySelector('.agenda-form-grid').getBoundingClientRect();
-    return {rightGap:sheet.right-form.right,leftGap:form.left-sheet.left,cardWidth:card.width,gridWidth:grid.width,cardHeight:card.height,overflow:document.documentElement.scrollWidth>innerWidth};
+    return {sheetWidth:sheet.width,rightGap:sheet.right-form.right,leftGap:form.left-sheet.left,cardWidth:card.width,gridWidth:grid.width,cardHeight:card.height,overflow:document.documentElement.scrollWidth>innerWidth};
    });
    assert.ok(Math.abs(dimensions.leftGap-dimensions.rightGap)<2,'Contact form must be centered and fill sheet');
    assert.ok(dimensions.cardWidth>dimensions.gridWidth-40,'Location card must span full form grid');
-   assert.ok(dimensions.cardHeight<(width>760?190:270),'Location block must remain compact');
+   assert.ok(dimensions.sheetWidth<=760,'Contact sheet must keep a contained width');
+   assert.ok(dimensions.cardHeight<(width>760?100:145),'Location block must remain compact');
    assert.equal(dimensions.overflow,false);
    await page.screenshot({path:`visual-location/contact-card-${width}-${saved?'saved':'empty'}.png`,fullPage:true});
   }
