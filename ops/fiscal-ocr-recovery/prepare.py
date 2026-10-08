@@ -11,16 +11,19 @@ original=get(inputs['entry'])
 assert sha(original)==inputs['entry_sha'],'Fiscal source changed; stop'
 (p/'live-entry.js').write_bytes(original)
 subprocess.run(['python3',str(p/'patch.py'),str(p/'live-entry.js'),str(p/'fixed-entry.js')],check=True)
+(p/'ocr-original.js').write_bytes(get('/fiscales/assets/src-CA_4_WxC.js'))
+subprocess.run(['python3',str(p/'isolate-ocr.py')],check=True)
 subprocess.run(['node','--check',str(p/'fixed-entry.js')],check=True)
+modules=json.loads((p/'ocr-modules.json').read_text())
 html=get('/fiscales/index.html?ocr-recovery='+str(time.time_ns()))
 manifest_raw=get('/radar-release.json?ocr-recovery='+str(time.time_ns()))
 manifest=json.loads(manifest_raw)
 assert html.decode().count(inputs['entry'])==1,'Fiscal index changed; stop'
 entry='fiscales/assets/index-ocr-recovery-'+sha((p/'fixed-entry.js').read_bytes())[:16]+'.js'
 newhtml=html.decode().replace(inputs['entry'],'/'+entry).encode()
-files={entry:(p/'fixed-entry.js').read_bytes(),'fiscales/index.html':newhtml}
+files={entry:(p/'fixed-entry.js').read_bytes(),'fiscales/index.html':newhtml,**{'fiscales/assets/'+name:(p/name).read_bytes() for name in modules.values()}}
 for name,data in files.items():manifest.setdefault('files',{})[name]=sha(data)
-manifest['fiscal_ocr_recovery']={'date':'2026-10-08','previous_entry':inputs['entry'],'entry':'/'+entry,'changes':['durable photo before OCR','draft hydration guard','lower temporary memory'],'google_document_ai_enabled':False}
+manifest['fiscal_ocr_recovery']={'date':'2026-10-08','previous_entry':inputs['entry'],'entry':'/'+entry,'changes':['isolated OCR module without legacy app mount','selected election recovery per assignment','durable original and adjusted photo'],'google_document_ai_enabled':False}
 files['radar-release.json']=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
 expected={'fiscales/index.html':sha(html),'radar-release.json':sha(manifest_raw),inputs['entry'].lstrip('/'):inputs['entry_sha']}
 stage=Path('release-stage');stage.mkdir(exist_ok=True)

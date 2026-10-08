@@ -1,30 +1,36 @@
 from pathlib import Path
 import hashlib,sys
-src=Path(sys.argv[1]);dst=Path(sys.argv[2]);s=src.read_text()
+s=Path(sys.argv[1]).read_text()
 def replace(a,b):
  global s
- assert s.count(a)==1,('Patch shape changed',a[:100],s.count(a))
+ assert s.count(a)==1,('Unexpected source shape',a[:120],s.count(a))
  s=s.replace(a,b)
-replace('async function T(e,t,n){let r=await ee();return new Promise((i,a)=>{let o=r.transaction(e,t);n(o.objectStore(e),i,a),o.oncomplete=()=>r.close(),o.onerror=()=>a(o.error)})}', '''async function T(e,t,n){let r=await ee();return new Promise((resolve,reject)=>{let tx,value,settled=false;const fail=error=>{if(!settled){settled=true;r.close();reject(error||Error("No se pudo conservar el borrador."))}};try{tx=r.transaction(e,t);tx.oncomplete=()=>{if(!settled){settled=true;r.close();resolve(value)}};tx.onerror=()=>fail(tx.error);tx.onabort=()=>fail(tx.error||Error("El guardado fue interrumpido."));n(tx.objectStore(e),result=>{value=result},error=>{try{tx.abort()}catch{}fail(error)})}catch(error){fail(error)}})}''')
-replace('k=`rtd-${radarAssignmentId}-${i}-${o?.catalogVersion??`pendiente`}`;(0,x.useEffect)(()=>{let e=s?', 'k=`rtd-${radarAssignmentId}-${i}-${o?.catalogVersion??`pendiente`}`;const [radarReady,radarSetReady]=(0,x.useState)(""),radarLoaded=(0,x.useRef)(""),radarReading=(0,x.useRef)(false),radarCurrentKey=(0,x.useRef)(k);radarCurrentKey.current=k;(0,x.useEffect)(()=>{let cancelled=false;radarLoaded.current="";radarSetReady("");te(null);ne({});ae(et());ee({value:0,status:""});let e=s?')
-replace('re(k).then(t=>{let n=t??e??c();u(n),n.actFile&&b(URL.createObjectURL(n.actFile))})},[k,i,s,c]),(0,x.useEffect)(()=>{if(!oe){let e=window.setTimeout(()=>void D(k,l),250);return()=>window.clearTimeout(e)}},[l,k,oe])', '''re(k).then(t=>{if(cancelled)return;let n=(oe?e:t??e)??c();radarLoaded.current=k;radarSetReady(k);u(n);b(n.actFile?URL.createObjectURL(n.actFile):"")}).catch(()=>{if(cancelled)return;radarLoaded.current=k;radarSetReady(k);u(e??c());m("No se pudo recuperar el borrador local. Mantén esta página abierta mientras trabajas.")});return()=>{cancelled=true;radarLoaded.current=""}},[k,oe]),(0,x.useEffect)(()=>{if(!oe&&radarLoaded.current===k){let e=window.setTimeout(()=>{void D(k,l).catch(()=>m("No se pudo guardar en este dispositivo. Mantén el acta abierta e intenta guardar nuevamente."))},250);return()=>window.clearTimeout(e)}},[l,k,oe])''')
-replace('async function me(){if(!(!l.actFile||!o)){C(!0)', 'async function me(){if(!l.actFile||!o||radarReading.current||radarLoaded.current!==k)return;radarReading.current=true;const radarOcrKey=k;{C(!0)')
-replace('status:`Preparando fotografía`});try{let e=await Qe(', 'status:`Guardando fotografía antes de leer…`});try{await D(k,l);let e=await Qe(')
-replace('o.catalogVersion);te(e),ne(', 'o.catalogVersion);if(radarCurrentKey.current!==radarOcrKey)return;te(e),ne(')
-replace('No fue posible completar la lectura. Revisa tu conexión e inténtalo nuevamente; también puedes digitar los datos.', 'No se pudo completar la lectura. La fotografía sigue cargada: vuelve a intentarlo o ingresa las cifras manualmente.')
-replace('})}finally{C(!1)}}}function he()', '})}finally{radarReading.current=false;C(!1)}}}function he()')
-replace('capture:`environment`,disabled:h,onChange:e=>void pe', 'capture:`environment`,disabled:h||S||radarReady!==k,onChange:e=>void pe')
-replace('accept:`image/jpeg,image/png,image/webp`,disabled:h,onChange:e=>void pe', 'accept:`image/jpeg,image/png,image/webp`,disabled:h||S||radarReady!==k,onChange:e=>void pe')
-replace('disabled:!l.actFile||S||h,onClick:()=>void me()', 'disabled:!l.actFile||S||h||radarReady!==k,onClick:()=>void me()')
-replace('value:i,onChange:e=>{a(e.target.value),fe(),v(``)}', 'value:i,disabled:S||h,onChange:e=>{a(e.target.value),fe(),v(``)}')
-# Every one of the five passes previously retained duplicate data URLs and large temporary images.
-replace('preview:r.toDataURL(`image/png`)','preview:e===172?r.toDataURL(`image/png`):``')
-replace('te=g.map(e=>{let t=document.createElement(`canvas`)', 'te=e=>{let t=document.createElement(`canvas`)')
-replace('n.drawImage(e.canvas,0,t*138))),t}),E=g.map(e=>Ue(e)),ne=', 'n.drawImage(e.canvas,0,t*138))),t},E=e=>Ue(e),ne=')
-replace('for(let[e,r]of te.entries()){ne=', 'for(let[e,radarSet]of g.entries()){let r=te(radarSet);ne=')
-replace('let i=await ie.recognize(r,{},{text:!0,blocks:!0});for(let r of Be', 'let i;try{i=await ie.recognize(r,{},{text:!0,blocks:!0})}finally{r.width=0;r.height=0}for(let r of Be')
-replace('for(let[e,r]of E.entries()){ne=', 'for(let[e,radarSet]of g.entries()){let r=E(radarSet);ne=')
-replace('let i=await ie.recognize(r.atlas,{},{text:!0,blocks:!0}),a=new Map;', 'let i;try{i=await ie.recognize(r.atlas,{},{text:!0,blocks:!0})}finally{r.atlas.width=0;r.atlas.height=0}let a=new Map;')
-# No changes to OCR numeric interpretation, fiscal authentication, backend or RTD transmission.
-dst.write_text(s)
-print('FISCAL_OCR_RECOVERY_PATCH_OK',hashlib.sha256(s.encode()).hexdigest())
+# Persist the selected election per assignment, never globally across real/demo sessions.
+helpers='''function radarWorkKey(id){return "radar-fiscal-work-v2-"+encodeURIComponent(String(id))}
+function radarReadWork(id){try{return JSON.parse(localStorage.getItem(radarWorkKey(id))||"null")}catch{return null}}
+function radarRememberWork(id,type,phase){try{localStorage.setItem(radarWorkKey(id),JSON.stringify({type,phase}))}catch{}}
+function radarInitialElection(id,elections){const saved=radarReadWork(id);return elections.some(e=>e.type===saved?.type)?saved.type:elections[0]?.type??"CORPORACION_MUNICIPAL"}
+'''
+replace('function _t({assignmentId:radarAssignmentId',helpers+'function _t({assignmentId:radarAssignmentId')
+replace('(0,x.useState)(e[0]?.type??`CORPORACION_MUNICIPAL`)', '(0,x.useState)(()=>radarInitialElection(radarAssignmentId,e))')
+replace('b(n.actFile?URL.createObjectURL(n.actFile):"")', '''b(n.actFile?URL.createObjectURL(n.actFile):"");if(n.actFile&&radarReadWork(radarAssignmentId)?.phase==="reading"){v("Recuperamos tu acta. La lectura anterior se interrumpió; puedes volver a leerla sin subir la fotografía.");radarRememberWork(radarAssignmentId,i,"ready")}''')
+replace('value:i,disabled:S||h,onChange:e=>{a(e.target.value),fe(),v(``)}', 'value:i,disabled:S||h,onChange:e=>{radarRememberWork(radarAssignmentId,e.target.value,"ready");a(e.target.value),fe(),v(``)}')
+# Key the whole form to the verified assignment; switching assignments cannot reuse its state.
+replace('assignmentId:e.assignment.id,elections:e.elections,folios:i,onSaveDraft:ee,onSubmit:T}', 'assignmentId:e.assignment.id,elections:e.elections,folios:i,onSaveDraft:ee,onSubmit:T},e.assignment.id')
+# Save original before preparation and adjusted image before declaring it ready. Avoid old autosave overwriting photo.
+start=s.index('async function pe(e){if(e){g(!0),v(`Preparando una copia legible del acta…`)')
+end=s.index('async function me()',start)
+s=s[:start]+'''async function pe(file){if(!file||radarReading.current||radarLoaded.current!==k)return;
+ const photoKey=k;g(true);radarReading.current=true;v("Guardando fotografía…");fe();
+ try{await D(photoKey,{...l,actFile:file});radarRememberWork(radarAssignmentId,i,"ready");
+ let prepared;try{prepared=await Se(file,message=>v(message))}catch{prepared={file,message:"Fotografía lista. RADAR conservará esta imagen sin ajuste automático."}}
+ if(radarCurrentKey.current!==photoKey)return;
+ await D(photoKey,{...l,actFile:prepared.file});u(current=>({...current,actFile:prepared.file}));b(URL.createObjectURL(prepared.file));v(prepared.message);
+ }catch(error){m("No se pudo conservar la fotografía en este dispositivo. Libera espacio e intenta adjuntarla nuevamente antes de leer.")}
+ finally{radarReading.current=false;g(false)}}''' +s[end:]
+replace('if(!oe&&radarLoaded.current===k){let e=window.setTimeout(()=>{void D(k,l)', 'if(!oe&&!h&&!S&&radarLoaded.current===k){let e=window.setTimeout(()=>{void D(k,l)')
+replace('},[l,k,oe]),(0,x.useEffect)', '},[l,k,oe,h,S]),(0,x.useEffect)')
+replace('try{await D(k,l);let e=await Qe(', 'try{await D(k,l);radarRememberWork(radarAssignmentId,i,"reading");let e=await Qe(')
+replace('finally{radarReading.current=false;C(!1)}', 'finally{radarRememberWork(radarAssignmentId,i,"ready");radarReading.current=false;C(!1)}')
+Path(sys.argv[2]).write_text(s)
+print('FISCAL_COLD_START_PATCH_OK',hashlib.sha256(s.encode()).hexdigest())
