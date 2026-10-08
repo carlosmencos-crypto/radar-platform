@@ -25,7 +25,7 @@ for file in stage.rglob('*.js'):
  subprocess.run(['node','--check',str(file)],check=True)
 files={str(p.relative_to(stage)):sha(p.read_bytes()) for p in stage.rglob('*') if p.is_file()}
 release=inputs['previous_release'].copy()
-release.update({'source_sha':inputs['source_sha'],'date':'2026-10-08','scope':'Compact contact location and restore national electoral summaries from published center aggregates','quality':{'checks':'165 tests, national 340-municipality aggregate reconciliation, build, bundle, GPS/manual and responsive layout','workflow_run':os.environ['GITHUB_RUN_ID']},'files':{**release.get('files',{}),**files}})
+release.update({'source_sha':inputs['source_sha'],'date':'2026-10-08','scope':'Keep contact location picker above contact sheet','quality':{'checks':'165 tests, build, bundle, nested contact/map stacking, GPS/manual and responsive layout','workflow_run':os.environ['GITHUB_RUN_ID']},'files':{**release.get('files',{}),**files}})
 (stage/'radar-release.json').write_text(json.dumps(release,ensure_ascii=False,indent=2)+'\n')
 files['radar-release.json']=sha((stage/'radar-release.json').read_bytes())
 plan={'expected':inputs['expected'],'files':files,'source_sha':inputs['source_sha'],'portal_url':'https://radargt.wowlatam.com/fiscales'}

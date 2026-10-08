@@ -48,6 +48,15 @@ try{
   }
   await page.goto('http://127.0.0.1:4190/location-preview.html');
   await page.getByTestId('map').waitFor();
+  const stacking=await page.evaluate(()=>{
+   const front=document.querySelector('.contact-location-modal');
+   const back=document.querySelector('.elector-modal');
+   const map=document.querySelector('[data-testid="map"]').getBoundingClientRect();
+   return {front:Number(getComputedStyle(front).zIndex),back:Number(getComputedStyle(back).zIndex),inert:back.inert,hit:front.contains(document.elementFromPoint(map.x+map.width/2,map.y+map.height/2))};
+  });
+  assert.ok(stacking.front>stacking.back,'Map dialog must paint above the open contact sheet');
+  assert.equal(stacking.inert,true,'Underlying contact sheet must stay inactive');
+  assert.equal(stacking.hit,true,'Map must receive pointer input above the contact sheet');
   assert.equal(await page.evaluate(()=>window.__gpsCalls),1);
   assert.equal(await page.getByRole('button',{name:'Confirmar ubicación'}).isEnabled(),false);
   await page.evaluate(()=>window.__gpsFailure({code:1}));
