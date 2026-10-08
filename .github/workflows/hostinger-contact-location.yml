@@ -7,6 +7,14 @@ on:
       - ops/contact-location/**
       - src/components/V70LocationPicker.tsx
       - src/styles/v70/globals.css
+      - src/components/V70DirectDirectory0509.tsx
+      - src/components/V70DocumentPhotoEditor.tsx
+      - src/components/VoterRecordSheet.tsx
+      - src/components/ResourceRecordSheet.tsx
+      - src/data/documentPhoto.ts
+      - src/styles/document-photo.css
+      - src/styles/voter-record-*.css
+      - tests/document-photo.test.mjs
   workflow_dispatch:
 permissions:
   contents: read
