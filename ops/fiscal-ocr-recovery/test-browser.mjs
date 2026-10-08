@@ -17,6 +17,7 @@ const server=http.createServer((req,res)=>{
  else if(pathname==='/src-CA_4_WxC.js')body=fs.readFileSync(`${base}/ocr-original.js`);
  else if(pathname==='/index-DACKz-qw.js')body=fs.readFileSync(`${base}/test-assets/assets/index-DACKz-qw.js`);
  else if(Object.values(mods).includes(pathname.slice(1)))body=fs.readFileSync(`${base}/${pathname.slice(1)}`);
+ else if(pathname==='/fiscales/sw.js')body='self.addEventListener("install",()=>self.skipWaiting());self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));';
  else if(pathname.startsWith('/fiscales/ocr/')){
   const file=path.join(base,'test-assets',pathname.slice('/fiscales/'.length));
   if(!fs.existsSync(file)){res.writeHead(404);res.end('missing '+pathname);return}
