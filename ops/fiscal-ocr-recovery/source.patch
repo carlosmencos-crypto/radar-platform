@@ -1,0 +1,169 @@
+--- a/app/fiscal-offline.ts
++++ b/app/fiscal-offline.ts
+@@ -26,10 +26,22 @@
+ async function transact<T>(storeName: "queue" | "drafts", mode: IDBTransactionMode, work: (store: IDBObjectStore, resolve: (value: T) => void, reject: (reason?: unknown) => void) => void) {
+   const db = await openDatabase();
+   return new Promise<T>((resolve, reject) => {
+-    const transaction = db.transaction(storeName, mode);
+-    work(transaction.objectStore(storeName), resolve, reject);
+-    transaction.oncomplete = () => db.close();
+-    transaction.onerror = () => reject(transaction.error);
++    let transaction: IDBTransaction;
++    let value: T;
++    let settled = false;
++    const fail = (error?: unknown) => {
++      if (!settled) { settled = true; db.close(); reject(error || new Error("No se pudo conservar el borrador.")); }
++    };
++    try {
++      transaction = db.transaction(storeName, mode);
++      transaction.oncomplete = () => { if (!settled) { settled = true; db.close(); resolve(value); } };
++      transaction.onerror = () => fail(transaction.error);
++      transaction.onabort = () => fail(transaction.error || new Error("El guardado fue interrumpido."));
++      work(transaction.objectStore(storeName), result => { value = result; }, error => {
++        try { transaction.abort(); } catch { /* transaction may already be complete */ }
++        fail(error);
++      });
++    } catch (error) { fail(error); }
+   });
+ }
+ 
+--- a/app/fiscal-portal.tsx
++++ b/app/fiscal-portal.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { FormEvent, useCallback, useEffect, useState } from "react";
++import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+ import {
+   clearFiscalDraft,
+   compressFiscalImage,
+@@ -782,7 +782,14 @@
+   const [ocrReviewSummary, setOcrReviewSummary] = useState<OcrReviewSummary>(emptyOcrReviewSummary);
+   const locked = Boolean(serverFolio && serverFolio.status !== "BORRADOR");
+   const draftKey = `rtd-${assignmentId}-${electionType}-${election?.catalogVersion ?? "pendiente"}`;
++  const loadedDraftKey = useRef("");
++  const readingAct = useRef(false);
++  const currentDraftKey = useRef(draftKey);
++  currentDraftKey.current = draftKey;
+   useEffect(() => {
++    let cancelled = false;
++    loadedDraftKey.current = "";
++    setOcrResult(null); setOcrReviewValues({}); setOcrReviewSummary(emptyOcrReviewSummary()); setOcrProgress({ value: 0, status: "" });
+     const serverDraft = serverFolio
+       ? {
+           electionType,
+@@ -805,17 +812,24 @@
+         }
+       : null;
+     void loadFiscalDraft<RtdDraft>(draftKey).then((local) => {
+-      const next = local ?? serverDraft ?? emptyDraft();
++      if (cancelled) return;
++      const next = (locked ? serverDraft : local ?? serverDraft) ?? emptyDraft();
++      loadedDraftKey.current = draftKey;
+       setDraft(next);
+-      if (next.actFile) setActPreviewUrl(URL.createObjectURL(next.actFile));
++      setActPreviewUrl(next.actFile ? URL.createObjectURL(next.actFile) : "");
++    }).catch(() => {
++      if (cancelled) return;
++      loadedDraftKey.current = draftKey;
++      setDraft(serverDraft ?? emptyDraft());
++      setMessage("No se pudo recuperar el borrador local. Mantén esta página abierta mientras trabajas.");
+     });
+-  }, [draftKey, electionType, serverFolio, emptyDraft]);
++    return () => { cancelled = true; loadedDraftKey.current = ""; };
++  }, [draftKey, locked]);
+   useEffect(() => {
+-    if (!locked) {
+-      const timer = window.setTimeout(
+-        () => void saveFiscalDraft(draftKey, draft),
+-        250,
+-      );
++    if (!locked && loadedDraftKey.current === draftKey) {
++      const timer = window.setTimeout(() => {
++        void saveFiscalDraft(draftKey, draft).catch(() => setMessage("No se pudo guardar en este dispositivo. Mantén el acta abierta e intenta guardar nuevamente."));
++      }, 250);
+       return () => window.clearTimeout(timer);
+     }
+   }, [draft, draftKey, locked]);
+@@ -864,11 +878,14 @@
+     }
+   }
+   async function analyzeAct() {
+-    if (!draft.actFile || !election) return;
++    if (!draft.actFile || !election || readingAct.current || loadedDraftKey.current !== draftKey) return;
++    readingAct.current = true;
++    const ocrKey = draftKey;
+     setOcrBusy(true);
+     setOcrResult(null);
+-    setOcrProgress({ value: 1, status: "Preparando fotografía" });
++    setOcrProgress({ value: 1, status: "Guardando fotografía antes de leer…" });
+     try {
++      await saveFiscalDraft(draftKey, draft);
+       const result = await readFiscalAct(
+         draft.actFile,
+         electionType,
+@@ -876,6 +893,7 @@
+         (value, status) => setOcrProgress({ value, status }),
+         election.catalogVersion,
+       );
++      if (currentDraftKey.current !== ocrKey) return;
+       setOcrResult(result);
+       setOcrReviewValues(Object.fromEntries(result.suggestions.map((suggestion) => [suggestion.code, suggestion.value])));
+       setOcrReviewSummary({
+@@ -888,8 +906,9 @@
+       });
+       setOcrProgress({ value: 100, status: "Lectura terminada" });
+     } catch {
+-      setOcrProgress({ value: 0, status: "No se pudo leer esta fotografía. Puedes digitarla manualmente." });
++      setOcrProgress({ value: 0, status: "No se pudo completar la lectura. La fotografía sigue cargada: vuelve a intentarlo o ingresa las cifras manualmente." });
+     } finally {
++      readingAct.current = false;
+       setOcrBusy(false);
+     }
+   }
+--- a/app/fiscal-ocr.ts
++++ b/app/fiscal-ocr.ts
+@@ -1052,7 +1052,7 @@
+   const thresholds = [140, 156, 172, 188, "auto"] as const;
+   const cellSets = thresholds.map((threshold) => options.map((option, index) => {
+     const canvas = preparedCrop(source, bounds, voteRegions[index], true, threshold);
+-    return { option, canvas, preview: canvas.toDataURL("image/png") };
++    return { option, canvas, preview: threshold === 172 ? canvas.toDataURL("image/png") : "" };
+   }));
+   const cells = cellSets[2];
+   const summaryKeys = ["validVotes", "nullVotes", "blankVotes"] as const;
+@@ -1083,8 +1083,7 @@
+     }
+     return strip;
+   };
+-  const strips = cellSets.map(makeStrip);
+-  const atlases = cellSets.map((set) => makeDigitAtlas(set));
++  // Build large temporary strip/atlas canvases only for the current pass.
+ 
+   let phase = "Preparando lector";
+   let phaseBase = 6;
+@@ -1103,11 +1102,12 @@
+     });
+     const rowCandidates = new Map<number, NumericCandidate[]>();
+     const addRowCandidate = (row: number, candidate: NumericCandidate) => rowCandidates.set(row, [...(rowCandidates.get(row) ?? []), candidate]);
+-    for (const [pass, strip] of strips.entries()) {
++    for (const [pass, set] of cellSets.entries()) {
++      const strip = makeStrip(set);
+       phase = `Leyendo filas · enfoque ${pass + 1}/${thresholds.length}`;
+       phaseBase = 16 + pass * 6;
+       phaseRange = 5;
+-      const result = await worker.recognize(strip, {}, { text: true, blocks: true });
++      const result = await worker.recognize(strip, {}, { text: true, blocks: true }).finally(() => { strip.width = 0; strip.height = 0; });
+       for (const line of linesFromBlocks(result.data.blocks)) {
+         const center = ((line.bbox?.y0 ?? 0) + (line.bbox?.y1 ?? 0)) / 2;
+         const row = Math.round((center - 60) / (120 + gap));
+@@ -1120,7 +1120,8 @@
+     }
+ 
+     await worker.setParameters({ tessedit_pageseg_mode: PSM.SPARSE_TEXT });
+-    for (const [pass, atlasData] of atlases.entries()) {
++    for (const [pass, set] of cellSets.entries()) {
++      const atlasData = makeDigitAtlas(set);
+       phase = `Leyendo dígitos aislados · enfoque ${pass + 1}/${thresholds.length}`;
+       phaseBase = 48 + pass * 5;
+       phaseRange = 4;

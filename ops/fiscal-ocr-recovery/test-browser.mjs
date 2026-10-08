@@ -30,7 +30,8 @@ try {
   const errors=[];page.on('pageerror',e=>errors.push(e.message));let navigation=0;page.on('framenavigated',f=>{if(f===page.mainFrame())navigation++});
   await page.goto('http://127.0.0.1:4192');await page.getByRole('button',{name:'Leer fotografía',exact:true}).waitFor();
   const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=500;c.height=700;const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,500,700);x.fillStyle='black';x.font='24px sans-serif';x.fillText('PARTIDO QA 42',50,150);return c.toDataURL('image/png').split(',')[1]});
-  await page.locator('#test input[type=file]').setInputFiles({name:'acta-qa.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+  await page.waitForFunction(()=>!document.querySelector('#test input[type=file]')?.disabled);
+  await page.locator('#test input[type=file]').last().setInputFiles({name:'acta-qa.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
   await page.getByRole('button',{name:'Leer fotografía',exact:true}).click();
   await page.getByText('No se pudo completar la lectura. La fotografía sigue cargada:',{exact:false}).waitFor();
   assert.equal(navigation,1,'OCR must not navigate');
