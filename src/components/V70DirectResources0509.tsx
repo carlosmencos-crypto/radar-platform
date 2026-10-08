@@ -108,10 +108,35 @@ const ResourcePreview = lazy(() => import("./ResourcePreview"));
 
 function Materials() {
  const [preview, setPreview] = useState<SharedContent | null>(null);
- const { campaign_id }=useMunicipalityContext();const [folder,setFolder]=useState<string|null>(null);const [records,setRecords]=useState<SharedContent[]>([]);const [message,setMessage]=useState("");
+ const { campaign_id }=useMunicipalityContext();
+ const [folder,setFolder]=useState<string|null>(null);
+ const [records,setRecords]=useState<SharedContent[]>([]);
+ const [message,setMessage]=useState("");
  useEffect(()=>{let live=true;void loadSharedContent(campaign_id).then(rows=>{if(live)setRecords(rows.filter(r=>r.kind==="resource"));}).catch(e=>{if(live)setMessage(e.message);});return()=>{live=false;};},[campaign_id]);
+ useEffect(()=>{
+  if(!folder||preview)return;
+  const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setFolder(null);};
+  document.addEventListener("keydown",close);
+  return()=>document.removeEventListener("keydown",close);
+ },[folder,preview]);
  const assets=records.filter(r=>r.category===folder);
- return <><div className="preloaded-resource-grid">{materialFolders.map(([title,detail])=><article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={()=>setFolder(title)}>Abrir · {records.filter(r=>r.category===title).length}</button></article>)}</div>{message&&<p role="status">{message}</p>}{folder&&<div className="agenda-modal" role="dialog" aria-modal="true"><section className="materials-folder-modal"><header><div><small>BIBLIOTECA RADAR</small><h2>{folder}</h2></div><button aria-label="Cerrar" onClick={()=>setFolder(null)}>×</button></header><div>{assets.length?assets.map(record=><article key={record.id}><span><b>{record.title}</b><small>{record.body} · Versión {record.version}</small></span><button type="button" onClick={()=>setPreview(record)}>Previsualizar</button><button type="button" onClick={()=>void downloadSharedResource(record).catch(e=>setMessage(e.message))}>Descargar</button></article>):<p>No hay documentos publicados en esta carpeta todavía.</p>}</div></section></div>}{preview ? <Suspense fallback={<p role="status">Cargando visor…</p>}><ResourcePreview key={preview.id} resource={preview} onClose={()=>setPreview(null)} /></Suspense> : null}</>;
+ return <>
+  <div className="preloaded-resource-grid">{materialFolders.map(([title,detail])=><article key={title}><i>▤</i><b>{title}</b><span>{detail}</span><button type="button" onClick={()=>{setMessage("");setFolder(title);}}>Abrir · {records.filter(r=>r.category===title).length}</button></article>)}</div>
+  {message&&!folder&&<p role="status">{message}</p>}
+  {folder&&<div className="agenda-modal resource-library-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!preview)setFolder(null);}}><section className="materials-folder-modal" role="dialog" aria-modal="true" aria-labelledby="resource-folder-title" inert={Boolean(preview)}>
+   <header><div><small>BIBLIOTECA RADAR</small><h2 id="resource-folder-title">{folder}</h2><p>{assets.length} {assets.length===1?"documento disponible":"documentos disponibles"}</p></div><button type="button" aria-label="Cerrar biblioteca" onClick={()=>setFolder(null)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+   <div className="resource-library-list">{assets.length?assets.map(record=>{
+    const extension=record.file_name?.split(".").pop()?.toUpperCase();
+    return <article key={record.id}>
+     <div className="resource-library-file" aria-hidden="true"><svg width="21" height="25" viewBox="0 0 24 28" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M5 2h9l5 5v19H5zM14 2v6h5M8 13h8M8 17h8M8 21h5"/></svg></div>
+     <div className="resource-library-details"><h3>{record.title}</h3>{record.body&&<p>{record.body}</p>}<div className="resource-library-meta">{extension&&<span>{extension}</span>}<span>Versión {record.version}</span></div></div>
+     <div className="resource-library-actions"><button type="button" className="resource-library-preview" onClick={()=>setPreview(record)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>Previsualizar</button><button type="button" onClick={()=>void downloadSharedResource(record).catch(e=>setMessage(e.message))}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v5h14v-5"/></svg>Descargar</button></div>
+    </article>;
+   }):<p className="resource-library-empty">No hay documentos publicados en esta carpeta todavía.</p>}</div>
+   {message&&<p className="resource-library-message" role="status">{message}</p>}
+  </section></div>}
+  {preview?<Suspense fallback={<p role="status">Cargando visor…</p>}><ResourcePreview key={preview.id} resource={preview} onClose={()=>setPreview(null)}/></Suspense>:null}
+ </>;
 }
 
 type PhysicalForm = { type: string; customType: string; name: string; responsible: string; pilot: string; notes: string; latitude: string; longitude: string; locationName: string; values: Record<string, string> };
