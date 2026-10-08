@@ -1,0 +1,13 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {Materials} from './src/components/V70DirectResources0509';
+import {MunicipalityProvider} from './src/context/MunicipalityContext';
+import './src/styles/global.css';
+import './src/styles/v70/fonts.css';
+import './src/styles/v70/globals.css';
+import './src/styles/v70/portal.css';
+import './src/styles/v70/radar-brand-v3.css';
+import './src/styles/canonical-adapter.css';
+const consumer={municipality:{code:'0501',name:'Escuintla',department:'Escuintla'},context:{is_demo:new URLSearchParams(location.search).has('demo'),campaign_id:'fixture',permissions:[]}};
+createRoot(document.getElementById('root')!).render(<MemoryRouter><MunicipalityProvider consumer={consumer as any}><Materials/></MunicipalityProvider></MemoryRouter>);
