@@ -71,6 +71,7 @@ export function V70LocationPicker({
   longitude,
   points,
   color,
+  contactLocation = false,
   onConfirm,
   onClose,
 }: {
@@ -79,6 +80,7 @@ export function V70LocationPicker({
   longitude?: number;
   points: V70RoutePoint[];
   color: string;
+  contactLocation?: boolean;
   onConfirm(value: { latitude: number; longitude: number; points: V70RoutePoint[]; locationName?: string }): void;
   onClose(): void;
 }) {
@@ -102,9 +104,50 @@ export function V70LocationPicker({
   const [pickedName, setPickedName] = useState("");
   const [satellite, setSatellite] = useState(false);
   const [status, setStatus] = useState("");
+  const [selected, setSelected] = useState(latitude != null && longitude != null);
+  const [locating, setLocating] = useState(false);
+  const pointRef = useRef(point);
+  const locationRequest = useRef(0);
+
+  const locate = useCallback(() => {
+    if (!navigator.geolocation) {
+      setStatus("Este dispositivo no permite obtener la ubicación. Marca el punto en el mapa.");
+      return;
+    }
+    const request = ++locationRequest.current;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      if (request !== locationRequest.current) return;
+      const next: V70RoutePoint = [coords.latitude, coords.longitude];
+      pointRef.current = next;
+      setPoint(next);
+      setSelected(true);
+      setPickedName("");
+      mapRef.current?.flyTo(next, 17);
+      setLocating(false);
+      setStatus(`Ubicación aproximada: ±${Math.ceil(coords.accuracy)} m. Ajusta el punto si es necesario.`);
+    }, (error) => {
+      if (request !== locationRequest.current) return;
+      setLocating(false);
+      setStatus(error.code === 1
+        ? "No se autorizó la ubicación. Puedes marcar el punto manualmente en el mapa."
+        : "No pudimos obtener tu ubicación. Intenta de nuevo o marca el punto en el mapa.");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+  }, []);
+
+  useEffect(() => {
+    // An existing contact location must never be replaced by the visitor's GPS.
+    if (contactLocation && latitude == null && longitude == null) locate();
+    return () => { locationRequest.current += 1; };
+  }, [contactLocation, latitude, longitude, locate]);
 
   const pickMapPoint = useCallback((lat: number, lon: number) => {
     const next: V70RoutePoint = [lat, lon];
+    locationRequest.current += 1;
+    setLocating(false);
+    setSelected(true);
+    setPickedName("");
+    pointRef.current = next;
     setPoint(next);
     if (routeMode) setRoute((current) => [...current, next]);
     setStatus("");
@@ -115,13 +158,13 @@ export function V70LocationPicker({
     let cancelled = false;
     void ensureLeaflet().then((L) => {
       if (cancelled || !node.current) return;
-      const map = L.map(node.current).setView(center, 13);
+      const map = L.map(node.current).setView(pointRef.current, 13);
       street.current = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
       satelliteLayer.current = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Tiles © Esri" });
       map.on("click", (event) => pickMapPoint(event.latlng.lat, event.latlng.lng));
       mapRef.current = map;
       setPoint((value) => [...value] as V70RoutePoint);
-    });
+    }).catch(() => { if (!cancelled) setStatus("No se pudo cargar el mapa. Cierra e intenta de nuevo cuando tengas conexión."); });
     return () => {
       cancelled = true;
       mapRef.current?.remove();
@@ -149,10 +192,10 @@ export function V70LocationPicker({
       const layers: Layer[] = [];
       if (routeMode && route.length > 1) layers.push(L.polyline(route, { color, weight: 6, opacity: 0.92 }));
       const marker = routeMode && route.length ? route[route.length - 1] : point;
-      layers.push(L.circleMarker(marker, { radius: 8, color: "#fff", weight: 3, fillColor: color, fillOpacity: 1 }));
+      if (!contactLocation || selected) layers.push(L.circleMarker(marker, { radius: 8, color: "#fff", weight: 3, fillColor: color, fillOpacity: 1 }));
       drawing.current = L.layerGroup(layers).addTo(mapRef.current);
     });
-  }, [color, point, route, routeMode]);
+  }, [color, point, route, routeMode, contactLocation, selected]);
 
   const search = useCallback(async (term: string, signal?: AbortSignal) => {
     const normalized = normalize(term);
@@ -211,6 +254,10 @@ export function V70LocationPicker({
 
   function choose(result: SearchResult) {
     const next: V70RoutePoint = [result.lat, result.lon];
+    locationRequest.current += 1;
+    setLocating(false);
+    setSelected(true);
+    pointRef.current = next;
     setPoint(next);
     setPickedName(result.display_name.split(",").slice(0, 3).join(","));
     if (routeMode) setRoute((current) => current.length ? current : [next]);
@@ -221,13 +268,14 @@ export function V70LocationPicker({
 
   const finalPoint = routeMode && route.length ? route[0] : point;
   return (
-    <div className="location-picker">
-      <header><div><small>{routeMode ? "DIBUJAR RUTA" : "UBICAR ACTIVIDAD"}</small><h3>{routeMode ? "Marca la ruta punto por punto" : "Busca o toca el mapa"}</h3></div><button type="button" onClick={onClose}>×</button></header>
+    <div className={`location-picker${contactLocation ? " contact-location-picker" : ""}`}>
+      <header><div><small>{contactLocation ? "UBICACIÓN DEL CONTACTO" : routeMode ? "DIBUJAR RUTA" : "UBICAR ACTIVIDAD"}</small><h3>{routeMode ? "Marca la ruta punto por punto" : "Busca o toca el mapa"}</h3></div><button type="button" aria-label="Cerrar mapa" onClick={onClose}>×</button></header>
       <div className="location-search"><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void search(query); } }} placeholder={`Buscar lugar o dirección en ${municipality_name}`} autoComplete="off" /><button type="button" onClick={() => void search(query)}>Buscar</button></div>
       {results.length ? <div className="location-results">{results.map((result) => <button type="button" key={result.key} onClick={() => choose(result)}>{result.display_name}</button>)}</div> : null}
-      {status ? <p className="location-status">{status}</p> : null}
+      {contactLocation ? <div className="contact-location-gps"><button type="button" disabled={locating} onClick={locate}>{locating ? "Buscando ubicación…" : "Usar mi ubicación actual"}</button><span>Confirma el lugar de la visita antes de guardar.</span></div> : null}
+      {status ? <p className="location-status" role="status">{status}</p> : null}
       <div className="location-map-shell"><div ref={node} className="location-map" /><div className="map-style-switch"><button type="button" className={!satellite ? "active" : ""} onClick={() => setSatellite(false)}>Mapa</button><button type="button" className={satellite ? "active" : ""} onClick={() => setSatellite(true)}>Satélite</button></div></div>
-      <footer><div>{routeMode ? <><button type="button" onClick={() => setRoute((current) => current.slice(0, -1))}>Deshacer</button><button type="button" onClick={() => setRoute([])}>Limpiar</button><span>{route.length} puntos</span></> : <span>{point[0].toFixed(6)}, {point[1].toFixed(6)}</span>}</div><button type="button" disabled={routeMode && route.length < 2} onClick={() => onConfirm({ latitude: finalPoint[0], longitude: finalPoint[1], points: route, locationName: pickedName })}>Confirmar {routeMode ? "y congelar ruta" : "ubicación"}</button></footer>
+      <footer><div>{routeMode ? <><button type="button" onClick={() => setRoute((current) => current.slice(0, -1))}>Deshacer</button><button type="button" onClick={() => setRoute([])}>Limpiar</button><span>{route.length} puntos</span></> : <span>{contactLocation && !selected ? "Selecciona un punto" : `${point[0].toFixed(6)}, ${point[1].toFixed(6)}`}</span>}</div><button type="button" disabled={(routeMode && route.length < 2) || (contactLocation && !selected)} onClick={() => onConfirm({ latitude: finalPoint[0], longitude: finalPoint[1], points: route, locationName: pickedName })}>Confirmar {routeMode ? "y congelar ruta" : "ubicación"}</button></footer>
     </div>
   );
 }

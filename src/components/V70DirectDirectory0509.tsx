@@ -37,6 +37,8 @@ import {
 import { createRadarXlsx } from "../data/xlsxExport";
 import { V70DirectShell0509 } from "./V70DirectShell0509";
 import { V70PhotoEditor } from "./V70PhotoEditor";
+import { V70LocationPicker } from "./V70LocationPicker";
+import { useDismissibleDialog } from "../admin/useDismissibleDialog";
 import {
   announceV70CampaignUpdate,
 } from "./useV70CampaignBrand";
@@ -235,6 +237,8 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
   const [contacts, setContacts] = useState<CampaignContactRecord[]>([]);
   const [detail, setDetail] = useState<AuthorizedVoterDetail | null>(null);
   const [profile, setProfile] = useState<VoterProfileForm>(emptyProfile);
+  const [locationOpen, setLocationOpen] = useState(false);
+  useDismissibleDialog(locationOpen, () => setLocationOpen(false));
   const [editingResponsible, setEditingResponsible] = useState(false);
   const [dpiRevealed, setDpiRevealed] = useState("");
   const [saving, setSaving] = useState(false);
@@ -831,7 +835,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         </div>
       ) : null}
       {detail ? (
-        <div className="agenda-modal elector-modal" role="dialog" aria-modal="true">
+        <div className="agenda-modal elector-modal" role="dialog" aria-modal="true" inert={locationOpen}>
           <section className="elector-sheet">
             <header>
               <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(Math.abs(detail.elector.id)).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {municipality_name}</p></span></div>
@@ -855,6 +859,10 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
                 <label className="wide"><span>Dirección exacta</span><input value={profile.exact_address} onChange={(event) => setProfile({ ...profile, exact_address: event.target.value })} placeholder="Dirección proporcionada por el contacto" /></label>
                 <label><span>Referencia de ubicación</span><input value={profile.location_reference} onChange={(event) => setProfile({ ...profile, location_reference: event.target.value })} /></label>
                 <label><span>Comunidad actual confirmada</span><input value={profile.confirmed_community} onChange={(event) => setProfile({ ...profile, confirmed_community: event.target.value })} /></label>
+                <section className="wide contact-location-card" aria-label="Ubicación del contacto">
+                  <div><small>UBICACIÓN DE LA VISITA</small><h4>{profile.latitude && profile.longitude ? "Punto marcado en el mapa" : "Marca el lugar del contacto"}</h4><p>{profile.latitude && profile.longitude ? `${Number(profile.latitude).toFixed(6)}, ${Number(profile.longitude).toFixed(6)}` : "Usa tu ubicación actual o selecciona el punto manualmente."}</p><small>Se guardará al pulsar «Guardar ficha privada».</small></div>
+                  <div className="contact-location-actions"><button type="button" onClick={() => setLocationOpen(true)}>{profile.latitude && profile.longitude ? "Ver / ajustar ubicación" : "Marcar ubicación"}</button>{profile.latitude && profile.longitude ? <button type="button" className="contact-location-remove" onClick={() => setProfile((current) => ({ ...current, latitude: "", longitude: "" }))}>Quitar punto</button> : null}</div>
+                </section>
                 <label><span>Rol o responsabilidad</span><input value={profile.campaign_role} onChange={(event) => setProfile({ ...profile, campaign_role: event.target.value })} /></label>
                 <label><span>Próxima acción</span><input value={profile.next_action} onChange={(event) => setProfile({ ...profile, next_action: event.target.value })} /></label>
                 <label><span>Fecha de próxima acción</span><input type="date" value={profile.next_action_at.slice(0, 10)} onChange={(event) => setProfile({ ...profile, next_action_at: event.target.value })} /></label>
@@ -879,6 +887,9 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           </section>
         </div>
       ) : null}
+      {detail && !detail.read_only && locationOpen ? <div className="agenda-modal contact-location-modal" role="dialog" aria-modal="true" aria-label="Ubicación del contacto" onClick={(event) => { if (event.target === event.currentTarget) setLocationOpen(false); }}>
+        <V70LocationPicker contactLocation routeMode={false} latitude={profile.latitude ? Number(profile.latitude) : undefined} longitude={profile.longitude ? Number(profile.longitude) : undefined} points={[]} color="#07576c" onClose={() => setLocationOpen(false)} onConfirm={({ latitude, longitude }) => { setProfile((current) => ({ ...current, latitude: String(latitude), longitude: String(longitude) })); setLocationOpen(false); }} />
+      </div> : null}
     </>
   );
 }
