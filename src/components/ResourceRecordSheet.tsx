@@ -6,13 +6,13 @@ import { useV70CampaignBrand } from "./useV70CampaignBrand";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 
 const fields = { responsible: "Responsable", pilot: "Piloto", brand: "Marca", line: "Línea", model: "Modelo", plate: "Placa", color: "Color", quantity: "Cantidad", address: "Dirección", location_name: "Referencia de ubicación", characteristics: "Características", authorizedUse: "Uso autorizado", specifications: "Especificaciones" };
-function LocationMap({ latitude, longitude }: { latitude: number; longitude: number }) {
+export function LocationMap({ latitude, longitude, label = "Ubicación de la sede en el mapa" }: { latitude: number; longitude: number; label?: string }) {
   const [failed, setFailed] = useState(false);
   const zoom = 15, size = 2 ** zoom;
   const x = (longitude + 180) / 360 * size;
   const rad = Math.min(85, Math.max(-85, latitude)) * Math.PI / 180;
   const y = (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * size;
-  return <div className="resource-sheet-map" role="img" aria-label="Ubicación de la sede en el mapa">
+  return <div className="resource-sheet-map" role="img" aria-label={label}>
     {!failed ? <><div className="resource-map-tiles">{[-1, 0, 1].flatMap(dy => [-1, 0, 1].map(dx => <img key={`${dx}:${dy}`} alt="" onError={() => setFailed(true)} src={`https://tile.openstreetmap.org/${zoom}/${Math.floor(x) + dx}/${Math.floor(y) + dy}.png`} style={{ left: `calc(50% + ${(Math.floor(x) + dx - x) * 256}px)`, top: `calc(50% + ${(Math.floor(y) + dy - y) * 256}px)` }} />))}</div><span className="resource-map-pin" aria-hidden="true">●</span><small>© OpenStreetMap contributors</small></> : <p>No se pudo cargar el mapa. La ubicación está guardada en las coordenadas indicadas.</p>}
   </div>;
 }

@@ -4,6 +4,8 @@ import {spawn,execSync} from 'node:child_process';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const root=process.argv[2];
+fs.copyFileSync('recovery-source/ops/contact-location/voter-preview.tsx',root+'/voter-preview.tsx');
+fs.writeFileSync(root+'/voter-preview.html','<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/team-access-v2.css"></head><body><div id="root"></div><script type="module" src="/voter-preview.tsx"></script></body></html>');
 fs.copyFileSync('recovery-source/ops/contact-location/preview.tsx',root+'/location-preview.tsx');
 fs.writeFileSync(root+'/location-preview.html','<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div><script type="module" src="/location-preview.tsx"></script></body></html>');
 // Render the actual location-card JSX inside its contact-sheet/form containers.
@@ -82,6 +84,8 @@ try{
   await page.getByRole('button',{name:'Confirmar ubicación'}).click();
   assert.equal(JSON.parse(await page.getByTestId('result').textContent()).latitude,14.8);
  }
+ const {checkVoterRecord}=await import('./voter-check.mjs');
+ await checkVoterRecord(page);
  assert.deepEqual(errors,[]);
  console.log('CONTACT_LOCATION_GPS_MANUAL_SAVED_POINT_MOBILE_DESKTOP_PASSED');
 }finally{await browser?.close();server.kill()}

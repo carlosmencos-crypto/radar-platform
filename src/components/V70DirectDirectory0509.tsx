@@ -1,5 +1,6 @@
+import "../styles/voter-record-button.css";
 import { municipalSlateSlots } from "../data/municipalSlate";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   MunicipalityProvider,
@@ -42,6 +43,9 @@ import { useDismissibleDialog } from "../admin/useDismissibleDialog";
 import {
   announceV70CampaignUpdate,
 } from "./useV70CampaignBrand";
+
+const V70DocumentPhotoEditor = lazy(() => import("./V70DocumentPhotoEditor"));
+const VoterRecordSheet = lazy(() => import("./VoterRecordSheet"));
 
 const electorStatuses = [
   ["SIN_CONTACTO", "Sin contacto"],
@@ -151,19 +155,6 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function readPrivateImage(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    if (file.size > 6 * 1024 * 1024) {
-      reject(new Error("La imagen supera el máximo de 6 MB."));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
-    reader.readAsDataURL(file);
-  });
-}
-
 function ElectorsDirectoryCanonical() {
   const { municipality_code, municipality_name, consumer, campaign_id } = useMunicipalityContext();
   const is_demo = consumer.context.is_demo;
@@ -238,6 +229,8 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
   const [detail, setDetail] = useState<AuthorizedVoterDetail | null>(null);
   const [profile, setProfile] = useState<VoterProfileForm>(emptyProfile);
   const [locationOpen, setLocationOpen] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [documentEditing, setDocumentEditing] = useState(false);
   useDismissibleDialog(locationOpen, () => setLocationOpen(false));
   const [editingResponsible, setEditingResponsible] = useState(false);
   const [dpiRevealed, setDpiRevealed] = useState("");
@@ -383,6 +376,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
   ]);
 
   async function openDetail(voterId: number) {
+    setRecordOpen(false);
     setMessage("");
     setDpiRevealed("");
     setSaving(true);
@@ -835,7 +829,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
         </div>
       ) : null}
       {detail ? (
-        <div className="agenda-modal elector-modal" role="dialog" aria-modal="true" inert={locationOpen}>
+        <div className="agenda-modal elector-modal" role="dialog" aria-modal="true" inert={locationOpen || recordOpen || documentEditing}>
           <section className="elector-sheet">
             <header>
               <div className="elector-sheet-person">{profile.photo_url ? <img src={profile.photo_url} alt={`Fotografía de ${detail.elector.full_name}`} /> : <i aria-hidden="true">{initials(detail.elector.full_name)}</i>}<span><small>FICHA DE CONTACTO · {municipality_code}-{String(Math.abs(detail.elector.id)).padStart(6, "0")}</small><h2>{detail.elector.full_name}</h2><p>{detail.elector.community || "Sin comunidad"} · {municipality_name}</p></span></div>
@@ -845,7 +839,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
               <span><small>DPI</small><b>{dpiRevealed || detail.elector.masked_identification || "No disponible"}</b>{detail.elector.masked_identification ? <button type="button" onClick={() => void revealDpi()}>{dpiRevealed ? "Visible hasta cerrar" : "Revelar"}</button> : null}</span>
               <span><small>Edad estimada</small><b>{detail.elector.estimated_age_2026 ?? "—"}</b></span>
             </div>
-            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : <button type="button" disabled title="Requiere una campaña vinculada a este municipio." aria-label="Crear actividad en Agenda: requiere una campaña vinculada">Crear actividad en Agenda</button>}</div>
+            <div className="elector-sheet-links"><Link to={`/municipio/${municipality_code}/mapa?community=${encodeURIComponent(detail.elector.community || "")}`}>Ubicar comunidad en el mapa</Link>{!detail.read_only && campaign_id ? <Link to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(detail.elector.community || "")}&elector=${detail.elector.id}&electorName=${encodeURIComponent(detail.elector.full_name)}`}>Crear actividad en Agenda</Link> : <button type="button" disabled title="Requiere una campaña vinculada a este municipio." aria-label="Crear actividad en Agenda: requiere una campaña vinculada">Crear actividad en Agenda</button>}<button type="button" className="elector-view-record" onClick={() => setRecordOpen(true)}>Ver ficha</button></div>
             {detail.read_only ? <p className="agenda-message">La sesión actual permite consultar esta ficha, pero no modificarla.</p> : <>
             <form className="elector-private-form" onSubmit={saveProfile}>
               <header><div><small>CAMPAIGN VAULT · PRIVADO</small><h3>Contacto</h3></div></header>
@@ -866,7 +860,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
                 <label className="wide"><span>Rol o responsabilidad</span><input value={profile.campaign_role} onChange={(event) => setProfile({ ...profile, campaign_role: event.target.value })} /></label>
                 <label><span>Próxima acción</span><input value={profile.next_action} onChange={(event) => setProfile({ ...profile, next_action: event.target.value })} /></label>
                 <label><span>Fecha de próxima acción</span><input type="date" value={profile.next_action_at.slice(0, 10)} onChange={(event) => setProfile({ ...profile, next_action_at: event.target.value })} /></label>
-                <fieldset className="wide elector-document-grid"><legend>DPI (opcional)</legend><label><span>Frontal</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; void readPrivateImage(next).then((dpi_front_url) => setProfile((current) => ({ ...current, dpi_front_url }))).catch((fileError: Error) => setMessage(fileError.message)); }} /><small>{profile.dpi_front_url ? "Imagen lista o guardada" : "JPG, PNG o WebP · máximo 6 MB"}</small>{profile.dpi_front_url ? <details className="elector-document-preview"><summary>Ver imagen</summary><img src={profile.dpi_front_url} alt="DPI frontal proporcionado por el contacto" /></details> : null}</label><label><span>Trasero</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { const next = event.target.files?.[0]; if (!next) return; void readPrivateImage(next).then((dpi_back_url) => setProfile((current) => ({ ...current, dpi_back_url }))).catch((fileError: Error) => setMessage(fileError.message)); }} /><small>{profile.dpi_back_url ? "Imagen lista o guardada" : "JPG, PNG o WebP · máximo 6 MB"}</small>{profile.dpi_back_url ? <details className="elector-document-preview"><summary>Ver imagen</summary><img src={profile.dpi_back_url} alt="DPI trasero proporcionado por el contacto" /></details> : null}</label></fieldset>
+                <fieldset className="wide elector-document-grid"><legend>DPI (opcional)</legend><Suspense fallback={<p>Preparando controles de fotografía…</p>}><V70DocumentPhotoEditor label="Frente" value={profile.dpi_front_url} onChange={(dpi_front_url) => setProfile(current => ({...current,dpi_front_url}))} onError={setMessage} onOpenChange={setDocumentEditing}/><V70DocumentPhotoEditor label="Reverso" value={profile.dpi_back_url} onChange={(dpi_back_url) => setProfile(current => ({...current,dpi_back_url}))} onError={setMessage} onOpenChange={setDocumentEditing}/></Suspense></fieldset>
                 <label className="wide"><span>Observaciones</span><textarea rows={3} value={profile.notes} onChange={(event) => setProfile({ ...profile, notes: event.target.value })} /></label>
               </div>
               {message ? <p className="form-error">{message}</p> : null}
@@ -887,6 +881,7 @@ function ElectorsDirectoryReady({ nationalRegister = false, nominalCommunities =
           </section>
         </div>
       ) : null}
+      {detail && recordOpen ? <Suspense fallback={null}><VoterRecordSheet detail={detail} dpi={dpiRevealed} onReveal={() => void revealDpi()} onClose={() => setRecordOpen(false)} /></Suspense> : null}
       {detail && !detail.read_only && locationOpen ? <div className="agenda-modal contact-location-modal" role="dialog" aria-modal="true" aria-label="Ubicación del contacto" onClick={(event) => { if (event.target === event.currentTarget) setLocationOpen(false); }}>
         <V70LocationPicker contactLocation routeMode={false} latitude={profile.latitude ? Number(profile.latitude) : undefined} longitude={profile.longitude ? Number(profile.longitude) : undefined} points={[]} color="#07576c" onClose={() => setLocationOpen(false)} onConfirm={({ latitude, longitude }) => { setProfile((current) => ({ ...current, latitude: String(latitude), longitude: String(longitude) })); setLocationOpen(false); }} />
       </div> : null}
