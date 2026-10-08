@@ -1,0 +1,21 @@
+name: RADAR OCR Parlacen diagnostic
+on:
+  push:
+    branches: [ops/fiscal-ocr-recovery-oct08]
+    paths: ['ops/fiscal-ocr-parlacen/**', '.github/workflows/fiscal-ocr-parlacen.yml']
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          python3 ops/fiscal-ocr-parlacen/fetch.py
+          python3 ops/fiscal-ocr-recovery/fetch-test-assets.py
+          npm install --prefix /tmp/radar-visual playwright@1.58.2
+          CHROME_PATH=$(which google-chrome) node ops/fiscal-ocr-parlacen/diagnose.mjs
