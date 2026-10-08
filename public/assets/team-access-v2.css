@@ -115,3 +115,26 @@
 .content-audience-options>button:focus-visible{outline:2px solid #572978;outline-offset:3px}.content-audience .content-audience-hint{display:block;margin-top:10px;line-height:1.5;font-size:11px;color:#65756d}
 .resource-sheet-heading>div{min-width:0}.resource-sheet-heading h2{overflow-wrap:anywhere}
 @media(max-width:420px){.content-audience-options{grid-template-columns:1fr}.superadmin-form .content-audience-options>button{min-height:0;flex-direction:row;align-items:center;justify-content:space-between}.resource-sheet .resource-sheet-heading{padding:20px;gap:12px}.resource-sheet-heading>img{width:80px;height:80px}}
+
+/* Library folder: restrained typography and compact, adjacent document actions. */
+.resource-library-backdrop .materials-folder-modal{width:min(780px,calc(100vw - 32px));max-height:85dvh;padding:0;overflow:auto;border:1px solid #e2e6e0;border-radius:16px;background:#fff;box-shadow:0 24px 72px #14283026;color:#30383b}
+.resource-library-backdrop .materials-folder-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:25px 28px 22px;border-bottom:1px solid #e9ece6;background:#fafbf8}
+.resource-library-backdrop .materials-folder-modal>header small{display:block;font-size:9px;font-weight:650;letter-spacing:.14em;line-height:1.5;color:#216477}
+.resource-library-backdrop .materials-folder-modal h2{margin:7px 0 5px;font-size:24px;font-weight:550;line-height:1.25;letter-spacing:-.025em;overflow-wrap:anywhere}
+.resource-library-backdrop .materials-folder-modal>header p{margin:0;font-size:11px;font-weight:400;line-height:1.5;color:#78847e}
+.resource-library-backdrop .materials-folder-modal>header button{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:1px solid #e1e6df;border-radius:8px;background:#fff;color:#697970;cursor:pointer}
+.resource-library-backdrop .materials-folder-modal>.resource-library-list{display:block;margin:0;padding:6px 28px}
+.resource-library-backdrop .resource-library-list>article{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:16px;margin:0;padding:23px 0;border:0;border-bottom:1px solid #edf0eb;border-radius:0;background:transparent}
+.resource-library-backdrop .resource-library-list>article:last-child{border-bottom:0}
+.resource-library-file{display:grid;place-items:center;width:40px;height:48px;border:1px solid #e2e8e1;border-radius:9px;background:#f5f8f3;color:#597a6e}
+.resource-library-details{min-width:0}.resource-library-backdrop .resource-library-details h3{margin:0;font-size:15px;font-weight:600;line-height:1.45;letter-spacing:-.01em;color:#303b3d;overflow-wrap:anywhere}
+.resource-library-backdrop .resource-library-details p{margin:5px 0 0;font-size:12px;font-weight:400;line-height:1.6;letter-spacing:0;color:#748078;overflow-wrap:anywhere;white-space:pre-wrap}
+.resource-library-meta{display:flex;align-items:center;gap:9px;margin-top:9px;color:#849087;font-size:10px;line-height:1.4}.resource-library-meta>span+span{border-left:1px solid #dfe5dc;padding-left:9px}
+.resource-library-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.resource-library-backdrop .resource-library-actions>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;margin:0;padding:8px 11px;border:1px solid #e0e6df;border-radius:7px;background:#fff;color:#526b60;font:inherit;font-size:11px;font-weight:500;line-height:1.3;letter-spacing:0;white-space:nowrap;box-shadow:none;cursor:pointer}
+.resource-library-backdrop .resource-library-actions>.resource-library-preview{background:#eff5f3;border-color:#dfebe5;color:#125a6b}
+.resource-library-backdrop .resource-library-actions>button:hover,.resource-library-backdrop .materials-folder-modal>header button:hover{background:#e9f0eb;border-color:#bfcec2}
+.resource-library-backdrop button:focus-visible{outline:2px solid #5a2a78;outline-offset:3px}
+.resource-library-backdrop .resource-library-list>.resource-library-empty{border:0;margin:0;padding:30px 0;text-align:left;font-size:13px;line-height:1.7;color:#79857d}
+.resource-library-message{margin:0;padding:0 28px 20px;color:#994d39;font-size:12px;line-height:1.5}
+@media(max-width:640px){.resource-library-backdrop .materials-folder-modal>header{padding:22px 20px 18px}.resource-library-backdrop .materials-folder-modal h2{font-size:22px}.resource-library-backdrop .materials-folder-modal>.resource-library-list{padding:0 20px}.resource-library-backdrop .resource-library-list>article{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:21px 0}.resource-library-file{width:36px;height:43px;align-self:start}.resource-library-actions{grid-column:2;gap:8px;margin-top:1px}.resource-library-backdrop .resource-library-actions>button{min-height:40px;padding:9px 11px}.resource-library-message{padding:0 20px 20px}}
