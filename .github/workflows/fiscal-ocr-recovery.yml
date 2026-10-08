@@ -1,0 +1,117 @@
+name: RADAR Fiscal OCR recovery
+on:
+  push:
+    branches: [ops/fiscal-ocr-recovery-oct08]
+    paths: ['ops/fiscal-ocr-recovery/**', '.github/workflows/fiscal-ocr-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: radar-hostinger-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare exact deployed fiscal source
+        run: python3 ops/fiscal-ocr-recovery/prepare.py
+      - name: Verify cold-start failure, retry, reload and campaign isolation
+        run: |
+          npm install --prefix /tmp/radar-visual playwright@1.58.2
+          CHROME_PATH=$(which google-chrome) node ops/fiscal-ocr-recovery/test-browser.mjs ops/fiscal-ocr-recovery
+      - name: Publish with backup and unchanged-live-file guards
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for name in SSH_HOST SSH_PORT SSH_USER SSH_KEY; do test -n "${!name}"; done
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          umask 077
+          task_dir=$(mktemp -d)
+          trap 'rm -rf "$task_dir"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
+          ssh-keyscan -T 10 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
+          test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          options=(-i "$task_dir/identity" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" -o ConnectTimeout=15)
+          scp -P "$SSH_PORT" "${options[@]}" radar-oct08-release.tgz "$SSH_USER@$SSH_HOST:radar-oct08-release-20261008.tgz"
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" 'python3 -' <<'PYCODE'
+          from pathlib import Path
+          import os,json,hashlib,tarfile,shutil,datetime,fcntl,tempfile
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          archive=Path.home()/'radar-oct08-release-20261008.tgz'
+          backup_root=Path.home()/'radar-deploy-backups'
+          backup_root.mkdir(mode=0o700,exist_ok=True)
+          sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
+          with (backup_root/'deploy.lock').open('w') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX)
+            with tempfile.TemporaryDirectory(dir=backup_root) as stage_dir:
+              stage=Path(stage_dir)
+              with tarfile.open(archive,'r:gz') as package:
+                for member in package.getmembers():
+                  relative=Path(member.name)
+                  assert member.isfile() and not relative.is_absolute() and '..' not in relative.parts,'Invalid release member'
+                  target=stage/relative
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(package.extractfile(member).read())
+              plan=json.loads((stage/'release-plan.json').read_text())
+              for name,want in plan['files'].items():
+                assert sha(stage/name)==want,'Invalid staged hash: '+name
+              already=all((root/name).is_file() and sha(root/name)==want for name,want in plan['files'].items())
+              if not already:
+                for name,want in plan['expected'].items():
+                  assert sha(root/name)==want,'Live application changed; stop: '+name
+                backup=backup_root/('oct08-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
+                backup.mkdir(mode=0o700)
+                originals={}
+                for name in plan['files']:
+                  target=root/name
+                  originals[name]=target.exists()
+                  if target.exists():
+                    dest=backup/name
+                    dest.parent.mkdir(parents=True,exist_ok=True)
+                    shutil.copy2(target,dest)
+                (backup/'manifest.json').write_text(json.dumps({'original':originals,'expected':plan['expected'],'files':plan['files']}))
+                touched=[]
+                try:
+                  for name in sorted(plan['files'],key=lambda name:(name in ('radar-app.html','fiscales/index.html'),name)):
+                    target=root/name
+                    target.parent.mkdir(parents=True,exist_ok=True)
+                    target.parent.chmod(0o755)
+                    pending=target.with_name(target.name+'.radar-staged')
+                    pending.write_bytes((stage/name).read_bytes())
+                    pending.chmod(0o644)
+                    os.replace(pending,target)
+                    touched.append(name)
+                  for name,want in plan['files'].items():
+                    assert sha(root/name)==want,'Post-write mismatch: '+name
+                except BaseException:
+                  for name in reversed(touched):
+                    if originals[name]:shutil.copy2(backup/name,root/name)
+                    else:(root/name).unlink()
+                  raise
+                print('FISCAL_RECOVERY_RELEASE_OK backup='+backup.name)
+              else:print('OCT08_ALREADY_CURRENT')
+              print(json.dumps({'portal_url':plan['portal_url'],'files_verified':len(plan['files']),'source_sha':plan['source_sha'],'scope':'Fiscal OCR recovery only'}))
+          archive.unlink()
+          PYCODE
+      - name: Verify published entry
+        run: |
+          python3 - <<'PYCODE'
+          import urllib.request,json,hashlib,time
+          plan=json.load(open('release-stage/release-plan.json'))
+          for name,want in plan['files'].items():
+            with urllib.request.urlopen('https://radargt.wowlatam.com/'+name+'?verify='+str(time.time_ns()),timeout=25) as r:
+              assert hashlib.sha256(r.read()).hexdigest()==want,name
+          print('FISCAL_OCR_RECOVERY_PUBLIC_VERIFIED')
+          PYCODE
