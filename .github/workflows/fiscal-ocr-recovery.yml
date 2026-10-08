@@ -25,6 +25,7 @@ jobs:
           python3 ops/fiscal-ocr-recovery/fetch-test-assets.py
           npm install --prefix /tmp/radar-visual playwright@1.58.2
           CHROME_PATH=$(which google-chrome) node ops/fiscal-ocr-recovery/test-browser.mjs ops/fiscal-ocr-recovery
+          EXPECT_SUCCESS=1 FISCAL_ENTRY=ops/fiscal-ocr-recovery/fixed-entry.js CHROME_PATH=$(which google-chrome) node ops/fiscal-ocr-parlacen/diagnose.mjs
       - name: Publish with backup and unchanged-live-file guards
         shell: bash
         env:

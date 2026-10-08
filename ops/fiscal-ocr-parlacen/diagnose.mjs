@@ -1,10 +1,10 @@
 import {chromium} from '/tmp/radar-visual/node_modules/playwright/index.mjs';
 import fs from 'node:fs';import http from 'node:http';import path from 'node:path';
-const dir='ops/fiscal-ocr-parlacen',assets='ops/fiscal-ocr-recovery/test-assets';
-let code=fs.readFileSync(dir+'/entry.js','utf8');
+const dir=process.env.FISCAL_ENTRY?'ops/fiscal-ocr-recovery':'ops/fiscal-ocr-parlacen',fixtureDir='ops/fiscal-ocr-parlacen',assets='ops/fiscal-ocr-recovery/test-assets';
+let code=fs.readFileSync(process.env.FISCAL_ENTRY||dir+'/entry.js','utf8');
 const mount='(0,S.createRoot)(yt).render((0,N.jsx)(x.StrictMode,{children:(0,N.jsx)(vt,{})}));';
 if(!code.includes(mount))throw Error('Unexpected live entry');code=code.replace(mount,'')+'\nexport {Qe as read,Se as prepare,le as orders};';
-const fixture=Buffer.from(fs.readFileSync(dir+'/parlacen-votes-fixture.b64','utf8'),'base64');
+const fixture=Buffer.from(fs.readFileSync(fixtureDir+'/parlacen-votes-fixture.b64','utf8'),'base64');
 const server=http.createServer((req,res)=>{let p=new URL(req.url,'http://localhost').pathname;let b,type='text/javascript';if(p==='/') {type='text/html';b='<div id="root"></div><script type="module">import{read,prepare,orders}from"/entry.js";window.ocr={read,prepare,orders};</script>'}
  else if(p==='/entry.js')b=code;else if(p==='/fixture.jpg'){b=fixture;type='image/jpeg'}
  else {const file=p.startsWith('/fiscales/ocr/')?path.join(assets,p.slice('/fiscales/'.length)):path.join(dir,path.basename(p));if(!fs.existsSync(file)){res.writeHead(404);res.end();return}b=fs.readFileSync(file);if(p.endsWith('.gz'))type='application/octet-stream';if(p.endsWith('.wasm'))type='application/wasm'}res.setHeader('Content-Type',type);res.end(b)}).listen(4193,'127.0.0.1');

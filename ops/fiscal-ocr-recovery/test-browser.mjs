@@ -4,7 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import assert from 'node:assert/strict';
 const base=process.argv[2],mods=JSON.parse(fs.readFileSync(`${base}/ocr-modules.json`));
-const initial=fs.readFileSync(`${base}/live-entry.js`,'utf8'),fixed=fs.readFileSync(`${base}/fixed-entry.js`,'utf8');
+const initial=fs.readFileSync(`${base}/test-assets/assets/index-ocr-recovery-6aac8125256b9ee7.js`,'utf8'),fixed=fs.readFileSync(`${base}/fixed-entry.js`,'utf8');
 const bootstrap=(assignment='demo-a')=>({fiscal:{id:1,fullName:'FISCAL QA'},campaign:{name:'PRUEBA AISLADA',partyName:'QA',partyLogoUrl:'/blank.svg',municipality:'MUNICIPIO QA',municipalityCode:assignment==='demo-a'?'0509d':'0509'},assignment:{id:assignment,centerName:'CENTRO QA',jrvNumber:123},centerOverview:null,counts:{incidents:0,rtdSubmitted:0},session:{demoMode:assignment==='demo-a'},incidents:[],folios:[],elections:[{type:'CORPORACION_MUNICIPAL',label:'Alcaldía',catalogMode:'DEMOSTRACION',catalogVersion:'QA',options:[{code:'QA',label:'PARTIDO QA'}]},{type:'PRESIDENTE',label:'Presidencia',catalogMode:'DEMOSTRACION',catalogVersion:'QA',options:[{code:'QA',label:'PARTIDO QA'}]}]});
 const html=(mode)=>`<html><body><div id="root"></div><script>window.__RADAR_FISCAL_CONFIG__={apiBase:'/mock'};</script><script type="module" src="/${mode}-entry.js"></script></body></html>`;
 let blockedWrites=0;
