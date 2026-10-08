@@ -25,7 +25,7 @@ for file in stage.rglob('*.js'):
  subprocess.run(['node','--check',str(file)],check=True)
 files={str(p.relative_to(stage)):sha(p.read_bytes()) for p in stage.rglob('*') if p.is_file()}
 release=inputs['previous_release'].copy()
-release.update({'source_sha':inputs['source_sha'],'date':'2026-10-08','scope':'Contact visit map location and automatic campaign file purge','quality':{'checks':'build, tests, bundle, contact GPS/manual location and desktop/mobile layout','workflow_run':os.environ['GITHUB_RUN_ID']},'files':{**release.get('files',{}),**files}})
+release.update({'source_sha':inputs['source_sha'],'date':'2026-10-08','scope':'Refine private contact form and full-width location card layout','quality':{'checks':'build, tests, bundle, contact GPS/manual location and desktop/mobile layout','workflow_run':os.environ['GITHUB_RUN_ID']},'files':{**release.get('files',{}),**files}})
 (stage/'radar-release.json').write_text(json.dumps(release,ensure_ascii=False,indent=2)+'\n')
 files['radar-release.json']=sha((stage/'radar-release.json').read_bytes())
 plan={'expected':inputs['expected'],'files':files,'source_sha':inputs['source_sha'],'portal_url':'https://radargt.wowlatam.com/fiscales'}
