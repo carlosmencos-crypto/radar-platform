@@ -107,7 +107,7 @@ export function NationalRtd({ snapshot }: { snapshot: AdminSnapshot }) {
       {elections.map(([id, label]) => <button key={id} type="button" aria-pressed={election === id} onClick={() => changeElection(id)}>{label}</button>)}
     </div>
     <div className="rtd-national-filters">
-      <label>Entorno<select value={mode} onChange={(event) => changeMode(event.target.value as RtdMode)}><option value="REAL">Resultados reales</option><option value="TEST">Ensayos de campañas</option><option value="DEMO">Pruebas demo</option></select></label>
+      <label>Entorno<select aria-label="Entorno" value={mode} onChange={(event) => changeMode(event.target.value as RtdMode)}><option value="REAL">Resultados reales</option><option value="TEST">Ensayos de campañas</option><option value="DEMO">Pruebas demo</option></select></label>
       <label>Año electoral<input type="number" min="2023" max="2100" value={year} onChange={(event) => setYear(Number(event.target.value))} /></label>
       {election === "PRESIDENTE" && <label>Vuelta<select value={round} onChange={(event) => setRound(Number(event.target.value))}><option value="1">Primera vuelta</option><option value="2">Segunda vuelta</option></select></label>}
       <label>Departamento<select value={department} onChange={(event) => { setDepartment(event.target.value); setMunicipality(""); setTerritory(""); }}><option value="">Todos</option>{departments.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
