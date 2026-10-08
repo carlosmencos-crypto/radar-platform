@@ -1,0 +1,90 @@
+{
+  "gate": "/* Verify identity and municipal authorization before loading the existing app. */\nconst url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';\nconst apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';\nconst key='radar-supabase-session-v1';\nconst entry='/assets/index-BACZqCNa.js';\nconst municipal=location.pathname.match(/^\\/municipio\\/(\\d{4})(d)?(?:\\/|$)/)||location.pathname.match(/^\\/(\\d{4})(d)(?:\\/|$)/);\nconst protectedRoute=Boolean(municipal)||/^\\/(municipios|mis-municipios|demos)\\/?$/.test(location.pathname);\nlet loggingOut=false;\nfunction login(clear=true){if(loggingOut)return;if(clear)localStorage.removeItem(key);location.replace(`/?login=1&next=${encodeURIComponent(location.pathname+location.search)}`);}\nasync function verify(){\n if(!protectedRoute)return true;\n if(localStorage.getItem('radar-session-persistence')==='session'&&!sessionStorage.getItem('radar-session-tab')){login(false);return false;}\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{login();return false;}\n if(!session?.access_token){login();return false;}\n if(session.expires_at<=Date.now()+60000){\n  const renew=async()=>{\n   session=JSON.parse(localStorage.getItem(key)||'null');\n   if(!session?.access_token){login(false);return false;}\n   if(session.expires_at>Date.now()+60000)return true;\n   const previous=session.refresh_token;\n   const response=await fetch(`${url}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:previous})});\n   if(!response.ok){\n    const latest=JSON.parse(localStorage.getItem(key)||'null');\n    if(latest&&latest.refresh_token!==previous&&latest.expires_at>Date.now()){session=latest;return true;}\n    if([400,401,403].includes(response.status)){login(latest?.refresh_token===previous);return false;}\n    throw new Error('Session renewal temporarily unavailable');\n   }\n   const data=await response.json();session={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+data.expires_in*1000,token_type:data.token_type};localStorage.setItem(key,JSON.stringify(session));return true;\n  };\n  if(!(navigator.locks?await navigator.locks.request('radar-auth-refresh',renew):await renew()))return false;\n }\n\n const headers={apikey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'};\n const identity=await fetch(`${url}/auth/v1/user`,{headers});if(!identity.ok){login();return false;}\n if(municipal){const demo=Boolean(municipal[2])||new URLSearchParams(location.search).get('demo')==='1';const response=await fetch(`${url}/rest/v1/rpc/radar_authorized_context_v2`,{method:'POST',headers,body:JSON.stringify({route_kind:demo?'demo':'municipality',route_key:municipal[1]})});const data=await response.json();if(!response.ok||!Array.isArray(data)||!data.length){showError('Tu cuenta no tiene acceso a este municipio.');return false;}}\n return true;\n}\nfunction showError(message){document.body.replaceChildren();const panel=document.createElement('main');panel.style.cssText='max-width:560px;margin:15vh auto;padding:32px;font:18px system-ui;line-height:1.7';const title=document.createElement('h1');title.textContent='Acceso RADAR';const description=document.createElement('p');description.textContent=message;const link=document.createElement('a');link.href='/?login=1';link.textContent='Volver al ingreso';panel.append(title,description,link);document.body.append(panel);}\nfunction logout(){\n if(loggingOut)return;\n loggingOut=true;\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{}\n localStorage.removeItem(key);\n localStorage.removeItem('radar-session-persistence');\n sessionStorage.removeItem('radar-session-tab');\n sessionStorage.removeItem('radar-supabase-callback-v1');\n // Send revocation without keeping the private app open or waiting on network latency.\n try{if(session?.access_token)void fetch(`${url}/auth/v1/logout?scope=local`,{method:'POST',headers:{apikey,Authorization:`Bearer ${session.access_token}`},keepalive:true}).catch(()=>{});}catch{}\n location.replace('/');\n}\ndocument.addEventListener('click',event=>{\n const element=event.target instanceof Element?event.target.closest('a,button'):null;\n if(!element)return;\n const label=(element.getAttribute('aria-label')||element.textContent||'').replace(/\\s+/g,' ').trim();\n if(label!=='Cerrar sesi\u00f3n'&&!element.getAttribute('href')?.includes('signout-with-chatgpt'))return;\n event.preventDefault();event.stopImmediatePropagation();logout();\n},true);\nwindow.addEventListener('pageshow',event=>{if(event.persisted&&protectedRoute)location.reload();});\ntry{if(await verify()&&!loggingOut)await import(entry);}catch(error){console.error('RADAR_BOOT_FAILED',error);showError('Tu acceso fue verificado, pero RADAR no pudo terminar de cargar. Recarga la p\u00e1gina para intentarlo de nuevo.');}\n",
+  "previous_release": {
+    "source_sha": "a886c4c7f6154bf36789ba013c4edb7d81846c42",
+    "date": "2026-10-08",
+    "scope": "Refine resource library folder dialog only",
+    "environment": {
+      "supabase_project": "xxobbhnhxhcjkdxmjmwj",
+      "fiscal_portal_url": "https://radargt.wowlatam.com/fiscales"
+    },
+    "quality": {
+      "tests": 153,
+      "municipalities_validated": 340,
+      "quality_workflow": 37711350779
+    },
+    "files": {
+      "radar-app.html": "7ee525dff9a6bede6694800f8f7837aa97eae5ae8b4344ae2734a70d2055072f",
+      "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f",
+      "assets/inter-6e1a6b2b-Ai74Rjx-.woff2": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+      "assets/RtdActas-BNwvVVu3.js": "44fcf9090c5f4701ccbb40ec15376ecfe3c9af35dc21873ba14c540153c86d94",
+      "assets/inter-749a3084-B_-bZUTo.woff2": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+      "assets/ResourceRecordSheet-BPsbYGXS.js": "d2de0446f4e3286be518f9df942b0cc780ee3b08ffd3984cb045832585a8ca5d",
+      "assets/radar-contract-WSpO9eWF.js": "5229c3a9312b1400b42b1c92d7f4e86fdadd1897c7b1111c60669d7bee5eaf50",
+      "assets/team-access-v2.css": "ed6aeb018945f3b53e7620113fe1e135f5df2caa03ece9a7ac1f04578620147c",
+      "assets/inter-fc83e075-YEzCLjIM.woff2": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+      "assets/inter-1ab1ad55-8kRkwJBP.woff2": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "assets/AiUsage-DQDQfI0b.js": "efe582d8361f8654b2c9b52e1b47d6935a35a368f513e6b6e3a9da26d929e197",
+      "assets/inter-656bbed6-BQL42Lnq.woff2": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+      "assets/index-C_-TkfG6.css": "d9a5686420097db44f81abc65d5d722f673f855cbbb0ea91e3b8caf2be754090",
+      "assets/rolldown-runtime-hePW80VL.js": "580ad8c58061a4dde99bde0a56905e382f0568516ee2f5b84dbfb52085709021",
+      "assets/ResourcePreview-CIYNWZg_.js": "5720494fd0b20bbf737ee3869100e7eb979a87834622051ca06772e10e218a68",
+      "assets/radar-welcome-logo.png": "bcb5c689e225649d4a0debc0e8adc23592af779fc444ad612ff482d200d7b6e6",
+      "assets/index-CHql6s20.js": "429801bf241f8e0ba02afc7e5f6bd392dcd50ca151625eb89b724373cae583b2",
+      "assets/inter-7249155f-Cpd2YT5r.woff2": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+      "assets/inter-e34c5f1b-C5ekK6td.woff2": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+      "assets/SharedActivities-CrpRrTk4.js": "50238ace0115e36f67af193f92928d01adb802ea0d85cb4c8b56846d316925dd",
+      "assets/activity-export-D2RTBahb.js": "49bd40627c6ac38b3f2fcb56bc5b352fd09b5f1f26d4508514446af389152558",
+      "assets/radar-access-gate-oct01-f5a98a92bf49c61a.js": "f5a98a92bf49c61a7b29ea2a373f1cb85122840baac95b67db6499c3dd6ac53c",
+      "assets/vendor-DUySGuK_.js": "5a70577cb2410f85ac8d6b5d0c0266a1873b2b69c300899d98e7ef08a3486e39",
+      "fiscales/assets/index-oct01-e927c77656a80ce5.js": "e927c77656a80ce5f78ad111898dfc2de514df5d24ff46045948cf52f05ea240",
+      "assets/radar-access-gate-oct07-5fae5f2ea0a7225c.js": "5fae5f2ea0a7225cc7f9a371544eaaf7afa465f1859ebc6253312af1e3b6106e",
+      "assets/ResourcePreview-CQF1e1O3.js": "a67ff9cf5786dfb938b6700ea937c38857ad9d386572ddd3a308bb4546001ef7",
+      "assets/admin-DAXFFBpg.css": "da4ac6134cd2108c127b64e19fcf990e1211498bca6312ef44c881cbafdea1a9",
+      "assets/RtdActas-C36hQcLn.js": "145350ef5ccb36ef469d74cd3ae36a58e9cd8b462cb4893ae50ca138db574966",
+      "assets/index-CIooHvro.css": "c52fe832699d112336fe2d2ceaa1e382eb038e72ea38ec64cac49130a62a97fd",
+      "assets/ResourceRecordSheet-DQmajX1K.js": "a7f5d749c13e706460957181461c487fb71c0a3d69b4e89bd2b9ccae0a7b26a8",
+      "assets/admin-YyaXUekY.js": "5deecc10832885aff43e61733525945f0e31b7a27d8cec9b01d48a710e5a21fa",
+      "assets/index-BqH2tAjS.js": "b710c58a145f713fc7340a8866b3b603155fc24378ccbba80fb7f8aa02d60245",
+      "assets/vendor-CTW4ouDU.js": "397fa77d186b92f3fb2e1b8af481ac1615bb39f0c8c279fcffe92f4505cc56d5",
+      "assets/RtdActas-DaJfE721.js": "3b99a7c84578bcd70892c9fa6754a0a7f6a580541381da878af6518f340e98fa",
+      "assets/ResourcePreview-Dsmes5fQ.js": "a6ebda28bbcafe523fabfc01276fe53f5f3eef34fc5ecbc834768f89962b0ea3",
+      "assets/radar-access-gate-oct07-9dd0a01d227c7fa0.js": "9dd0a01d227c7fa0f244715d408037ac4a31a42d522a8077f4020a574fb685a6",
+      "assets/ResourceRecordSheet-B7-cWMl4.js": "dc183150a02199685e115f42c5c951fc61899713829dc08cbb510c812ea92cd3",
+      "assets/index-B9BQ_zi4.js": "069444d9abf4bd832108cf1c2b4886a5f88b262b3b297451731d2a3bcc516e88",
+      "assets/RtdActas-BoXzop_h.js": "d6f0f89c6087a966c0f2d47a421f17a6c7aafa151367615bf0e3d8400e4c4c1d",
+      "assets/ResourcePreview-Cc3eGA6h.js": "5873a27f91f95708961888f14e6c94b8795597ecb40058a126e925bd555871be",
+      "assets/admin-B__9jpQ9.js": "89d731dac8aaaca992462ced05246d2a1ab55dd426ea781600a41aacb02b03b4",
+      "assets/ResourceRecordSheet-CZ4E0HZC.js": "c2dae6136896b7a66d0ef5e4636af37b43b4252befeebe4bcf49d8d48caf6dab",
+      "assets/vendor-C5GouDJ2.js": "5e26d242838d2150daa7d8e3157c643720f901051f0d1e3ffce297ce1bfe510d",
+      "assets/index-9LWLsoQg.js": "f4e66c7f115ff4b4a94b74d516e88378166437cd3c50090a3bc0d4870a981581",
+      "assets/radar-access-gate-oct08-ef5f348be3cfdfe5.js": "ef5f348be3cfdfe594f8f7c0ad285b8fbf3723548faafe9c8f59babba75142a9",
+      "assets/RtdActas-DzSiGvm5.js": "e905ab551069ddb44c576a926fbeaf7db4950f32732bf9805ea84cbe901536f5",
+      "assets/ResourceRecordSheet-Lc_Qrp4A.js": "6602dcf80baee254a655af8ec29f1c8e93669b05b75b5c9b847bc9496fad7ef5",
+      "assets/radar-access-gate-oct08-8b62f48ae5ada057.js": "8b62f48ae5ada057c05b48300266d316f52f60717b146af52390ff7fd8a4bff7",
+      "assets/index-BACZqCNa.js": "1586a68a80bdd3f4d780b69eddf185b80e953c0ef46e69f113b58de13dce1f59",
+      "assets/ResourcePreview-CzHeqwhi.js": "4b4804bd6e67a430506386c5438ac5ebc96613478b4fc3a54a6ecbcc72592c09",
+      "fiscales/assets/index-ocr-recovery-6aac8125256b9ee7.js": "6aac8125256b9ee7f24bd60404c331f456edb190c42130ff0b33c3a51c5d01ea",
+      "fiscales/assets/index-ocr-recovery-ea25b6c154d5ee96.js": "ea25b6c154d5ee962ce3bf22397121699296080611a8b075af1e9ff93c6b3e63",
+      "fiscales/assets/ocr-helpers-580aa02d8ed77088.js": "580aa02d8ed7708850a59fc04d295445635d1d9ab9cf0f6e0dfa0962b1c1b6e8",
+      "fiscales/assets/src-ocr-isolated-347f8516b23ea6d4.js": "347f8516b23ea6d4260c852ed2882eb0b89f3dbe93e977a490927254cd36340c",
+      "fiscales/assets/index-ocr-recovery-1ed57183d3ded50e.js": "1ed57183d3ded50e8e3e33531f6379afb27c1385136a4b915661e94db4d7547c"
+    },
+    "fiscal_ocr_recovery": {
+      "date": "2026-10-08",
+      "previous_entry": "/fiscales/assets/index-ocr-recovery-ea25b6c154d5ee96.js",
+      "entry": "/fiscales/assets/index-ocr-recovery-1ed57183d3ded50e.js",
+      "changes": [
+        "TSE threshold row scope fix across five election templates",
+        "isolated OCR module preserved",
+        "selected acta recovery preserved"
+      ],
+      "google_document_ai_enabled": false
+    }
+  },
+  "expected": {
+    "radar-app.html": "7ee525dff9a6bede6694800f8f7837aa97eae5ae8b4344ae2734a70d2055072f",
+    "radar-release.json": "68e8f1f12127d33945172e5358fd2ef4d45224715b90cf62e6b3ced1cb33107a",
+    "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f"
+  }
+}
