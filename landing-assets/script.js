@@ -196,10 +196,21 @@ const productDetailTitle = document.querySelector('#product-detail-title');
 const productDetailCopy = document.querySelector('#product-detail-copy');
 const productDetailFeatures = document.querySelector('#product-detail-features');
 const productPills = Array.from(document.querySelectorAll('.product-pill'));
+const productFamily = document.querySelector('.product-family');
 let activeProduct = null;
+
+function placeProductDetail(pill) {
+  if (!productDetail || !productFamily) return;
+  if (window.matchMedia('(max-width: 820px)').matches && pill) {
+    pill.insertAdjacentElement('afterend', productDetail);
+    return;
+  }
+  productFamily.insertAdjacentElement('afterend', productDetail);
+}
 
 function closeProductDetail() {
   activeProduct = null;
+  productFamily?.insertAdjacentElement('afterend', productDetail);
   productDetail?.classList.remove('is-open');
   productDetail?.setAttribute('aria-hidden', 'true');
   productDetail?.setAttribute('inert', '');
@@ -215,6 +226,7 @@ productPills.forEach(function (pill) {
       closeProductDetail();
       return;
     }
+    placeProductDetail(pill);
     activeProduct = productKey;
     productDetailIndex.textContent = product.index;
     productDetailTitle.textContent = product.title;
@@ -231,6 +243,13 @@ productPills.forEach(function (pill) {
     productDetail.removeAttribute('inert');
     productPills.forEach(function (item) { item.setAttribute('aria-expanded', String(item === pill)); });
   });
+});
+
+window.addEventListener('resize', function () {
+  const activePill = productPills.find(function (pill) {
+    return pill.dataset.product === activeProduct;
+  });
+  placeProductDetail(activePill || null);
 });
 
 productDetail?.querySelector('a')?.addEventListener('click', closeProductDetail);
