@@ -1,0 +1,53 @@
+name: Diagnose fiscal public routing
+on:
+  push:
+    branches: [fix/contact-location-purge-oct08]
+    paths: [.github/workflows/fiscal-route-diagnostic.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Inspect published fiscal files without changes
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          task_dir=$(mktemp -d)
+          trap 'rm -rf "$task_dir"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$task_dir/identity"
+          ssh-keyscan -T 15 -t ed25519 -p "$SSH_PORT" "$SSH_HOST" > "$task_dir/server_keys" 2>/dev/null
+          test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
+          ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" 'python3 -' <<'PY'
+          from pathlib import Path
+          import json,hashlib,re
+          root=Path.home()/'domains/radargt.wowlatam.com/public_html'
+          print('ROOT_EXISTS',root.is_dir())
+          for name in ['.htaccess','index.html','radar-app.html','radar-release.json','fiscales/index.html','fiscales/.htaccess','fiscales/radar-fiscal-config.js']:
+            p=root/name
+            if not p.is_file():
+              print('MISSING',name)
+              continue
+            raw=p.read_bytes()
+            print('FILE',name,'bytes',len(raw),'sha256',hashlib.sha256(raw).hexdigest())
+            if name.endswith('.htaccess'):print('ROUTING',name,raw.decode())
+            if name.endswith('.html'):print('TITLE',re.findall(r'<title>(.*?)</title>',raw.decode()))
+          if (root/'fiscales').is_dir():print('FISCAL_FILES',sorted(p.name for p in (root/'fiscales').iterdir())[:35])
+          PY
+      - name: Check public routes
+        run: |
+          python3 - <<'PY'
+          import urllib.request,hashlib,re,time
+          for url in ['https://fiscales.wowlatam.com/','https://radargt.wowlatam.com/fiscales/','https://radargt.wowlatam.com/radar-release.json']:
+            try:
+              with urllib.request.urlopen(url+'?check='+str(time.time_ns()),timeout=20) as r:
+                raw=r.read();print('PUBLIC',url,r.status,r.url,len(raw),hashlib.sha256(raw).hexdigest(),re.findall(r'<title>(.*?)</title>',raw.decode())[:1])
+            except Exception as e:print('PUBLIC_ERROR',url,str(e))
+          PY
