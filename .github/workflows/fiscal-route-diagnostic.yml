@@ -44,7 +44,7 @@ jobs:
           print('RECENT_ROOT_METADATA')
           for p in sorted(root.iterdir(),key=lambda x:x.stat().st_mtime,reverse=True)[:15]:
            st=p.stat();print(p.name,datetime.datetime.fromtimestamp(st.st_mtime,datetime.timezone.utc).isoformat())
-                    PY
+          PY
       - name: Check public routes
         run: |
           python3 - <<'PY'
