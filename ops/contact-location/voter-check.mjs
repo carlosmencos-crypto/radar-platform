@@ -38,6 +38,7 @@ export async function checkVoterRecord(page){
   await page.getByAltText('DPI enderezado y recortado').waitFor();
   const handle=page.getByRole('button',{name:'Esquina 1 del documento'});const before=await handle.getAttribute('style');await handle.focus();await page.keyboard.press('ArrowRight');assert.notEqual(await handle.getAttribute('style'),before);
   const handleBox=await handle.boundingBox();assert.ok(handleBox.width>=44&&handleBox.height>=44,'Touch target must be at least 44px');
+  console.log('HANDLE_HIT',width,handleBox,await page.evaluate(({x,y})=>({hit:document.elementFromPoint(x,y)?.outerHTML}),{x:handleBox.x+22,y:handleBox.y+22}));
   const touchBefore=await handle.getAttribute('style');
   // Real pointer drag is checked separately by the browser input pipeline.
   await page.mouse.move(handleBox.x+22,handleBox.y+22);await page.mouse.down();await page.mouse.move(handleBox.x+35,handleBox.y+34,{steps:4});await page.mouse.up();
