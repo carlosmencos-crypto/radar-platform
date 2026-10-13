@@ -1,4 +1,4 @@
-name: Diagnose fiscal public routing
+name: Inspect fiscal regression timestamps
 on:
   push:
     branches: [fix/contact-location-purge-oct08]
@@ -27,32 +27,24 @@ jobs:
           test "$(ssh-keygen -lf "$task_dir/server_keys" | awk '{print $2}')" = 'SHA256:mNDWDdfOkgNeXMA6wNx/QkX81OagTOj3lq1aej7eVkg'
           ssh -i "$task_dir/identity" -p "$SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$task_dir/server_keys" -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" 'python3 -' <<'PY'
           from pathlib import Path
-          import json,hashlib,re
+          import datetime,json,hashlib
           root=Path.home()/'domains/radargt.wowlatam.com/public_html'
-          print('ROOT_EXISTS',root.is_dir())
-          for name in ['.htaccess','index.html','radar-app.html','radar-release.json','fiscales/index.html','fiscales/.htaccess','fiscales/radar-fiscal-config.js']:
-            p=root/name
-            if not p.is_file():
-              print('MISSING',name)
-              continue
-            raw=p.read_bytes()
-            print('FILE',name,'bytes',len(raw),'sha256',hashlib.sha256(raw).hexdigest())
-            if name.endswith('.htaccess'):print('ROUTING',name,raw.decode())
-            if name.endswith('.html'):print('TITLE',re.findall(r'<title>(.*?)</title>',raw.decode()))
-          if (root/'fiscales').is_dir():print('FISCAL_FILES',sorted(p.name for p in (root/'fiscales').iterdir())[:35])
-          print('APP_HTML',(root/'radar-app.html').read_text())
-          backup=Path.home()/'radar-deploy-backups'
-          if backup.is_dir():
-            print('BACKUP_DIRS',sorted(p.name for p in backup.iterdir())[-45:])
-            for p in backup.glob('*/fiscales/index.html'):
-              print('FISCAL_BACKUP',p.relative_to(backup).as_posix(),len(p.read_bytes()),hashlib.sha256(p.read_bytes()).hexdigest())
-            for p in backup.glob('*/radar-release.json'):
-              try:
-                d=json.loads(p.read_text());print('BACKUP_RELEASE',p.parent.name,d.get('source_sha'),d.get('date'),d.get('scope'),d.get('fiscal_ocr_recovery'))
-              except Exception:pass
-          print('DOMAIN_DIRS',sorted(p.name for p in (Path.home()/'domains').iterdir()))
-          print('RADAR_HOME_PATHS',sorted(p.name for p in Path.home().glob('*radar*')))
-          PY
+          backups=Path.home()/'radar-deploy-backups'
+          def inspect(p):
+           if not p.is_file():return
+           st=p.stat()
+           print(json.dumps({'path':str(p.relative_to(Path.home())),'mtime_utc':datetime.datetime.fromtimestamp(st.st_mtime,datetime.timezone.utc).isoformat(),'bytes':st.st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}))
+          for name in ['index.html','radar-app.html','radar-release.json','.htaccess','assets/index-BEaqfzxg.js','fiscales/index.html']:
+           inspect(root/name)
+          for folder in ['oct08-20261013T033100Z','oct08-20261008T082612Z','oct08-20261008T081924Z','fiscal-path-20260930T083424Z']:
+           p=backups/folder
+           for name in ['index.html','radar-app.html','radar-release.json','.htaccess','fiscales/index.html']:inspect(p/name)
+           if (p/'manifest.json').exists():
+            d=json.loads((p/'manifest.json').read_text());print('BACKUP_CONTENT',folder,'files',len(d.get('files',{})),'original_fiscal',d.get('original',{}).get('fiscales/index.html'),'expected',d.get('expected',{}))
+          print('RECENT_ROOT_METADATA')
+          for p in sorted(root.iterdir(),key=lambda x:x.stat().st_mtime,reverse=True)[:15]:
+           st=p.stat();print(p.name,datetime.datetime.fromtimestamp(st.st_mtime,datetime.timezone.utc).isoformat())
+                    PY
       - name: Check public routes
         run: |
           python3 - <<'PY'
