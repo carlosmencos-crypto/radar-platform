@@ -40,6 +40,18 @@ jobs:
             if name.endswith('.htaccess'):print('ROUTING',name,raw.decode())
             if name.endswith('.html'):print('TITLE',re.findall(r'<title>(.*?)</title>',raw.decode()))
           if (root/'fiscales').is_dir():print('FISCAL_FILES',sorted(p.name for p in (root/'fiscales').iterdir())[:35])
+          print('APP_HTML',(root/'radar-app.html').read_text())
+          backup=Path.home()/'radar-deploy-backups'
+          if backup.is_dir():
+            print('BACKUP_DIRS',sorted(p.name for p in backup.iterdir())[-45:])
+            for p in backup.glob('*/fiscales/index.html'):
+              print('FISCAL_BACKUP',p.relative_to(backup).as_posix(),len(p.read_bytes()),hashlib.sha256(p.read_bytes()).hexdigest())
+            for p in backup.glob('*/radar-release.json'):
+              try:
+                d=json.loads(p.read_text());print('BACKUP_RELEASE',p.parent.name,d.get('source_sha'),d.get('date'),d.get('scope'),d.get('fiscal_ocr_recovery'))
+              except Exception:pass
+          print('DOMAIN_DIRS',sorted(p.name for p in (Path.home()/'domains').iterdir()))
+          print('RADAR_HOME_PATHS',sorted(p.name for p in Path.home().glob('*radar*')))
           PY
       - name: Check public routes
         run: |
