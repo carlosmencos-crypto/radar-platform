@@ -42,14 +42,14 @@ export async function checkVoterRecord(page){
   const touchBefore=await handle.getAttribute('style');
   // Real pointer drag is checked separately by the browser input pipeline.
   await page.mouse.move(handleBox.x+22,handleBox.y+22);await page.mouse.down();await page.mouse.move(handleBox.x+35,handleBox.y+34,{steps:4});await page.mouse.up();
-  assert.notEqual(await handle.getAttribute('style'),touchBefore,'Dragging a corner must update the crop');
+  await page.waitForFunction(before=>document.querySelector('.document-photo-handle')?.getAttribute('style')!==before,touchBefore);
   if(width===390){
    const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
    const b=await handle.boundingBox();const prior=await handle.getAttribute('style');
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+22,y:b.y+22}]});
    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:b.x+42,y:b.y+38}]});
    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-   assert.notEqual(await handle.getAttribute('style'),prior,'Actual touch drag must move the crop corner');await cdp.detach();
+   await page.waitForFunction(before=>document.querySelector('.document-photo-handle')?.getAttribute('style')!==before,prior);await cdp.detach();
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);

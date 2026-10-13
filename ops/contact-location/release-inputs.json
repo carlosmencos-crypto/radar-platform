@@ -1,19 +1,19 @@
 {
   "gate": "/* Verify identity and municipal authorization before loading the existing app. */\nconst url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';\nconst apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';\nconst key='radar-supabase-session-v1';\nconst entry='/assets/index-BNd4uyw5.js';\nconst municipal=location.pathname.match(/^\\/municipio\\/(\\d{4})(d)?(?:\\/|$)/)||location.pathname.match(/^\\/(\\d{4})(d)(?:\\/|$)/);\nconst protectedRoute=Boolean(municipal)||/^\\/(municipios|mis-municipios|demos)\\/?$/.test(location.pathname);\nlet loggingOut=false;\nfunction login(clear=true){if(loggingOut)return;if(clear)localStorage.removeItem(key);location.replace(`/?login=1&next=${encodeURIComponent(location.pathname+location.search)}`);}\nasync function verify(){\n if(!protectedRoute)return true;\n if(localStorage.getItem('radar-session-persistence')==='session'&&!sessionStorage.getItem('radar-session-tab')){login(false);return false;}\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{login();return false;}\n if(!session?.access_token){login();return false;}\n if(session.expires_at<=Date.now()+60000){\n  const renew=async()=>{\n   session=JSON.parse(localStorage.getItem(key)||'null');\n   if(!session?.access_token){login(false);return false;}\n   if(session.expires_at>Date.now()+60000)return true;\n   const previous=session.refresh_token;\n   const response=await fetch(`${url}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:previous})});\n   if(!response.ok){\n    const latest=JSON.parse(localStorage.getItem(key)||'null');\n    if(latest&&latest.refresh_token!==previous&&latest.expires_at>Date.now()){session=latest;return true;}\n    if([400,401,403].includes(response.status)){login(latest?.refresh_token===previous);return false;}\n    throw new Error('Session renewal temporarily unavailable');\n   }\n   const data=await response.json();session={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+data.expires_in*1000,token_type:data.token_type};localStorage.setItem(key,JSON.stringify(session));return true;\n  };\n  if(!(navigator.locks?await navigator.locks.request('radar-auth-refresh',renew):await renew()))return false;\n }\n\n const headers={apikey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'};\n const identity=await fetch(`${url}/auth/v1/user`,{headers});if(!identity.ok){login();return false;}\n if(municipal){const demo=Boolean(municipal[2])||new URLSearchParams(location.search).get('demo')==='1';const response=await fetch(`${url}/rest/v1/rpc/radar_authorized_context_v2`,{method:'POST',headers,body:JSON.stringify({route_kind:demo?'demo':'municipality',route_key:municipal[1]})});const data=await response.json();if(!response.ok||!Array.isArray(data)||!data.length){showError('Tu cuenta no tiene acceso a este municipio.');return false;}}\n return true;\n}\nfunction showError(message){document.body.replaceChildren();const panel=document.createElement('main');panel.style.cssText='max-width:560px;margin:15vh auto;padding:32px;font:18px system-ui;line-height:1.7';const title=document.createElement('h1');title.textContent='Acceso RADAR';const description=document.createElement('p');description.textContent=message;const link=document.createElement('a');link.href='/?login=1';link.textContent='Volver al ingreso';panel.append(title,description,link);document.body.append(panel);}\nfunction logout(){\n if(loggingOut)return;\n loggingOut=true;\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{}\n localStorage.removeItem(key);\n localStorage.removeItem('radar-session-persistence');\n sessionStorage.removeItem('radar-session-tab');\n sessionStorage.removeItem('radar-supabase-callback-v1');\n // Send revocation without keeping the private app open or waiting on network latency.\n try{if(session?.access_token)void fetch(`${url}/auth/v1/logout?scope=local`,{method:'POST',headers:{apikey,Authorization:`Bearer ${session.access_token}`},keepalive:true}).catch(()=>{});}catch{}\n location.replace('/');\n}\ndocument.addEventListener('click',event=>{\n const element=event.target instanceof Element?event.target.closest('a,button'):null;\n if(!element)return;\n const label=(element.getAttribute('aria-label')||element.textContent||'').replace(/\\s+/g,' ').trim();\n if(label!=='Cerrar sesión'&&!element.getAttribute('href')?.includes('signout-with-chatgpt'))return;\n event.preventDefault();event.stopImmediatePropagation();logout();\n},true);\nwindow.addEventListener('pageshow',event=>{if(event.persisted&&protectedRoute)location.reload();});\ntry{if(await verify()&&!loggingOut)await import(entry);}catch(error){console.error('RADAR_BOOT_FAILED',error);showError('Tu acceso fue verificado, pero RADAR no pudo terminar de cargar. Recarga la página para intentarlo de nuevo.');}\n",
   "previous_release": {
-    "source_sha": "86e99acd2f1c84733027230885e4412a3f60dbd0",
-    "date": "2026-10-08",
-    "scope": "Voter consultation sheet and local DPI perspective correction",
+    "source_sha": "acee05da6994a0c73ef87851e5ec0c1150a63bba",
+    "date": "2026-10-13",
+    "scope": "Restore approved fiscal portal and mobile DPI corner controls",
     "environment": {
       "supabase_project": "xxobbhnhxhcjkdxmjmwj",
       "fiscal_portal_url": "https://radargt.wowlatam.com/fiscales"
     },
     "quality": {
       "checks": "170 tests, build, bundle, nested dialogs, document crop/review, print and responsive layout",
-      "workflow_run": "37748850556"
+      "workflow_run": "38342002706"
     },
     "files": {
-      "radar-app.html": "262ad6ca85a073eb0380502a896cada78c5a0879336bb66303dbfc8775fc47c6",
+      "radar-app.html": "bd966ca23b3888cf0020cb25ebb10a53f6e8f6777eafdf784f47bf119b35a7a4",
       "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f",
       "assets/inter-6e1a6b2b-Ai74Rjx-.woff2": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
       "assets/RtdActas-BNwvVVu3.js": "44fcf9090c5f4701ccbb40ec15376ecfe3c9af35dc21873ba14c540153c86d94",
@@ -112,7 +112,55 @@
       "assets/V70DocumentPhotoEditor-C8tVLGJB.js": "cef6ca4888ef75149f1ccb572307794e04cb47ce1cec3c5973cc9556d6b9bb95",
       "assets/V70DocumentPhotoEditor-CbmF5z74.css": "e08367b93cf131e84832ab960c1f567f871629c13362a1b75bfb066070b50c67",
       "assets/VoterRecordSheet-DCwog6sz.css": "0908b812480ba45fd7b4794988368386bb7772e1f0d9af0773112be41958002c",
-      "assets/ResourceRecordSheet-BGhTz07m.js": "7a223a4a72ae8a27ce401c5e054443860f8da6cd1f9299b32bc9a639d39e0112"
+      "assets/ResourceRecordSheet-BGhTz07m.js": "7a223a4a72ae8a27ce401c5e054443860f8da6cd1f9299b32bc9a639d39e0112",
+      "assets/VoterRecordSheet-xJZaWWDx.js": "733874649efead641aa2a049f92631c21ffd2908277ed7458555bbb1aba194d3",
+      "assets/ResourceRecordSheet-sTMg48gq.js": "714c6923fb9efd4d41d501dc83cabeb1ac77b1feffef85ad7dc16bbfecde1f38",
+      "assets/radar-access-gate-oct08-b08f191e17297779.js": "b08f191e172977798dd2b262892c3fb406ede0d9a023f11af90b1a26409861c8",
+      "assets/V70DocumentPhotoEditor-CPS-AJEM.js": "77f1dbfc3f5c69ef470b7ab115d7a14cdef348b0c4b35de20969929220daad9e",
+      "assets/V70DocumentPhotoEditor-C_tgQtQn.css": "1dc3b17afeee4fddb90036f928461e2f9fb97f37485cf738c69c3d2b93638e82",
+      "assets/index-DY--_WmO.js": "cf79de264484dec30bdb2f8a3560ba98c159b4c0fea7c0ed4baff584378a2a7f",
+      "assets/ResourcePreview-D6E79MyQ.js": "ea881e6e1e1149df3526726c7832754cda227796e82a9e539b9b974216cfc8e1",
+      "assets/RtdActas-BfjqQdEG.js": "639d539bf4a8877f2150c3258ba0bb18741272bca10f94685bccc72c6545e649",
+      "assets/index-DC6N5ykS.css": "e7873f11e1b1043854320c566bca69e9927ee4a4c3830ed228b53eafdaa7f4f3",
+      "fiscales/favicon.svg": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+      "fiscales/.htaccess": "be49d2143889e9e5d278ad2c6845a5c58401c7597229fb27072334d2b224a3b8",
+      "fiscales/radar-fiscal-config.js": "451e368a68b37ec3980f47d628722a1faf3ed22b66583391fe5ef11d1189a0c6",
+      "fiscales/window.svg": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66",
+      "fiscales/file.svg": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307",
+      "fiscales/campaign-party-logo-current.jpg": "d8a828bba207693991d102cfe7eec8a6329553c0b5bca20c6820bf4f9b32edbe",
+      "fiscales/fiscal-manifest.webmanifest": "890342cb3b7d20d38eec2383b37b2c2cd070b8f40e9d1ac612273e7ece2b0f11",
+      "fiscales/globe.svg": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9",
+      "fiscales/sw.js": "1066abb1b88c3f0fcf69ae26d30fd63352718f380ee1a341b4fcdc0b57b17268",
+      "fiscales/campaign-party-logo-demo.jpg": "bca4f0c09aabb670bba429fee7c647b31a30f3499d55c8f9f3f2110aee4e1a42",
+      "fiscales/fiscal-release.json": "38de3169fe5c0b0756f3a2d1e286f7d251ce84b4a55bf3c2058fcacb61b72f3d",
+      "fiscales/icons/radar-app-icon-512x512.png": "60d0b8f85bc9cad4cf7951ed5bb3289fb4243f0f59e7e106ccf99ba38d355d1f",
+      "fiscales/icons/radar-app-icon-192x192.png": "30af18453e4a0cbe9272ec389c1c5289944deb2c56a4534ea81ea642c16d8d8e",
+      "fiscales/brand/radar-electoral-logo-horizontal-claro.svg": "9b40108347693adce301a58173a4ee1625b8e7190e81c97ac3ad293d1338dd2a",
+      "fiscales/ocr/worker-v7.min.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "fiscales/ocr/worker.min.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
+      "fiscales/assets/src-OOUK23mV.js": "c57739373eca654201b053cb3dc765ce03e6f573d6824ef8964893742c58c714",
+      "fiscales/assets/index-C206bnWi.js": "719b8f54af5b01e7bc53cef258a2f45884607ad6b1a41016e04c0cf5bf82489f",
+      "fiscales/assets/src-B-k-ckM2.js": "089f355b271e6ed58ce6edc3a82dec5291b6de2d786da5c71b71b99fdf4d59aa",
+      "fiscales/assets/index-NI0qVwl8.js": "ee3dc0f126230e4eab82f76587e46f76608f0ffaa6d2f7bdf68c5b873034f0f8",
+      "fiscales/assets/index-jdee5dZS.js": "6f4d86734c6952700776d673be0b2828a0ff99f7023c35c932d076e38bbff31a",
+      "fiscales/assets/src-D-Se8Mc3.js": "eedfe39d23276b629e50be132ec1f8b593b072c79f6956ebf673a5e020c50165",
+      "fiscales/assets/index-C5FWa3-g.js": "9c9fdf123ae43b5f0df2fab50928e5f660a6ea98106d6f70582ea6edeb6eed44",
+      "fiscales/assets/index-CEPaEoI0.css": "98d4685d3cbede24033f5b7e7bd265fc424a5f31b99f147a4dc5b2e2d2333005",
+      "fiscales/assets/src-B9iHCOCQ.js": "a83250a4bc5d508d9f601cb42fbd56f12169e80c320e749a65ec953bb59b9985",
+      "fiscales/assets/src-Dm_ty9fX.js": "1a402d6b2007bc5516b4f885815c936dcea0057a9fd48660289f66c785c692aa",
+      "fiscales/assets/index-kDFP_N3m.css": "1fb2a43f0a12a8a75cb17d19ffe659ddc31cb1ef43b6a70f07202aeb4955fa8e",
+      "fiscales/assets/index-Du8NB5sm.js": "a9a274bc58ab8c13a61349222795cac68ca99761c597abf723ab77f9b6dc486b",
+      "fiscales/assets/src-CA_4_WxC.js": "31ccc22f21e7a174c16f05405362e91a5f0bc61bdf36c136ccf13e213a0544ff",
+      "fiscales/assets/index-Cy6u3nAb.js": "4a9588c144b201d8a8398484090259738621fefa83e6bbe47327ffe71dc2b7b0",
+      "fiscales/assets/index-DACKz-qw.js": "0afe54e3c4440d5b40bb094d04dffb9eb89449a5b84bd82ff5c1fa9b940cb0df",
+      "fiscales/assets/src-BQG8ydlO.js": "aea2ffd3468ffc494c7a85b29d3cdeeaf6b33de6e7ca404520d5c6431f8335d6",
+      "fiscales/ocr/core/tesseract-core-simd-lstm.wasm.js": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38",
+      "fiscales/ocr/core/tesseract-core-simd.wasm.js": "6b61ef4e911b5cf57e656bbfe983d6e2b3711a02dd164154ddda064566e8e09d",
+      "fiscales/ocr/core/tesseract-core-relaxedsimd-lstm.wasm.js": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",
+      "fiscales/ocr/core/tesseract-core.wasm.js": "0bc6ce3e5fbbd0cd89706cf2fd70960e3372f4f01ee24265b26990808aaeb286",
+      "fiscales/ocr/core/tesseract-core-relaxedsimd.wasm.js": "843074aa5bad1cc6421b74a86201768ced9f244795e4d81435435a61a40ce535",
+      "fiscales/ocr/core/tesseract-core-lstm.wasm.js": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
+      "fiscales/ocr/lang/spa.traineddata.gz": "40be52f97b5d4eb7460073dc1f94cd546b27150333c0bf854ed7e7132db6bceb"
     },
     "fiscal_ocr_recovery": {
       "date": "2026-10-08",
@@ -129,7 +177,8 @@
   "expected": {
     "index.html": "d1d3c9fece6a78c11001750fd97753547f852880f10079f01b06e3ca8e2c2538",
     ".htaccess": "e8374134cf2d9295803b945fa806105a367b882ee16a888a0e819e2b6852f49f",
-    "radar-app.html": "a146104eceaf816f8da575cf8b5d0e15d73ee6246ce795a32df0bde667ad3560",
-    "radar-release.json": "3115c9fafecb4cc1e9cbf634bcea3efdd527385de7e7630167e43096309ac89b"
+    "radar-app.html": "bd966ca23b3888cf0020cb25ebb10a53f6e8f6777eafdf784f47bf119b35a7a4",
+    "radar-release.json": "b94e30f6232585dcd320de0e3d4fbb388cd82ddb30329f7581eeac4fc217c016",
+    "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f"
   }
 }

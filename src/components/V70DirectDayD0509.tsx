@@ -679,7 +679,7 @@ function DayDContent() {
         </div>
         <a
           className="day-d-open-fiscal"
-          href={FISCAL_PORTAL_URL}
+          href={`${FISCAL_PORTAL_URL}/?v=20261013`}
           target="_blank"
           rel="noreferrer"
         >
