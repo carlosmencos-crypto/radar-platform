@@ -33,6 +33,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: recovery-source
+      - uses: actions/checkout@v4
+        with:
+          ref: 9b6f24e8226e1d84d05a977a39b36871f8687e98
+          path: fiscal-source
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -59,7 +63,9 @@ jobs:
           path: visual-location
           retention-days: 3
       - name: Prepare scoped release and verify JavaScript
-        run: python3 recovery-source/ops/contact-location/prepare.py main-source release-stage
+        run: |
+          python3 recovery-source/ops/contact-location/prepare.py main-source release-stage
+          python3 recovery-source/ops/contact-location/restore-fiscal.py fiscal-source release-stage
       - name: Publish with backup and unchanged-live-file guards
         shell: bash
         env:
@@ -107,6 +113,8 @@ jobs:
               if not already:
                 for name,want in plan['expected'].items():
                   assert sha(root/name)==want,'Live application changed; stop: '+name
+                for name in plan.get('missing',[]):
+                  assert not (root/name).exists(),'Fiscal portal changed during recovery'
                 backup=backup_root/('oct08-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ'))
                 backup.mkdir(mode=0o700)
                 originals={}
@@ -160,8 +168,13 @@ jobs:
           plan=json.load(open('release-stage/release-plan.json'))
           for name in ('radar-app.html','radar-release.json'):
             assert hashlib.sha256(fetch('/'+name+'?verify='+os.environ['GITHUB_RUN_ID'])).hexdigest()==plan['files'][name]
-          assert hashlib.sha256(fetch('/fiscales/index.html?verify='+os.environ['GITHUB_RUN_ID'])).hexdigest()==plan['expected']['fiscales/index.html']
+          assert hashlib.sha256(fetch('/fiscales/index.html?verify='+os.environ['GITHUB_RUN_ID'])).hexdigest()==plan['files']['fiscales/index.html']
           manifest=json.loads(fetch('/fiscales/fiscal-manifest.webmanifest'))
           assert manifest['scope']=='/fiscales/' and manifest['start_url']=='/fiscales/'
+          for name in plan['expected']:
+            if name in ('index.html',):
+              assert hashlib.sha256(fetch('/'+name+'?verify='+os.environ['GITHUB_RUN_ID'])).hexdigest()==plan['expected'][name]
           print('PUBLIC_FISCAL_PATH_VERIFIED')
           PYCODE
+      - name: Open fiscal portal in a fresh browser
+        run: node recovery-source/ops/contact-location/fiscal-smoke.mjs

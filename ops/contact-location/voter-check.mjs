@@ -36,7 +36,20 @@ export async function checkVoterRecord(page){
   assert.equal(await page.getByTestId('saved').textContent(),saved,'Cancel must preserve the saved image');
   await page.getByRole('button',{name:'Ajustar documento',exact:true}).click();
   await page.getByAltText('DPI enderezado y recortado').waitFor();
-  const handle=page.getByRole('button',{name:'Esquina 1 del documento'});const before=await handle.getAttribute('cx');await handle.focus();await page.keyboard.press('ArrowRight');assert.notEqual(await handle.getAttribute('cx'),before);
+  const handle=page.getByRole('button',{name:'Esquina 1 del documento'});const before=await handle.getAttribute('style');await handle.focus();await page.keyboard.press('ArrowRight');assert.notEqual(await handle.getAttribute('style'),before);
+  const handleBox=await handle.boundingBox();assert.ok(handleBox.width>=44&&handleBox.height>=44,'Touch target must be at least 44px');
+  const touchBefore=await handle.getAttribute('style');
+  // Real pointer drag is checked separately by the browser input pipeline.
+  await page.mouse.move(handleBox.x+22,handleBox.y+22);await page.mouse.down();await page.mouse.move(handleBox.x+35,handleBox.y+34,{steps:4});await page.mouse.up();
+  assert.notEqual(await handle.getAttribute('style'),touchBefore,'Dragging a corner must update the crop');
+  if(width===390){
+   const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+   const b=await handle.boundingBox();const prior=await handle.getAttribute('style');
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+22,y:b.y+22}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:b.x+42,y:b.y+38}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   assert.notEqual(await handle.getAttribute('style'),prior,'Actual touch drag must move the crop corner');await cdp.detach();
+  }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);
  }

@@ -127,9 +127,9 @@
     }
   },
   "expected": {
-    "radar-release.json": "a4b68504cc9cb43581a06ee2058994ad7b6b2ddf06e17ac8c781d1e90443d9af",
-    "radar-app.html": "262ad6ca85a073eb0380502a896cada78c5a0879336bb66303dbfc8775fc47c6",
-    "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f",
-    "assets/radar-access-gate-oct08-e8fb73294127544e.js": "e8fb73294127544ee14d3c9d6f2aa680e9c3f4d947b4f75b4c64105c5a597bec"
+    "index.html": "d1d3c9fece6a78c11001750fd97753547f852880f10079f01b06e3ca8e2c2538",
+    ".htaccess": "e8374134cf2d9295803b945fa806105a367b882ee16a888a0e819e2b6852f49f",
+    "radar-app.html": "a146104eceaf816f8da575cf8b5d0e15d73ee6246ce795a32df0bde667ad3560",
+    "radar-release.json": "3115c9fafecb4cc1e9cbf634bcea3efdd527385de7e7630167e43096309ac89b"
   }
 }
