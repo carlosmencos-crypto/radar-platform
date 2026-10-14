@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { withMunicipalScope } from "../data/municipalNavigation";
 import { Link } from "react-router-dom";
 import { useMunicipalityContext } from "../context/MunicipalityContext";
 import { ensureRadarAccessToken } from "../data/radarAuth";
@@ -314,7 +315,8 @@ function communityPoint(
 }
 
 export function V70OperationalMap() {
-  const { campaign_id, municipality_code, municipality_name } = useMunicipalityContext();
+  const { campaign_id, municipality_code, municipality_name, consumer } = useMunicipalityContext();
+  const scopedHref = useCallback((path: string) => withMunicipalScope(path, consumer.context.is_demo === true), [consumer.context.is_demo]);
   const runtime = getInstalledRadarRuntime(municipality_code);
   const geoBundle = getInstalledRadarGeoBundle(municipality_code);
   const voterCommunities =
@@ -706,7 +708,7 @@ export function V70OperationalMap() {
         });
       }
       if (selectedCommunity && !createMode) {
-        const directoryHref = `${import.meta.env.BASE_URL}municipio/${municipality_code}/directorio?community=${encodeURIComponent(selectedCommunity.community_label)}`;
+        const directoryHref = `${import.meta.env.BASE_URL.replace(/\/$/, "")}${scopedHref(`/municipio/${municipality_code}/directorio?community=${encodeURIComponent(selectedCommunity.community_label)}`)}`;
         const selectedMarker = L.circleMarker([selectedCommunity.lat, selectedCommunity.lon], {
           radius: 9,
           color: "#ffffff",
@@ -741,6 +743,7 @@ export function V70OperationalMap() {
       }
     });
   }, [
+    scopedHref,
     activityPoint,
     centers,
     createMode,
@@ -1062,7 +1065,7 @@ export function V70OperationalMap() {
             </b>
           </span>
           <Link
-            to={`/municipio/${municipality_code}/directorio?community=${encodeURIComponent(selectedCommunity.community_label)}`}
+            to={scopedHref(`/municipio/${municipality_code}/directorio?community=${encodeURIComponent(selectedCommunity.community_label)}`)}
           >
             Abrir Directorio filtrado
           </Link>
@@ -1073,7 +1076,7 @@ export function V70OperationalMap() {
             Ver electores
           </button>
           <Link
-            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedCommunity.community_label)}&lat=${selectedCommunity.lat}&lon=${selectedCommunity.lon}`}
+            to={scopedHref(`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedCommunity.community_label)}&lat=${selectedCommunity.lat}&lon=${selectedCommunity.lon}`)}
           >
             + Crear actividad aquí
           </Link>
@@ -1095,7 +1098,7 @@ export function V70OperationalMap() {
             <b>{selectedPlace.name}</b>
           </span>
           <Link
-            to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedPlace.name)}&lat=${selectedPlace.lat}&lon=${selectedPlace.lon}`}
+            to={scopedHref(`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(selectedPlace.name)}&lat=${selectedPlace.lat}&lon=${selectedPlace.lon}`)}
           >
             + Crear actividad aquí
           </Link>
@@ -1180,7 +1183,7 @@ export function V70OperationalMap() {
               </p>
               <span>Podés volver a activar “Nueva actividad” para mover el punto.</span>
               <Link
-                to={`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(activityPoint.label || "Punto exacto en el mapa")}&lat=${activityPoint.lat}&lon=${activityPoint.lon}`}
+                to={scopedHref(`/municipio/${municipality_code}/agenda?new=1&community=${encodeURIComponent(activityPoint.label || "Punto exacto en el mapa")}&lat=${activityPoint.lat}&lon=${activityPoint.lon}`)}
               >
                 Crear actividad aquí
               </Link>
@@ -1193,7 +1196,7 @@ export function V70OperationalMap() {
               <h3>{selectedActivity.title}</h3>
               <p>{selectedActivity.community || "Punto geolocalizado"}</p>
               <span>{selectedActivity.starts_at ? new Intl.DateTimeFormat("es-GT", { dateStyle: "medium", timeStyle: "short" }).format(new Date(selectedActivity.starts_at)) : "Sin fecha"}</span>
-              <Link to={`/municipio/${municipality_code}/agenda?activity=${selectedActivity.id}`}>Abrir en Agenda →</Link>
+              <Link to={scopedHref(`/municipio/${municipality_code}/agenda?activity=${selectedActivity.id}`)}>Abrir en Agenda →</Link>
             </article>
           ) : null}
           {mapAvailable ? <div

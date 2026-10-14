@@ -1,19 +1,19 @@
 {
   "gate": "/* Verify identity and municipal authorization before loading the existing app. */\nconst url='https://xxobbhnhxhcjkdxmjmwj.supabase.co';\nconst apikey='sb_publishable_dtvSaFdTJeZ1LAslek8Yjg_PVKGtDZn';\nconst key='radar-supabase-session-v1';\nconst entry='/assets/index-BNd4uyw5.js';\nconst municipal=location.pathname.match(/^\\/municipio\\/(\\d{4})(d)?(?:\\/|$)/)||location.pathname.match(/^\\/(\\d{4})(d)(?:\\/|$)/);\nconst protectedRoute=Boolean(municipal)||/^\\/(municipios|mis-municipios|demos)\\/?$/.test(location.pathname);\nlet loggingOut=false;\nfunction login(clear=true){if(loggingOut)return;if(clear)localStorage.removeItem(key);location.replace(`/?login=1&next=${encodeURIComponent(location.pathname+location.search)}`);}\nasync function verify(){\n if(!protectedRoute)return true;\n if(localStorage.getItem('radar-session-persistence')==='session'&&!sessionStorage.getItem('radar-session-tab')){login(false);return false;}\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{login();return false;}\n if(!session?.access_token){login();return false;}\n if(session.expires_at<=Date.now()+60000){\n  const renew=async()=>{\n   session=JSON.parse(localStorage.getItem(key)||'null');\n   if(!session?.access_token){login(false);return false;}\n   if(session.expires_at>Date.now()+60000)return true;\n   const previous=session.refresh_token;\n   const response=await fetch(`${url}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:previous})});\n   if(!response.ok){\n    const latest=JSON.parse(localStorage.getItem(key)||'null');\n    if(latest&&latest.refresh_token!==previous&&latest.expires_at>Date.now()){session=latest;return true;}\n    if([400,401,403].includes(response.status)){login(latest?.refresh_token===previous);return false;}\n    throw new Error('Session renewal temporarily unavailable');\n   }\n   const data=await response.json();session={access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+data.expires_in*1000,token_type:data.token_type};localStorage.setItem(key,JSON.stringify(session));return true;\n  };\n  if(!(navigator.locks?await navigator.locks.request('radar-auth-refresh',renew):await renew()))return false;\n }\n\n const headers={apikey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'};\n const identity=await fetch(`${url}/auth/v1/user`,{headers});if(!identity.ok){login();return false;}\n if(municipal){const demo=Boolean(municipal[2])||new URLSearchParams(location.search).get('demo')==='1';const response=await fetch(`${url}/rest/v1/rpc/radar_authorized_context_v2`,{method:'POST',headers,body:JSON.stringify({route_kind:demo?'demo':'municipality',route_key:municipal[1]})});const data=await response.json();if(!response.ok||!Array.isArray(data)||!data.length){showError('Tu cuenta no tiene acceso a este municipio.');return false;}}\n return true;\n}\nfunction showError(message){document.body.replaceChildren();const panel=document.createElement('main');panel.style.cssText='max-width:560px;margin:15vh auto;padding:32px;font:18px system-ui;line-height:1.7';const title=document.createElement('h1');title.textContent='Acceso RADAR';const description=document.createElement('p');description.textContent=message;const link=document.createElement('a');link.href='/?login=1';link.textContent='Volver al ingreso';panel.append(title,description,link);document.body.append(panel);}\nfunction logout(){\n if(loggingOut)return;\n loggingOut=true;\n let session;try{session=JSON.parse(localStorage.getItem(key)||'null');}catch{}\n localStorage.removeItem(key);\n localStorage.removeItem('radar-session-persistence');\n sessionStorage.removeItem('radar-session-tab');\n sessionStorage.removeItem('radar-supabase-callback-v1');\n // Send revocation without keeping the private app open or waiting on network latency.\n try{if(session?.access_token)void fetch(`${url}/auth/v1/logout?scope=local`,{method:'POST',headers:{apikey,Authorization:`Bearer ${session.access_token}`},keepalive:true}).catch(()=>{});}catch{}\n location.replace('/');\n}\ndocument.addEventListener('click',event=>{\n const element=event.target instanceof Element?event.target.closest('a,button'):null;\n if(!element)return;\n const label=(element.getAttribute('aria-label')||element.textContent||'').replace(/\\s+/g,' ').trim();\n if(label!=='Cerrar sesión'&&!element.getAttribute('href')?.includes('signout-with-chatgpt'))return;\n event.preventDefault();event.stopImmediatePropagation();logout();\n},true);\nwindow.addEventListener('pageshow',event=>{if(event.persisted&&protectedRoute)location.reload();});\ntry{if(await verify()&&!loggingOut)await import(entry);}catch(error){console.error('RADAR_BOOT_FAILED',error);showError('Tu acceso fue verificado, pero RADAR no pudo terminar de cargar. Recarga la página para intentarlo de nuevo.');}\n",
   "previous_release": {
-    "source_sha": "acee05da6994a0c73ef87851e5ec0c1150a63bba",
+    "source_sha": "28dc4eabfad46ebfa5dc8ebef045afb70f053c9e",
     "date": "2026-10-13",
-    "scope": "Restore approved fiscal portal and mobile DPI corner controls",
+    "scope": "Canonical fiscal button URL with explicit directory and recovery version",
     "environment": {
       "supabase_project": "xxobbhnhxhcjkdxmjmwj",
       "fiscal_portal_url": "https://radargt.wowlatam.com/fiscales"
     },
     "quality": {
       "checks": "170 tests, build, bundle, nested dialogs, document crop/review, print and responsive layout",
-      "workflow_run": "38342002706"
+      "workflow_run": "38343549563"
     },
     "files": {
-      "radar-app.html": "bd966ca23b3888cf0020cb25ebb10a53f6e8f6777eafdf784f47bf119b35a7a4",
+      "radar-app.html": "8f52eea58e58b9a6286ec9632c386b4bd2ba138915392a17bfa1fc3345f51797",
       "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f",
       "assets/inter-6e1a6b2b-Ai74Rjx-.woff2": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
       "assets/RtdActas-BNwvVVu3.js": "44fcf9090c5f4701ccbb40ec15376ecfe3c9af35dc21873ba14c540153c86d94",
@@ -160,7 +160,13 @@
       "fiscales/ocr/core/tesseract-core.wasm.js": "0bc6ce3e5fbbd0cd89706cf2fd70960e3372f4f01ee24265b26990808aaeb286",
       "fiscales/ocr/core/tesseract-core-relaxedsimd.wasm.js": "843074aa5bad1cc6421b74a86201768ced9f244795e4d81435435a61a40ce535",
       "fiscales/ocr/core/tesseract-core-lstm.wasm.js": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680",
-      "fiscales/ocr/lang/spa.traineddata.gz": "40be52f97b5d4eb7460073dc1f94cd546b27150333c0bf854ed7e7132db6bceb"
+      "fiscales/ocr/lang/spa.traineddata.gz": "40be52f97b5d4eb7460073dc1f94cd546b27150333c0bf854ed7e7132db6bceb",
+      "assets/RtdActas-BkMz4hjb.js": "565dc94949b9b48916cf551eb688fb5a685e3220f12931be24203486482c7d5c",
+      "assets/ResourceRecordSheet-Dmw1pNcm.js": "ba036e0f35d4d01be3b30827a6f2f3c83ef7968ceafe92896034f0a4bf5a1ae4",
+      "assets/index-wilAHzMS.js": "be4c362081070928278c678e5b716574b7b7696a9bee10c2837b90ece87ab73a",
+      "assets/VoterRecordSheet-ycH5kUHG.js": "b7f4261b1b7f86786bd660f0843b27aef186528582a13f3d15e6e9b87acc95d2",
+      "assets/ResourcePreview-zOUA08QC.js": "031a9b7f33d6c8f7a847ef61ae9fd86763825509862f1c77392eebd955ca6450",
+      "assets/radar-access-gate-oct08-7b7d171437957181.js": "7b7d171437957181d032d3004088b44fcde08823991d666f6e1c45bf89c79191"
     },
     "fiscal_ocr_recovery": {
       "date": "2026-10-08",
@@ -177,8 +183,8 @@
   "expected": {
     "index.html": "d1d3c9fece6a78c11001750fd97753547f852880f10079f01b06e3ca8e2c2538",
     ".htaccess": "e8374134cf2d9295803b945fa806105a367b882ee16a888a0e819e2b6852f49f",
-    "radar-app.html": "bd966ca23b3888cf0020cb25ebb10a53f6e8f6777eafdf784f47bf119b35a7a4",
-    "radar-release.json": "b94e30f6232585dcd320de0e3d4fbb388cd82ddb30329f7581eeac4fc217c016",
+    "radar-app.html": "8f52eea58e58b9a6286ec9632c386b4bd2ba138915392a17bfa1fc3345f51797",
+    "radar-release.json": "eb294cea00422745af9ddd212db7a0ce7ec9651cc623bbd181517b72dfe5e247",
     "fiscales/index.html": "782ad9db6d9de1177b12e595023dfa6d34b5554649284b18c5e6977fe4839c4f"
   }
 }
